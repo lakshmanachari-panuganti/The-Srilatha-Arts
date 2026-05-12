@@ -78,10 +78,13 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PRD }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
-          app_location: ${{ env.WORKING_DIRECTORY }}
-          # Next.js `output: 'export'` writes static HTML to `frontend/out/`.
-          # The SWA action treats output_location as relative to app_location.
-          output_location: out
+          # When `skip_app_build: true`, the SWA action ignores `output_location`
+          # and treats `app_location` itself as the artifact folder. So we point
+          # straight at Next.js's static export output (`frontend/out/`).
+          app_location: ${{ env.WORKING_DIRECTORY }}/out
+          # The SWA routing config lives at frontend/staticwebapp.config.json,
+          # outside the build output. Tell the action where to find it.
+          config_file_location: ${{ env.WORKING_DIRECTORY }}
           skip_app_build: true
           skip_api_build: true
           production_branch: main
