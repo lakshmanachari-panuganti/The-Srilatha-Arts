@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary-dark: #8B3A0E;
+    --color-primary-burnt: #A14B1A;
+    --color-gold: #D4AF37;
+    --color-gold-light: #F4E5B0;
+    --color-cream: #FFF8F0;
+    --color-ink: #1A0F08;
+    --banner-h: 0px;
+    --header-h: 56px;
+    --tab-h: 64px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-primary-dark text-cream font-sans antialiased;
+    min-height: 100svh;
+    background-image:
+      radial-gradient(ellipse at top, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom, rgba(161, 75, 26, 0.15) 0%, transparent 60%);
+    background-attachment: fixed;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: theme('backgroundImage.grain');
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: overlay;
+  }
+
+  ::selection {
+    @apply bg-gold/30 text-cream;
+  }
+
+  /* Prevent layout shift from scrollbar */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  /* Tap highlight cleanup for mobile */
+  a, button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Reduced-motion safety net */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .gold-text {
+    background: linear-gradient(135deg, #F4E5B0 0%, #D4AF37 50%, #B8941F 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 min-h-11 px-6
+           font-medium tracking-wide transition-all duration-300
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-primary-dark
+           active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-gold {
+    @apply btn bg-gradient-to-br from-gold-light via-gold to-gold-dark text-primary-dark
+           shadow-lg shadow-gold/20 hover:shadow-gold/40 rounded-full;
+  }
+
+  .btn-outline {
+    @apply btn border border-gold/40 text-gold hover:bg-gold/10 rounded-full;
+  }
+
+  .btn-ghost {
+    @apply btn text-cream/70 hover:text-cream;
+  }
+
+  .card-glass {
+    @apply bg-primary-dark/40 backdrop-blur-xl border border-gold/15 rounded-2xl;
+  }
+
+  .shimmer-bg {
+    background: linear-gradient(90deg,
+      rgba(212, 175, 55, 0) 0%,
+      rgba(244, 229, 176, 0.4) 50%,
+      rgba(212, 175, 55, 0) 100%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  .pause-on-hover:hover {
+    animation-play-state: paused;
+  }
+
+  /* Sticky bottom CTA — safe area aware */
+  .sticky-cta {
+    position: sticky;
+    bottom: 0;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Horizontal-scroll chip rail */
+  .chip-rail {
+    @apply flex gap-2 overflow-x-auto snap-x snap-mandatory
+           -mx-5 px-5 pb-1 scrollbar-hide;
+    scroll-padding: 1.25rem;
+  }
+  .chip-rail > * {
+    @apply snap-start shrink-0;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 h-10 px-4 rounded-full
+           border border-gold/20 text-cream/80 text-sm
+           hover:border-gold/50 hover:text-cream transition-colors
+           active:bg-gold/10;
+  }
+  .chip[aria-current='page'],
+  .chip.is-active {
+    @apply bg-gold/15 border-gold text-gold;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-pb {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .safe-pt {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  /* Mobile-first viewport unit — fixes iOS Safari URL-bar jump */
+  .min-h-svh {
+    min-height: 100svh;
+  }
+}
