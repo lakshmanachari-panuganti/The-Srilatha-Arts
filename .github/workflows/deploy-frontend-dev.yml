@@ -17,7 +17,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20'
+  # Node 22 = current LTS ("Jod"). Node 20 entered Maintenance in Oct 2025.
+  # See https://endoflife.date/nodejs
+  NODE_VERSION: '22'
   WORKING_DIRECTORY: frontend
   API_BASE_URL: https://func-thesrilathaarts-dev.azurewebsites.net/api
   SITE_URL: https://delightful-mushroom-062e18100.7.azurestaticapps.net
@@ -41,8 +43,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/package-lock.json
+          # NPM cache intentionally disabled: package-lock.json does not yet exist
+          # in the repo, so setup-node's cache step errors with
+          # "Some specified paths were not resolved, unable to cache dependencies."
+          # Once `npm install` has run once and a lockfile is committed,
+          # re-enable with: `cache: npm` + `cache-dependency-path: frontend/package-lock.json`.
 
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
