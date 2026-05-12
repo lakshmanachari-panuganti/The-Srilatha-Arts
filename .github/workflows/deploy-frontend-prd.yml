@@ -79,7 +79,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: ${{ env.WORKING_DIRECTORY }}
-          output_location: .next
+          # Next.js `output: 'export'` writes static HTML to `frontend/out/`.
+          # The SWA action treats output_location as relative to app_location.
+          output_location: out
           skip_app_build: true
           skip_api_build: true
           production_branch: main

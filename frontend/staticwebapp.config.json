@@ -1,7 +1,4 @@
 {
-  "platform": {
-    "apiRuntime": "node:22"
-  },
   "routes": [
     {
       "route": "/admin/*",
@@ -13,8 +10,13 @@
     }
   ],
   "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,svg,webp,avif}", "/_next/*", "/api/*"]
+    "rewrite": "/404.html",
+    "exclude": [
+      "/_next/*",
+      "/images/*",
+      "/icons/*",
+      "*.{css,js,json,svg,png,jpg,jpeg,webp,avif,ico,woff,woff2,ttf,webmanifest,xml,txt,mp4}"
+    ]
   },
   "globalHeaders": {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
