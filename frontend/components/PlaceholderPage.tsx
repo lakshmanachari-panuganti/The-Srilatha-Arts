@@ -18,28 +18,26 @@ export default function PlaceholderPage({
   primaryHref = '/shop',
   primaryLabel = 'Browse the shop',
 }: Props) {
-  const titleWords = goldWord
-    ? title.split(goldWord)
-    : null
+  const titleWords = goldWord ? title.split(goldWord) : null
 
   return (
-    <main className="min-h-svh max-w-3xl mx-auto px-5 py-16 lg:py-28 text-center">
-      <p className="text-[11px] uppercase tracking-[0.3em] text-gold-light/70 mb-3">
-        {eyebrow}
-      </p>
-      <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-cream leading-tight mb-5">
+    <main className="min-h-svh max-w-3xl mx-auto px-5 py-20 lg:py-32 text-center">
+      <p className="eyebrow justify-center mb-4">{eyebrow}</p>
+      <h1 className="display text-4xl md:text-5xl lg:text-7xl mb-6">
         {titleWords ? (
           <>
             {titleWords[0]}
-            <span className="gold-text">{goldWord}</span>
+            <em className="italic">{goldWord}</em>
             {titleWords[1]}
           </>
         ) : (
           title
         )}
       </h1>
-      <p className="text-cream/65 leading-relaxed mb-8 max-w-xl mx-auto">{description}</p>
-      <Link href={primaryHref} className="btn-gold">
+      <p className="text-ink-soft leading-relaxed mb-10 max-w-reader mx-auto text-base lg:text-lg">
+        {description}
+      </p>
+      <Link href={primaryHref} className="btn-dark">
         {primaryLabel}
         <ArrowRight className="w-4 h-4" aria-hidden />
       </Link>

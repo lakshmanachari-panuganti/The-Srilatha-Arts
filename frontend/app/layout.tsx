@@ -53,29 +53,29 @@ export const metadata: Metadata = {
     description:
       'Bespoke handcrafted Dot Mandala, Resin, Lippan, Pichwai and Kolam art — made by hand in Hyderabad.',
     images: [
-      { url: '/images/logo-horizontal.png', width: 1200, height: 630, alt: 'The Srilatha Arts' },
+      { url: '/images/logo.png', width: 1200, height: 630, alt: 'The Srilatha Arts' },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'The Srilatha Arts',
     description: 'Where Tradition Meets Creativity',
-    images: ['/images/logo-horizontal.png'],
+    images: ['/images/logo.png'],
   },
   icons: {
-    icon: '/images/logo-round.png',
-    apple: '/images/logo-round.png',
+    icon: '/images/logo.png',
+    apple: '/images/logo.png',
   },
   manifest: '/manifest.webmanifest',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#8B3A0E',
+  themeColor: '#FAF6EE',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
-  colorScheme: 'dark',
+  colorScheme: 'light',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -85,7 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100]
-                     focus:bg-gold focus:text-primary-dark focus:px-4 focus:py-2 focus:rounded-full"
+                     focus:bg-ink focus:text-cream focus:px-4 focus:py-2 focus:rounded-full"
         >
           Skip to content
         </a>

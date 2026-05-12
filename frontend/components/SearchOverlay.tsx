@@ -53,28 +53,28 @@ export default function SearchOverlay() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[80] bg-ink/90 backdrop-blur-md"
+          className="fixed inset-0 z-[80] bg-cream/98 backdrop-blur-md"
           role="dialog"
           aria-modal="true"
           aria-label="Search"
         >
-          <div className="max-w-2xl mx-auto px-4 pt-6 sm:pt-12 safe-pt">
-            <div className="flex items-center gap-3 mb-5">
-              <SearchIcon className="w-5 h-5 text-gold shrink-0" aria-hidden />
+          <div className="max-w-2xl mx-auto px-5 pt-8 sm:pt-14 safe-pt">
+            <div className="flex items-center gap-3 mb-6">
+              <SearchIcon className="w-5 h-5 text-terracotta shrink-0" aria-hidden />
               <input
                 id="tsa-search-input"
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search products, art forms, occasions…"
-                className="flex-1 bg-transparent border-b border-gold/30 focus:border-gold
-                           outline-none text-cream placeholder:text-cream/40 py-2 text-base"
+                className="flex-1 bg-transparent border-b border-ink/20 focus:border-ink
+                           outline-none text-ink placeholder:text-ink-mute py-2 text-lg font-serif"
               />
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close search"
                 className="min-h-11 min-w-11 -mr-2 flex items-center justify-center
-                           text-cream/70 hover:text-gold"
+                           text-ink-mute hover:text-ink"
               >
                 <X className="w-5 h-5" aria-hidden />
               </button>
@@ -82,48 +82,42 @@ export default function SearchOverlay() {
 
             {q.trim() === '' ? (
               <div>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-gold-light/60 mb-3">
-                  Popular
-                </p>
+                <p className="eyebrow mb-3">Popular</p>
                 <div className="flex flex-wrap gap-2">
                   {popular.map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setQ(p)}
-                      className="chip"
-                    >
+                    <button key={p} onClick={() => setQ(p)} className="chip">
                       {p}
                     </button>
                   ))}
                 </div>
               </div>
             ) : results.length === 0 ? (
-              <p className="text-cream/60 py-8 text-center">
+              <p className="text-ink-mute py-10 text-center font-serif text-lg italic">
                 No matches yet. Try a different word.
               </p>
             ) : (
-              <ul className="divide-y divide-gold/10">
+              <ul className="divide-y divide-ink/8">
                 {results.map((p) => (
                   <li key={p.id}>
                     <Link
                       href={`/product/${p.id}`}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 py-3 hover:bg-gold/5 -mx-2 px-2 rounded-lg"
+                      className="flex items-center gap-3 py-3 hover:bg-cream-deep -mx-2 px-2 rounded-xl transition-colors"
                     >
                       <Image
                         src={p.images[0]}
                         alt=""
                         width={56}
                         height={56}
-                        className="w-14 h-14 object-cover rounded-lg bg-cream/5"
+                        className="w-14 h-14 object-contain p-2 rounded-xl bg-cream-deep"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-cream truncate">{p.title}</p>
-                        <p className="text-xs text-cream/50 capitalize">
+                        <p className="text-ink font-serif text-base truncate">{p.title}</p>
+                        <p className="text-xs text-ink-mute capitalize">
                           {p.category.replace('-', ' ')} · {formatINR(p.price)}
                         </p>
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-gold/60" aria-hidden />
+                      <ArrowUpRight className="w-4 h-4 text-ink-mute" aria-hidden />
                     </Link>
                   </li>
                 ))}

@@ -34,24 +34,29 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <>
       <CategoryChips />
-      <header className="relative px-5 lg:px-8 pt-8 lg:pt-16 pb-6 lg:pb-12 max-w-7xl mx-auto">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-gold-light/70 mb-2">
-          The Srilatha Arts presents
+      <header className="px-5 lg:px-8 pt-12 lg:pt-20 pb-8 lg:pb-14 max-w-6xl mx-auto">
+        <p className="eyebrow mb-4">
+          <span className="section-no text-terracotta">
+            {String(cat.ordinal).padStart(3, '0')}
+          </span>
+          The collection
         </p>
-        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-cream mb-3">
+        <h1 className="display text-4xl md:text-5xl lg:text-7xl mb-5">
           {cat.title.split(' ').slice(0, -1).join(' ')}{' '}
-          <span className="gold-text">{cat.title.split(' ').slice(-1)}</span>
+          <em className="italic">{cat.title.split(' ').slice(-1)}</em>
         </h1>
-        <p className="text-cream/70 max-w-xl leading-relaxed mb-2">{cat.origin}</p>
-        <p className="text-cream/45 text-sm">
+        <p className="text-ink-soft max-w-xl leading-relaxed text-base lg:text-lg mb-3">
+          {cat.origin}
+        </p>
+        <p className="text-ink-mute text-sm">
           {products.length} {products.length === 1 ? 'piece' : 'pieces'} ·{' '}
-          <Link href="/the-craft" className="text-gold hover:underline">
+          <Link href="/the-craft" className="text-terracotta hover:underline">
             learn how it&apos;s made
           </Link>
         </p>
       </header>
 
-      <div className="max-w-7xl mx-auto py-4 lg:py-8">
+      <div className="max-w-6xl mx-auto py-6 lg:py-10">
         <ProductGrid products={products} />
       </div>
     </>

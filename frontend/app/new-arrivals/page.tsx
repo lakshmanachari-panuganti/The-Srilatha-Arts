@@ -13,15 +13,13 @@ export default function NewArrivalsPage() {
   return (
     <>
       <CategoryChips />
-      <header className="px-5 lg:px-8 pt-6 pb-2 max-w-7xl mx-auto">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-gold-light/70 mb-1">
-          Just off the bench
-        </p>
-        <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-cream">
-          New <span className="gold-text">arrivals</span>
+      <header className="px-5 lg:px-8 pt-10 pb-2 max-w-6xl mx-auto">
+        <p className="eyebrow mb-3">Just off the bench</p>
+        <h1 className="display text-4xl md:text-5xl lg:text-7xl">
+          New <em className="italic">arrivals</em>
         </h1>
       </header>
-      <div className="max-w-7xl mx-auto py-6 lg:py-10">
+      <div className="max-w-6xl mx-auto py-8 lg:py-14">
         <ProductGrid products={products} />
       </div>
     </>

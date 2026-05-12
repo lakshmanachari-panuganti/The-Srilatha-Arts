@@ -13,18 +13,16 @@ export default function ShopPage() {
   return (
     <>
       <CategoryChips />
-      <header className="px-5 lg:px-8 pt-6 pb-2 max-w-7xl mx-auto">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-gold-light/70 mb-1">
-          The collection
-        </p>
-        <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-cream">
-          All <span className="gold-text">creations</span>
+      <header className="px-5 lg:px-8 pt-10 pb-2 max-w-6xl mx-auto">
+        <p className="eyebrow mb-3">The collection</p>
+        <h1 className="display text-4xl md:text-5xl lg:text-7xl">
+          All <em className="italic">creations</em>
         </h1>
-        <p className="text-cream/55 text-sm mt-2">
+        <p className="text-ink-mute text-sm mt-3">
           {PRODUCTS.length} pieces · handcrafted, one at a time
         </p>
       </header>
-      <div className="max-w-7xl mx-auto py-6 lg:py-10">
+      <div className="max-w-6xl mx-auto py-8 lg:py-14">
         <ProductGrid products={PRODUCTS} />
       </div>
     </>

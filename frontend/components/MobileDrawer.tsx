@@ -3,53 +3,15 @@ import { Fragment } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { X, ChevronRight, MessageCircle } from 'lucide-react'
+import { X, MessageCircle, Instagram } from 'lucide-react'
 import { useUI } from '@/stores/ui'
 import { CATEGORIES } from '@/data/categories'
 
-const sections = [
-  {
-    title: 'Shop',
-    links: [
-      { href: '/shop', label: 'All Products' },
-      ...CATEGORIES.map((c) => ({ href: `/shop/${c.slug}`, label: c.title })),
-    ],
-  },
-  {
-    title: 'Discover',
-    links: [
-      { href: '/new-arrivals', label: 'New Arrivals' },
-      { href: '/best-sellers', label: 'Best Sellers' },
-      { href: '/collections', label: 'Collections' },
-      { href: '/sale', label: 'Sale' },
-    ],
-  },
-  {
-    title: 'The Craft',
-    links: [
-      { href: '/the-craft', label: "How It's Made" },
-      { href: '/care-guide', label: 'Care Guide' },
-      { href: '/our-story', label: 'Our Story' },
-      { href: '/journal', label: 'Journal' },
-    ],
-  },
-  {
-    title: 'Help',
-    links: [
-      { href: '/faq', label: 'FAQ' },
-      { href: '/shipping-and-returns', label: 'Shipping & Returns' },
-      { href: '/contact', label: 'Contact' },
-    ],
-  },
-  {
-    title: 'My Account',
-    links: [
-      { href: '/account', label: 'Profile' },
-      { href: '/account/orders', label: 'Orders' },
-      { href: '/account/addresses', label: 'Addresses' },
-      { href: '/login', label: 'Sign In' },
-    ],
-  },
+const primaryLinks = [
+  { href: '/shop', label: 'Shop' },
+  { href: '/custom-order', label: 'Custom Order' },
+  { href: '/our-story', label: 'Our Story' },
+  { href: '/contact', label: 'Contact' },
 ] as const
 
 export default function MobileDrawer() {
@@ -66,7 +28,7 @@ export default function MobileDrawer() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[70] bg-ink/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] bg-ink/40 backdrop-blur-sm"
             aria-hidden
           />
           <motion.aside
@@ -76,63 +38,104 @@ export default function MobileDrawer() {
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
-            transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-            className="fixed top-0 bottom-0 left-0 z-[71] w-[88vw] max-w-sm
-                       bg-primary-dark border-r border-gold/15 overflow-y-auto safe-pt"
+            transition={{ duration: 0.34, ease: [0.32, 0.72, 0, 1] }}
+            className="fixed top-0 bottom-0 left-0 z-[71] w-[86vw] max-w-sm
+                       bg-cream border-r border-ink/8 overflow-y-auto safe-pt"
           >
             <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4
-                            bg-primary-dark/95 backdrop-blur-xl border-b border-gold/10">
-              <Image
-                src="/images/logo-horizontal.png"
-                alt="The Srilatha Arts"
-                width={130}
-                height={32}
-                className="h-7 w-auto"
-              />
+                            bg-cream/95 backdrop-blur-xl border-b border-ink/8">
+              <Link
+                href="/"
+                onClick={() => setOpen(false)}
+                aria-label="The Srilatha Arts — home"
+                className="flex items-center gap-2"
+              >
+                <Image src="/images/logo.png" alt="" width={40} height={40} className="w-10 h-10" />
+                <span className="font-serif text-lg leading-none text-ink">
+                  The <span className="terracotta-text">Srilatha</span> Arts
+                </span>
+              </Link>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
                 className="min-h-11 min-w-11 flex items-center justify-center
-                           text-cream/70 hover:text-gold"
+                           text-ink-mute hover:text-ink"
               >
                 <X className="w-5 h-5" aria-hidden />
               </button>
             </div>
 
-            <nav className="px-5 py-4 space-y-6">
-              {sections.map((section) => (
-                <div key={section.title}>
-                  <p className="text-[11px] tracking-[0.25em] uppercase text-gold-light/60 mb-2">
-                    {section.title}
-                  </p>
-                  <ul>
-                    {section.links.map((l) => (
-                      <li key={l.href}>
-                        <Link
-                          href={l.href}
-                          onClick={() => setOpen(false)}
-                          className="flex items-center justify-between py-3 -mx-2 px-2 rounded-lg
-                                     text-cream/90 hover:bg-gold/5 hover:text-gold transition-colors"
-                        >
-                          <span className="text-[15px]">{l.label}</span>
-                          <ChevronRight className="w-4 h-4 opacity-40" aria-hidden />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            <nav className="px-5 py-8">
+              <ul className="space-y-1 mb-10">
+                {primaryLinks.map((l) => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      onClick={() => setOpen(false)}
+                      className="block py-3 font-serif text-3xl text-ink hover:text-terracotta transition-colors"
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="eyebrow mb-3">By art form</p>
+              <ul className="space-y-1 mb-10">
+                {CATEGORIES.map((c) => (
+                  <li key={c.slug}>
+                    <Link
+                      href={`/shop/${c.slug}`}
+                      onClick={() => setOpen(false)}
+                      className="block py-2 text-base text-ink-soft hover:text-terracotta transition-colors"
+                    >
+                      {c.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              <p className="eyebrow mb-3">Account</p>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    href="/account"
+                    onClick={() => setOpen(false)}
+                    className="block py-2 text-base text-ink-soft hover:text-terracotta transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/account/wishlist"
+                    onClick={() => setOpen(false)}
+                    className="block py-2 text-base text-ink-soft hover:text-terracotta transition-colors"
+                  >
+                    Wishlist
+                  </Link>
+                </li>
+              </ul>
             </nav>
 
-            <div className="px-5 py-6 mt-2 border-t border-gold/10 safe-pb">
+            <div className="px-5 py-6 mt-2 border-t border-ink/8 safe-pb">
               <a
                 href="https://wa.me/919999999999"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-outline w-full justify-center text-cream border-cream/20"
+                className="btn-dark w-full justify-center"
               >
                 <MessageCircle className="w-4 h-4" aria-hidden />
-                WhatsApp Us
+                WhatsApp us
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 text-sm text-ink-mute hover:text-terracotta"
+              >
+                <Instagram className="w-4 h-4" aria-hidden />
+                @thesrilathaarts
               </a>
             </div>
           </motion.aside>
