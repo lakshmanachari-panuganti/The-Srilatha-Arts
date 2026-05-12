@@ -24,7 +24,7 @@ export default function BottomTabBar() {
     <nav
       aria-label="Primary"
       className="lg:hidden fixed bottom-0 inset-x-0 z-40
-                 bg-primary-dark/92 backdrop-blur-xl border-t border-gold/15
+                 bg-cream/95 backdrop-blur-xl border-t border-ink/10
                  safe-pb"
     >
       <ul className="grid grid-cols-5 h-16">
@@ -39,7 +39,7 @@ export default function BottomTabBar() {
                 className={cn(
                   'flex flex-col items-center justify-center gap-1 w-full',
                   'text-[10px] font-medium transition-all duration-200',
-                  active ? 'text-gold' : 'text-cream/60',
+                  active ? 'text-terracotta' : 'text-ink-mute',
                   raised && '-mt-5',
                 )}
               >
@@ -49,8 +49,7 @@ export default function BottomTabBar() {
                     raised
                       ? cn(
                           'w-12 h-12 rounded-full flex items-center justify-center',
-                          'bg-gradient-to-br from-gold-light via-gold to-gold-dark',
-                          'text-primary-dark shadow-lg shadow-gold/30',
+                          'bg-ink text-cream shadow-card',
                           active && 'scale-110',
                         )
                       : active

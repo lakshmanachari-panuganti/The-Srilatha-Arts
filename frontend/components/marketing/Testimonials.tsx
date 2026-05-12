@@ -6,7 +6,7 @@ const reviews = [
     location: 'Mumbai',
     rating: 5,
     quote:
-      'My Lippan piece arrived in a velvet box, hand-wrapped with a note. The mirrors catch the lamp every evening — it is the soul of the room.',
+      'My Lippan piece arrived hand-wrapped with a note. The mirrors catch the lamp every evening — it is the soul of the room.',
     art: 'Lippan Art',
   },
   {
@@ -29,25 +29,27 @@ const reviews = [
 
 export default function Testimonials() {
   return (
-    <section className="py-12 lg:py-20 max-w-7xl mx-auto">
-      <div className="px-5 lg:px-8 mb-6 lg:mb-12 text-center">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-gold-light/70 mb-2">
+    <section className="px-5 lg:px-8 py-16 lg:py-28 max-w-6xl mx-auto">
+      <div className="mb-10 lg:mb-14 max-w-2xl">
+        <p className="eyebrow mb-4">
+          <span className="section-no text-terracotta">005</span>
           Words from collectors
         </p>
-        <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-cream">
-          What our <span className="gold-text">community says</span>
+        <h2 className="display text-4xl lg:text-6xl">
+          What our <em className="italic">community</em> says.
         </h2>
       </div>
 
+      {/* Mobile carousel */}
       <div className="lg:hidden">
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-2 scrollbar-hide">
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-5 px-5 scrollbar-hide">
           {reviews.map((r) => (
             <ReviewCard key={r.name} {...r} />
           ))}
           <div className="shrink-0 w-2" aria-hidden />
         </div>
       </div>
-      <div className="hidden lg:grid grid-cols-3 gap-6 px-5 lg:px-8">
+      <div className="hidden lg:grid grid-cols-3 gap-7">
         {reviews.map((r) => (
           <ReviewCard key={r.name} {...r} />
         ))}
@@ -70,18 +72,22 @@ function ReviewCard({
   art: string
 }) {
   return (
-    <article className="card-glass w-[85vw] sm:w-96 lg:w-auto shrink-0 snap-start p-6 lg:p-7">
-      <Quote className="w-6 h-6 text-gold/50 mb-3" aria-hidden />
-      <p className="text-cream/85 leading-relaxed text-[15px] mb-4">&ldquo;{quote}&rdquo;</p>
+    <article className="card w-[80vw] sm:w-96 lg:w-auto shrink-0 snap-start p-7 lg:p-8 flex flex-col">
+      <Quote className="w-7 h-7 text-terracotta/60 mb-4" aria-hidden />
+      <p className="font-serif text-lg lg:text-xl text-ink leading-relaxed mb-5 flex-1">
+        &ldquo;{quote}&rdquo;
+      </p>
       <div className="flex items-center gap-1 mb-3" aria-label={`Rated ${rating} out of 5`}>
         {Array.from({ length: rating }).map((_, i) => (
           <Star key={i} className="w-3.5 h-3.5 fill-gold text-gold" aria-hidden />
         ))}
       </div>
-      <p className="text-sm text-cream font-medium">{name}</p>
-      <p className="text-xs text-cream/55">
-        {location} · {art}
-      </p>
+      <div className="pt-4 border-t border-ink/10">
+        <p className="text-sm text-ink font-medium">{name}</p>
+        <p className="text-xs text-ink-mute mt-0.5">
+          {location} · {art}
+        </p>
+      </div>
     </article>
   )
 }

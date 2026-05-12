@@ -7,7 +7,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Liquid glass, captured forever',
     origin:
       'Translucent layers poured by hand — each piece a frozen river of color, light and ocean depth.',
-    heroImage: '/images/logo-round.png',
+    heroImage: '/images/logo.png',
     ordinal: 1,
   },
   {
@@ -16,7 +16,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Meditation, one dot at a time',
     origin:
       'Concentric patterns built dot by dot, a meditative geometry inspired by sacred Indian rangoli.',
-    heroImage: '/images/logo-round.png',
+    heroImage: '/images/logo.png',
     ordinal: 2,
   },
   {
@@ -25,7 +25,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Mud, mirror and memory from Kutch',
     origin:
       'A 400-year-old craft from the salt deserts of Kutch — clay reliefs studded with tiny mirrors that catch the lamp.',
-    heroImage: '/images/logo-round.png',
+    heroImage: '/images/logo.png',
     ordinal: 3,
   },
   {
@@ -34,7 +34,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Devotional tapestries from Nathdwara',
     origin:
       'Hand-painted depictions of Lord Shrinathji — lotus, cow and peacock motifs in jewel tones.',
-    heroImage: '/images/logo-round.png',
+    heroImage: '/images/logo.png',
     ordinal: 4,
   },
   {
@@ -43,7 +43,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Threshold prayers in white',
     origin:
       'South Indian rice-flour patterns reimagined as enduring wall art — a daily blessing made permanent.',
-    heroImage: '/images/logo-round.png',
+    heroImage: '/images/logo.png',
     ordinal: 5,
   },
 ]

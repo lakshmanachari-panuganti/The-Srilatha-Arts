@@ -15,8 +15,11 @@ export default function CategoryChips() {
   const pathname = usePathname() || '/'
 
   return (
-    <nav aria-label="Categories" className="sticky top-[calc(var(--banner-h)+3.5rem)] lg:top-[calc(var(--banner-h)+4rem)] z-30 bg-primary-dark/80 backdrop-blur-xl border-b border-gold/10">
-      <div className="chip-rail py-3 lg:py-4 max-w-7xl mx-auto lg:px-8">
+    <nav
+      aria-label="Categories"
+      className="sticky top-[calc(var(--banner-h)+4rem)] lg:top-[calc(var(--banner-h)+5rem)] z-30 bg-cream/85 backdrop-blur-xl border-b border-ink/8"
+    >
+      <div className="chip-rail py-3 lg:py-4 max-w-6xl mx-auto lg:px-8">
         {chips.map((c) => {
           const active =
             c.href === '/shop'

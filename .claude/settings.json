@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm install *)",
       "Bash(npx tsc *)",
-      "PowerShell(Get-Command New-AzStaticWebApp | Select-Object -ExpandProperty Parameters | ForEach-Object { $_.Keys } | Sort-Object)"
+      "PowerShell(Get-Command New-AzStaticWebApp | Select-Object -ExpandProperty Parameters | ForEach-Object { $_.Keys } | Sort-Object)",
+      "WebFetch(domain:nixtio.com)",
+      "WebFetch(domain:proud-flower-011298700.7.azurestaticapps.net)"
     ]
   }
 }

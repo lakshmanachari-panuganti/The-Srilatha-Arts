@@ -15,16 +15,15 @@ export default function KolamLoader({
       aria-label={label}
       className={cn(
         'flex flex-col items-center justify-center gap-4',
-        fullScreen ? 'min-h-svh' : 'py-12',
+        fullScreen ? 'min-h-svh' : 'py-14',
       )}
     >
       <svg
         viewBox="0 0 100 100"
-        className="w-20 h-20 text-gold animate-spin-slow"
+        className="w-20 h-20 text-terracotta"
         style={{ animation: 'spin 6s linear infinite' }}
         aria-hidden
       >
-        {/* Dots in a kolam pattern */}
         {Array.from({ length: 8 }).map((_, i) => {
           const angle = (i / 8) * Math.PI * 2
           const x = 50 + Math.cos(angle) * 30
@@ -52,7 +51,7 @@ export default function KolamLoader({
           opacity="0.4"
         />
       </svg>
-      <p className="text-cream/60 text-sm tracking-wide">{label}</p>
+      <p className="text-ink-mute text-sm tracking-wide">{label}</p>
     </div>
   )
 }

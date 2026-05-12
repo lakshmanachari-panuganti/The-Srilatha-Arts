@@ -18,21 +18,10 @@ const columns = [
     ],
   },
   {
-    title: 'Discover',
-    links: [
-      { href: '/new-arrivals', label: 'New Arrivals' },
-      { href: '/best-sellers', label: 'Best Sellers' },
-      { href: '/collections', label: 'Collections' },
-      { href: '/sale', label: 'Sale' },
-      { href: '/custom-order', label: 'Custom Order' },
-    ],
-  },
-  {
     title: 'About',
     links: [
       { href: '/our-story', label: 'Our Story' },
       { href: '/the-craft', label: 'The Craft' },
-      { href: '/journal', label: 'Journal' },
       { href: '/reviews', label: 'Reviews' },
     ],
   },
@@ -51,18 +40,16 @@ const columns = [
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 border-t border-gold/15 bg-primary-dark/40 mt-16">
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 py-10 lg:py-16">
+    <footer className="relative z-10 bg-cream-deep border-t border-ink/8 mt-20">
+      <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}
-        <div className="text-center max-w-xl mx-auto mb-10 lg:mb-14">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-gold-light/70 mb-3">
-            Join the circle
-          </p>
-          <h3 className="font-serif text-2xl lg:text-3xl mb-3">
-            Stories from the <span className="gold-text">studio</span>
+        <div className="text-center max-w-xl mx-auto mb-14 lg:mb-20">
+          <p className="eyebrow justify-center mb-4">Join the circle</p>
+          <h3 className="display text-3xl lg:text-4xl mb-3">
+            Stories from the <em className="italic">studio</em>
           </h3>
-          <p className="text-cream/60 text-sm lg:text-base mb-5">
-            New collections, behind-the-scenes craft notes, and the occasional discount. No spam.
+          <p className="text-ink-soft text-sm lg:text-base mb-6">
+            New collections, behind-the-scenes notes, and the occasional discount. No spam.
           </p>
           <form
             className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
@@ -70,7 +57,7 @@ export default function Footer() {
           >
             <div className="relative flex-1">
               <Mail
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cream/40"
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-mute"
                 aria-hidden
               />
               <input
@@ -79,28 +66,26 @@ export default function Footer() {
                 placeholder="your@email.com"
                 aria-label="Email address"
                 className="w-full h-12 pl-11 pr-4 rounded-full
-                           bg-cream/5 border border-gold/20 focus:border-gold
-                           text-cream placeholder:text-cream/40 outline-none transition-colors"
+                           bg-paper border border-ink/15 focus:border-ink
+                           text-ink placeholder:text-ink-mute outline-none transition-colors"
               />
             </div>
-            <button type="submit" className="btn-gold whitespace-nowrap">
+            <button type="submit" className="btn-dark whitespace-nowrap">
               Subscribe
               <Send className="w-4 h-4" aria-hidden />
             </button>
           </form>
         </div>
 
-        {/* Mobile: accordions / Desktop: columns */}
         <div className="lg:grid lg:grid-cols-5 lg:gap-10 lg:items-start">
-          <div className="hidden lg:block">
-            <Image
-              src="/images/logo-horizontal.png"
-              alt="The Srilatha Arts"
-              width={180}
-              height={48}
-              className="h-9 w-auto mb-4"
-            />
-            <p className="text-sm text-cream/55 leading-relaxed">
+          <div className="hidden lg:block lg:col-span-2">
+            <Link href="/" className="inline-flex items-center gap-3 mb-4">
+              <Image src="/images/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
+              <span className="font-serif text-xl text-ink">
+                The <span className="terracotta-text">Srilatha</span> Arts
+              </span>
+            </Link>
+            <p className="text-sm text-ink-soft leading-relaxed max-w-xs">
               Handcrafted folk art from Hyderabad — Resin, Dot Mandala, Lippan, Pichwai, Kolam.
             </p>
             <div className="flex items-center gap-2 mt-5">
@@ -116,23 +101,21 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="lg:col-span-4 lg:grid lg:grid-cols-4 lg:gap-8 divide-y divide-gold/10 lg:divide-y-0">
+          <div className="lg:col-span-3 lg:grid lg:grid-cols-3 lg:gap-8 divide-y divide-ink/8 lg:divide-y-0">
             {columns.map((col) => (
               <FooterColumn key={col.title} title={col.title} links={col.links} />
             ))}
           </div>
         </div>
 
-        {/* Mobile-only socials + logo */}
-        <div className="lg:hidden mt-10 pt-8 border-t border-gold/10 text-center">
-          <Image
-            src="/images/logo-horizontal.png"
-            alt="The Srilatha Arts"
-            width={160}
-            height={40}
-            className="h-8 w-auto mx-auto mb-4 opacity-90"
-          />
-          <div className="flex items-center justify-center gap-2">
+        <div className="lg:hidden mt-12 pt-8 border-t border-ink/8 text-center">
+          <Link href="/" className="inline-flex items-center gap-2 mb-3">
+            <Image src="/images/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
+            <span className="font-serif text-lg text-ink">
+              The <span className="terracotta-text">Srilatha</span> Arts
+            </span>
+          </Link>
+          <div className="flex items-center justify-center gap-2 mt-2">
             <SocialLink href="https://instagram.com" label="Instagram">
               <Instagram className="w-4 h-4" aria-hidden />
             </SocialLink>
@@ -145,9 +128,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gold/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-cream/45">
+        <div className="mt-10 pt-6 border-t border-ink/8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ink-mute">
           <p>© {new Date().getFullYear()} The Srilatha Arts. Made by hand in Hyderabad.</p>
-          <p className="font-hand text-base text-gold-light/70">Where Tradition Meets Creativity</p>
+          <p className="font-hand text-lg text-terracotta">Where Tradition Meets Creativity</p>
         </div>
       </div>
     </footer>
@@ -169,7 +152,7 @@ function FooterColumn({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         className="lg:pointer-events-none w-full flex items-center justify-between py-4 lg:py-0 lg:mb-3
-                   text-[11px] uppercase tracking-[0.25em] text-gold-light/70"
+                   text-[11px] uppercase tracking-[0.25em] text-ink"
       >
         {title}
         <ChevronDown
@@ -187,7 +170,7 @@ function FooterColumn({
           <li key={l.href}>
             <Link
               href={l.href}
-              className="block py-1.5 text-sm text-cream/70 hover:text-gold transition-colors"
+              className="block py-1.5 text-sm text-ink-soft hover:text-terracotta transition-colors"
             >
               {l.label}
             </Link>
@@ -214,8 +197,8 @@ function SocialLink({
       rel="noopener noreferrer"
       aria-label={label}
       className="min-w-11 min-h-11 flex items-center justify-center rounded-full
-                 border border-gold/20 text-cream/70 hover:text-gold hover:border-gold/50
-                 transition-colors"
+                 border border-ink/15 text-ink-soft hover:text-terracotta hover:border-terracotta
+                 bg-paper transition-colors"
     >
       {children}
     </a>

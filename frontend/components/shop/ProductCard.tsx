@@ -39,52 +39,37 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
     <article
       className={cn(
         'group relative',
-        variant === 'carousel' ? 'w-[64vw] sm:w-72 shrink-0 snap-start' : '',
+        variant === 'carousel' ? 'w-[68vw] sm:w-72 shrink-0 snap-start' : '',
       )}
     >
       <Link href={`/product/${product.id}`} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-cream/5 border border-gold/10">
+        <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-cream-deep">
           <Image
             src={product.images[0]}
             alt={product.title}
             fill
             sizes={
               variant === 'carousel'
-                ? '(min-width: 640px) 288px, 64vw'
+                ? '(min-width: 640px) 288px, 68vw'
                 : '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
             }
             priority={priority}
-            className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+            className="object-contain p-6 sm:p-8 transition-transform duration-700 group-hover:scale-[1.04]"
           />
 
-          {/* Gradient ink so badges stay readable */}
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-ink/15" />
-
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+          {/* Badges — top left */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {product.isNewArrival && (
-              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full
-                               bg-cream/95 text-primary-dark font-semibold">
-                New
-              </span>
+              <span className="sticker">New</span>
             )}
             {product.isBestSeller && (
-              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full
-                               bg-gold text-primary-dark font-semibold">
-                Best Seller
-              </span>
+              <span className="sticker bg-terracotta">Best Seller</span>
             )}
             {pct !== null && (
-              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full
-                               bg-primary-burnt text-cream font-semibold">
-                −{pct}%
-              </span>
+              <span className="sticker bg-gold text-ink">−{pct}%</span>
             )}
             {!product.inStock && (
-              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider rounded-full
-                               bg-ink/80 text-cream/80 font-semibold">
-                Sold Out
-              </span>
+              <span className="sticker bg-ink-mute">Sold Out</span>
             )}
           </div>
 
@@ -94,13 +79,13 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onWish}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={inWishlist}
-            className="absolute top-2 right-2 w-9 h-9 rounded-full
-                       bg-ink/40 backdrop-blur-sm border border-cream/15
-                       flex items-center justify-center text-cream
-                       hover:bg-ink/60 active:scale-90 transition"
+            className="absolute top-3 right-3 w-10 h-10 rounded-full
+                       bg-cream/85 backdrop-blur-sm
+                       flex items-center justify-center text-ink
+                       hover:bg-cream active:scale-90 transition shadow-soft"
           >
             <Heart
-              className={cn('w-4 h-4 transition-colors', inWishlist && 'fill-gold text-gold')}
+              className={cn('w-4 h-4 transition-colors', inWishlist && 'fill-terracotta text-terracotta')}
               aria-hidden
             />
           </button>
@@ -111,28 +96,30 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onAdd}
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
-            className="absolute bottom-2 right-2 w-10 h-10 rounded-full
-                       bg-gold text-primary-dark shadow-md shadow-gold/30
+            className="absolute bottom-3 right-3 w-11 h-11 rounded-full
+                       bg-ink text-cream shadow-card
                        flex items-center justify-center
-                       opacity-95 hover:opacity-100 active:scale-90 transition
+                       opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
+                       sm:opacity-100 sm:translate-y-0
+                       active:scale-90 transition
                        disabled:opacity-40 disabled:pointer-events-none"
           >
             <Plus className="w-5 h-5" aria-hidden />
           </button>
         </div>
 
-        <div className="pt-3 px-1">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-gold-light/70 mb-1">
+        <div className="pt-4 px-1">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-ink-mute mb-1.5">
             {product.category.replace('-', ' ')}
           </p>
-          <h3 className="font-serif text-base sm:text-lg leading-snug text-cream
-                         line-clamp-2 group-hover:text-gold-light transition-colors">
+          <h3 className="font-serif text-lg sm:text-xl leading-snug text-ink
+                         line-clamp-2 group-hover:text-terracotta transition-colors">
             {product.title}
           </h3>
-          <div className="flex items-baseline gap-2 mt-1.5">
-            <span className="text-cream font-medium">{formatINR(product.price)}</span>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-ink font-medium">{formatINR(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-xs text-cream/40 line-through">
+              <span className="text-xs text-ink-mute line-through">
                 {formatINR(product.compareAtPrice)}
               </span>
             )}
