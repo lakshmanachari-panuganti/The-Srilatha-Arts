@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-cream: #FAF6EE;
+    --color-ink: #1F140C;
+    --color-terracotta: #A14B1A;
+    --color-gold: #B8941F;
+    --banner-h: 0px;
+    --header-h: 64px;
+    --tab-h: 68px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+    min-height: 100svh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(184, 148, 31, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 110%, rgba(216, 132, 82, 0.08) 0%, transparent 60%);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: theme('backgroundImage.paper-grain');
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: multiply;
+  }
+
+  ::selection {
+    @apply bg-terracotta/15 text-ink;
+  }
+
+  a, button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* ───────────── Typography ───────────── */
+
+  .gold-text {
+    background: linear-gradient(135deg, #E8D08A 0%, #B8941F 45%, #8E6F12 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .terracotta-text {
+    @apply text-terracotta;
+  }
+
+  /* Editorial label — small caps, wide tracking */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] tracking-[0.32em] uppercase text-terracotta font-medium;
+  }
+
+  /* Section number — Passion-Finder style 001 / 002 */
+  .section-no {
+    @apply font-serif text-base text-ink-mute tracking-[0.32em];
+  }
+
+  /* Display headline */
+  .display {
+    @apply font-serif font-medium text-ink leading-[1.02] tracking-[-0.01em];
+  }
+
+  /* ───────────── Buttons ───────────── */
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 min-h-12 px-7
+           font-medium tracking-wide transition-all duration-300
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2
+           active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-dark {
+    @apply btn bg-ink text-cream rounded-full
+           hover:bg-ink/85 shadow-soft;
+  }
+
+  .btn-outline {
+    @apply btn border border-ink/15 text-ink rounded-full
+           hover:bg-ink hover:text-cream;
+  }
+
+  .btn-link {
+    @apply inline-flex items-center gap-2 text-ink font-medium
+           border-b border-ink/40 hover:border-ink pb-1
+           transition-colors;
+  }
+
+  /* ───────────── Cards & surfaces ───────────── */
+
+  .card {
+    @apply bg-paper rounded-3xl border border-ink/5 shadow-soft;
+  }
+
+  .card-cream {
+    @apply bg-cream-deep rounded-3xl;
+  }
+
+  /* Sticker / badge — slight rotation feels hand-placed */
+  .sticker {
+    @apply inline-flex items-center justify-center
+           rounded-full bg-ink text-cream
+           text-[10px] tracking-[0.18em] uppercase font-medium
+           px-3 py-1.5 shadow-soft;
+  }
+
+  /* Horizontal-scroll chip rail */
+  .chip-rail {
+    @apply flex gap-2 overflow-x-auto snap-x snap-mandatory
+           -mx-5 px-5 pb-1 scrollbar-hide;
+  }
+  .chip-rail > * {
+    @apply snap-start shrink-0;
+  }
+
+  .chip {
+    @apply inline-flex items-center h-10 px-4 rounded-full
+           border border-ink/15 bg-paper text-ink-soft text-sm
+           hover:border-ink hover:text-ink transition-colors;
+  }
+  .chip[aria-current='page'],
+  .chip.is-active {
+    @apply bg-ink border-ink text-cream;
+  }
+
+  .sticky-cta {
+    position: sticky;
+    bottom: 0;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Editorial deco rule */
+  .rule {
+    @apply h-px bg-gradient-to-r from-transparent via-ink/15 to-transparent;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-pb {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .safe-pt {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .min-h-svh {
+    min-height: 100svh;
+  }
+
+  /* Slight rotation classes for sticker/badge details */
+  .-rotate-2 { transform: rotate(-2deg); }
+  .-rotate-6 { transform: rotate(-6deg); }
+  .rotate-3  { transform: rotate(3deg); }
+}
