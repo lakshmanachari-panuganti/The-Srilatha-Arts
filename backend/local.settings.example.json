@@ -1,0 +1,25 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage__accountName": "stthesrilathaartsdev",
+    "AzureWebJobsStorage__blobServiceUri": "https://stthesrilathaartsdev.blob.core.windows.net",
+    "AzureWebJobsStorage__queueServiceUri": "https://stthesrilathaartsdev.queue.core.windows.net",
+    "AzureWebJobsStorage__tableServiceUri": "https://stthesrilathaartsdev.table.core.windows.net",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AZURE_STORAGE_ACCOUNT_NAME": "stthesrilathaartsdev",
+    "BLOB_BASE_URL": "https://stthesrilathaartsdev.blob.core.windows.net",
+    "JWT_SECRET": "change-this-to-a-long-random-secret-at-least-64-chars",
+    "CSRF_SIGNING_KEY": "change-this-to-a-long-random-secret-at-least-64-chars",
+    "CORS_ORIGIN": "http://localhost:3000",
+    "COOKIE_DOMAIN": "",
+    "NOTIFICATIONS_QUEUE_NAME": "notifications-out",
+    "WEBHOOKS_QUEUE_NAME": "webhooks-in",
+    "REVIEW_QUEUE_NAME": "review-requests",
+    "INVOICE_CONTAINER": "invoices",
+    "USER_UPLOAD_CONTAINER": "user-uploads"
+  },
+  "Host": {
+    "CORS": "http://localhost:3000",
+    "CORSCredentials": true
+  }
+}

@@ -1,0 +1,83 @@
+name: Deploy Frontend · PRD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend-prd.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend-prd
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  WORKING_DIRECTORY: frontend
+  # PRD URLs — update once rg-thesrilathaarts-prd is provisioned and the
+  # custom domain (api.thesrilathaarts.com / www.thesrilathaarts.com) is wired up.
+  # Until then this workflow will not run because rg-thesrilathaarts-prd / its SWA
+  # do not exist; the AZURE_STATIC_WEB_APPS_API_TOKEN_PRD secret will be missing.
+  API_BASE_URL: https://api.thesrilathaarts.com/api
+  SITE_URL: https://www.thesrilathaarts.com
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy (PRD)
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ env.SITE_URL }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          lfs: false
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Type-check
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm run typecheck
+
+      - name: Build (Next.js)
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ env.API_BASE_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PRD }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: ${{ env.WORKING_DIRECTORY }}
+          output_location: .next
+          skip_app_build: true
+          skip_api_build: true
+          production_branch: main
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ env.API_BASE_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}

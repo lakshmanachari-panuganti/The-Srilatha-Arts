@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "PowerShell(Get-Command New-AzStaticWebApp | Select-Object -ExpandProperty Parameters | ForEach-Object { $_.Keys } | Sort-Object)"
+    ]
+  }
+}
