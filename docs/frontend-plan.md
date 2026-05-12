@@ -170,7 +170,7 @@ Public
 ├── /new-arrivals
 ├── /best-sellers
 ├── /sale                          Discounted items
-├── /custom-order                  Bespoke commission form
+├── /custom-order                  Talk to Us About a Custom Order
 ├── /our-story                     About (renamed for warmth)
 ├── /the-craft                     Educational: how each art form is made
 │   ├── /the-craft/resin
@@ -1381,7 +1381,7 @@ The current code is a solid starting point — don't throw it away.
           Explore the Collection
         </Link>
         <Link href="/custom-order" className="btn-outline h-12 px-7 text-base border-white/30 text-white">
-          Commission a Piece
+          Talk to Us About a Custom Design
         </Link>
       </div>
     </div>
