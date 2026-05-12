@@ -12,7 +12,7 @@ export default function ContactPage() {
       eyebrow="Say hello"
       title="We'd love to hear from you"
       goldWord="from you"
-      description="Email hello@thesrilathaarts.com or WhatsApp +91 99999 99999. We answer most messages within 24 hours."
+      description="Email info@thesrilathaarts.com or WhatsApp +91 9133266754. We answer most messages within few hours."
     />
   )
 }

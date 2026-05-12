@@ -13,7 +13,7 @@ export default function CustomOrderPage() {
       eyebrow="Bespoke commissions"
       title="Tell us your vision"
       goldWord="your"
-      description="The full multi-step commission form is in development. In the meantime, WhatsApp us at +91 99999 99999 with your idea and we'll get back within 24 hours."
+      description="Have a custom piece in mind? WhatsApp us at +91 91332 66754 with your ideas, and we’ll get back to you within 24 hours."
       primaryHref="/contact"
       primaryLabel="Open contact"
     />
