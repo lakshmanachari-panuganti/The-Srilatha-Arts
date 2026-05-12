@@ -2,6 +2,9 @@ import type { MetadataRoute } from 'next'
 import { CATEGORIES } from '@/data/categories'
 import { PRODUCTS } from '@/data/products'
 
+// Required by Next.js 15 + `output: 'export'` — emit sitemap.xml at build time.
+export const dynamic = 'force-static'
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://thesrilathaarts.com'
   const now = new Date()
