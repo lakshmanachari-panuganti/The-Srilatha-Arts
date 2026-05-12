@@ -7,7 +7,7 @@
     resources for the redesigned backend (per new-backend.md):
 
       - Storage Account (Tables, Queues, Blob Containers)
-      - Function App (Consumption, Linux, Node 20)
+      - Function App (Consumption, Linux, Node 22)
       - Application Insights
       - Key Vault (RBAC mode) with JwtSecret + CsrfSigningKey
       - Managed Identity + RBAC role assignments
@@ -265,7 +265,7 @@ if ($functionApp) {
         -StorageAccountName $envCfg.StorageAccount `
         -Location $envCfg.Location `
         -Runtime 'Node' `
-        -RuntimeVersion '20' `
+        -RuntimeVersion '22' `
         -FunctionsVersion '4' `
         -OSType 'Linux' `
         -ApplicationInsightsName $envCfg.AppInsights
