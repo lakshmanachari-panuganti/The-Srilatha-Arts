@@ -76,12 +76,12 @@ export default function Header() {
           {/* Center: large round logo monogram */}
           <Link
             href="/"
-            aria-label="The Srilatha Arts — home"
+            aria-label="Srilatha Art - home"
             className="absolute left-1/2 -translate-x-1/2 flex items-center"
           >
             <Image
               src="/images/logo.png"
-              alt="The Srilatha Arts"
+              alt="Srilatha Art"
               width={56}
               height={56}
               priority

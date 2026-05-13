@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Deploy Azure Infrastructure for The Srilatha Arts Backend (fresh setup)
+    Deploy Azure Infrastructure for Srilatha Art Backend (fresh setup)
 
 .DESCRIPTION
     Creates and configures a brand-new resource group with all required Azure
@@ -65,7 +65,7 @@ Connect-AzAccount `
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-# NOTE: brand-new names — does NOT collide with the legacy rg-tsa-dev / rg-tsa-prd.
+# NOTE: brand-new names - does NOT collide with the legacy rg-tsa-dev / rg-tsa-prd.
 
 $config = @{
     DEV = @{
@@ -147,8 +147,8 @@ Write-Host @"
 
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
-║       The Srilatha Arts - Infrastructure Deployment           ║
-║       (Fresh build — does not touch rg-tsa-*)                 ║
+║       Srilatha Art - Infrastructure Deployment           ║
+║       (Fresh build - does not touch rg-tsa-*)                 ║
 ║                                                               ║
 ║       Environment: $($Environment.PadRight(43))║
 ║       Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')         ║
@@ -386,7 +386,7 @@ $storageAccount = Get-AzStorageAccount `
     -Name $envCfg.StorageAccount
 
 if ($storageAccount.AllowBlobPublicAccess -eq $false) {
-    Write-Info "Public blob access is disabled — enabling it now..."
+    Write-Info "Public blob access is disabled - enabling it now..."
     Set-AzStorageAccount `
         -ResourceGroupName $envCfg.ResourceGroup `
         -Name $envCfg.StorageAccount `
@@ -435,7 +435,7 @@ Write-Success "CORS configured for : $($envCfg.CorsOrigins -join ', ')"
 
 Write-Step "Storing Secrets in Key Vault: $($envCfg.KeyVault)"
 
-# JwtSecret — for signing JWT auth tokens
+# JwtSecret - for signing JWT auth tokens
 $jwtSecret = [guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')
 $jwtSecretValue = ConvertTo-SecureString $jwtSecret -AsPlainText -Force
 
@@ -446,7 +446,7 @@ Set-AzKeyVaultSecret `
 
 Write-Success "Stored secret : JwtSecret (randomly generated, 64 chars)"
 
-# CsrfSigningKey — for double-submit CSRF cookie pattern (new-backend.md §9.1)
+# CsrfSigningKey - for double-submit CSRF cookie pattern (new-backend.md §9.1)
 $csrfKey = [guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')
 $csrfKeyValue = ConvertTo-SecureString $csrfKey -AsPlainText -Force
 
@@ -458,7 +458,7 @@ Set-AzKeyVaultSecret `
 Write-Success "Stored secret : CsrfSigningKey (randomly generated, 64 chars)"
 
 # Vendor secrets (Razorpay / Shiprocket / WhatsApp / Email) are intentionally
-# NOT created here — add them via the Portal or a follow-up script after you
+# NOT created here - add them via the Portal or a follow-up script after you
 # sign up for those vendors. See new-backend.md §14.2 for the full list.
 
 # ============================================================================
@@ -574,7 +574,7 @@ $(($blobContainers | ForEach-Object { "   • $($_.Name) (public: $($_.PublicAcc
 🔐 Key Vault Secrets:
    • JwtSecret       (auto-generated)
    • CsrfSigningKey  (auto-generated)
-   ℹ Vendor secrets (Razorpay/Shiprocket/WhatsApp/Email) — add later via Portal
+   ℹ Vendor secrets (Razorpay/Shiprocket/WhatsApp/Email) - add later via Portal
 
 ⚙️  Function App Settings configured:
    • AzureWebJobsStorage      : MSI-based
@@ -593,8 +593,8 @@ $(($blobContainers | ForEach-Object { "   • $($_.Name) (public: $($_.PublicAcc
                                          then add their secrets to Key Vault
 
 🛡️  Untouched (legacy):
-   ✗ rg-tsa-dev   — left alone
-   ✗ rg-tsa-prd   — left alone
+   ✗ rg-tsa-dev   - left alone
+   ✗ rg-tsa-prd   - left alone
 
 "@ -ForegroundColor Green
 

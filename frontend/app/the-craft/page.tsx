@@ -3,7 +3,7 @@ import PlaceholderPage from '@/components/PlaceholderPage'
 
 export const metadata: Metadata = {
   title: 'The Craft',
-  description: 'How each art form is made — long-form editorial pages.',
+  description: 'How each art form is made - long-form editorial pages.',
 }
 
 export default function TheCraftPage() {

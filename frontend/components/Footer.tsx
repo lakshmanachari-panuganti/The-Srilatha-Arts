@@ -94,7 +94,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Handcrafted folk art from Hyderabad — Resin, Dot Mandala, Lippan, Pichwai, Kolam.
+              Handcrafted folk art from Hyderabad - Resin, Dot Mandala, Lippan, Pichwai, Kolam.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <SocialLink href="https://instagram.com" label="Instagram">
@@ -143,7 +143,7 @@ export default function Footer() {
         <div className="mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ivory-mute"
              style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
-          <p>© {new Date().getFullYear()} The Srilatha Arts. Made by hand in Hyderabad.</p>
+          <p>© {new Date().getFullYear()} Srilatha Art. Made by hand in Hyderabad.</p>
           <p className="font-hand text-lg text-lavender-pastel">Where Tradition Meets Creativity</p>
         </div>
       </div>

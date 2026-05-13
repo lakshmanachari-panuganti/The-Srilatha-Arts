@@ -21,7 +21,7 @@ export default function ShopByArtForm() {
           one <em className="font-serif italic gold-text">studio</em>.
         </h2>
         <p className="text-ivory-soft text-base lg:text-lg leading-relaxed">
-          From the meditative rhythm of Dot Mandala to the salt-desert mirror work of Lippan — each
+          From the meditative rhythm of Dot Mandala to the salt-desert mirror work of Lippan - each
           art form has its own voice. Pick one that calls to you.
         </p>
       </div>

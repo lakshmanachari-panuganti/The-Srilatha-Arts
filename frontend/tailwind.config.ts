@@ -10,16 +10,16 @@ const config: Config = {
     extend: {
       colors: {
         // ── Surfaces ─────────────────────────────────────────────
-        plum: '#2B1E34',                  // deep plum — primary bg
+        plum: '#2B1E34',                  // deep plum - primary bg
         'plum-light': '#362840',          // slightly lighter layered surface
         'plum-warm': '#3F304A',           // warm mid-tone for cards
-        lavender: '#5E4B8B',             // royal lavender — section accent
+        lavender: '#5E4B8B',             // royal lavender - section accent
         'lavender-soft': '#8A74C9',      // soft purple accent
         'lavender-pastel': '#C8B6FF',    // pastel lavender highlight
         'lavender-light': '#E9E4FF',     // light lavender for tags/badges
         'lavender-faint': '#F8F7FC',     // warm soft white
         // ── Text ─────────────────────────────────────────────────
-        ivory: '#F8F7FC',                // warm soft white — primary text
+        ivory: '#F8F7FC',                // warm soft white - primary text
         'ivory-soft': '#DDD8EB',         // secondary text
         'ivory-mute': '#A49BB8',         // tertiary / meta text
         // ── Glass & Overlay ──────────────────────────────────────

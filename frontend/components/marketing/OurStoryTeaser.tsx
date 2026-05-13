@@ -6,7 +6,7 @@ export default function OurStoryTeaser() {
   return (
     <section className="px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">
       <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-        {/* Image — editorial offset with glow */}
+        {/* Image - editorial offset with glow */}
         <div className="lg:col-span-6">
           <div className="relative aspect-[4/5] overflow-hidden
                           bg-gradient-to-b from-plum-warm to-plum-light
@@ -39,7 +39,7 @@ export default function OurStoryTeaser() {
             <em className="italic gold-text">Hyderabad</em>.
           </h2>
           <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
-            Every piece begins in a small studio on the outskirts of Hyderabad — a workspace lit by a
+            Every piece begins in a small studio on the outskirts of Hyderabad - a workspace lit by a
             single skylight, scented with resin and rice flour.
           </p>
           <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-8">

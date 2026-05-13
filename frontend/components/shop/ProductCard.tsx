@@ -64,7 +64,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             className="object-contain p-6 sm:p-8 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
           />
 
-          {/* Badges — top left */}
+          {/* Badges - top left */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {product.isNewArrival && (
               <span className="sticker">New</span>

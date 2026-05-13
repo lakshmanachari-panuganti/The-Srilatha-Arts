@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Static HTML export — runs anywhere, no Node server required.
+  // Static HTML export - runs anywhere, no Node server required.
   // Works on the SWA Free tier (no SSR/ISR/Image-Optimization at runtime).
   // Trade-off: every page is pre-rendered at build time; any dynamic data
   // is fetched client-side from the Azure Functions backend.
@@ -14,7 +14,7 @@ const nextConfig = {
   poweredByHeader: false,
 
   images: {
-    // Required for `output: 'export'` — disables the on-the-fly optimizer.
+    // Required for `output: 'export'` - disables the on-the-fly optimizer.
     // next/image still works; it just serves the source URL untouched.
     unoptimized: true,
     formats: ['image/avif', 'image/webp'],

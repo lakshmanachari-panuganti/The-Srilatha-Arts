@@ -6,7 +6,7 @@ export const CATEGORIES: Category[] = [
     title: 'Resin Art',
     tagline: 'Liquid glass, captured forever',
     origin:
-      'Translucent layers poured by hand — each piece a frozen river of color, light and ocean depth.',
+      'Translucent layers poured by hand - each piece a frozen river of color, light and ocean depth.',
     heroImage: '/images/logo.png',
     ordinal: 1,
   },
@@ -24,7 +24,7 @@ export const CATEGORIES: Category[] = [
     title: 'Lippan Art',
     tagline: 'Mud, mirror and memory from Kutch',
     origin:
-      'A 400-year-old craft from the salt deserts of Kutch — clay reliefs studded with tiny mirrors that catch the lamp.',
+      'A 400-year-old craft from the salt deserts of Kutch - clay reliefs studded with tiny mirrors that catch the lamp.',
     heroImage: '/images/logo.png',
     ordinal: 3,
   },
@@ -33,7 +33,7 @@ export const CATEGORIES: Category[] = [
     title: 'Pichwai Art',
     tagline: 'Devotional tapestries from Nathdwara',
     origin:
-      'Hand-painted depictions of Lord Shrinathji — lotus, cow and peacock motifs in jewel tones.',
+      'Hand-painted depictions of Lord Shrinathji - lotus, cow and peacock motifs in jewel tones.',
     heroImage: '/images/logo.png',
     ordinal: 4,
   },
@@ -42,7 +42,7 @@ export const CATEGORIES: Category[] = [
     title: 'Kolam Art',
     tagline: 'Threshold prayers in white',
     origin:
-      'South Indian rice-flour patterns reimagined as enduring wall art — a daily blessing made permanent.',
+      'South Indian rice-flour patterns reimagined as enduring wall art - a daily blessing made permanent.',
     heroImage: '/images/logo.png',
     ordinal: 5,
   },
