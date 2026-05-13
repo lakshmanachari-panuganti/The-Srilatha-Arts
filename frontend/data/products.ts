@@ -4,7 +4,7 @@ export const PRODUCTS: Product[] = [
   {
     id: 'mandala-aurora-12',
     slug: 'aurora-mandala-12-round',
-    title: 'Aurora Dot Mandala — 12" Round',
+    title: 'Aurora Dot Mandala - 12" Round',
     category: 'dot-mandala',
     price: 4200,
     compareAtPrice: 5500,
@@ -54,7 +54,7 @@ export const PRODUCTS: Product[] = [
   {
     id: 'lippan-peacock-square',
     slug: 'lippan-peacock-16-square',
-    title: 'Lippan Peacock — 16" Square',
+    title: 'Lippan Peacock - 16" Square',
     category: 'lippan',
     price: 5800,
     size: '16 × 16 in',
@@ -78,14 +78,14 @@ export const PRODUCTS: Product[] = [
   {
     id: 'pichwai-shrinathji-mini',
     slug: 'shrinathji-pichwai-mini',
-    title: 'Shrinathji Pichwai — Mini',
+    title: 'Shrinathji Pichwai - Mini',
     category: 'pichwai',
     price: 6500,
     size: '10 × 14 in',
     material: 'Cotton canvas · stone pigments · gold leaf',
     timeToMake: '14 days',
     description:
-      'Hand-painted Pichwai of Lord Shrinathji surrounded by lotus and cows — finished with 22k gold-leaf accents.',
+      'Hand-painted Pichwai of Lord Shrinathji surrounded by lotus and cows - finished with 22k gold-leaf accents.',
     shortDescription: 'Pichwai of Shrinathji with 22k gold-leaf accents.',
     careInstructions: 'Frame behind glass. Avoid humidity.',
     images: ['/images/logo.png'],
@@ -110,7 +110,7 @@ export const PRODUCTS: Product[] = [
     material: 'Wooden panel · gesso · lime white',
     timeToMake: '3 days',
     description:
-      'A matched pair of doorway kolams in lime white on hand-stained wood — a permanent prayer for your home.',
+      'A matched pair of doorway kolams in lime white on hand-stained wood - a permanent prayer for your home.',
     shortDescription: 'Doorway kolam pair in lime white on stained wood.',
     careInstructions: 'Dust lightly. Suitable for sheltered porches.',
     images: ['/images/logo.png'],
@@ -127,13 +127,13 @@ export const PRODUCTS: Product[] = [
   {
     id: 'mandala-marigold-8',
     slug: 'marigold-mandala-8-round',
-    title: 'Marigold Dot Mandala — 8" Round',
+    title: 'Marigold Dot Mandala - 8" Round',
     category: 'dot-mandala',
     price: 1800,
     size: '8 in diameter',
     material: 'MDF · acrylic dots · matte sealant',
     timeToMake: '3 days',
-    description: 'A petite marigold mandala — perfect for a study nook or office desk.',
+    description: 'A petite marigold mandala - perfect for a study nook or office desk.',
     shortDescription: 'Petite marigold mandala in warm festival tones.',
     careInstructions: 'Dust with a soft brush.',
     images: ['/images/logo.png'],
@@ -157,7 +157,7 @@ export const PRODUCTS: Product[] = [
     material: 'Resin · gold flake · cork base',
     timeToMake: '4 days',
     description:
-      'A set of four nebula coasters with swirling cosmic blues and gold flake — gift-boxed.',
+      'A set of four nebula coasters with swirling cosmic blues and gold flake - gift-boxed.',
     shortDescription: 'Set of four cosmic-nebula resin coasters.',
     careInstructions: 'Heat-resistant to 60°C. Wipe clean.',
     images: ['/images/logo.png'],
@@ -181,7 +181,7 @@ export const PRODUCTS: Product[] = [
     material: 'Clay · mirrors · earth pigments',
     timeToMake: '8 days',
     description:
-      'The eternal Tree of Life in raised Kutchi clay with mirrors for fruit — symbol of growth and prosperity.',
+      'The eternal Tree of Life in raised Kutchi clay with mirrors for fruit - symbol of growth and prosperity.',
     shortDescription: 'Tree of Life with mirror fruit in Kutchi clay.',
     careInstructions: 'Dry dust only. Do not hang in damp areas.',
     images: ['/images/logo.png'],

@@ -20,7 +20,7 @@ export default function KolamLoader({
     >
       <svg
         viewBox="0 0 100 100"
-        className="w-20 h-20 text-terracotta"
+        className="w-20 h-20 text-lavender-soft"
         style={{ animation: 'spin 6s linear infinite' }}
         aria-hidden
       >
@@ -51,7 +51,7 @@ export default function KolamLoader({
           opacity="0.4"
         />
       </svg>
-      <p className="text-ink-mute text-sm tracking-wide">{label}</p>
+      <p className="text-ivory-mute text-sm tracking-wide">{label}</p>
     </div>
   )
 }

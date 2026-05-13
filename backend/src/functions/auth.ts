@@ -8,7 +8,7 @@ import {
 import { getUser, getAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 
-// GET /api/auth/me  — hydrates the current session for the SPA
+// GET /api/auth/me  - hydrates the current session for the SPA
 export async function authMe(
   request: HttpRequest,
   context: InvocationContext,
@@ -74,7 +74,7 @@ export async function authMe(
   }
 }
 
-// POST /api/auth/logout — clears the auth cookie
+// POST /api/auth/logout - clears the auth cookie
 export async function authLogout(
   request: HttpRequest,
   _context: InvocationContext,

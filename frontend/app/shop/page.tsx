@@ -6,7 +6,7 @@ import { PRODUCTS } from '@/data/products'
 export const metadata: Metadata = {
   title: 'Shop · All handcrafted art',
   description:
-    'Browse the full collection — Resin, Dot Mandala, Lippan, Pichwai and Kolam art handcrafted in Hyderabad.',
+    'Browse the full collection - Resin, Dot Mandala, Lippan, Pichwai and Kolam art handcrafted in Hyderabad.',
 }
 
 export default function ShopPage() {

@@ -1,6 +1,6 @@
-# The Srilatha Arts — Mobile-First Frontend Redesign
+# Srilatha Art - Mobile-First Frontend Redesign
 
-> An end-to-end blueprint for rebuilding **thesrilathaarts.com** as a **mobile-first**, **immersive**, premium online shopping experience for Resin · Dot Mandala · Lippan · Pichwai · Kolam handcrafted art — with a complete admin panel spec.
+> An end-to-end blueprint for rebuilding **thesrilathaarts.com** as a **mobile-first**, **immersive**, premium online shopping experience for Resin · Dot Mandala · Lippan · Pichwai · Kolam handcrafted art - with a complete admin panel spec.
 
 ---
 
@@ -35,9 +35,9 @@
 |---|---|
 | **Touch as the primary input** | Every interaction must work with one thumb. Buttons ≥ 44×44 px. Swipe > tap-tap-tap. No hover-only affordances. |
 | **Art is the hero, chrome disappears** | Photography is full-bleed. Chrome (header, nav) is translucent / collapses on scroll. UI gets out of the way. |
-| **Slow, deliberate, premium** | Soft motion curves (≥ 400 ms ease-out), generous whitespace, serif typography for headlines. Never feels "appy" — feels like a gallery you can hold. |
+| **Slow, deliberate, premium** | Soft motion curves (≥ 400 ms ease-out), generous whitespace, serif typography for headlines. Never feels "appy" - feels like a gallery you can hold. |
 
-**Brand palette (keep — it works):**
+**Brand palette (keep - it works):**
 
 ```
 --primary-dark   #8B3A0E   (terracotta base)
@@ -59,7 +59,7 @@
 ```
 xs    11 px    micro-labels, badges
 sm    13 px    captions
-base  15 px    body  (NOT 16 — feels lighter on phone)
+base  15 px    body  (NOT 16 - feels lighter on phone)
 lg    17 px    intro paragraphs
 xl    20 px    sub-headings
 2xl   24 px    section labels
@@ -67,13 +67,13 @@ xl    20 px    sub-headings
 4xl   38 px    hero (mobile)
 ```
 
-Then scale up via `md:` and `lg:` *additively* — not the other way round.
+Then scale up via `md:` and `lg:` *additively* - not the other way round.
 
 ---
 
 ## 2. Mobile-First Principles
 
-The current site has `lg:grid-cols-2`, `min-h-screen`, `text-5xl sm:text-6xl lg:text-7xl` — i.e. **the desktop view is the source of truth and mobile gets the leftovers**. We flip this.
+The current site has `lg:grid-cols-2`, `min-h-screen`, `text-5xl sm:text-6xl lg:text-7xl` - i.e. **the desktop view is the source of truth and mobile gets the leftovers**. We flip this.
 
 ### Tailwind conventions to enforce
 
@@ -89,21 +89,21 @@ className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
 
 Hard rules in the new codebase:
 
-1. **No utility may appear without a base (mobile) value.** `md:p-8` alone is banned — must be `p-4 md:p-8`.
+1. **No utility may appear without a base (mobile) value.** `md:p-8` alone is banned - must be `p-4 md:p-8`.
 2. **No fixed widths in px** below the `md:` breakpoint. Use `w-full`, `max-w-*`, or flex/grid.
-3. **No `min-h-screen` on hero.** Use `min-h-[100svh]` (small viewport height — fixes iOS Safari URL-bar jump).
+3. **No `min-h-screen` on hero.** Use `min-h-[100svh]` (small viewport height - fixes iOS Safari URL-bar jump).
 4. **Touch targets ≥ 44×44 px.** Tailwind: `min-h-11 min-w-11` (`h-11 = 44px`).
 5. **Safe-area padding for iOS notch & home indicator:**
    ```css
    padding-bottom: max(1rem, env(safe-area-inset-bottom));
    ```
 6. **No hover-only states.** Every `hover:` must have an equivalent `active:` or `aria-current` state.
-7. **Sticky bottom CTA on product pages.** Mobile users don't scroll back up — the "Add to Cart" must stay reachable.
+7. **Sticky bottom CTA on product pages.** Mobile users don't scroll back up - the "Add to Cart" must stay reachable.
 8. **Tap-friendly horizontal scroll** for category chips & related products (`snap-x snap-mandatory`).
 9. **Lazy-load everything below the fold.** `loading="lazy"` + `next/image` with proper `sizes`.
 10. **Test on real devices.** iPhone SE (375 px) and Pixel 5 (393 px) are the lowest reasonable widths.
 
-### Breakpoints (Tailwind defaults — fine):
+### Breakpoints (Tailwind defaults - fine):
 
 | Token | Width | Devices |
 |---|---|---|
@@ -122,15 +122,15 @@ The word "immersive" means: **the customer should feel they walked into a galler
 
 ### 3.1 Photography & artwork as full-bleed canvas
 
-- Hero is **a 9:16 portrait video / parallax image of the artist's hand finishing a Dot Mandala** — sound off, autoplay, looping, < 3 MB, served via blob storage.
+- Hero is **a 9:16 portrait video / parallax image of the artist's hand finishing a Dot Mandala** - sound off, autoplay, looping, < 3 MB, served via blob storage.
 - Category cards are full-bleed, with the title sliding in from the bottom on mount (intersection observer).
 - Product page opens to a **full-screen image gallery with pinch-zoom** (use `react-zoom-pan-pinch` or build with framer-motion).
 
 ### 3.2 Storytelling moments
 
-- **Scroll-driven reveal** on the home page: as you scroll, the screen transitions between art forms (Resin → Mandala → Lippan → Pichwai) — each becomes the background with a one-line poetic caption.
+- **Scroll-driven reveal** on the home page: as you scroll, the screen transitions between art forms (Resin → Mandala → Lippan → Pichwai) - each becomes the background with a one-line poetic caption.
 - **Artist signature** drawn live with `framer-motion`'s `pathLength` animation in the About page.
-- **Loading state = an animated Kolam dot pattern** drawing itself (you already have `KolamLoader.tsx` — keep/extend).
+- **Loading state = an animated Kolam dot pattern** drawing itself (you already have `KolamLoader.tsx` - keep/extend).
 
 ### 3.3 Tactile micro-interactions
 
@@ -145,11 +145,11 @@ The word "immersive" means: **the customer should feel they walked into a galler
 
 ### 3.4 Premium polish
 
-- **Glassmorphism** on the header & bottom tab bar — already in place via `backdrop-blur`. Keep.
-- **Subtle grain texture** overlay at 3 % opacity (already in mobile drawer — extend site-wide).
-- **Gold foil shimmer** on price tags and "Best Seller" badges — use the existing `@keyframes shimmer`.
+- **Glassmorphism** on the header & bottom tab bar - already in place via `backdrop-blur`. Keep.
+- **Subtle grain texture** overlay at 3 % opacity (already in mobile drawer - extend site-wide).
+- **Gold foil shimmer** on price tags and "Best Seller" badges - use the existing `@keyframes shimmer`.
 - **Page transitions** with `framer-motion`'s `AnimatePresence` + a shared `key` based on `pathname`. Fade + 8 px slide-up, ~ 250 ms.
-- **Dark/light mode optional.** The terracotta+cream pairing is gorgeous in both — but ship dark-only V1 to keep scope tight.
+- **Dark/light mode optional.** The terracotta+cream pairing is gorgeous in both - but ship dark-only V1 to keep scope tight.
 
 ---
 
@@ -191,7 +191,7 @@ Public
 Account (gated)
 ├── /account                       Dashboard with active-order card
 ├── /account/orders                Order history + filters
-├── /account/orders/[id]           Single order — items, timeline, tracking, actions
+├── /account/orders/[id]           Single order - items, timeline, tracking, actions
 ├── /account/orders/[id]/track     Full-screen kiosk-style tracker (shareable link)
 ├── /account/wishlist
 ├── /account/addresses
@@ -237,7 +237,7 @@ Admin (gated /admin/*)
     ├── /admin/settings/notifications
     └── /admin/settings/announcement     Marquee banner CRUD (§9.15)
 
-API routes (Azure Functions — already partially in place)
+API routes (Azure Functions - already partially in place)
 api/products                  GET, POST (admin)
 api/products/:id              GET, PATCH (admin), DELETE (admin)
 api/categories                GET, POST (admin)
@@ -297,13 +297,13 @@ api/analytics/*               admin only
 
 ```
 ✨  FLAT 30% OFF on all Resin Art · Use code SRILATHA30 · Free shipping above ₹2,999 ✨
-   ←——————— scrolling right-to-left, continuous loop ———————←
+   ←------- scrolling right-to-left, continuous loop -------←
 ```
 
-**Top bar (sticky, glass, 56 px — sits *below* the marquee):**
+**Top bar (sticky, glass, 56 px - sits *below* the marquee):**
 
 ```
-[☰]   [TSA Logo — centered]   [🔍] [🛒²]
+[☰]   [TSA Logo - centered]   [🔍] [🛒²]
 ```
 
 - Hamburger opens slide-in drawer (categories, account, policies)
@@ -317,11 +317,11 @@ api/analytics/*               admin only
    🏠       🛍️         ✨            ❤️           👤
 ```
 
-- Center "Custom" is raised (FAB-style) — drives the highest-margin product line
+- Center "Custom" is raised (FAB-style) - drives the highest-margin product line
 - Active state: gold underline + label color shift
 - Hides on scroll-down, returns on scroll-up (UX-standard pattern)
 
-**Mobile drawer (left slide-in — extend the existing one):**
+**Mobile drawer (left slide-in - extend the existing one):**
 
 ```
 ─ Shop ──────────────
@@ -364,8 +364,8 @@ api/analytics/*               admin only
 
 ### 5.3 Admin
 
-**Mobile:** drawer + top bar (already in place — refine).
-**Desktop:** persistent left sidebar (already in place — extend with new routes from §7).
+**Mobile:** drawer + top bar (already in place - refine).
+**Desktop:** persistent left sidebar (already in place - extend with new routes from §7).
 
 ---
 
@@ -384,7 +384,7 @@ A slim, premium ticker pinned to the very top of every public page that scrolls 
 | Motion | continuous translate-x loop, **30 s** per cycle, `linear`, infinite |
 | Pause | `hover:[animation-play-state:paused]` on desktop · long-press on mobile |
 | Dismiss | small `×` on the right; remembers dismissal for 24 h via `localStorage.tsa_marquee_dismissed_at` |
-| Layout shift | Header & page content add `pt-7 sm:pt-8` while banner is visible — handled by a `BannerProvider` so it's a known token, not a magic number |
+| Layout shift | Header & page content add `pt-7 sm:pt-8` while banner is visible - handled by a `BannerProvider` so it's a known token, not a magic number |
 | Accessibility | wrap in `role="region" aria-label="Site announcements"`; provide `prefers-reduced-motion` fallback (static text, no scroll) |
 | Tap | the whole banner is a `<Link>` that goes to `/sale` (or wherever admin configures) |
 | Admin-driven | content, link, start/end date, color theme, and on/off all editable in `/admin/settings/announcement` (see §9) |
@@ -394,7 +394,7 @@ A slim, premium ticker pinned to the very top of every public page that scrolls 
 - `✨ FLAT 30% OFF on Resin Art · Code SRILATHA30 · Ends Sunday`
 - `🎁 Free shipping on orders above ₹2,999 · Pan-India delivery`
 - `🪔 Diwali Collection live · Handcrafted in Hyderabad with love`
-- `🖼️ Custom commissions open · 2 slots left this month`
+- `🖼️ Custom Creations open · 2 slots left this month`
 
 Keep each message ≤ 80 characters so the loop reads naturally on a 360 px screen.
 
@@ -482,11 +482,11 @@ animation: {
 },
 ```
 
-> **Note on direction.** `translateX(0) → translateX(-50%)` moves the *content* leftward, which makes the visible text appear to flow **right-to-left** (the same direction as classic stock tickers / Amazon promo strips). If you literally want letters to enter from the *left edge* and exit on the right, swap to `100% → 0%` — but most users perceive the right-to-left version as more premium.
+> **Note on direction.** `translateX(0) → translateX(-50%)` moves the *content* leftward, which makes the visible text appear to flow **right-to-left** (the same direction as classic stock tickers / Amazon promo strips). If you literally want letters to enter from the *left edge* and exit on the right, swap to `100% → 0%` - but most users perceive the right-to-left version as more premium.
 
 ### 6.4 Mounting
 
-Mount the marquee inside `ConditionalLayout.tsx` *above* `<Header />` for public routes only (skip on `/admin/*` and `/checkout` — checkout should be distraction-free).
+Mount the marquee inside `ConditionalLayout.tsx` *above* `<Header />` for public routes only (skip on `/admin/*` and `/checkout` - checkout should be distraction-free).
 
 ---
 
@@ -500,18 +500,18 @@ Mount the marquee inside `ConditionalLayout.tsx` *above* `<Header />` for public
 
 **Sections (in mobile scroll order):**
 
-1. **Hero** — 9:16 portrait video/photo, headline, primary CTA → /shop, secondary → /custom-order. Min-height `100svh`.
-2. **Trust strip** — horizontal scroll of: ✓ Free ship ₹2,999+ · ✓ Handmade in Hyderabad · ✓ 7-day exchange · ✓ Secure pay · ✓ Custom orders.
-3. **Shop by Art Form** — 2-col grid mobile / 4-col desktop. Each card → category page.
-4. **Featured Creations** — horizontal snap carousel mobile, 3-col grid desktop.
-5. **Scroll-story** — full-bleed art form reveal as you scroll (immersive).
-6. **Bestsellers** — same pattern as featured.
-7. **Our Story teaser** — image + 2-line excerpt + → /our-story.
-8. **Custom Order CTA** — full-bleed, "Have a vision? We'll craft it." → /custom-order.
-9. **Testimonials** — horizontal snap carousel with photos.
-10. **Instagram strip** — pull latest 6 posts (Instagram Basic Display API).
-11. **Newsletter signup** — inline, single email field, gold submit.
-12. **Footer** — collapsed accordions on mobile, columns on desktop.
+1. **Hero** - 9:16 portrait video/photo, headline, primary CTA → /shop, secondary → /custom-order. Min-height `100svh`.
+2. **Trust strip** - horizontal scroll of: ✓ Free ship ₹2,999+ · ✓ Handmade in Hyderabad · ✓ 7-day exchange · ✓ Secure pay · ✓ Custom orders.
+3. **Shop by Art Form** - 2-col grid mobile / 4-col desktop. Each card → category page.
+4. **Featured Creations** - horizontal snap carousel mobile, 3-col grid desktop.
+5. **Scroll-story** - full-bleed art form reveal as you scroll (immersive).
+6. **Bestsellers** - same pattern as featured.
+7. **Our Story teaser** - image + 2-line excerpt + → /our-story.
+8. **Custom Order CTA** - full-bleed, "Have a vision? We'll craft it." → /custom-order.
+9. **Testimonials** - horizontal snap carousel with photos.
+10. **Instagram strip** - pull latest 6 posts (Instagram Basic Display API).
+11. **Newsletter signup** - inline, single email field, gold submit.
+12. **Footer** - collapsed accordions on mobile, columns on desktop.
 
 ### 7.2 Shop `/shop` (rename from `/gallery`)
 
@@ -537,7 +537,7 @@ Mount the marquee inside `ConditionalLayout.tsx` *above* `<Header />` for public
 4. Price (struck-through original if on sale) + "incl. taxes" line.
 5. Size · Material · Time-to-make (3-pill row).
 6. Quantity stepper.
-7. **Sticky bottom CTA bar:** [Add to Cart] [Buy Now] — never scrolls away.
+7. **Sticky bottom CTA bar:** [Add to Cart] [Buy Now] - never scrolls away.
 8. Description (expandable accordion).
 9. "What makes it special" (icon list: handmade · one-of-a-kind · ships in 5 days).
 10. Care instructions (link).
@@ -545,7 +545,7 @@ Mount the marquee inside `ConditionalLayout.tsx` *above* `<Header />` for public
 12. Related products (horizontal snap).
 13. "Made by Srilatha" footer mini-card → /our-story.
 
-### 7.5 Custom Order `/custom-order` (NEW — high value)
+### 7.5 Custom Order `/custom-order` (NEW - high value)
 
 - Hero: "Tell us your vision."
 - Multi-step form (one question per screen on mobile, accordion on desktop):
@@ -587,24 +587,24 @@ Single-page **accordion on mobile**, two-column on desktop:
 
 ### 7.9 Account & Order Management `/account/*`
 
-Once a customer is logged in, they get a full self-service area. **Order management is the centerpiece** — customers must be able to find, track, modify (within policy), and re-buy any past order without contacting support.
+Once a customer is logged in, they get a full self-service area. **Order management is the centerpiece** - customers must be able to find, track, modify (within policy), and re-buy any past order without contacting support.
 
-#### 7.9.1 `/account` — overview dashboard
+#### 7.9.1 `/account` - overview dashboard
 
 Mobile layout (top-down):
 
-1. Greeting strip — *"Namaste, Priya"* + member-since date + loyalty tier badge.
-2. **Active order card** — biggest card on screen; shows the most recent un-delivered order with a live status pill, current step in the timeline, ETA, and a one-tap **Track** CTA.
+1. Greeting strip - *"Namaste, Priya"* + member-since date + loyalty tier badge.
+2. **Active order card** - biggest card on screen; shows the most recent un-delivered order with a live status pill, current step in the timeline, ETA, and a one-tap **Track** CTA.
 3. Quick-action grid (2×2): Orders · Wishlist · Addresses · Coupons.
 4. Recommended for you (re-buy + similar to past purchases).
 5. Need help? → WhatsApp / FAQ.
 
-#### 7.9.2 `/account/orders` — order history
+#### 7.9.2 `/account/orders` - order history
 
 - Reverse-chronological list. Each row is a **swipeable card** on mobile:
   ```
   ┌──────────────────────────────────────┐
-  │ [img] Dot Mandala — 12" Round         │
+  │ [img] Dot Mandala - 12" Round         │
   │       Order #TSA-2026-00487           │
   │       Placed 8 May · ₹ 4,200          │
   │       🟡 Crafting · ETA 18 May        │
@@ -615,16 +615,16 @@ Mobile layout (top-down):
 - Search by order ID or product name.
 - Sort: most recent · highest value.
 - Each card swipe-left reveals shortcuts: **Reorder** · **Get invoice** · **Contact support**.
-- Empty state: *"No orders yet — your first masterpiece is one tap away"* with a Shop CTA.
+- Empty state: *"No orders yet - your first masterpiece is one tap away"* with a Shop CTA.
 
-#### 7.9.3 `/account/orders/[id]` — single order detail
+#### 7.9.3 `/account/orders/[id]` - single order detail
 
 This is the most important page in the customer's logged-in experience.
 
 **Sections:**
 
-1. **Header strip** — Order #, placed date, total, payment method, payment status (Paid · COD · Refund pending).
-2. **Live status timeline** — vertical on mobile, horizontal on desktop. Six canonical steps with current step highlighted, completed steps with checkmarks, future steps dimmed:
+1. **Header strip** - Order #, placed date, total, payment method, payment status (Paid · COD · Refund pending).
+2. **Live status timeline** - vertical on mobile, horizontal on desktop. Six canonical steps with current step highlighted, completed steps with checkmarks, future steps dimmed:
    ```
    ●  Placed              8 May, 10:42 AM
    ●  Confirmed           8 May, 11:15 AM
@@ -633,25 +633,25 @@ This is the most important page in the customer's logged-in experience.
    ○  Shipped
    ○  Delivered
    ```
-   Each step shows the timestamp + any admin note (e.g. *"Resin curing — will take 2 extra days"*).
-3. **Items list** — image, title, size, qty, price, per-line *Reorder* link.
+   Each step shows the timestamp + any admin note (e.g. *"Resin curing - will take 2 extra days"*).
+3. **Items list** - image, title, size, qty, price, per-line *Reorder* link.
 4. **Shipping address** + courier name + **tracking number** with a copy button and a deep link to the courier's tracker.
-5. **Payment summary** — subtotal, discount (with coupon code shown), shipping, taxes, total.
-6. **Invoice** — download PDF (server-generated, GST-compliant). Email me a copy.
+5. **Payment summary** - subtotal, discount (with coupon code shown), shipping, taxes, total.
+6. **Invoice** - download PDF (server-generated, GST-compliant). Email me a copy.
 7. **Actions** (visible based on order state):
-   - **Cancel order** — only while status ∈ {Placed, Confirmed}; surfaces refund policy.
-   - **Modify address** — only while status = Placed; one edit allowed.
-   - **Report an issue** — opens a guided form (damaged · wrong item · missing · other) with photo upload → creates a support ticket.
-   - **Request return / exchange** — only after Delivered and within 7 days; reason picker.
-   - **Reorder** — clones items into cart.
-   - **Rate & review** — only after Delivered; opens per-item review form.
-   - **Contact on WhatsApp** — pre-fills `Hi, regarding order #TSA-2026-00487...`
-8. **Activity log** — every status change + admin note, customer-visible, chronological.
+   - **Cancel order** - only while status ∈ {Placed, Confirmed}; surfaces refund policy.
+   - **Modify address** - only while status = Placed; one edit allowed.
+   - **Report an issue** - opens a guided form (damaged · wrong item · missing · other) with photo upload → creates a support ticket.
+   - **Request return / exchange** - only after Delivered and within 7 days; reason picker.
+   - **Reorder** - clones items into cart.
+   - **Rate & review** - only after Delivered; opens per-item review form.
+   - **Contact on WhatsApp** - pre-fills `Hi, regarding order #TSA-2026-00487...`
+8. **Activity log** - every status change + admin note, customer-visible, chronological.
 
-**Notifications customer receives** (each maps to a status change — see §9.14):
+**Notifications customer receives** (each maps to a status change - see §9.14):
 - WhatsApp message + email + push (if PWA installed): Placed → Confirmed → Crafting → Packed → Shipped (with tracking #) → Out for delivery → Delivered → Review request (3 days later).
 
-#### 7.9.4 `/account/orders/[id]/track` — public-style tracker
+#### 7.9.4 `/account/orders/[id]/track` - public-style tracker
 
 Same timeline as 7.9.3 but full-screen, kiosk-style, courier map embed if available, big ETA. Shareable via a signed link so customers can show family without logging them in.
 
@@ -680,7 +680,7 @@ PLACED → CONFIRMED → CRAFTING → PACKED → SHIPPED → OUT_FOR_DELIVERY �
                               ↘ ON_HOLD    (admin-set, with reason)
 ```
 
-Each transition is an immutable event row (`orderEvents` table): `orderId`, `from`, `to`, `at`, `by` (user/admin/system), `note`, `meta` (e.g. tracking #). The customer-facing timeline is rendered from this event log — single source of truth, same data the admin sees.
+Each transition is an immutable event row (`orderEvents` table): `orderId`, `from`, `to`, `at`, `by` (user/admin/system), `note`, `meta` (e.g. tracking #). The customer-facing timeline is rendered from this event log - single source of truth, same data the admin sees.
 
 ### 7.10 The Craft `/the-craft/[form]`
 
@@ -692,7 +692,7 @@ Aggregated reviews wall with photo grid. Filter by art form. "Share your piece" 
 
 ### 7.12 Static pages
 
-`/faq` · `/shipping-and-returns` · `/privacy-policy` · `/terms` · `/contact` — each driven by markdown/MDX so admin can edit via the CMS panel.
+`/faq` · `/shipping-and-returns` · `/privacy-policy` · `/terms` · `/contact` - each driven by markdown/MDX so admin can edit via the CMS panel.
 
 ---
 
@@ -700,7 +700,7 @@ Aggregated reviews wall with photo grid. Filter by art form. "Share your piece" 
 
 Coupon codes are a first-class part of the checkout funnel, the cart, and the marquee banner. Treat them as a feature, not a free-text input bolted onto the order summary.
 
-### 8.1 Coupon types (admin-configurable — §9.10)
+### 8.1 Coupon types (admin-configurable - §9.10)
 
 | Type | Example | Use case |
 |---|---|---|
@@ -717,14 +717,14 @@ Each coupon record stores: `code`, `type`, `value`, `minSpend`, `maxDiscount`, `
 
 ### 8.2 Where coupons appear in the customer flow
 
-1. **Marquee banner** advertises the code (`Use code SRILATHA30`) — see §6.
-2. **Product detail page** — if an *auto-apply* or category coupon is live, show a small green pill:
+1. **Marquee banner** advertises the code (`Use code SRILATHA30`) - see §6.
+2. **Product detail page** - if an *auto-apply* or category coupon is live, show a small green pill:
    ```
    💚  30% off applied at checkout with SRILATHA30
    ```
-3. **Cart page** — collapsible "Have a coupon?" row with input + Apply button + applied chips.
-4. **Checkout** — same coupon row, prominent in the order summary. See §7.7 for the redesigned checkout coupon UX below.
-5. **Account / Wallet** — `/account/coupons` shows codes assigned to the user (loyalty, birthday, win-back).
+3. **Cart page** - collapsible "Have a coupon?" row with input + Apply button + applied chips.
+4. **Checkout** - same coupon row, prominent in the order summary. See §7.7 for the redesigned checkout coupon UX below.
+5. **Account / Wallet** - `/account/coupons` shows codes assigned to the user (loyalty, birthday, win-back).
 
 ### 8.3 Checkout coupon UX (mobile-first)
 
@@ -754,7 +754,7 @@ The coupon input lives **inside the sticky order summary**, immediately above th
 |---|---|
 | Type code + Apply | `POST /api/coupons/validate` with `{ code, cartItems, userId }` → returns `{ valid, discount, message }` |
 | Valid | success toast, chip slides in with strike-through on the old total, new total animates from old → new in 400 ms |
-| Invalid | inline red error under field with explicit reason: *"This code expired", "Minimum order ₹3,000 required (add ₹520 more)", "Already used"* — never just "invalid" |
+| Invalid | inline red error under field with explicit reason: *"This code expired", "Minimum order ₹3,000 required (add ₹520 more)", "Already used"* - never just "invalid" |
 | Server suggests an auto-apply | when user lands on `/checkout` and a better unused public coupon applies, show a soft hint: *"Tip: code FREESHIP gives you free shipping"* with one-tap apply |
 | Stacking | by default coupons are **not stackable**; if both are stackable per admin config, allow up to 2 chips |
 | Anti-abuse | rate-limit `validate` to 5 attempts/minute/IP; lock account after 20 failed attempts in an hour |
@@ -774,7 +774,7 @@ type ValidateRes =
   | { valid: true;  code: string; discountAmount: number; appliedTo: 'cart' | 'shipping'; message?: string }
   | { valid: false; reason: 'EXPIRED' | 'MIN_SPEND' | 'USED' | 'NOT_ELIGIBLE' | 'INVALID' | 'INACTIVE'; message: string }
 
-// POST /api/orders   (final placement re-validates server-side — never trust client-side discount)
+// POST /api/orders   (final placement re-validates server-side - never trust client-side discount)
 ```
 
 **Critical:** the final discount **must be recomputed on the server** during `POST /api/orders`. The client value is for display only. This stops a tampered client from sending `discount: 99%`.
@@ -785,7 +785,7 @@ Track per code: redemptions, GMV, redemption rate (views vs uses), avg order val
 
 ### 8.6 Marquee ↔ coupon link
 
-When admin creates a coupon and toggles **"Promote in announcement bar"**, a marquee entry is auto-generated with the code embedded — keeping the banner and the actual live discount in sync (no more "the banner says 30% but the code doesn't work" complaints).
+When admin creates a coupon and toggles **"Promote in announcement bar"**, a marquee entry is auto-generated with the code embedded - keeping the banner and the actual live discount in sync (no more "the banner says 30% but the code doesn't work" complaints).
 
 ---
 
@@ -810,9 +810,9 @@ Charts (responsive):
 - Top-selling products (bar)
 - Traffic source (if GA hooked up)
 
-**Live activity feed** (right rail on desktop, bottom panel on mobile): last 20 events with timestamps — new order, payment captured, status change, review, custom inquiry, low-stock alert. Each row deep-links to the relevant entity. Refreshes every 30 s via React Query polling (or SignalR for real-time later).
+**Live activity feed** (right rail on desktop, bottom panel on mobile): last 20 events with timestamps - new order, payment captured, status change, review, custom inquiry, low-stock alert. Each row deep-links to the relevant entity. Refreshes every 30 s via React Query polling (or SignalR for real-time later).
 
-### 9.2 Orders `/admin/orders` — full order tracking
+### 9.2 Orders `/admin/orders` - full order tracking
 
 This is the **operational nerve centre** of the admin panel. Built for one-handed mobile use (so packing-table staff can update status from a phone) and equally for desktop bulk operations.
 
@@ -850,7 +850,7 @@ Row hover reveals quick actions: View · Advance Status · WhatsApp Customer · 
 └────────────────────────────────────────────┘
 ```
 
-The primary CTA on each mobile card is the **next-status button** — one tap advances the workflow. This is the single most-used action for staff.
+The primary CTA on each mobile card is the **next-status button** - one tap advances the workflow. This is the single most-used action for staff.
 
 #### 9.2.2 Detail view `/admin/orders/[id]`
 
@@ -867,7 +867,7 @@ The primary CTA on each mobile card is the **next-status button** — one tap ad
    - Customer notes (from checkout).
    - Internal notes (admin-only, free-form, timestamped per author).
 
-2. **Status & Tracking** — *the heart of order management*
+2. **Status & Tracking** - *the heart of order management*
    - Interactive status timeline. Each step is a **tappable chip** that opens a confirm sheet:
      ```
      Move to: Packed
@@ -883,20 +883,20 @@ The primary CTA on each mobile card is the **next-status button** — one tap ad
      ```
    - Tracking section: courier dropdown (Delhivery, Bluedart, India Post, Shiprocket, Other), **tracking number input**, "Get live status" button (calls courier API if integrated → otherwise opens the courier's tracker in a new tab).
    - ETA editor (admin can adjust if crafting takes longer; customer sees the update).
-   - **Customer's view preview** — toggle that renders exactly what the customer sees in `/account/orders/[id]`. Eliminates "admin sees X, customer sees Y" support tickets.
+   - **Customer's view preview** - toggle that renders exactly what the customer sees in `/account/orders/[id]`. Eliminates "admin sees X, customer sees Y" support tickets.
 
 3. **Activity log**
-   - Immutable event stream from the `orderEvents` table — every status change, note, refund, message sent, with `by` (user/admin/system) and timestamp.
+   - Immutable event stream from the `orderEvents` table - every status change, note, refund, message sent, with `by` (user/admin/system) and timestamp.
    - Filter: All · Status changes · Notes · Messages · Refunds.
 
 4. **Messages**
    - Inline WhatsApp + email thread with the customer (via WhatsApp Cloud API + transactional email logs).
-   - Pre-filled templates: *"Hi {name}, your order has been packed and will ship tomorrow…"* — admin can edit before sending.
+   - Pre-filled templates: *"Hi {name}, your order has been packed and will ship tomorrow…"* - admin can edit before sending.
 
 5. **Issues / Returns** (visible if any)
    - Photos uploaded by customer, reason, requested action, admin response form, refund / replacement decision tree.
 
-#### 9.2.3 Status workflow (canonical — shared with §7.9.9)
+#### 9.2.3 Status workflow (canonical - shared with §7.9.9)
 
 ```
 PLACED
@@ -930,7 +930,7 @@ RETURN_REQUESTED → RETURNED → REFUNDED
 - Cannot skip statuses except: *anything → Cancelled* (with reason), *anything → On Hold* (with reason).
 - Moving to SHIPPED requires tracking number.
 - Moving to REFUNDED auto-creates a refund record + triggers payment gateway refund API.
-- Every transition writes to `orderEvents` — never overwrite.
+- Every transition writes to `orderEvents` - never overwrite.
 - Customer notifications fire automatically based on transition (configurable per-template in §9.14).
 
 #### 9.2.4 Notifications fired on each status change
@@ -951,15 +951,15 @@ Templates editable in `/admin/settings/notifications` (§9.14).
 
 #### 9.2.5 Bulk operations
 
-- **Bulk advance status** — select rows in the same status → advance all.
-- **Bulk WhatsApp** — send a templated message to all selected customers (e.g. delay notice).
-- **Bulk print** — packing slips and invoices in a single PDF, ordered by destination pincode.
-- **CSV export** — for accounting, GST filing.
+- **Bulk advance status** - select rows in the same status → advance all.
+- **Bulk WhatsApp** - send a templated message to all selected customers (e.g. delay notice).
+- **Bulk print** - packing slips and invoices in a single PDF, ordered by destination pincode.
+- **CSV export** - for accounting, GST filing.
 
 #### 9.2.6 Backend contract
 
 ```ts
-// already exists in backend/src/functions/orderAdmin.ts — extend to:
+// already exists in backend/src/functions/orderAdmin.ts - extend to:
 
 GET   /api/admin/orders                 // ?status=&from=&to=&q=&page=
 GET   /api/admin/orders/:id
@@ -1048,7 +1048,7 @@ Markdown editor for static pages (FAQ, About, Shipping, etc.). Versioning + draf
 
 ### 9.15 Announcement Bar `/admin/settings/announcement`
 
-CRUD for marquee banner items defined in §6. Fields per item: `message`, `link`, `startDate`, `endDate`, `priority`, `theme` (gold / festive-pink / muted), `active`. Drag-reorder list. "Preview on site" opens a live iframe. **One-tap link** to attach a coupon code from §9.10 — keeps banner copy and the actual discount aligned automatically.
+CRUD for marquee banner items defined in §6. Fields per item: `message`, `link`, `startDate`, `endDate`, `priority`, `theme` (gold / festive-pink / muted), `active`. Drag-reorder list. "Preview on site" opens a live iframe. **One-tap link** to attach a coupon code from §9.10 - keeps banner copy and the actual discount aligned automatically.
 
 ---
 
@@ -1098,18 +1098,18 @@ export const scaleIn = { hidden:{opacity:0,scale:0.96}, visible:{opacity:1,scale
 - Persist `cart` + `wishlist` to `localStorage`, hydrate on mount, sync to API when logged in.
 
 **Server state:**
-- **TanStack Query (React Query)** for all GET endpoints — automatic caching, refetch, optimistic updates.
+- **TanStack Query (React Query)** for all GET endpoints - automatic caching, refetch, optimistic updates.
 - Query key convention: `['products', { category, sort, page }]`.
 
 **Forms:**
 - **react-hook-form** + **zod** for validation (single source of truth shared with backend types).
 
 **Auth:**
-- JWT in `httpOnly` cookie (move away from localStorage — XSS risk).
+- JWT in `httpOnly` cookie (move away from localStorage - XSS risk).
 - `/api/auth/me` on app boot to hydrate user.
 - Middleware-protected routes via `middleware.ts`.
 
-**Backend (already in place — extend):**
+**Backend (already in place - extend):**
 - Azure Functions in TypeScript ✓
 - Table Storage for products/orders/users ✓
 - Blob Storage for images ✓
@@ -1170,7 +1170,7 @@ export const scaleIn = { hidden:{opacity:0,scale:0.96}, visible:{opacity:1,scale
 **i18n (V2):**
 - `next-intl` ready from day one.
 - Default `en-IN`. Add `hi-IN` and `te-IN` (Hyderabad audience) later.
-- Currency formatter via `Intl.NumberFormat('en-IN', { style:'currency', currency:'INR' })` — already partly using.
+- Currency formatter via `Intl.NumberFormat('en-IN', { style:'currency', currency:'INR' })` - already partly using.
 
 ---
 
@@ -1271,14 +1271,14 @@ date-fns           dates
 
 ## 15. Migration Plan from Current Code
 
-The current code is a solid starting point — don't throw it away.
+The current code is a solid starting point - don't throw it away.
 
 | Keep as-is | Rework | Build new |
 |---|---|---|
 | Brand tokens (Tailwind config) | `Header.tsx` (mobile-first, scroll-aware, sits below marquee) | **MarqueeBanner** (§6) + `BannerProvider` |
 | `KolamLoader`, `SectionDivider`, `WhatsAppButton` | `ProductCard` (mobile-first padding, sticky price) | `BottomTabBar` |
 | Azure Functions backend skeleton | `app/page.tsx` (mobile-first hero, scroll-story) | All account pages (`/account/*`) incl. order timeline & tracker |
-| Auth lib (`lib/auth.ts`) — but move JWT to cookie | `app/gallery/` → `app/shop/` with category sub-routes | **Coupon system** (validate API + checkout UX + admin CRUD) |
+| Auth lib (`lib/auth.ts`) - but move JWT to cookie | `app/gallery/` → `app/shop/` with category sub-routes | **Coupon system** (validate API + checkout UX + admin CRUD) |
 | Admin gallery CRUD | `orderAdmin.ts` (extend with `/status`, `/notes`, `/refund`, `/message`, `/events`) | **`orderEvents` table** + admin Orders detail page |
 | Checkout shell | Checkout (real Razorpay, accordion mobile UX, coupon row) | Announcement bar admin CRUD + customer/admin order tracking pages |
 
@@ -1294,7 +1294,7 @@ The current code is a solid starting point — don't throw it away.
 
 ## 16. Phased Roadmap
 
-### Phase 1 — Foundation (Weeks 1–2)
+### Phase 1 - Foundation (Weeks 1–2)
 
 - Mobile-first refactor of layout, Header, Hero, ProductCard.
 - **Announcement marquee banner** (§6) wired to `/api/announcements` with admin CRUD (§9.15).
@@ -1304,7 +1304,7 @@ The current code is a solid starting point — don't throw it away.
 - Shop + category pages.
 - PWA basics (manifest, icons, install).
 
-### Phase 2 — Commerce + Order Management (Weeks 3–4)
+### Phase 2 - Commerce + Order Management (Weeks 3–4)
 
 - Real checkout with Razorpay.
 - **Coupon validation API + checkout coupon UX** (§8.3).
@@ -1316,14 +1316,14 @@ The current code is a solid starting point — don't throw it away.
 - Wishlist.
 - Address book.
 
-### Phase 3 — Storytelling & Custom Orders (Week 5)
+### Phase 3 - Storytelling & Custom Orders (Week 5)
 
 - `/our-story`, `/the-craft/*`, `/care-guide`.
 - `/custom-order` multi-step form + admin inbox.
 - Scroll-driven home reveal.
 - Reviews submission + display.
 
-### Phase 4 — Admin Expansion (Weeks 6–7)
+### Phase 4 - Admin Expansion (Weeks 6–7)
 
 - Orders panel (replacing gallery-only admin).
 - Customers, Inventory, Coupons.
@@ -1331,7 +1331,7 @@ The current code is a solid starting point — don't throw it away.
 - Analytics with Recharts.
 - Settings (shipping, payments, staff).
 
-### Phase 5 — Polish (Week 8)
+### Phase 5 - Polish (Week 8)
 
 - Lighthouse to 95+ across the board.
 - A11y audit.
@@ -1340,7 +1340,7 @@ The current code is a solid starting point — don't throw it away.
 - Instagram strip on home.
 - Bug bash on iPhone SE, Pixel 5, iPad mini.
 
-### Phase 6 (V2 — optional)
+### Phase 6 (V2 - optional)
 
 - Multi-language (hi, te).
 - Journal/blog.
@@ -1349,7 +1349,7 @@ The current code is a solid starting point — don't throw it away.
 
 ---
 
-## Appendix A — Sample mobile-first Hero (snippet)
+## Appendix A - Sample mobile-first Hero (snippet)
 
 ```tsx
 <section className="relative min-h-[100svh] flex flex-col justify-end overflow-hidden">
@@ -1361,7 +1361,7 @@ The current code is a solid starting point — don't throw it away.
   />
   <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary-dark/60 to-transparent" />
 
-  {/* Copy + CTAs — pinned to lower third on mobile, centered on lg */}
+  {/* Copy + CTAs - pinned to lower third on mobile, centered on lg */}
   <div className="relative z-10 px-5 pb-10 pt-24
                   lg:px-12 lg:pb-0 lg:pt-0 lg:flex lg:items-center lg:min-h-[100svh]">
     <div className="max-w-md lg:max-w-xl">
@@ -1374,7 +1374,7 @@ The current code is a solid starting point — don't throw it away.
         Meets <span className="gold-text">Creativity</span>
       </h1>
       <p className="text-white/70 text-base lg:text-lg mb-7 leading-relaxed">
-        Bespoke Dot Mandala, Resin and Lippan art — handcrafted to bring beauty into your space.
+        Bespoke Dot Mandala, Resin and Lippan art - handcrafted to bring beauty into your space.
       </p>
       <div className="flex flex-col sm:flex-row gap-3">
         <Link href="/shop" className="btn-gold h-12 px-7 text-base">
@@ -1389,7 +1389,7 @@ The current code is a solid starting point — don't throw it away.
 </section>
 ```
 
-## Appendix B — Sample BottomTabBar (snippet)
+## Appendix B - Sample BottomTabBar (snippet)
 
 ```tsx
 'use client'

@@ -23,9 +23,13 @@ export default function BottomTabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40
-                 bg-cream/95 backdrop-blur-xl border-t border-ink/10
-                 safe-pb"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 safe-pb"
+      style={{
+        background: 'rgba(43,30,52,0.92)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}
     >
       <ul className="grid grid-cols-5 h-16">
         {tabs.map(({ href, label, icon: Icon, raised }) => {
@@ -38,24 +42,27 @@ export default function BottomTabBar() {
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex flex-col items-center justify-center gap-1 w-full',
-                  'text-[10px] font-medium transition-all duration-200',
-                  active ? 'text-terracotta' : 'text-ink-mute',
+                  'text-[10px] font-medium transition-all duration-300',
+                  active ? 'text-lavender-pastel' : 'text-ivory-mute',
                   raised && '-mt-5',
                 )}
               >
                 <span
                   className={cn(
-                    'transition-transform duration-200',
+                    'transition-transform duration-300',
                     raised
                       ? cn(
-                          'w-12 h-12 rounded-full flex items-center justify-center',
-                          'bg-ink text-cream shadow-card',
-                          active && 'scale-110',
+                          'w-12 h-12 rounded-full flex items-center justify-center shadow-card',
+                          active ? 'scale-110' : '',
                         )
                       : active
                       ? 'scale-110'
                       : 'scale-100',
                   )}
+                  style={raised ? {
+                    background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
+                    color: '#2B1E34',
+                  } : undefined}
                 >
                   <Icon className={raised ? 'w-5 h-5' : 'w-[18px] h-[18px]'} aria-hidden />
                 </span>
