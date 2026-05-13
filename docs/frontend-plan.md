@@ -1,6 +1,6 @@
 # Srilatha Art - Mobile-First Frontend Redesign
 
-> An end-to-end blueprint for rebuilding **thesrilathaarts.com** as a **mobile-first**, **immersive**, premium online shopping experience for Resin · Dot Mandala · Lippan · Pichwai · Kolam handcrafted art - with a complete admin panel spec.
+> An end-to-end blueprint for rebuilding **srilatha.art** as a **mobile-first**, **immersive**, premium online shopping experience for Resin · Dot Mandala · Lippan · Pichwai · Kolam handcrafted art - with a complete admin panel spec.
 
 ---
 
