@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!cat) return { title: 'Not found' }
   return {
     title: `${cat.title} · The Srilatha Arts`,
-    description: cat.description,
+    description: cat.tagline,
   }
 }
 
