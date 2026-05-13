@@ -32,7 +32,7 @@ export default function Header() {
     <>
       <header
         className={cn(
-          'fixed inset-x-0 z-50 transition-transform duration-300',
+          'fixed inset-x-0 z-50 transition-transform duration-500',
           'top-[var(--banner-h)]',
           hidden ? '-translate-y-full' : 'translate-y-0',
         )}
@@ -40,11 +40,12 @@ export default function Header() {
         <div
           className={cn(
             'mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-20',
-            'transition-all duration-300 border-b',
+            'transition-all duration-500',
             scrolled
-              ? 'bg-cream/90 backdrop-blur-xl border-ink/8'
-              : 'bg-cream/60 backdrop-blur-sm border-transparent',
+              ? 'glass-strong'
+              : 'bg-plum/40 backdrop-blur-sm',
           )}
+          style={{ borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent' }}
         >
           {/* Left: hamburger (mobile) + minimal nav (desktop) */}
           <div className="flex items-center gap-1">
@@ -52,21 +53,21 @@ export default function Header() {
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
               className="lg:hidden min-h-11 min-w-11 -ml-2 flex items-center justify-center
-                         text-ink hover:text-terracotta transition-colors"
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
               <Menu className="w-5 h-5" aria-hidden />
             </button>
             <nav className="hidden lg:flex items-center gap-8 text-sm">
-              <Link href="/shop" className="text-ink/85 hover:text-terracotta transition-colors">
+              <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Shop
               </Link>
-              <Link href="/custom-order" className="text-ink/85 hover:text-terracotta transition-colors">
+              <Link href="/custom-order" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Custom
               </Link>
-              <Link href="/our-story" className="text-ink/85 hover:text-terracotta transition-colors">
+              <Link href="/our-story" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Our Story
               </Link>
-              <Link href="/contact" className="text-ink/85 hover:text-terracotta transition-colors">
+              <Link href="/contact" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Contact
               </Link>
             </nav>
@@ -85,7 +86,8 @@ export default function Header() {
               height={56}
               priority
               className={cn(
-                'w-12 h-12 lg:w-14 lg:h-14 object-contain transition-all duration-300',
+                'w-12 h-12 lg:w-14 lg:h-14 object-contain transition-all duration-500',
+                'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
                 scrolled ? 'opacity-100' : 'opacity-95',
               )}
             />
@@ -97,7 +99,7 @@ export default function Header() {
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
               className="min-h-11 min-w-11 flex items-center justify-center
-                         text-ink hover:text-terracotta transition-colors"
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
               <Search className="w-5 h-5" aria-hidden />
             </button>
@@ -105,14 +107,17 @@ export default function Header() {
               href="/cart"
               aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
               className="relative min-h-11 min-w-11 -mr-2 flex items-center justify-center
-                         text-ink hover:text-terracotta transition-colors"
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
               <ShoppingBag className="w-5 h-5" aria-hidden />
               {count > 0 && (
                 <span
                   className="absolute top-2 right-1.5 min-w-[18px] h-[18px] px-1
-                             rounded-full bg-terracotta text-cream text-[10px]
-                             font-bold leading-[18px] text-center"
+                             text-[10px] font-bold leading-[18px] text-center text-plum"
+                  style={{
+                    borderRadius: '24px',
+                    background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
+                  }}
                 >
                   {count > 99 ? '99+' : count}
                 </span>

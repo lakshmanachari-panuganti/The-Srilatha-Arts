@@ -27,14 +27,14 @@ export default function PlaceholderPage({
         {titleWords ? (
           <>
             {titleWords[0]}
-            <em className="italic">{goldWord}</em>
+            <em className="italic gold-text">{goldWord}</em>
             {titleWords[1]}
           </>
         ) : (
           title
         )}
       </h1>
-      <p className="text-ink-soft leading-relaxed mb-10 max-w-reader mx-auto text-base lg:text-lg">
+      <p className="text-ivory-soft leading-relaxed mb-10 max-w-reader mx-auto text-base lg:text-lg">
         {description}
       </p>
       <Link href={primaryHref} className="btn-dark">

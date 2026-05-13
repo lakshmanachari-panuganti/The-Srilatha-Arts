@@ -52,29 +52,35 @@ export default function SearchOverlay() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[80] bg-cream/98 backdrop-blur-md"
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-[80]"
+          style={{
+            background: 'rgba(43,30,52,0.97)',
+            backdropFilter: 'blur(20px)',
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Search"
         >
           <div className="max-w-2xl mx-auto px-5 pt-8 sm:pt-14 safe-pt">
             <div className="flex items-center gap-3 mb-6">
-              <SearchIcon className="w-5 h-5 text-terracotta shrink-0" aria-hidden />
+              <SearchIcon className="w-5 h-5 text-lavender-pastel shrink-0" aria-hidden />
               <input
                 id="tsa-search-input"
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search products, art forms, occasions…"
-                className="flex-1 bg-transparent border-b border-ink/20 focus:border-ink
-                           outline-none text-ink placeholder:text-ink-mute py-2 text-lg font-serif"
+                className="flex-1 bg-transparent outline-none text-ivory placeholder:text-ivory-mute py-2 text-lg font-serif"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}
+                onFocus={(e) => e.target.style.borderBottomColor = 'rgba(200,182,255,0.5)'}
+                onBlur={(e) => e.target.style.borderBottomColor = 'rgba(255,255,255,0.15)'}
               />
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close search"
                 className="min-h-11 min-w-11 -mr-2 flex items-center justify-center
-                           text-ink-mute hover:text-ink"
+                           text-ivory-mute hover:text-ivory transition-colors duration-500"
               >
                 <X className="w-5 h-5" aria-hidden />
               </button>
@@ -92,32 +98,40 @@ export default function SearchOverlay() {
                 </div>
               </div>
             ) : results.length === 0 ? (
-              <p className="text-ink-mute py-10 text-center font-serif text-lg italic">
+              <p className="text-ivory-mute py-10 text-center font-serif text-lg italic">
                 No matches yet. Try a different word.
               </p>
             ) : (
-              <ul className="divide-y divide-ink/8">
+              <ul>
                 {results.map((p) => (
-                  <li key={p.id}>
+                  <li key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     <Link
                       href={`/product/${p.id}`}
                       onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 py-3 hover:bg-cream-deep -mx-2 px-2 rounded-xl transition-colors"
+                      className="flex items-center gap-3 py-3 -mx-2 px-2 transition-colors duration-500"
+                      style={{ borderRadius: '16px' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
                       <Image
                         src={p.images[0]}
                         alt=""
                         width={56}
                         height={56}
-                        className="w-14 h-14 object-contain p-2 rounded-xl bg-cream-deep"
+                        className="w-14 h-14 object-contain p-2"
+                        style={{
+                          borderRadius: '16px',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                        }}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-ink font-serif text-base truncate">{p.title}</p>
-                        <p className="text-xs text-ink-mute capitalize">
+                        <p className="text-ivory font-serif text-base truncate">{p.title}</p>
+                        <p className="text-xs text-ivory-mute capitalize">
                           {p.category.replace('-', ' ')} · {formatINR(p.price)}
                         </p>
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-ink-mute" aria-hidden />
+                      <ArrowUpRight className="w-4 h-4 text-ivory-mute" aria-hidden />
                     </Link>
                   </li>
                 ))}

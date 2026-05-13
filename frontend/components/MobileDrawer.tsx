@@ -26,9 +26,9 @@ export default function MobileDrawer() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.35 }}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[70] bg-ink/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] bg-plum/60 backdrop-blur-sm"
             aria-hidden
           />
           <motion.aside
@@ -38,12 +38,22 @@ export default function MobileDrawer() {
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
-            transition={{ duration: 0.34, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="fixed top-0 bottom-0 left-0 z-[71] w-[86vw] max-w-sm
-                       bg-cream border-r border-ink/8 overflow-y-auto safe-pt"
+                       overflow-y-auto safe-pt"
+            style={{
+              background: 'rgba(43,30,52,0.95)',
+              backdropFilter: 'blur(24px)',
+              borderRight: '1px solid rgba(255,255,255,0.08)',
+            }}
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4
-                            bg-cream/95 backdrop-blur-xl border-b border-ink/8">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4"
+                 style={{
+                   background: 'rgba(43,30,52,0.95)',
+                   backdropFilter: 'blur(24px)',
+                   borderBottom: '1px solid rgba(255,255,255,0.06)',
+                 }}
+            >
               <Link
                 href="/"
                 onClick={() => setOpen(false)}
@@ -51,15 +61,15 @@ export default function MobileDrawer() {
                 className="flex items-center gap-2"
               >
                 <Image src="/images/logo.png" alt="" width={40} height={40} className="w-10 h-10" />
-                <span className="font-serif text-lg leading-none text-ink">
-                  The <span className="terracotta-text">Srilatha</span> Arts
+                <span className="font-serif text-lg leading-none text-ivory">
+                  The <span className="gold-text">Srilatha</span> Arts
                 </span>
               </Link>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
                 className="min-h-11 min-w-11 flex items-center justify-center
-                           text-ink-mute hover:text-ink"
+                           text-ivory-mute hover:text-ivory transition-colors duration-500"
               >
                 <X className="w-5 h-5" aria-hidden />
               </button>
@@ -72,7 +82,7 @@ export default function MobileDrawer() {
                     <Link
                       href={l.href}
                       onClick={() => setOpen(false)}
-                      className="block py-3 font-serif text-3xl text-ink hover:text-terracotta transition-colors"
+                      className="block py-3 font-serif text-3xl text-ivory hover:text-lavender-pastel transition-colors duration-500"
                     >
                       {l.label}
                     </Link>
@@ -87,7 +97,7 @@ export default function MobileDrawer() {
                     <Link
                       href={`/shop/${c.slug}`}
                       onClick={() => setOpen(false)}
-                      className="block py-2 text-base text-ink-soft hover:text-terracotta transition-colors"
+                      className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
                     >
                       {c.title}
                     </Link>
@@ -101,7 +111,7 @@ export default function MobileDrawer() {
                   <Link
                     href="/account"
                     onClick={() => setOpen(false)}
-                    className="block py-2 text-base text-ink-soft hover:text-terracotta transition-colors"
+                    className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
                   >
                     Sign in
                   </Link>
@@ -110,7 +120,7 @@ export default function MobileDrawer() {
                   <Link
                     href="/account/wishlist"
                     onClick={() => setOpen(false)}
-                    className="block py-2 text-base text-ink-soft hover:text-terracotta transition-colors"
+                    className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
                   >
                     Wishlist
                   </Link>
@@ -118,7 +128,9 @@ export default function MobileDrawer() {
               </ul>
             </nav>
 
-            <div className="px-5 py-6 mt-2 border-t border-ink/8 safe-pb">
+            <div className="px-5 py-6 mt-2 safe-pb"
+                 style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+            >
               <a
                 href="https://wa.me/919999999999"
                 target="_blank"
@@ -132,7 +144,7 @@ export default function MobileDrawer() {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-2 text-sm text-ink-mute hover:text-terracotta"
+                className="mt-3 inline-flex items-center gap-2 text-sm text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
               >
                 <Instagram className="w-4 h-4" aria-hidden />
                 @thesrilathaarts
