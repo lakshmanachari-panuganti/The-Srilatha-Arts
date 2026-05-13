@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description: 'The pieces our community loves most.',
 }
 
-export default function BestSellersPage() {
-  const products = getBestSellers()
+export default async function BestSellersPage() {
+  const products = await getBestSellers()
   return (
     <>
       <CategoryChips />

@@ -6,7 +6,7 @@ import ProductGrid from '@/components/shop/ProductGrid'
 import { CATEGORY_BY_SLUG, CATEGORIES } from '@/data/categories'
 import { getProductsByCategory } from '@/data/products'
 
-interface PageProps {
+interface Props {
   params: Promise<{ category: string }>
 }
 
@@ -14,22 +14,22 @@ export function generateStaticParams() {
   return CATEGORIES.map((c) => ({ category: c.slug }))
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params
   const cat = CATEGORY_BY_SLUG[category]
   if (!cat) return { title: 'Not found' }
   return {
-    title: `${cat.title} · Handcrafted ${cat.title}`,
-    description: cat.origin,
+    title: `${cat.title} · The Srilatha Arts`,
+    description: cat.description,
   }
 }
 
-export default async function CategoryPage({ params }: PageProps) {
+export default async function ShopCategoryPage({ params }: Props) {
   const { category } = await params
   const cat = CATEGORY_BY_SLUG[category]
   if (!cat) notFound()
 
-  const products = getProductsByCategory(cat.slug)
+  const products = await getProductsByCategory(category)
 
   return (
     <>

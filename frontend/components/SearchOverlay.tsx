@@ -5,23 +5,28 @@ import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search as SearchIcon, X, ArrowUpRight } from 'lucide-react'
 import { useUI } from '@/stores/ui'
-import { PRODUCTS } from '@/data/products'
+import { apiFetch } from '@/lib/api'
+import type { Product } from '@/types'
 import { formatINR } from '@/lib/format'
 
 export default function SearchOverlay() {
   const open = useUI((s) => s.searchOpen)
   const setOpen = useUI((s) => s.setSearchOpen)
   const [q, setQ] = useState('')
+  const [allProducts, setAllProducts] = useState<Product[]>([])
 
   useEffect(() => {
     if (open) {
+      if (allProducts.length === 0) {
+        apiFetch<{ products: Product[] }>('/products').then(res => setAllProducts(res.products || []))
+      }
       const t = setTimeout(() => {
         document.getElementById('tsa-search-input')?.focus()
       }, 80)
       return () => clearTimeout(t)
     }
     setQ('')
-  }, [open])
+  }, [open, allProducts.length])
 
   useEffect(() => {
     if (!open) return
@@ -35,13 +40,13 @@ export default function SearchOverlay() {
   const results = useMemo(() => {
     const term = q.trim().toLowerCase()
     if (!term) return []
-    return PRODUCTS.filter(
+    return allProducts.filter(
       (p) =>
         p.title.toLowerCase().includes(term) ||
         p.category.toLowerCase().includes(term) ||
-        p.shortDescription.toLowerCase().includes(term),
+        (p.shortDescription || '').toLowerCase().includes(term),
     ).slice(0, 8)
-  }, [q])
+  }, [q, allProducts])
 
   const popular = ['Dot Mandala', 'Resin Coasters', 'Lippan', 'Pichwai', 'Kolam']
 

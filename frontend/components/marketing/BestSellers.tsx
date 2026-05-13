@@ -3,8 +3,8 @@ import { ArrowRight } from 'lucide-react'
 import ProductCard from '@/components/shop/ProductCard'
 import { getBestSellers } from '@/data/products'
 
-export default function BestSellers() {
-  const products = getBestSellers()
+export default async function BestSellers() {
+  const products = await getBestSellers()
   if (products.length === 0) return null
 
   return (

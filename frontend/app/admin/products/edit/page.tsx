@@ -1,14 +1,16 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, Save, Trash2 } from 'lucide-react'
 import { CATEGORIES } from '@/data/categories'
 import { getProductById } from '@/data/products'
 
-export default function AdminEditProductPage() {
-  const params = useParams()
-  const product = getProductById(params.id as string)
+function EditProduct() {
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id')
+  const product = id ? getProductById(id) : null
 
   if (!product) {
     return (
@@ -151,5 +153,13 @@ export default function AdminEditProductPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminEditProductPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditProduct />
+    </Suspense>
   )
 }

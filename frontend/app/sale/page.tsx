@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
 import CategoryChips from '@/components/shop/CategoryChips'
 import ProductGrid from '@/components/shop/ProductGrid'
-import { PRODUCTS } from '@/data/products'
+import { getAllProducts } from '@/data/products'
 
 export const metadata: Metadata = {
   title: 'Sale',
   description: 'Discounted pieces - handcrafted, still.',
 }
 
-export default function SalePage() {
-  const products = PRODUCTS.filter((p) => p.isOnSale)
+export default async function SalePage() {
+  const allProducts = await getAllProducts()
+  const products = allProducts.filter((p) => p.isOnSale)
   return (
     <>
       <CategoryChips />
