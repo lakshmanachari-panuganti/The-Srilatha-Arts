@@ -79,9 +79,25 @@ export async function userRegister(
       { 'Set-Cookie': cookie },
       origin,
     )
-  } catch (err) {
-    context.error('userRegister failed', err)
-    return errorResponse('Registration failed', 500, origin)
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      if (azErr.statusCode === 403) {
+        context.error('userRegister: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+      }
+      if (azErr.code === 'TableNotFound') {
+        context.error('userRegister: "users" table does not exist in storage account', err)
+        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+      }
+      context.error(`userRegister: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('userRegister: unexpected error', err)
+    return errorResponse('An unexpected error occurred. Please try again later.', 500, origin)
   }
 }
 
@@ -145,9 +161,25 @@ export async function userLogin(
       { 'Set-Cookie': cookie },
       origin,
     )
-  } catch (err) {
-    context.error('userLogin failed', err)
-    return errorResponse('Login failed', 500, origin)
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      if (azErr.statusCode === 403) {
+        context.error('userLogin: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+      }
+      if (azErr.code === 'TableNotFound') {
+        context.error('userLogin: "users" table does not exist in storage account', err)
+        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+      }
+      context.error(`userLogin: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('userLogin: unexpected error', err)
+    return errorResponse('An unexpected error occurred. Please try again later.', 500, origin)
   }
 }
 
@@ -240,9 +272,25 @@ export async function googleAuth(
       { 'Set-Cookie': cookie },
       origin,
     )
-  } catch (err) {
-    context.error('googleAuth failed', err)
-    return errorResponse('Google authentication failed', 500, origin)
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      if (azErr.statusCode === 403) {
+        context.error('googleAuth: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+      }
+      if (azErr.code === 'TableNotFound') {
+        context.error('googleAuth: "users" table does not exist in storage account', err)
+        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+      }
+      context.error(`googleAuth: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('googleAuth: unexpected error', err)
+    return errorResponse('Google authentication failed. Please try again later.', 500, origin)
   }
 }
 

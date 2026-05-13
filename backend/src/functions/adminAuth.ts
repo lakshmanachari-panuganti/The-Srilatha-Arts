@@ -63,9 +63,42 @@ export async function adminLogin(
       { 'Set-Cookie': cookie },
       origin,
     )
-  } catch (err) {
-    context.error('adminLogin failed', err)
-    return errorResponse('Login failed', 500, origin)
+  } catch (err: unknown) {
+    // ── Azure Table Storage errors (RestError from @azure/data-tables) ──
+    const azErr = err as { statusCode?: number; code?: string; message?: string }
+    if (typeof azErr.statusCode === 'number') {
+      if (azErr.statusCode === 403) {
+        context.error('adminLogin: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        return errorResponse(
+          'Service configuration error — storage access denied. Please contact support.',
+          503,
+          origin,
+        )
+      }
+      if (azErr.code === 'TableNotFound') {
+        context.error('adminLogin: "admins" table does not exist in storage account', err)
+        return errorResponse(
+          'Service configuration error — admin data store not found. Please contact support.',
+          503,
+          origin,
+        )
+      }
+      context.error(`adminLogin: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
+      return errorResponse(
+        'Service temporarily unavailable. Please try again in a moment.',
+        503,
+        origin,
+      )
+    }
+
+    // ── JSON parse failure (malformed request body) ──
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+
+    // ── Unexpected / unknown errors ──
+    context.error('adminLogin: unexpected error', err)
+    return errorResponse('An unexpected error occurred. Please try again later.', 500, origin)
   }
 }
 
