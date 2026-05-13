@@ -139,7 +139,7 @@ export default function Hero() {
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
           <Link href="/custom-order" className="btn-outline">
-            Commission a piece
+            Start your Custom Creations
           </Link>
         </motion.div>
 
