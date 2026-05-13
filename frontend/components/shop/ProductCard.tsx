@@ -43,7 +43,14 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
       )}
     >
       <Link href={`/product/${product.id}`} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-cream-deep">
+        <div className="relative aspect-[4/5] overflow-hidden
+                        bg-gradient-to-b from-plum-warm/80 to-plum-light/60
+                        border border-glass-border
+                        transition-all duration-700
+                        group-hover:border-lavender-pastel/20
+                        group-hover:shadow-lavender-glow"
+             style={{ borderRadius: '24px' }}
+        >
           <Image
             src={product.images[0]}
             alt={product.title}
@@ -54,22 +61,28 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                 : '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
             }
             priority={priority}
-            className="object-contain p-6 sm:p-8 transition-transform duration-700 group-hover:scale-[1.04]"
+            className="object-contain p-6 sm:p-8 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
           />
 
-          {/* Badges — top left */}
+          {/* Badges - top left */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {product.isNewArrival && (
               <span className="sticker">New</span>
             )}
             {product.isBestSeller && (
-              <span className="sticker bg-terracotta">Best Seller</span>
+              <span className="sticker" style={{ background: 'linear-gradient(135deg, #8A74C9, #5E4B8B)' }}>
+                Best Seller
+              </span>
             )}
             {pct !== null && (
-              <span className="sticker bg-gold text-ink">−{pct}%</span>
+              <span className="sticker" style={{ background: 'linear-gradient(135deg, #E9E4FF, #C8B6FF)', color: '#2B1E34' }}>
+                −{pct}%
+              </span>
             )}
             {!product.inStock && (
-              <span className="sticker bg-ink-mute">Sold Out</span>
+              <span className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: '#A49BB8' }}>
+                Sold Out
+              </span>
             )}
           </div>
 
@@ -79,13 +92,18 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onWish}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={inWishlist}
-            className="absolute top-3 right-3 w-10 h-10 rounded-full
-                       bg-cream/85 backdrop-blur-sm
-                       flex items-center justify-center text-ink
-                       hover:bg-cream active:scale-90 transition shadow-soft"
+            className="absolute top-3 right-3 w-10 h-10
+                       flex items-center justify-center text-ivory
+                       hover:text-lavender-pastel active:scale-90 transition-all duration-500"
+            style={{
+              borderRadius: '24px',
+              background: 'rgba(43,30,52,0.7)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
           >
             <Heart
-              className={cn('w-4 h-4 transition-colors', inWishlist && 'fill-terracotta text-terracotta')}
+              className={cn('w-4 h-4 transition-colors duration-500', inWishlist && 'fill-lavender-pastel text-lavender-pastel')}
               aria-hidden
             />
           </button>
@@ -96,30 +114,34 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onAdd}
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
-            className="absolute bottom-3 right-3 w-11 h-11 rounded-full
-                       bg-ink text-cream shadow-card
-                       flex items-center justify-center
+            className="absolute bottom-3 right-3 w-11 h-11
+                       flex items-center justify-center text-plum
                        opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
                        sm:opacity-100 sm:translate-y-0
-                       active:scale-90 transition
+                       active:scale-90 transition-all duration-500
                        disabled:opacity-40 disabled:pointer-events-none"
+            style={{
+              borderRadius: '24px',
+              background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
+              boxShadow: '0 4px 16px rgba(138,116,201,0.3)',
+            }}
           >
             <Plus className="w-5 h-5" aria-hidden />
           </button>
         </div>
 
         <div className="pt-4 px-1">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-ink-mute mb-1.5">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-ivory-mute mb-1.5">
             {product.category.replace('-', ' ')}
           </p>
-          <h3 className="font-serif text-lg sm:text-xl leading-snug text-ink
-                         line-clamp-2 group-hover:text-terracotta transition-colors">
+          <h3 className="font-serif text-lg sm:text-xl leading-snug text-ivory
+                         line-clamp-2 group-hover:text-lavender-pastel transition-colors duration-500">
             {product.title}
           </h3>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-ink font-medium">{formatINR(product.price)}</span>
+            <span className="text-ivory font-medium">{formatINR(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-xs text-ink-mute line-through">
+              <span className="text-xs text-ivory-mute line-through">
                 {formatINR(product.compareAtPrice)}
               </span>
             )}

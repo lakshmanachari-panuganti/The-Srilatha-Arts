@@ -9,28 +9,44 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ── Surface ────────────────────────────────────────────────
-        cream: '#FAF6EE',            // primary background — warm off-white
-        'cream-deep': '#F1E9D9',     // section background, subtle warmth
-        paper: '#FFFFFF',            // card surface
-        // ── Ink ────────────────────────────────────────────────────
-        ink: '#1F140C',              // primary text, dark cocoa
-        'ink-soft': '#5C4A3C',       // secondary text
-        'ink-mute': '#8C7B6B',       // tertiary / meta text
-        // ── Accent ─────────────────────────────────────────────────
-        terracotta: '#A14B1A',       // primary brand accent
-        'terracotta-deep': '#8B3A0E',
-        clay: '#D88452',             // soft warm accent
-        gold: '#B8941F',             // refined gold for light theme
-        'gold-deep': '#8E6F12',
-        'gold-light': '#E8D08A',
-        sage: '#7A8B6C',             // editorial secondary accent
-        // ── Legacy aliases (kept so old imports don't break) ──────
-        'primary-dark': '#8B3A0E',
-        'primary-burnt': '#A14B1A',
+        // ── Surfaces ─────────────────────────────────────────────
+        plum: '#2B1E34',                  // deep plum - primary bg
+        'plum-light': '#362840',          // slightly lighter layered surface
+        'plum-warm': '#3F304A',           // warm mid-tone for cards
+        lavender: '#5E4B8B',             // royal lavender - section accent
+        'lavender-soft': '#8A74C9',      // soft purple accent
+        'lavender-pastel': '#C8B6FF',    // pastel lavender highlight
+        'lavender-light': '#E9E4FF',     // light lavender for tags/badges
+        'lavender-faint': '#F8F7FC',     // warm soft white
+        // ── Text ─────────────────────────────────────────────────
+        ivory: '#F8F7FC',                // warm soft white - primary text
+        'ivory-soft': '#DDD8EB',         // secondary text
+        'ivory-mute': '#A49BB8',         // tertiary / meta text
+        // ── Glass & Overlay ──────────────────────────────────────
+        'glass-surface': 'rgba(255,255,255,0.06)',
+        'glass-border': 'rgba(255,255,255,0.12)',
+        'glass-hover': 'rgba(255,255,255,0.10)',
+        'overlay-soft': 'rgba(0,0,0,0.30)',
+        'overlay-deep': 'rgba(0,0,0,0.50)',
+        // ── Legacy aliases (kept so old imports don't break) ─────
+        cream: '#F8F7FC',
+        'cream-deep': '#362840',
+        paper: 'rgba(255,255,255,0.06)',
+        ink: '#F8F7FC',
+        'ink-soft': '#DDD8EB',
+        'ink-mute': '#A49BB8',
+        'primary-dark': '#5E4B8B',
+        'primary-burnt': '#8A74C9',
+        terracotta: '#8A74C9',
+        'terracotta-deep': '#5E4B8B',
+        gold: '#C8B6FF',
+        'gold-light': '#E9E4FF',
+        'gold-deep': '#5E4B8B',
+        clay: '#8A74C9',
+        sage: '#9B8EC4',
       },
       fontFamily: {
-        serif: ['var(--font-cormorant)', 'Cormorant Garamond', 'serif'],
+        serif: ['var(--font-playfair)', 'Playfair Display', 'serif'],
         sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
         hand: ['var(--font-caveat)', 'Caveat', 'cursive'],
       },
@@ -51,6 +67,11 @@ const config: Config = {
       letterSpacing: {
         'editor': '0.32em',
       },
+      borderRadius: {
+        '2xl': '20px',
+        '3xl': '24px',
+        '4xl': '32px',
+      },
       keyframes: {
         marquee: {
           '0%': { transform: 'translateX(0)' },
@@ -61,32 +82,52 @@ const config: Config = {
           '100%': { backgroundPosition: '200% 0' },
         },
         'fade-up': {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-8px)' },
         },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '0.8' },
+        },
+        'slow-zoom': {
+          '0%': { transform: 'scale(1)' },
+          '100%': { transform: 'scale(1.05)' },
+        },
+        'gentle-rotate': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         marquee: 'marquee 30s linear infinite',
         shimmer: 'shimmer 3s ease-in-out infinite',
-        'fade-up': 'fade-up 0.6s ease-out forwards',
-        float: 'float 6s ease-in-out infinite',
+        'fade-up': 'fade-up 0.8s ease-out forwards',
+        float: 'float 8s ease-in-out infinite',
+        'glow-pulse': 'glow-pulse 4s ease-in-out infinite',
+        'slow-zoom': 'slow-zoom 20s ease-in-out infinite alternate',
+        'gentle-rotate': 'gentle-rotate 60s linear infinite',
       },
       backgroundImage: {
         'paper-grain':
           "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.65'/%3E%3C/svg%3E\")",
+        'lavender-gradient': 'linear-gradient(135deg, #C8B6FF 0%, #8A74C9 45%, #5E4B8B 100%)',
+        'plum-gradient': 'linear-gradient(135deg, #3F304A 0%, #2B1E34 50%, #1E1528 100%)',
       },
       maxWidth: {
         '8xl': '88rem',
         reader: '38rem',
       },
       boxShadow: {
-        editorial: '0 30px 60px -20px rgba(31, 20, 12, 0.18)',
-        card: '0 8px 24px -8px rgba(31, 20, 12, 0.12)',
-        soft: '0 2px 8px -2px rgba(31, 20, 12, 0.08)',
+        editorial: '0 30px 60px -20px rgba(43, 30, 52, 0.5)',
+        card: '0 8px 32px -8px rgba(43, 30, 52, 0.4)',
+        soft: '0 2px 12px -2px rgba(43, 30, 52, 0.3)',
+        'lavender-glow': '0 0 30px rgba(138, 116, 201, 0.2)',
+        'lavender-glow-lg': '0 0 60px rgba(138, 116, 201, 0.25)',
+        glass: '0 8px 32px 0 rgba(43, 30, 52, 0.37)',
       },
     },
   },

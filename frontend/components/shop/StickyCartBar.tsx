@@ -26,31 +26,40 @@ export default function StickyCartBar({ product }: { product: Product }) {
 
   return (
     <div
-      className="fixed bottom-16 lg:bottom-0 inset-x-0 z-40
-                 bg-cream/95 backdrop-blur-xl border-t border-ink/10 safe-pb"
+      className="fixed bottom-16 lg:bottom-0 inset-x-0 z-40 safe-pb"
+      style={{
+        background: 'rgba(43,30,52,0.92)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}
     >
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-        <div className="hidden sm:block text-ink">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-ink-mute">Total</p>
+        <div className="hidden sm:block text-ivory">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-ivory-mute">Total</p>
           <p className="font-serif text-xl leading-none">{formatINR(product.price * qty)}</p>
         </div>
 
-        <div className="flex items-center h-11 rounded-full border border-ink/15 overflow-hidden shrink-0">
+        <div className="flex items-center h-11 overflow-hidden shrink-0"
+             style={{ borderRadius: '24px', border: '1px solid rgba(255,255,255,0.12)' }}
+        >
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             aria-label="Decrease quantity"
-            className="w-11 h-11 flex items-center justify-center text-ink-soft hover:text-ink active:bg-ink/5 disabled:opacity-40"
+            className="w-11 h-11 flex items-center justify-center text-ivory-mute hover:text-ivory
+                       disabled:opacity-40 transition-colors duration-500"
             disabled={qty <= 1}
           >
             <Minus className="w-4 h-4" aria-hidden />
           </button>
-          <span className="min-w-8 text-center text-ink font-medium" aria-live="polite">
+          <span className="min-w-8 text-center text-ivory font-medium" aria-live="polite">
             {qty}
           </span>
           <button
             onClick={() => setQty((q) => Math.min(product.stockQty || 10, q + 1))}
             aria-label="Increase quantity"
-            className="w-11 h-11 flex items-center justify-center text-ink-soft hover:text-ink active:bg-ink/5"
+            className="w-11 h-11 flex items-center justify-center text-ivory-mute hover:text-ivory
+                       transition-colors duration-500"
           >
             <Plus className="w-4 h-4" aria-hidden />
           </button>

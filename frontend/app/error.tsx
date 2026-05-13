@@ -19,7 +19,7 @@ export default function GlobalError({
         A brushstroke <em className="italic">slipped</em>
       </h1>
       <p className="text-ink-soft max-w-md mb-8">
-        We could not load this page. Please try again — or come back in a moment.
+        We could not load this page. Please try again - or come back in a moment.
       </p>
       <button onClick={reset} className="btn-dark">
         Try again

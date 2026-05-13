@@ -1,11 +1,11 @@
-# The Srilatha Arts — Backend & Azure Infrastructure Plan
+# Srilatha Art - Backend & Azure Infrastructure Plan
 
-> Companion to [new-frontend.md](new-frontend.md). Catalogs every backend code change and every Azure resource change required to deliver the mobile-first redesign — order management, coupons, announcement bar, custom orders, reviews, wishlist, real payments, WhatsApp + email notifications, and the expanded admin panel.
+> Companion to [new-frontend.md](new-frontend.md). Catalogs every backend code change and every Azure resource change required to deliver the mobile-first redesign - order management, coupons, announcement bar, custom orders, reviews, wishlist, real payments, WhatsApp + email notifications, and the expanded admin panel.
 
 Grounded in the current state of:
-- `backend/src/functions/*` — products, productAdmin, orders, orderAdmin, userAuth, adminAuth, upload
-- `backend/src/services/*` — tableStorage, blobStorage, auth
-- `backend/src/middleware/*` — adminGuard, userGuard
+- `backend/src/functions/*` - products, productAdmin, orders, orderAdmin, userAuth, adminAuth, upload
+- `backend/src/services/*` - tableStorage, blobStorage, auth
+- `backend/src/middleware/*` - adminGuard, userGuard
 - Verified Azure infra (memory `project_azure_infra.md`, 2026-05-11)
 
 ---
@@ -15,11 +15,11 @@ Grounded in the current state of:
 1. [Current State Snapshot](#1-current-state-snapshot)
 2. [Data Model Changes](#2-data-model-changes)
 3. [Refactor: Orders PK Strategy](#3-refactor-orders-pk-strategy)
-4. [HTTP Functions — Customer Side](#4-http-functions--customer-side)
-5. [HTTP Functions — Admin Side](#5-http-functions--admin-side)
-6. [HTTP Functions — Coupons](#6-http-functions--coupons)
-7. [HTTP Functions — Announcement Bar](#7-http-functions--announcement-bar)
-8. [HTTP Functions — Other New Endpoints](#8-http-functions--other-new-endpoints)
+4. [HTTP Functions - Customer Side](#4-http-functions--customer-side)
+5. [HTTP Functions - Admin Side](#5-http-functions--admin-side)
+6. [HTTP Functions - Coupons](#6-http-functions--coupons)
+7. [HTTP Functions - Announcement Bar](#7-http-functions--announcement-bar)
+8. [HTTP Functions - Other New Endpoints](#8-http-functions--other-new-endpoints)
 9. [Auth: Move JWT to httpOnly Cookie](#9-auth-move-jwt-to-httponly-cookie)
 10. [Shared Services](#10-shared-services)
 11. [Queue & Timer Functions](#11-queue--timer-functions)
@@ -67,7 +67,7 @@ Grounded in the current state of:
 
 ### 2.1 New Tables
 
-Add to both `sttsadev` and `sttsaprd`. All Azure Table Storage — no Cosmos (per saved memory).
+Add to both `sttsadev` and `sttsaprd`. All Azure Table Storage - no Cosmos (per saved memory).
 
 | Table | PartitionKey | RowKey | Purpose |
 |---|---|---|---|
@@ -80,17 +80,17 @@ Add to both `sttsadev` and `sttsaprd`. All Azure Table Storage — no Cosmos (pe
 | `reviews` | `productId` | `reviewId` | §7.11, public read, moderated write |
 | `customOrders` | `'inbox'` | `<status>_<inquiryId>` | §7.5 submissions, admin Kanban (§9.8) |
 | `addresses` | `userEmail` | `addressId` | §7.9.6, with `isDefault` flag |
-| `notifications` | `userEmail` | `<ISO-timestamp>_<channel>` | Outbox-pattern record of every WhatsApp/email/SMS sent — for audit + dedup |
+| `notifications` | `userEmail` | `<ISO-timestamp>_<channel>` | Outbox-pattern record of every WhatsApp/email/SMS sent - for audit + dedup |
 | `staff` | `'admin'` | `username` | Extends current `admins` with `role`, `permissions[]`, `invitedBy`, `lastLoginAt` (§9.14) |
-| `auditLog` | `'admin'` | `<ISO-timestamp>_<staffId>` | Every admin write action — required for staff role accountability |
+| `auditLog` | `'admin'` | `<ISO-timestamp>_<staffId>` | Every admin write action - required for staff role accountability |
 
 ### 2.2 Schema additions to existing tables
 
-**`orders`** — new columns (all nullable for back-compat):
+**`orders`** - new columns (all nullable for back-compat):
 
 ```
-userEmail          string?    NEW — owner; '' or 'guest' for guests
-status             string     NEW — replaces partitionKey as source-of-truth
+userEmail          string?    NEW - owner; '' or 'guest' for guests
+status             string     NEW - replaces partitionKey as source-of-truth
 couponCode         string?
 discountAmount     number?
 trackingNumber     string?
@@ -108,7 +108,7 @@ refundedAt         string?
 refundAmount       number?
 ```
 
-**`users`** — new columns:
+**`users`** - new columns:
 
 ```
 dob                string?    YYYY-MM-DD for birthday coupons
@@ -120,7 +120,7 @@ prefPush           boolean?   default false
 deletedAt          string?    soft-delete
 ```
 
-**`admins`** — extend toward `staff` schema:
+**`admins`** - extend toward `staff` schema:
 
 ```
 role               'owner' | 'manager' | 'support' | 'readonly'
@@ -176,11 +176,11 @@ ordersByStatus  (secondary index, eventually consistent)
 ### 3.3 Maintenance of `ordersByStatus`
 
 Every status transition writes:
-1. `orders` row — set new `status`, update `updatedAt`.
-2. `ordersByStatus` — delete old `(oldStatus, ISO_orderId)` row, insert new `(newStatus, ISO_orderId)` row.
-3. `orderEvents` — append immutable event row.
+1. `orders` row - set new `status`, update `updatedAt`.
+2. `ordersByStatus` - delete old `(oldStatus, ISO_orderId)` row, insert new `(newStatus, ISO_orderId)` row.
+3. `orderEvents` - append immutable event row.
 
-All three in a try/catch with explicit logging. Failures of (2) are non-fatal (admin list query just shows stale row briefly) and reconciled by a nightly timer (§11). Failure of (1) or (3) is fatal — rollback the others or alert.
+All three in a try/catch with explicit logging. Failures of (2) are non-fatal (admin list query just shows stale row briefly) and reconciled by a nightly timer (§11). Failure of (1) or (3) is fatal - rollback the others or alert.
 
 ### 3.4 Migration
 
@@ -194,7 +194,7 @@ Run in DEV first; verify; then PRD inside a 30-min maintenance window.
 
 ---
 
-## 4. HTTP Functions — Customer Side
+## 4. HTTP Functions - Customer Side
 
 ### 4.1 Orders
 
@@ -202,14 +202,14 @@ Run in DEV first; verify; then PRD inside a 30-min maintenance window.
 |---|---|---|---|
 | `api/orders` | POST | **CHANGE** | Re-validate coupon, recompute discount + total server-side, bind to logged-in user via cookie, append `PLACED` event |
 | `api/orders/me` | GET | **NEW** | List orders for current user via `userGuard` |
-| `api/orders/{id}` | GET | **CHANGE** | Currently admin-only ([orders.ts:103](backend/src/functions/orders.ts#L103)) — allow owner OR admin |
+| `api/orders/{id}` | GET | **CHANGE** | Currently admin-only ([orders.ts:103](backend/src/functions/orders.ts#L103)) - allow owner OR admin |
 | `api/orders/{id}/events` | GET | **NEW** | Owner-only timeline (drives `/account/orders/[id]`) |
 | `api/orders/{id}/cancel` | POST | **NEW** | Allowed when status ∈ {PLACED, CONFIRMED, CRAFTING}; requires reason |
 | `api/orders/{id}/address` | PATCH | **NEW** | Allowed when status = PLACED only; one edit per order |
 | `api/orders/{id}/issue` | POST | **NEW** | Body: `{ kind: 'damaged'|'wrong'|'missing'|'other', note, photos[] }`; creates support ticket |
 | `api/orders/{id}/return` | POST | **NEW** | Allowed when status = DELIVERED and delivered ≤ 7 days ago |
 | `api/orders/{id}/invoice` | GET | **NEW** | Streams PDF (or returns SAS URL to blob); regenerates if missing |
-| `api/orders/{id}/track-link` | GET | **NEW** | Returns short-lived signed JWT URL — shareable kiosk-style tracker |
+| `api/orders/{id}/track-link` | GET | **NEW** | Returns short-lived signed JWT URL - shareable kiosk-style tracker |
 | `api/orders/track/{token}` | GET | **NEW** | Public read of a single order via signed token (powers `/account/orders/[id]/track`) |
 
 ### 4.2 Other customer endpoints
@@ -219,28 +219,28 @@ Run in DEV first; verify; then PRD inside a 30-min maintenance window.
 | `api/wishlist` | GET/POST/DELETE | per-user, partition by email |
 | `api/addresses` | GET/POST/PATCH/DELETE | per-user, with `isDefault` enforcement |
 | `api/reviews` | POST | gated: only if user has DELIVERED order containing this product |
-| `api/reviews/product/{id}` | GET | public — moderated reviews only |
+| `api/reviews/product/{id}` | GET | public - moderated reviews only |
 | `api/custom-orders` | POST | anonymous OK; rate-limited; creates inquiry + queues notification to admin |
-| `api/auth/logout` | POST | **NEW** — clears `tsa_token` cookie |
-| `api/auth/me` | GET | **NEW** — returns current user from cookie (replaces frontend `getToken()` localStorage read) |
-| `api/auth/csrf` | GET | **NEW** — issues a CSRF token (double-submit pattern) |
+| `api/auth/logout` | POST | **NEW** - clears `tsa_token` cookie |
+| `api/auth/me` | GET | **NEW** - returns current user from cookie (replaces frontend `getToken()` localStorage read) |
+| `api/auth/csrf` | GET | **NEW** - issues a CSRF token (double-submit pattern) |
 
 ---
 
-## 5. HTTP Functions — Admin Side
+## 5. HTTP Functions - Admin Side
 
-### 5.1 Orders — the operational nerve centre (§9.2)
+### 5.1 Orders - the operational nerve centre (§9.2)
 
 | Route | Method | Status | Notes |
 |---|---|---|---|
 | `api/admin/orders` | GET | **CHANGE** | Extend [orderAdmin.ts:8](backend/src/functions/orderAdmin.ts#L8) with `?status=&from=&to=&payment=&q=&page=&size=`; query `ordersByStatus` |
 | `api/admin/orders/{id}` | GET | **NEW** | Full detail incl. events, items, address, payment |
-| `api/admin/orders/{id}/status` | PATCH | **CHANGE** | Today it's `PUT` and accepts `{currentStatus,newStatus}` ([orderAdmin.ts:43](backend/src/functions/orderAdmin.ts#L43)); change to `PATCH` with body `{ to, note?, notifyCustomer?, tracking?, courier? }`. Goes through `services/orderState.ts` — validates transition, writes event, enqueues notification |
+| `api/admin/orders/{id}/status` | PATCH | **CHANGE** | Today it's `PUT` and accepts `{currentStatus,newStatus}` ([orderAdmin.ts:43](backend/src/functions/orderAdmin.ts#L43)); change to `PATCH` with body `{ to, note?, notifyCustomer?, tracking?, courier? }`. Goes through `services/orderState.ts` - validates transition, writes event, enqueues notification |
 | `api/admin/orders/{id}/notes` | POST | **NEW** | Internal admin note → `orderEvents` row with `channel: 'internal'` |
 | `api/admin/orders/{id}/refund` | POST | **NEW** | Calls Razorpay refund API, writes `REFUND` event, updates `refundedAt` + `refundAmount` |
 | `api/admin/orders/{id}/message` | POST | **NEW** | Send WhatsApp/email via templates; logs to `notifications` table |
 | `api/admin/orders/{id}/events` | GET | **NEW** | Admin view of full activity log (includes internal notes hidden from customer) |
-| `api/admin/orders/bulk-status` | PATCH | **NEW** | Body: `{ ids[], to, note?, notifyCustomer? }` — loops with allowed-transition check |
+| `api/admin/orders/bulk-status` | PATCH | **NEW** | Body: `{ ids[], to, note?, notifyCustomer? }` - loops with allowed-transition check |
 | `api/admin/orders/{id}/invoice` | POST | **NEW** | Force regenerate invoice PDF |
 
 ### 5.2 Other admin endpoints
@@ -269,7 +269,7 @@ Run in DEV first; verify; then PRD inside a 30-min maintenance window.
 
 ---
 
-## 6. HTTP Functions — Coupons
+## 6. HTTP Functions - Coupons
 
 New file `backend/src/functions/coupons.ts` + `couponAdmin.ts`.
 
@@ -277,30 +277,30 @@ New file `backend/src/functions/coupons.ts` + `couponAdmin.ts`.
 
 | Route | Method | Notes |
 |---|---|---|
-| `api/coupons/active` | GET | Public — codes currently valid for the customer's cart context (no codes for first-time-only if user has prior orders) |
-| `api/coupons/validate` | POST | Public — `{ code, items[], userId? }` → `{ valid, discount, message }` per §8.4 of new-frontend.md. **Rate limit: 5/min/IP, 20 failures/hour/IP → temp block.** |
+| `api/coupons/active` | GET | Public - codes currently valid for the customer's cart context (no codes for first-time-only if user has prior orders) |
+| `api/coupons/validate` | POST | Public - `{ code, items[], userId? }` → `{ valid, discount, message }` per §8.4 of new-frontend.md. **Rate limit: 5/min/IP, 20 failures/hour/IP → temp block.** |
 | `api/admin/coupons` | GET, POST | List + create |
 | `api/admin/coupons/{code}` | GET, PATCH, DELETE | |
 | `api/admin/coupons/{code}/redemptions` | GET | from `couponRedemptions` table |
-| `api/admin/coupons/{code}/test` | POST | Simulator — same input as validate but without redemption side-effect |
+| `api/admin/coupons/{code}/test` | POST | Simulator - same input as validate but without redemption side-effect |
 
 ### 6.2 Critical security rules
 
 1. **Never trust client discount.** `POST /api/orders` re-runs validation against the `coupons` table and recomputes. Reject if `clientTotal !== serverTotal` (tolerance: 0).
 2. **First-time-only enforcement** via `couponRedemptions` lookup keyed by `userEmail` or `customerPhone`.
 3. **Stacking** rejected unless both coupons have `stackable: true` (max 2).
-4. **Rate limiting** via `services/rateLimit.ts` — Table Storage counter keyed by IP, 5-min sliding window.
-5. **Marquee ↔ coupon sync** — when admin toggles "Promote in announcement bar", a row in `announcements` is created/updated with the coupon code embedded.
+4. **Rate limiting** via `services/rateLimit.ts` - Table Storage counter keyed by IP, 5-min sliding window.
+5. **Marquee ↔ coupon sync** - when admin toggles "Promote in announcement bar", a row in `announcements` is created/updated with the coupon code embedded.
 
 ---
 
-## 7. HTTP Functions — Announcement Bar
+## 7. HTTP Functions - Announcement Bar
 
 New file `backend/src/functions/announcements.ts`.
 
 | Route | Method | Notes |
 |---|---|---|
-| `api/announcements` | GET | Public — returns only items where `active=true && now ∈ [startDate, endDate]`, ordered by `priority`. Cached 60s at edge (or in App Insights — see §16). |
+| `api/announcements` | GET | Public - returns only items where `active=true && now ∈ [startDate, endDate]`, ordered by `priority`. Cached 60s at edge (or in App Insights - see §16). |
 | `api/admin/announcements` | GET, POST | |
 | `api/admin/announcements/{id}` | GET, PATCH, DELETE | |
 | `api/admin/announcements/{id}/preview` | GET | Returns rendered preview HTML for the admin "preview on site" iframe |
@@ -309,7 +309,7 @@ Body fields: `message`, `link`, `startDate`, `endDate`, `priority`, `theme` (`go
 
 ---
 
-## 8. HTTP Functions — Other New Endpoints
+## 8. HTTP Functions - Other New Endpoints
 
 ### 8.1 Payments (Razorpay)
 
@@ -319,7 +319,7 @@ New file `backend/src/functions/payments.ts`.
 |---|---|---|
 | `api/payments/create-order` | POST | Creates Razorpay order, returns `{ orderId, amount, key }` for Razorpay SDK |
 | `api/payments/verify` | POST | Verifies signature, updates `orders.paymentStatus`, transitions order to CONFIRMED |
-| `api/payments/webhook` | POST | Razorpay webhook — payment.captured / payment.failed / refund.processed — signature-verified, queues to `webhooks-in` |
+| `api/payments/webhook` | POST | Razorpay webhook - payment.captured / payment.failed / refund.processed - signature-verified, queues to `webhooks-in` |
 
 ### 8.2 Courier integration
 
@@ -329,11 +329,11 @@ New file `backend/src/functions/courier.ts`.
 |---|---|---|
 | `api/admin/courier/quote` | POST | Get rate + ETA for a pincode pair (Shiprocket API) |
 | `api/admin/courier/ship` | POST | Create shipment, get tracking #, attach to order |
-| `api/courier/webhook` | POST | Inbound — Shiprocket/Delhivery status updates → queue → state machine |
+| `api/courier/webhook` | POST | Inbound - Shiprocket/Delhivery status updates → queue → state machine |
 
 ### 8.3 Invoices
 
-New file `backend/src/functions/invoice.ts` — `pdfkit` based, GST-compliant template.
+New file `backend/src/functions/invoice.ts` - `pdfkit` based, GST-compliant template.
 
 | Route | Method | Notes |
 |---|---|---|
@@ -345,8 +345,8 @@ Existing `upload.ts` handles admin product images. Extend or add:
 
 | Route | Method | Notes |
 |---|---|---|
-| `api/upload/customer` | POST | Authenticated customers — for `/orders/.../issue` photos + custom-order reference images. 5 MB cap. |
-| `api/upload/review` | POST | Authenticated, post-delivery — review photos |
+| `api/upload/customer` | POST | Authenticated customers - for `/orders/.../issue` photos + custom-order reference images. 5 MB cap. |
+| `api/upload/review` | POST | Authenticated, post-delivery - review photos |
 
 All customer-uploaded blobs go to container `user-uploads/{userEmail}/{uuid}.{ext}` with private access; admin moderates.
 
@@ -371,13 +371,13 @@ export function buildClearCookie(): string {
 }
 ```
 
-2. **Update `userLogin`, `userRegister`, `googleAuth`, `adminLogin`** — set `Set-Cookie` header in response, *still* return token in body during transition (V1) so existing frontend works, then drop body-token in V2.
+2. **Update `userLogin`, `userRegister`, `googleAuth`, `adminLogin`** - set `Set-Cookie` header in response, *still* return token in body during transition (V1) so existing frontend works, then drop body-token in V2.
 
-3. **Update `userGuard` and `adminGuard`** — read cookie first via `request.headers.get('cookie')`, fall back to `Authorization: Bearer` header.
+3. **Update `userGuard` and `adminGuard`** - read cookie first via `request.headers.get('cookie')`, fall back to `Authorization: Bearer` header.
 
-4. **New `POST /api/auth/logout`** — returns `buildClearCookie()` header.
+4. **New `POST /api/auth/logout`** - returns `buildClearCookie()` header.
 
-5. **New `GET /api/auth/me`** — returns current user JSON from cookie.
+5. **New `GET /api/auth/me`** - returns current user JSON from cookie.
 
 6. **CSRF protection** (cookies now sent automatically):
    - Double-submit pattern: `GET /api/auth/csrf` issues `tsa_csrf=<random>` cookie + same value in JSON response.
@@ -412,10 +412,10 @@ New files under `backend/src/services/`:
 | `sms.ts` | (V2) MSG91 or ACS SMS for OTP |
 | `razorpay.ts` | `createOrder`, `verifySignature`, `refund` |
 | `courier.ts` | Shiprocket client (auth token caching, create shipment, fetch tracking) |
-| `pdf.ts` | `generateInvoice(order, items)` → Buffer; uses `pdfkit` (no headless Chrome on Consumption plan — too heavy) |
+| `pdf.ts` | `generateInvoice(order, items)` → Buffer; uses `pdfkit` (no headless Chrome on Consumption plan - too heavy) |
 | `rateLimit.ts` | `checkAndIncrement(key, limit, windowSec)` → `{ allowed, remaining }`. Table-Storage-backed sliding window counter. |
 | `csrf.ts` | Issue + verify CSRF tokens |
-| `templates.ts` | Notification template rendering (Handlebars-style `{{var}}`). Reads templates from `config` table — admin-editable in §9.14 |
+| `templates.ts` | Notification template rendering (Handlebars-style `{{var}}`). Reads templates from `config` table - admin-editable in §9.14 |
 
 ---
 
@@ -435,7 +435,7 @@ New files under `backend/src/services/`:
 |---|---|---|
 | `scheduleReviewRequests` | Daily 10:00 IST | Find orders DELIVERED ≥ 3 days ago without review request → enqueue |
 | `expireAbandonedOrders` | Hourly | Cancel PLACED orders > 24h old with no payment captured |
-| `reconcileOrdersByStatus` | Daily 02:00 | Verify `ordersByStatus` index matches `orders.status` — fix drift |
+| `reconcileOrdersByStatus` | Daily 02:00 | Verify `ordersByStatus` index matches `orders.status` - fix drift |
 | `cleanupRateLimitCounters` | Daily 03:00 | Drop counter rows older than 1 day |
 | `loyaltyTierRecompute` | Weekly Mon 02:00 | Update `users.loyaltyTier` based on `lifetimeValue` |
 
@@ -482,21 +482,21 @@ const ALLOWED: Record<Status, Status[]> = {
 | `ON_HOLD` | **holdReason** | WhatsApp | – |
 | `REFUNDED` | **refundAmount** + Razorpay txn | WhatsApp + email | – |
 
-The transition function enforces required fields — reject with 400 if missing.
+The transition function enforces required fields - reject with 400 if missing.
 
 ---
 
 ## 13. Server-Side Validation Hardening
 
-Extend the pattern already in [orders.ts:30-44](backend/src/functions/orders.ts#L30-L44) (authoritative price lookup from DB — good). New rules for `POST /api/orders`:
+Extend the pattern already in [orders.ts:30-44](backend/src/functions/orders.ts#L30-L44) (authoritative price lookup from DB - good). New rules for `POST /api/orders`:
 
 1. **Validate every product** against DB price + stock.
 2. **Validate coupon** server-side via the same code path as `POST /api/coupons/validate`.
-3. **Recompute shipping** — free-ship coupon can override `freeAbove` threshold.
-4. **Recompute discount + total.** Reject if `clientTotal !== serverTotal` (or omit clientTotal from API entirely — preferred).
-5. **Stock decrement** — atomic update. If concurrent orders race the last unit, second order fails with `OUT_OF_STOCK` before payment.
-6. **Bind to user** — if request has valid `tsa_token` cookie, set `userEmail`. Guest orders get `userEmail = 'guest'`.
-7. **Initial event** — write `PLACED` event to `orderEvents`.
+3. **Recompute shipping** - free-ship coupon can override `freeAbove` threshold.
+4. **Recompute discount + total.** Reject if `clientTotal !== serverTotal` (or omit clientTotal from API entirely - preferred).
+5. **Stock decrement** - atomic update. If concurrent orders race the last unit, second order fails with `OUT_OF_STOCK` before payment.
+6. **Bind to user** - if request has valid `tsa_token` cookie, set `userEmail`. Guest orders get `userEmail = 'guest'`.
+7. **Initial event** - write `PLACED` event to `orderEvents`.
 8. **Razorpay order** created in same handler, returned in response for client SDK to pop the gateway modal.
 
 ---
@@ -505,7 +505,7 @@ Extend the pattern already in [orders.ts:30-44](backend/src/functions/orders.ts#
 
 Per saved infra notes (verified 2026-05-11), DEV is healthy. PRD has stale Cosmos settings (cleanup in §15). Both RG names: `rg-tsa-dev` / `rg-tsa-prd`. No new Function App, no new Storage account, no Cosmos.
 
-### 14.1 Storage — additions only
+### 14.1 Storage - additions only
 
 In both `sttsadev` and `sttsaprd`:
 
@@ -528,7 +528,7 @@ user-uploads     (private, moderated)
 
 Existing `images` container stays as-is.
 
-### 14.2 Key Vault — new secrets
+### 14.2 Key Vault - new secrets
 
 Add to both `kv-tsa-dev` and `kv-tsa-prd`:
 
@@ -537,7 +537,7 @@ Add to both `kv-tsa-dev` and `kv-tsa-prd`:
 | `RazorpayKeyId` | payments |
 | `RazorpayKeySecret` | payments |
 | `RazorpayWebhookSecret` | webhook signature verify |
-| `WhatsAppCloudApiToken` | Meta Business — long-lived |
+| `WhatsAppCloudApiToken` | Meta Business - long-lived |
 | `WhatsAppPhoneNumberId` | Meta Business |
 | `WhatsAppWebhookVerifyToken` | inbound webhook handshake |
 | `EmailSenderConnString` | Azure Communication Services |
@@ -565,7 +565,7 @@ CSRF_SIGNING_KEY           @Microsoft.KeyVault(...)
 NOTIFICATIONS_QUEUE_NAME   notifications-out
 WEBHOOKS_QUEUE_NAME        webhooks-in
 REVIEW_QUEUE_NAME          review-requests
-COOKIE_DOMAIN              .thesrilathaarts.com    (PRD only — empty/unset in DEV)
+COOKIE_DOMAIN              .thesrilathaarts.com    (PRD only - empty/unset in DEV)
 INVOICE_CONTAINER          invoices
 USER_UPLOAD_CONTAINER      user-uploads
 ```
@@ -577,7 +577,7 @@ For transactional email. Cheaper than SendGrid at low volume, stays inside Azure
 ```
 Resource: acs-tsa-prd (in rg-tsa-prd)
           acs-tsa-dev (in rg-tsa-dev)
-Domain:   mail.thesrilathaarts.com  (custom — needs SPF/DKIM CNAMEs)
+Domain:   mail.thesrilathaarts.com  (custom - needs SPF/DKIM CNAMEs)
 ```
 
 MSI grant: `func-tsa-{env}` MSI → `Communication Services Contributor` on `acs-tsa-{env}`.
@@ -602,7 +602,7 @@ az functionapp cors update --name func-tsa-prd --resource-group rg-tsa-prd \
   --allow-credentials true
 ```
 
-DEV already configured for `http://localhost:3000` + `proud-flower-...azurestaticapps.net`. Add `--allow-credentials true` to DEV too — required for the new cookie auth.
+DEV already configured for `http://localhost:3000` + `proud-flower-...azurestaticapps.net`. Add `--allow-credentials true` to DEV too - required for the new cookie auth.
 
 ### 14.7 Static Web App config
 
@@ -624,9 +624,9 @@ Update `staticwebapp.config.json` in repo:
 }
 ```
 
-Auth gating at SWA level is belt-and-braces — the real check is in API middleware.
+Auth gating at SWA level is belt-and-braces - the real check is in API middleware.
 
-### 14.8 Custom domains (PRD only — flagged pending in your notes)
+### 14.8 Custom domains (PRD only - flagged pending in your notes)
 
 When wiring `thesrilathaarts.com`:
 
@@ -635,7 +635,7 @@ When wiring `thesrilathaarts.com`:
 | `www.thesrilathaarts.com` | `swa-tsa-prd` |
 | `thesrilathaarts.com` (apex) | `swa-tsa-prd` via ALIAS/CNAME-flattening |
 | `api.thesrilathaarts.com` | `func-tsa-prd` (custom domain on Function App, managed cert) |
-| `mail.thesrilathaarts.com` | ACS — SPF/DKIM only |
+| `mail.thesrilathaarts.com` | ACS - SPF/DKIM only |
 
 Cookies set with `Domain=.thesrilathaarts.com` then work across SWA + API.
 
@@ -646,7 +646,7 @@ Cookies set with `Domain=.thesrilathaarts.com` then work across SWA + API.
 | `apim-tsa-prd` (Consumption tier) | If coupon-stuffing or login brute-force becomes a problem. Adds ~30 ms but built-in rate limit policy + caching. |
 | Azure Front Door + WAF | For festival traffic spikes. Edge cache for `/api/announcements` and `/api/products`. Global. |
 
-Both are V2 — don't pay for them at launch.
+Both are V2 - don't pay for them at launch.
 
 ---
 
@@ -659,7 +659,7 @@ From saved memory: PRD has stale Cosmos settings, missing core app settings. **D
 3. Add to `kv-tsa-prd`: `JwtSecret`.
 4. Add to `func-tsa-prd` app settings: `JWT_SECRET` (KV ref), `BLOB_BASE_URL=https://sttsaprd.blob.core.windows.net`, `CORS_ORIGIN=https://www.thesrilathaarts.com`, `AZURE_STORAGE_ACCOUNT_NAME=sttsaprd`, all `AzureWebJobsStorage__*` entries matching DEV pattern.
 5. Run platform CORS command from §14.6.
-6. Verify MSI RBAC on `sttsaprd` — `Storage Blob/Table/Queue Data Contributor` (same as DEV).
+6. Verify MSI RBAC on `sttsaprd` - `Storage Blob/Table/Queue Data Contributor` (same as DEV).
 7. Smoke-test: deploy current backend to PRD, confirm `/api/products` returns 200.
 
 This is the gate that needs to pass before any new feature ships to PRD.
@@ -682,10 +682,10 @@ This is the gate that needs to pass before any new feature ships to PRD.
 
 ### 16.2 Dashboards (App Insights Workbooks)
 
-1. **Order funnel** — cart created → checkout started → paid → shipped → delivered. Drop-off %s.
-2. **Coupon performance** — per code: views, validations, redemptions, GMV.
-3. **Announcement bar** — impressions, clicks, dismissals.
-4. **Live operations** — last 24h orders by status, pending fulfilment, ETA breaches.
+1. **Order funnel** - cart created → checkout started → paid → shipped → delivered. Drop-off %s.
+2. **Coupon performance** - per code: views, validations, redemptions, GMV.
+3. **Announcement bar** - impressions, clicks, dismissals.
+4. **Live operations** - last 24h orders by status, pending fulfilment, ETA breaches.
 
 ### 16.3 Logging discipline
 
@@ -697,7 +697,7 @@ This is the gate that needs to pass before any new feature ships to PRD.
 
 ## 17. Migration Strategy
 
-### 17.1 Stage 1 — additive only (zero customer impact)
+### 17.1 Stage 1 - additive only (zero customer impact)
 
 1. Create new tables + queues.
 2. Deploy new functions for: coupons, announcements, wishlist, reviews, custom-orders.
@@ -706,15 +706,15 @@ This is the gate that needs to pass before any new feature ships to PRD.
 5. Apply PRD cleanup (§15).
 6. Promote to PRD.
 
-### 17.2 Stage 2 — orders schema migration
+### 17.2 Stage 2 - orders schema migration
 
-1. Deploy new orders code reading both old (partition=status) and new (partition=email) shapes — feature flag controlled.
+1. Deploy new orders code reading both old (partition=status) and new (partition=email) shapes - feature flag controlled.
 2. Run `scripts/migrate-orders.ts` in DEV; verify.
-3. Run in PRD inside a 30-min maintenance window with banner: *"Brief site maintenance — back in 30 minutes."*
+3. Run in PRD inside a 30-min maintenance window with banner: *"Brief site maintenance - back in 30 minutes."*
 4. Flip feature flag.
 5. After 7 days clean, remove old code path.
 
-### 17.3 Stage 3 — auth migration to cookie
+### 17.3 Stage 3 - auth migration to cookie
 
 1. Backend supports BOTH cookie and Authorization header. Both endpoints set Set-Cookie *and* return token in body.
 2. Frontend switches reads to `/api/auth/me`. Keeps writes to localStorage for now.
@@ -723,7 +723,7 @@ This is the gate that needs to pass before any new feature ships to PRD.
 5. Backend stops returning token in body.
 6. Add CSRF guard middleware.
 
-### 17.4 Stage 4 — payment cutover
+### 17.4 Stage 4 - payment cutover
 
 1. Razorpay test-mode keys in DEV. End-to-end test with their test cards.
 2. PRD: switch to live keys via Key Vault. COD remains available as fallback.
@@ -735,14 +735,14 @@ This is the gate that needs to pass before any new feature ships to PRD.
 
 Matches frontend Phased Roadmap (§16 of new-frontend.md).
 
-### Phase 1 — Foundation backend (Weeks 1–2)
+### Phase 1 - Foundation backend (Weeks 1–2)
 
 - Announcement bar endpoints + admin CRUD.
 - New `orderEvents` table + state-machine service (no behaviour change yet).
 - Move `GET /api/orders/{id}` to owner-OR-admin auth.
 - `GET /api/orders/me`.
 
-### Phase 2 — Commerce + Order Management (Weeks 3–4)
+### Phase 2 - Commerce + Order Management (Weeks 3–4)
 
 - Orders schema migration (Stage 2 above).
 - Status workflow expansion to 12 statuses.
@@ -753,20 +753,20 @@ Matches frontend Phased Roadmap (§16 of new-frontend.md).
 - WhatsApp Cloud API + ACS Email + notification queue.
 - Cookie auth + CSRF (Stage 3 above).
 
-### Phase 3 — Custom Orders + Reviews (Week 5)
+### Phase 3 - Custom Orders + Reviews (Week 5)
 
 - `customOrders` table + endpoints (public POST + admin Kanban).
 - `reviews` table + endpoints (gated POST, moderation).
 - Wishlist + addresses endpoints.
 
-### Phase 4 — Admin Expansion (Weeks 6–7)
+### Phase 4 - Admin Expansion (Weeks 6–7)
 
 - Inventory, collections, categories endpoints.
 - Staff + audit-log endpoints.
 - Analytics endpoints (revenue, AOV, top sellers).
 - Shiprocket courier integration + webhook.
 
-### Phase 5 — Polish (Week 8)
+### Phase 5 - Polish (Week 8)
 
 - Rate limiting on coupons/validate + login.
 - Review-request scheduler.
