@@ -15,6 +15,11 @@ interface Props {
 
 export async function generateStaticParams() {
   const products = await getAllProducts()
+  if (!products || products.length === 0) {
+    // Next.js static export throws an error if generateStaticParams returns an empty array.
+    // Return a dummy value so the build succeeds even if the backend is down/empty.
+    return [{ id: 'placeholder-to-pass-build' }]
+  }
   return products.map((p) => ({ id: p.id }))
 }
 
