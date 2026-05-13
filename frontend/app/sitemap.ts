@@ -7,7 +7,7 @@ export const dynamic = 'force-static'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getAllProducts()
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://thesrilathaarts.com'
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.srilatha.art'
   const now = new Date()
 
   const staticRoutes = [
