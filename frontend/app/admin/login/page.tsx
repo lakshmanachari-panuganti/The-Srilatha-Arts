@@ -15,7 +15,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F7FC] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-plum flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-lavender-pastel/40 to-transparent" />
       <div className="absolute -top-32 -right-32 w-96 h-96 bg-plum-warm/10 rounded-full blur-3xl" />
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full h-11 px-4 bg-white border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
+                className="w-full h-11 px-4 bg-plum-light border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
                 placeholder="studio@thesrilathaarts.com"
               />
             </div>
@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full h-11 px-4 bg-white border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
+                className="w-full h-11 px-4 bg-plum-light border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>
