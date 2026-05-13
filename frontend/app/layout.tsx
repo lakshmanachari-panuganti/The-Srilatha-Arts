@@ -26,7 +26,7 @@ const caveat = Caveat({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://thesrilathaarts.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://srilatha.art'),
   title: {
     default: 'Srilatha Art - Where Tradition Meets Creativity',
     template: '%s · Srilatha Art',

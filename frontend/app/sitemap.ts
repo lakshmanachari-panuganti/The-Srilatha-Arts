@@ -6,7 +6,7 @@ import { PRODUCTS } from '@/data/products'
 export const dynamic = 'force-static'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://thesrilathaarts.com'
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://srilatha.art'
   const now = new Date()
 
   const staticRoutes = [
