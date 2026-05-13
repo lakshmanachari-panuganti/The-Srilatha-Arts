@@ -97,19 +97,16 @@
 | `/admin/announcements` | §9.15 | ✅ **NEW** | Banner management with priority + theme |
 | `/admin/settings` | §9.16 | ✅ **NEW** | Settings hub + general config form |
 
-### Admin Pages Still Missing
+| `/admin/inventory` | §9.4 | ✅ **NEW** | Inventory dashboard with stock alerts |
+| `/admin/categories` | §9.5 | ✅ **NEW** | Category management |
+| `/admin/collections` | §9.6 | ✅ **NEW** | Collections management |
+| `/admin/customers` | §9.7 | ✅ **NEW** | Customer directory |
+| `/admin/analytics` | §9.13 | ✅ **NEW** | Key metrics and charts |
 
-| Route | Plan § | Status |
-|-------|--------|--------|
-| `/admin/orders/[id]` | §9.2 | ❌ Missing (order detail with status controls) |
-| `/admin/products/new` | §9.3 | ❌ Missing (add product form) |
-| `/admin/products/[id]/edit` | §9.3 | ❌ Missing (edit product form) |
-| `/admin/inventory` | §9.4 | ❌ Missing |
-| `/admin/categories` | §9.5 | ❌ Missing |
-| `/admin/collections` | §9.6 | ❌ Missing |
-| `/admin/customers` | §9.7 | ❌ Missing |
-| `/admin/media` | §9.11 | ❌ Missing |
-| `/admin/analytics` | §9.13 | ❌ Missing |
+| `/admin/orders/[id]` | §9.2 | ✅ **NEW** | Order detail with status controls |
+| `/admin/products/new` | §9.3 | ✅ **NEW** | Add product form |
+| `/admin/products/[id]/edit` | §9.3 | ✅ **NEW** | Edit product form |
+| `/admin/media` | §9.11 | ✅ **NEW** | Media library and uploads |
 
 ## State Management & Data Layer — ⚠️ Partial
 
