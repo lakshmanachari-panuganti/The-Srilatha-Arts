@@ -20,7 +20,7 @@ export interface ProductEntity {
 
 export interface AdminEntity {
   partitionKey: 'admin'
-  rowKey: string  // username — alphanumeric, lowercase
+  rowKey: string  // username - alphanumeric, lowercase
   name: string
   passwordHash: string
   role: 'admin' | 'superadmin'
@@ -31,7 +31,7 @@ export interface AdminEntity {
 
 export interface UserEntity {
   partitionKey: 'customer'
-  rowKey: string  // email — lowercase
+  rowKey: string  // email - lowercase
   name: string
   phone: string
   passwordHash: string  // empty string for OAuth-only users

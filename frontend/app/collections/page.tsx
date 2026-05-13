@@ -9,7 +9,7 @@ export default function CollectionsPage() {
       eyebrow="Curated bundles"
       title="Collections"
       goldWord="Collections"
-      description="Themed bundles — Diwali Picks, Housewarming Gifts and more — coming soon."
+      description="Themed bundles - Diwali Picks, Housewarming Gifts and more - coming soon."
     />
   )
 }

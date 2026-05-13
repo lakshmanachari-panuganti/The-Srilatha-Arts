@@ -78,7 +78,7 @@ export default function Hero() {
           </div>
           <Image
             src="/images/logo.png"
-            alt="The Srilatha Arts monogram"
+            alt="Srilatha Art monogram"
             width={240}
             height={240}
             priority
@@ -123,7 +123,7 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.3 }}
           className="text-ivory-soft text-base lg:text-lg max-w-reader mx-auto mb-8 lg:mb-10 leading-relaxed"
         >
-          A small studio crafting Resin, Dot Mandala, Lippan, Pichwai and Kolam art — by hand, one
+          A small studio crafting Resin, Dot Mandala, Lippan, Pichwai and Kolam art - by hand, one
           piece at a time, for homes across India.
         </motion.p>
 

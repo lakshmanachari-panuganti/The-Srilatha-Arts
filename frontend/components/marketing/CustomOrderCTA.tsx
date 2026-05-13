@@ -51,7 +51,7 @@ export default function CustomOrderCTA() {
             <em className="italic gold-text">We&apos;ll craft it.</em>
           </h2>
           <p className="text-ivory-soft/70 max-w-reader mx-auto text-base lg:text-lg leading-relaxed mb-8">
-            Did you Dream it? then Describe it — the colours, the mood, the story it should whisper.
+            Did you Dream it? then Describe it - the colours, the mood, the story it should whisper.
             Our hands will shape it into your own masterpiece within one to two weeks.
           </p>
           <Link

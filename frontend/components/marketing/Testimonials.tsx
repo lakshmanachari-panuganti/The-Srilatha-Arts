@@ -6,7 +6,7 @@ const reviews = [
     location: 'Mumbai',
     rating: 5,
     quote:
-      'My Lippan piece arrived hand-wrapped with a note. The mirrors catch the lamp every evening — it is the soul of the room.',
+      'My Lippan piece arrived hand-wrapped with a note. The mirrors catch the lamp every evening - it is the soul of the room.',
     art: 'Lippan Art',
   },
   {
@@ -14,7 +14,7 @@ const reviews = [
     location: 'Bangalore',
     rating: 5,
     quote:
-      'Got a mandala for my mother\'s seventieth. The colors, the precision, the timing — all perfect. She cried.',
+      'Got a mandala for my mother\'s seventieth. The colors, the precision, the timing - all perfect. She cried.',
     art: 'Custom Dot Mandala',
   },
   {

@@ -106,13 +106,13 @@ export async function updateOrderStatus(
 ): Promise<void> {
   const client = getTableClient('orders')
   const order = (await client.getEntity(currentStatus, orderId)) as Row
-  // Upsert into new partition first — if this fails the original is untouched
+  // Upsert into new partition first - if this fails the original is untouched
   await client.upsertEntity({
     ...order,
     partitionKey: newStatus,
     updatedAt: new Date().toISOString(),
   } as any, 'Replace')
-  // Delete from old partition — if this fails the order exists in both partitions
+  // Delete from old partition - if this fails the order exists in both partitions
   // (harmless duplicate, not data loss)
   await client.deleteEntity(currentStatus, orderId)
 }

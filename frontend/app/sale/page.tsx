@@ -5,7 +5,7 @@ import { PRODUCTS } from '@/data/products'
 
 export const metadata: Metadata = {
   title: 'Sale',
-  description: 'Discounted pieces — handcrafted, still.',
+  description: 'Discounted pieces - handcrafted, still.',
 }
 
 export default function SalePage() {

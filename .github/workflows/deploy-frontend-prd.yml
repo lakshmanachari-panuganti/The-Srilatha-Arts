@@ -17,7 +17,7 @@ env:
   # See https://endoflife.date/nodejs
   NODE_VERSION: '22'
   WORKING_DIRECTORY: frontend
-  # PRD URLs — update once rg-thesrilathaarts-prd is provisioned and the
+  # PRD URLs - update once rg-thesrilathaarts-prd is provisioned and the
   # custom domain (api.thesrilathaarts.com / www.thesrilathaarts.com) is wired up.
   # Until then this workflow will not run because rg-thesrilathaarts-prd / its SWA
   # do not exist; the AZURE_STATIC_WEB_APPS_API_TOKEN_PRD secret will be missing.

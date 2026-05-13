@@ -28,11 +28,11 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://thesrilathaarts.com'),
   title: {
-    default: 'The Srilatha Arts — Where Tradition Meets Creativity',
-    template: '%s · The Srilatha Arts',
+    default: 'Srilatha Art - Where Tradition Meets Creativity',
+    template: '%s · Srilatha Art',
   },
   description:
-    'Bespoke handcrafted Dot Mandala, Resin, Lippan, Pichwai and Kolam art — made by hand in Hyderabad. Free shipping pan-India above ₹2,999.',
+    'Bespoke handcrafted Dot Mandala, Resin, Lippan, Pichwai and Kolam art - made by hand in Hyderabad. Free shipping pan-India above ₹2,999.',
   keywords: [
     'Dot Mandala',
     'Resin Art',
@@ -48,17 +48,17 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: '/',
-    siteName: 'The Srilatha Arts',
-    title: 'The Srilatha Arts — Where Tradition Meets Creativity',
+    siteName: 'Srilatha Art',
+    title: 'Srilatha Art - Where Tradition Meets Creativity',
     description:
-      'Bespoke handcrafted Dot Mandala, Resin, Lippan, Pichwai and Kolam art — made by hand in Hyderabad.',
+      'Bespoke handcrafted Dot Mandala, Resin, Lippan, Pichwai and Kolam art - made by hand in Hyderabad.',
     images: [
-      { url: '/images/logo.png', width: 1200, height: 630, alt: 'The Srilatha Arts' },
+      { url: '/images/logo.png', width: 1200, height: 630, alt: 'Srilatha Art' },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'The Srilatha Arts',
+    title: 'Srilatha Art',
     description: 'Where Tradition Meets Creativity',
     images: ['/images/logo.png'],
   },

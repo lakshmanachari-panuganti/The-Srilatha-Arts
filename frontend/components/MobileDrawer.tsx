@@ -57,7 +57,7 @@ export default function MobileDrawer() {
               <Link
                 href="/"
                 onClick={() => setOpen(false)}
-                aria-label="The Srilatha Arts — home"
+                aria-label="Srilatha Art - home"
                 className="flex items-center gap-2"
               >
                 <Image src="/images/logo.png" alt="" width={40} height={40} className="w-10 h-10" />

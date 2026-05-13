@@ -9,7 +9,7 @@ export default function LoginPage() {
       eyebrow="Welcome back"
       title="Sign in to your account"
       goldWord="account"
-      description="Sign-in lands in Phase 2 — JWT cookie auth with Google one-tap and OTP."
+      description="Sign-in lands in Phase 2 - JWT cookie auth with Google one-tap and OTP."
     />
   )
 }

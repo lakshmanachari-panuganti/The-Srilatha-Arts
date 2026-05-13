@@ -3,7 +3,7 @@ import PlaceholderPage from '@/components/PlaceholderPage'
 
 export const metadata: Metadata = {
   title: 'Contact',
-  description: 'Reach out — we usually respond within a day.',
+  description: 'Reach out - we usually respond within a day.',
 }
 
 export default function ContactPage() {

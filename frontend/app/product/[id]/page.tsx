@@ -46,7 +46,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     <>
       <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-14 lg:px-8 lg:pt-10">
-        {/* Gallery — full-bleed mobile, sticky desktop */}
+        {/* Gallery - full-bleed mobile, sticky desktop */}
         <div className="lg:sticky lg:top-28 lg:self-start">
           <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep">
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5]">
@@ -54,7 +54,7 @@ export default async function ProductPage({ params }: Props) {
                 <div key={i} className="relative shrink-0 w-full snap-center">
                   <Image
                     src={src}
-                    alt={`${p.title} — image ${i + 1}`}
+                    alt={`${p.title} - image ${i + 1}`}
                     fill
                     sizes="(min-width: 1024px) 50vw, 100vw"
                     priority={i === 0}
@@ -127,7 +127,7 @@ export default async function ProductPage({ params }: Props) {
 
           {/* What makes it special */}
           <div className="card-cream p-6 mb-8 space-y-3">
-            <Feature icon={Hand} label="Handmade — no two are alike" />
+            <Feature icon={Hand} label="Handmade - no two are alike" />
             <Feature icon={Sparkles} label={`Crafted in ${p.timeToMake}`} />
             <Feature icon={Truck} label="Free shipping above ₹2,999 · Pan-India" />
           </div>

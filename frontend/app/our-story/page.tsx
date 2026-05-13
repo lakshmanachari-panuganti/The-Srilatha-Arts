@@ -12,7 +12,7 @@ export default function OurStoryPage() {
       eyebrow="The studio"
       title="A skylit room in Hyderabad"
       goldWord="Hyderabad"
-      description="The full editorial story is being written — illustrations, behind-the-scenes photos, and a hand-drawn signature animation are on the way."
+      description="The full editorial story is being written - illustrations, behind-the-scenes photos, and a hand-drawn signature animation are on the way."
     />
   )
 }

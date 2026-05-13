@@ -89,12 +89,12 @@
     @apply text-lavender-pastel;
   }
 
-  /* Editorial label — small caps, wide tracking */
+  /* Editorial label - small caps, wide tracking */
   .eyebrow {
     @apply inline-flex items-center gap-2 text-[11px] tracking-[0.32em] uppercase text-lavender-pastel font-medium;
   }
 
-  /* Section number — editorial 001 / 002 style */
+  /* Section number - editorial 001 / 002 style */
   .section-no {
     @apply font-serif text-base text-ivory-mute tracking-[0.32em];
   }
@@ -141,7 +141,7 @@
            transition-all duration-500;
   }
 
-  /* ───────────── Cards & surfaces — glassmorphism ───────────── */
+  /* ───────────── Cards & surfaces - glassmorphism ───────────── */
 
   .card {
     background: rgba(255, 255, 255, 0.05);
@@ -163,7 +163,7 @@
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  /* Sticker / badge — dreamy lavender label */
+  /* Sticker / badge - dreamy lavender label */
   .sticker {
     @apply inline-flex items-center justify-center
            text-[10px] tracking-[0.18em] uppercase font-medium
@@ -209,7 +209,7 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
-  /* Editorial deco rule — lavender gradient */
+  /* Editorial deco rule - lavender gradient */
   .rule {
     height: 1px;
     background: linear-gradient(to right, transparent, rgba(138, 116, 201, 0.3), transparent);
