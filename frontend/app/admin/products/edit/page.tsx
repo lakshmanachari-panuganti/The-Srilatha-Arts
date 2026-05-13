@@ -1,18 +1,35 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Upload, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, Upload, Save, Trash2, Loader2 } from 'lucide-react'
 import { CATEGORIES } from '@/data/categories'
 import { getProductById } from '@/data/products'
+import type { Product } from '@/types'
 
 function EditProduct() {
   const searchParams = useSearchParams()
   const id = searchParams.get('id')
-  const product = id ? getProductById(id) : null
+  const [product, setProduct] = useState<Product | null | undefined>(undefined)
 
-  if (!product) {
+  useEffect(() => {
+    if (id) {
+      getProductById(id).then(p => setProduct(p || null))
+    } else {
+      setProduct(null)
+    }
+  }, [id])
+
+  if (product === undefined) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 text-lavender animate-spin" />
+      </div>
+    )
+  }
+
+  if (product === null) {
     return (
       <div className="text-center py-20">
         <p className="text-ink-mute mb-4">Product not found</p>
