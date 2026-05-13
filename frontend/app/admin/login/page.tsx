@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full h-11 px-4 bg-plum-light border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
-                placeholder="studio@thesrilathaarts.com"
+                placeholder="studio@srilatha.art"
               />
             </div>
             <div>

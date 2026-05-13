@@ -393,9 +393,9 @@ export function buildClearCookie(): string {
 
 ### 9.3 Required infra changes
 
-- Custom domain for both SWA + Function App on the same root (`thesrilathaarts.com`) so the cookie's `Domain=.thesrilathaarts.com` works.
+- Custom domain for both SWA + Function App on the same root (`srilatha.art`) so the cookie's `Domain=.srilatha.art` works.
 - `az functionapp cors update --allow-credentials true`.
-- App setting `COOKIE_DOMAIN=.thesrilathaarts.com` (PRD only; empty in DEV).
+- App setting `COOKIE_DOMAIN=.srilatha.art` (PRD only; empty in DEV).
 
 ---
 
@@ -565,7 +565,7 @@ CSRF_SIGNING_KEY           @Microsoft.KeyVault(...)
 NOTIFICATIONS_QUEUE_NAME   notifications-out
 WEBHOOKS_QUEUE_NAME        webhooks-in
 REVIEW_QUEUE_NAME          review-requests
-COOKIE_DOMAIN              .thesrilathaarts.com    (PRD only - empty/unset in DEV)
+COOKIE_DOMAIN              .srilatha.art    (PRD only - empty/unset in DEV)
 INVOICE_CONTAINER          invoices
 USER_UPLOAD_CONTAINER      user-uploads
 ```
@@ -577,7 +577,7 @@ For transactional email. Cheaper than SendGrid at low volume, stays inside Azure
 ```
 Resource: acs-tsa-prd (in rg-tsa-prd)
           acs-tsa-dev (in rg-tsa-dev)
-Domain:   mail.thesrilathaarts.com  (custom - needs SPF/DKIM CNAMEs)
+Domain:   mail.srilatha.art  (custom - needs SPF/DKIM CNAMEs)
 ```
 
 MSI grant: `func-tsa-{env}` MSI → `Communication Services Contributor` on `acs-tsa-{env}`.
@@ -596,7 +596,7 @@ Per saved gotcha #2 (OPTIONS intercepted at platform level), platform CORS is ma
 
 ```
 az functionapp cors add --name func-tsa-prd --resource-group rg-tsa-prd \
-  --allowed-origins https://www.thesrilathaarts.com https://thesrilathaarts.com
+  --allowed-origins https://www.srilatha.art https://srilatha.art
 
 az functionapp cors update --name func-tsa-prd --resource-group rg-tsa-prd \
   --allow-credentials true
@@ -613,7 +613,7 @@ Update `staticwebapp.config.json` in repo:
   "routes": [
     { "route": "/admin/*", "allowedRoles": ["authenticated"] },
     { "route": "/account/*", "allowedRoles": ["authenticated"] },
-    { "route": "/api/*", "rewrite": "https://api.thesrilathaarts.com/api/*" }
+    { "route": "/api/*", "rewrite": "https://api.srilatha.art/api/*" }
   ],
   "globalHeaders": {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
@@ -628,16 +628,16 @@ Auth gating at SWA level is belt-and-braces - the real check is in API middlewar
 
 ### 14.8 Custom domains (PRD only - flagged pending in your notes)
 
-When wiring `thesrilathaarts.com`:
+When wiring `srilatha.art`:
 
 | Host | Points to |
 |---|---|
-| `www.thesrilathaarts.com` | `swa-tsa-prd` |
-| `thesrilathaarts.com` (apex) | `swa-tsa-prd` via ALIAS/CNAME-flattening |
-| `api.thesrilathaarts.com` | `func-tsa-prd` (custom domain on Function App, managed cert) |
-| `mail.thesrilathaarts.com` | ACS - SPF/DKIM only |
+| `www.srilatha.art` | `swa-tsa-prd` |
+| `srilatha.art` (apex) | `swa-tsa-prd` via ALIAS/CNAME-flattening |
+| `api.srilatha.art` | `func-tsa-prd` (custom domain on Function App, managed cert) |
+| `mail.srilatha.art` | ACS - SPF/DKIM only |
 
-Cookies set with `Domain=.thesrilathaarts.com` then work across SWA + API.
+Cookies set with `Domain=.srilatha.art` then work across SWA + API.
 
 ### 14.9 Optional / V2: API Management + Front Door
 
@@ -657,7 +657,7 @@ From saved memory: PRD has stale Cosmos settings, missing core app settings. **D
 1. Remove from `func-tsa-prd` app settings: any `cosmos-*`, `Cosmos*`, `COSMOS_*`.
 2. Remove from `kv-tsa-prd`: `cosmos-endpoint`, `cosmos-primary-key`, `storage-prd-connstr` (stale).
 3. Add to `kv-tsa-prd`: `JwtSecret`.
-4. Add to `func-tsa-prd` app settings: `JWT_SECRET` (KV ref), `BLOB_BASE_URL=https://sttsaprd.blob.core.windows.net`, `CORS_ORIGIN=https://www.thesrilathaarts.com`, `AZURE_STORAGE_ACCOUNT_NAME=sttsaprd`, all `AzureWebJobsStorage__*` entries matching DEV pattern.
+4. Add to `func-tsa-prd` app settings: `JWT_SECRET` (KV ref), `BLOB_BASE_URL=https://sttsaprd.blob.core.windows.net`, `CORS_ORIGIN=https://www.srilatha.art`, `AZURE_STORAGE_ACCOUNT_NAME=sttsaprd`, all `AzureWebJobsStorage__*` entries matching DEV pattern.
 5. Run platform CORS command from §14.6.
 6. Verify MSI RBAC on `sttsaprd` - `Storage Blob/Table/Queue Data Contributor` (same as DEV).
 7. Smoke-test: deploy current backend to PRD, confirm `/api/products` returns 200.
