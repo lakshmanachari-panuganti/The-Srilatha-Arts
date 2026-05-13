@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Star, Hand, Sparkles, Truck, ChevronLeft } from 'lucide-react'
-import { PRODUCTS, getProductById, getProductsByCategory } from '@/data/products'
+import { getAllProducts, getProductById, getProductsByCategory } from '@/data/products'
 import { CATEGORY_BY_SLUG } from '@/data/categories'
 import { formatINR, discountPct } from '@/lib/format'
 import StickyCartBar from '@/components/shop/StickyCartBar'
@@ -13,13 +13,14 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ id: p.id }))
+export async function generateStaticParams() {
+  const products = await getAllProducts()
+  return products.map((p) => ({ id: p.id }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
-  const p = getProductById(id)
+  const p = await getProductById(id)
   if (!p) return { title: 'Not found' }
   return {
     title: p.title,
@@ -34,11 +35,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { id } = await params
-  const p = getProductById(id)
+  const p = await getProductById(id)
   if (!p) notFound()
 
   const category = CATEGORY_BY_SLUG[p.category]
-  const related = getProductsByCategory(p.category)
+  const relatedAll = await getProductsByCategory(p.category)
+  const related = relatedAll
     .filter((r) => r.id !== p.id)
     .slice(0, 4)
   const pct = discountPct(p.price, p.compareAtPrice)

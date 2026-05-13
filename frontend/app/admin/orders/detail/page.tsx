@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ChevronRight, Package, Truck, Clock, Phone, Mail, MapPin, MessageSquare, Send } from 'lucide-react'
 import { formatINR, formatDate } from '@/lib/format'
@@ -63,11 +63,12 @@ const NEXT_STATES = [
   { status: 'ON_HOLD', label: 'On Hold' },
 ]
 
-export default function AdminOrderDetailPage() {
-  const params = useParams()
+function OrderDetail() {
+  const searchParams = useSearchParams()
+  const id = searchParams.get('id') || 'UNKNOWN'
   const [note, setNote] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
-  const order = MOCK_ORDER
+  const order = { ...MOCK_ORDER, id }
 
   return (
     <div>
@@ -220,5 +221,13 @@ export default function AdminOrderDetailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminOrderDetailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderDetail />
+    </Suspense>
   )
 }

@@ -1,218 +1,67 @@
+import { apiFetch } from '@/lib/api'
 import type { Product } from '@/types'
 
-export const PRODUCTS: Product[] = [
-  {
-    id: 'mandala-aurora-12',
-    slug: 'aurora-mandala-12-round',
-    title: 'Aurora Dot Mandala - 12" Round',
-    category: 'dot-mandala',
-    price: 4200,
-    compareAtPrice: 5500,
-    size: '12 in diameter',
-    material: 'MDF base · acrylic dots · resin coat',
-    timeToMake: '5–7 days',
-    description:
-      'A meditative twelve-inch mandala in cool aurora hues, hand-dotted in concentric rings and sealed with a glassy resin coat.',
-    shortDescription: 'Hand-dotted 12-inch mandala in cool aurora hues.',
-    careInstructions:
-      'Dust gently with a soft cloth. Avoid direct sunlight for prolonged periods.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 3,
-    featured: true,
-    isNewArrival: true,
-    isBestSeller: false,
-    isOnSale: true,
-    rating: 4.9,
-    reviewCount: 18,
-    createdAt: '2026-05-01T10:00:00Z',
-  },
-  {
-    id: 'resin-river-tray-large',
-    slug: 'ocean-river-resin-tray',
-    title: 'Ocean River Resin Tray',
-    category: 'resin',
-    price: 3200,
-    size: '14 × 8 in',
-    material: 'Birch · pigmented epoxy resin',
-    timeToMake: '6 days',
-    description:
-      'A serving tray with a hand-poured river of teal and gold flowing between live-edge wood banks.',
-    shortDescription: 'Hand-poured teal-and-gold resin river on birch.',
-    careInstructions: 'Wipe with damp cloth. Do not soak. Food-safe surface.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 5,
-    featured: true,
-    isNewArrival: false,
-    isBestSeller: true,
-    isOnSale: false,
-    rating: 4.8,
-    reviewCount: 24,
-    createdAt: '2026-04-12T10:00:00Z',
-  },
-  {
-    id: 'lippan-peacock-square',
-    slug: 'lippan-peacock-16-square',
-    title: 'Lippan Peacock - 16" Square',
-    category: 'lippan',
-    price: 5800,
-    size: '16 × 16 in',
-    material: 'Clay relief · sheesha mirrors · gilded paint',
-    timeToMake: '10 days',
-    description:
-      'Twin peacocks in raised Lippan clay, studded with hundreds of hand-cut mirrors that scatter candlelight.',
-    shortDescription: 'Twin peacocks in raised clay and Kutch mirror work.',
-    careInstructions: 'Wipe only with a dry brush. Avoid water.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 2,
-    featured: false,
-    isNewArrival: true,
-    isBestSeller: true,
-    isOnSale: false,
-    rating: 5.0,
-    reviewCount: 11,
-    createdAt: '2026-04-20T10:00:00Z',
-  },
-  {
-    id: 'pichwai-shrinathji-mini',
-    slug: 'shrinathji-pichwai-mini',
-    title: 'Shrinathji Pichwai - Mini',
-    category: 'pichwai',
-    price: 6500,
-    size: '10 × 14 in',
-    material: 'Cotton canvas · stone pigments · gold leaf',
-    timeToMake: '14 days',
-    description:
-      'Hand-painted Pichwai of Lord Shrinathji surrounded by lotus and cows - finished with 22k gold-leaf accents.',
-    shortDescription: 'Pichwai of Shrinathji with 22k gold-leaf accents.',
-    careInstructions: 'Frame behind glass. Avoid humidity.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 1,
-    featured: true,
-    isNewArrival: false,
-    isBestSeller: false,
-    isOnSale: false,
-    rating: 4.95,
-    reviewCount: 7,
-    createdAt: '2026-03-28T10:00:00Z',
-  },
-  {
-    id: 'kolam-threshold-pair',
-    slug: 'kolam-threshold-pair',
-    title: 'Kolam Threshold Pair',
-    category: 'kolam',
-    price: 2200,
-    compareAtPrice: 2800,
-    size: '8 × 8 in each',
-    material: 'Wooden panel · gesso · lime white',
-    timeToMake: '3 days',
-    description:
-      'A matched pair of doorway kolams in lime white on hand-stained wood - a permanent prayer for your home.',
-    shortDescription: 'Doorway kolam pair in lime white on stained wood.',
-    careInstructions: 'Dust lightly. Suitable for sheltered porches.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 6,
-    featured: false,
-    isNewArrival: true,
-    isBestSeller: false,
-    isOnSale: true,
-    rating: 4.85,
-    reviewCount: 14,
-    createdAt: '2026-05-05T10:00:00Z',
-  },
-  {
-    id: 'mandala-marigold-8',
-    slug: 'marigold-mandala-8-round',
-    title: 'Marigold Dot Mandala - 8" Round',
-    category: 'dot-mandala',
-    price: 1800,
-    size: '8 in diameter',
-    material: 'MDF · acrylic dots · matte sealant',
-    timeToMake: '3 days',
-    description: 'A petite marigold mandala - perfect for a study nook or office desk.',
-    shortDescription: 'Petite marigold mandala in warm festival tones.',
-    careInstructions: 'Dust with a soft brush.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 8,
-    featured: false,
-    isNewArrival: false,
-    isBestSeller: true,
-    isOnSale: false,
-    rating: 4.7,
-    reviewCount: 32,
-    createdAt: '2026-02-14T10:00:00Z',
-  },
-  {
-    id: 'resin-cosmos-coasters-4',
-    slug: 'cosmos-resin-coaster-set',
-    title: 'Cosmos Resin Coasters (Set of 4)',
-    category: 'resin',
-    price: 1450,
-    size: '4 in each',
-    material: 'Resin · gold flake · cork base',
-    timeToMake: '4 days',
-    description:
-      'A set of four nebula coasters with swirling cosmic blues and gold flake - gift-boxed.',
-    shortDescription: 'Set of four cosmic-nebula resin coasters.',
-    careInstructions: 'Heat-resistant to 60°C. Wipe clean.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 12,
-    featured: true,
-    isNewArrival: true,
-    isBestSeller: true,
-    isOnSale: false,
-    rating: 4.9,
-    reviewCount: 41,
-    createdAt: '2026-05-08T10:00:00Z',
-  },
-  {
-    id: 'lippan-tree-of-life',
-    slug: 'lippan-tree-of-life',
-    title: 'Lippan Tree of Life',
-    category: 'lippan',
-    price: 4900,
-    size: '12 × 18 in',
-    material: 'Clay · mirrors · earth pigments',
-    timeToMake: '8 days',
-    description:
-      'The eternal Tree of Life in raised Kutchi clay with mirrors for fruit - symbol of growth and prosperity.',
-    shortDescription: 'Tree of Life with mirror fruit in Kutchi clay.',
-    careInstructions: 'Dry dust only. Do not hang in damp areas.',
-    images: ['/images/logo.png'],
-    inStock: true,
-    stockQty: 3,
-    featured: false,
-    isNewArrival: false,
-    isBestSeller: false,
-    isOnSale: false,
-    rating: 4.8,
-    reviewCount: 9,
-    createdAt: '2026-03-15T10:00:00Z',
-  },
-]
+// Revalidate frequently or bypass cache to allow real-time updates
+const CACHE_OPTS = { next: { revalidate: 60 } } as const
 
-export function getProductById(id: string): Product | undefined {
-  return PRODUCTS.find((p) => p.id === id || p.slug === id)
+export async function getAllProducts(): Promise<Product[]> {
+  try {
+    const res = await apiFetch<{ products: Product[] }>('/products', CACHE_OPTS)
+    return res.products || []
+  } catch (e) {
+    console.error('Failed to fetch all products:', e)
+    return []
+  }
 }
 
-export function getProductsByCategory(category: string): Product[] {
-  return PRODUCTS.filter((p) => p.category === category)
+export async function getProductById(id: string): Promise<Product | undefined> {
+  try {
+    const res = await apiFetch<{ product: Product }>(`/products/${id}`, CACHE_OPTS)
+    return res.product
+  } catch (e) {
+    console.error(`Failed to fetch product ${id}:`, e)
+    return undefined
+  }
 }
 
-export function getFeaturedProducts(): Product[] {
-  return PRODUCTS.filter((p) => p.featured)
+export async function getProductsByCategory(category: string): Promise<Product[]> {
+  try {
+    const res = await apiFetch<{ products: Product[] }>(`/products?category=${category}`, CACHE_OPTS)
+    return res.products || []
+  } catch (e) {
+    console.error(`Failed to fetch products for category ${category}:`, e)
+    return []
+  }
 }
 
-export function getBestSellers(): Product[] {
-  return PRODUCTS.filter((p) => p.isBestSeller)
+export async function getFeaturedProducts(): Promise<Product[]> {
+  try {
+    const res = await apiFetch<{ products: Product[] }>('/products?featured=true', CACHE_OPTS)
+    return res.products || []
+  } catch (e) {
+    console.error('Failed to fetch featured products:', e)
+    return []
+  }
 }
 
-export function getNewArrivals(): Product[] {
-  return PRODUCTS.filter((p) => p.isNewArrival)
+export async function getNewArrivals(): Promise<Product[]> {
+  try {
+    const res = await apiFetch<{ products: Product[] }>('/products?newArrivals=true', CACHE_OPTS)
+    return res.products || []
+  } catch (e) {
+    console.error('Failed to fetch new arrivals:', e)
+    return []
+  }
 }
+
+export async function getBestSellers(): Promise<Product[]> {
+  try {
+    const res = await apiFetch<{ products: Product[] }>('/products?bestSellers=true', CACHE_OPTS)
+    return res.products || []
+  } catch (e) {
+    console.error('Failed to fetch best sellers:', e)
+    return []
+  }
+}
+
+export const PRODUCTS: Product[] = []

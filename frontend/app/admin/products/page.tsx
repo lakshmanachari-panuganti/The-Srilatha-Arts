@@ -173,7 +173,7 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <Link
-                      href={`/admin/products/${product.id}/edit`}
+                      href={`/admin/products/edit?id=${product.id}`}
                       className="text-terracotta hover:text-plum font-medium transition-colors"
                     >
                       Edit

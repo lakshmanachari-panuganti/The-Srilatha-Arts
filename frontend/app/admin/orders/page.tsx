@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Search, Filter, Eye } from 'lucide-react'
 import { formatINR } from '@/lib/format'
 
@@ -116,10 +117,10 @@ export default function AdminOrdersPage() {
                   {formatINR(order.total)}
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button className="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta hover:text-plum transition-colors">
+                  <Link href={`/admin/orders/detail?id=${order.id}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta hover:text-plum transition-colors">
                     <Eye className="w-4 h-4" />
                     View Details
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))}
