@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import CategoryChips from '@/components/shop/CategoryChips'
 import ProductGrid from '@/components/shop/ProductGrid'
-import { PRODUCTS } from '@/data/products'
+import { getAllProducts } from '@/data/products'
 
 export const metadata: Metadata = {
   title: 'Shop · All handcrafted art',
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
     'Browse the full collection - Resin, Dot Mandala, Lippan, Pichwai and Kolam art handcrafted in Hyderabad.',
 }
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  const products = await getAllProducts()
   return (
     <>
       <CategoryChips />
@@ -19,11 +20,11 @@ export default function ShopPage() {
           All <em className="italic">creations</em>
         </h1>
         <p className="text-ink-mute text-sm mt-3">
-          {PRODUCTS.length} pieces · handcrafted, one at a time
+          {products.length} pieces · handcrafted, one at a time
         </p>
       </header>
       <div className="max-w-6xl mx-auto py-8 lg:py-14">
-        <ProductGrid products={PRODUCTS} />
+        <ProductGrid products={products} />
       </div>
     </>
   )

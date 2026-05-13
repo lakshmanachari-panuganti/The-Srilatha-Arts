@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description: 'The latest creations from the studio.',
 }
 
-export default function NewArrivalsPage() {
-  const products = getNewArrivals()
+export default async function NewArrivalsPage() {
+  const products = await getNewArrivals()
   return (
     <>
       <CategoryChips />
