@@ -14,9 +14,21 @@ const navItems = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#F8F7FC] flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-ink/5 flex flex-col fixed inset-y-0 left-0 z-20">
+    <div className="min-h-screen bg-[#F8F7FC] flex flex-col lg:flex-row">
+      {/* Mobile Header */}
+      <header className="lg:hidden bg-white border-b border-ink/5 p-4 flex items-center justify-between sticky top-0 z-30">
+        <Link href="/" className="font-serif text-xl text-ink tracking-wide">
+          Srilatha<em className="italic gold-text ml-1.5">Art</em>
+        </Link>
+        <button className="p-2 -mr-2 text-ink-soft">
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </header>
+
+      {/* Sidebar (Desktop) */}
+      <aside className="hidden lg:flex w-64 bg-white border-r border-ink/5 flex-col fixed inset-y-0 left-0 z-20">
         <div className="p-6 border-b border-ink/5">
           <Link href="/" className="font-serif text-2xl text-ink tracking-wide">
             Srilatha<em className="italic gold-text ml-1.5">Art</em>
@@ -46,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 lg:ml-64 p-4 lg:p-8 w-full max-w-[100vw]">
         <div className="max-w-6xl mx-auto">
           {children}
         </div>

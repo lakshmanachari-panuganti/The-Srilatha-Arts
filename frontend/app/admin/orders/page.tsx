@@ -80,8 +80,8 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white border border-ink/10 rounded-xl overflow-hidden">
-        <table className="w-full text-left text-sm text-ink">
+      <div className="bg-white border border-ink/10 rounded-xl overflow-x-auto">
+        <table className="w-full text-left text-sm text-ink min-w-[800px]">
           <thead className="bg-paper border-b border-ink/10 text-ink-soft font-medium">
             <tr>
               <th className="px-6 py-4">Order ID</th>
