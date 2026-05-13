@@ -40,15 +40,17 @@ const columns = [
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 bg-cream-deep border-t border-ink/8 mt-20">
+    <footer className="relative z-10 mt-20"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(43,30,52,0.6)' }}
+    >
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}
         <div className="text-center max-w-xl mx-auto mb-14 lg:mb-20">
           <p className="eyebrow justify-center mb-4">Join the circle</p>
           <h3 className="display text-3xl lg:text-4xl mb-3">
-            Stories from the <em className="italic">studio</em>
+            Stories from the <em className="italic gold-text">studio</em>
           </h3>
-          <p className="text-ink-soft text-sm lg:text-base mb-6">
+          <p className="text-ivory-mute text-sm lg:text-base mb-6">
             New collections, behind-the-scenes notes, and the occasional discount. No spam.
           </p>
           <form
@@ -57,7 +59,7 @@ export default function Footer() {
           >
             <div className="relative flex-1">
               <Mail
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-mute"
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ivory-mute"
                 aria-hidden
               />
               <input
@@ -65,9 +67,15 @@ export default function Footer() {
                 required
                 placeholder="your@email.com"
                 aria-label="Email address"
-                className="w-full h-12 pl-11 pr-4 rounded-full
-                           bg-paper border border-ink/15 focus:border-ink
-                           text-ink placeholder:text-ink-mute outline-none transition-colors"
+                className="w-full h-12 pl-11 pr-4
+                           bg-glass-surface text-ivory placeholder:text-ivory-mute
+                           outline-none transition-all duration-500"
+                style={{
+                  borderRadius: '24px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'rgba(200,182,255,0.4)'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
               />
             </div>
             <button type="submit" className="btn-dark whitespace-nowrap">
@@ -81,11 +89,11 @@ export default function Footer() {
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
               <Image src="/images/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
-              <span className="font-serif text-xl text-ink">
-                The <span className="terracotta-text">Srilatha</span> Arts
+              <span className="font-serif text-xl text-ivory">
+                The <span className="gold-text">Srilatha</span> Arts
               </span>
             </Link>
-            <p className="text-sm text-ink-soft leading-relaxed max-w-xs">
+            <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
               Handcrafted folk art from Hyderabad — Resin, Dot Mandala, Lippan, Pichwai, Kolam.
             </p>
             <div className="flex items-center gap-2 mt-5">
@@ -101,18 +109,22 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 lg:grid lg:grid-cols-3 lg:gap-8 divide-y divide-ink/8 lg:divide-y-0">
+          <div className="lg:col-span-3 lg:grid lg:grid-cols-3 lg:gap-8"
+               style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+          >
             {columns.map((col) => (
               <FooterColumn key={col.title} title={col.title} links={col.links} />
             ))}
           </div>
         </div>
 
-        <div className="lg:hidden mt-12 pt-8 border-t border-ink/8 text-center">
+        <div className="lg:hidden mt-12 pt-8 text-center"
+             style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+        >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
             <Image src="/images/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
-            <span className="font-serif text-lg text-ink">
-              The <span className="terracotta-text">Srilatha</span> Arts
+            <span className="font-serif text-lg text-ivory">
+              The <span className="gold-text">Srilatha</span> Arts
             </span>
           </Link>
           <div className="flex items-center justify-center gap-2 mt-2">
@@ -128,9 +140,11 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-ink/8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ink-mute">
+        <div className="mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ivory-mute"
+             style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+        >
           <p>© {new Date().getFullYear()} The Srilatha Arts. Made by hand in Hyderabad.</p>
-          <p className="font-hand text-lg text-terracotta">Where Tradition Meets Creativity</p>
+          <p className="font-hand text-lg text-lavender-pastel">Where Tradition Meets Creativity</p>
         </div>
       </div>
     </footer>
@@ -146,23 +160,23 @@ function FooterColumn({
 }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="lg:py-0">
+    <div className="lg:py-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         className="lg:pointer-events-none w-full flex items-center justify-between py-4 lg:py-0 lg:mb-3
-                   text-[11px] uppercase tracking-[0.25em] text-ink"
+                   text-[11px] uppercase tracking-[0.25em] text-ivory"
       >
         {title}
         <ChevronDown
-          className={cn('w-4 h-4 lg:hidden transition-transform', open && 'rotate-180')}
+          className={cn('w-4 h-4 lg:hidden transition-transform duration-500', open && 'rotate-180')}
           aria-hidden
         />
       </button>
       <ul
         className={cn(
-          'overflow-hidden lg:block lg:opacity-100 lg:max-h-none transition-all',
+          'overflow-hidden lg:block lg:opacity-100 lg:max-h-none transition-all duration-500',
           open ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0 lg:opacity-100',
         )}
       >
@@ -170,7 +184,7 @@ function FooterColumn({
           <li key={l.href}>
             <Link
               href={l.href}
-              className="block py-1.5 text-sm text-ink-soft hover:text-terracotta transition-colors"
+              className="block py-1.5 text-sm text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
             >
               {l.label}
             </Link>
@@ -196,9 +210,14 @@ function SocialLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="min-w-11 min-h-11 flex items-center justify-center rounded-full
-                 border border-ink/15 text-ink-soft hover:text-terracotta hover:border-terracotta
-                 bg-paper transition-colors"
+      className="min-w-11 min-h-11 flex items-center justify-center
+                 text-ivory-mute hover:text-lavender-pastel
+                 transition-all duration-500"
+      style={{
+        borderRadius: '24px',
+        border: '1px solid rgba(255,255,255,0.1)',
+        background: 'rgba(255,255,255,0.04)',
+      }}
     >
       {children}
     </a>

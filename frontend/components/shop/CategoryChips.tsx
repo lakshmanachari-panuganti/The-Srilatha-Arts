@@ -17,7 +17,13 @@ export default function CategoryChips() {
   return (
     <nav
       aria-label="Categories"
-      className="sticky top-[calc(var(--banner-h)+4rem)] lg:top-[calc(var(--banner-h)+5rem)] z-30 bg-cream/85 backdrop-blur-xl border-b border-ink/8"
+      className="sticky top-[calc(var(--banner-h)+4rem)] lg:top-[calc(var(--banner-h)+5rem)] z-30"
+      style={{
+        background: 'rgba(43,30,52,0.88)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}
     >
       <div className="chip-rail py-3 lg:py-4 max-w-6xl mx-auto lg:px-8">
         {chips.map((c) => {

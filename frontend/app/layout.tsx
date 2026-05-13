@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, Montserrat, Caveat } from 'next/font/google'
+import { Playfair_Display, Montserrat, Caveat } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
 
-const cormorant = Cormorant_Garamond({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-cormorant',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-playfair',
   display: 'swap',
 })
 
@@ -70,22 +70,22 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#FAF6EE',
+  themeColor: '#2B1E34',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
-  colorScheme: 'light',
+  colorScheme: 'dark',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${cormorant.variable} ${montserrat.variable} ${caveat.variable}`}>
+    <html lang="en-IN" className={`${playfair.variable} ${montserrat.variable} ${caveat.variable}`}>
       <body>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100]
-                     focus:bg-ink focus:text-cream focus:px-4 focus:py-2 focus:rounded-full"
+                     focus:bg-lavender-pastel focus:text-plum focus:px-4 focus:py-2 focus:rounded-full"
         >
           Skip to content
         </a>

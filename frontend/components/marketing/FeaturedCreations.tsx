@@ -8,23 +8,30 @@ export default function FeaturedCreations() {
   if (products.length === 0) return null
 
   return (
-    <section className="bg-cream-deep py-16 lg:py-28">
-      <div className="max-w-6xl mx-auto">
-        <div className="px-5 lg:px-8 flex items-end justify-between mb-10 lg:mb-14">
+    <section className="relative py-20 lg:py-32 overflow-hidden">
+      {/* Dreamy background glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-plum-light/50 via-plum to-plum" aria-hidden />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full
+                       bg-lavender-soft/8 blur-[100px]" aria-hidden />
+
+      <div className="relative max-w-6xl mx-auto z-10">
+        <div className="px-5 lg:px-8 flex items-end justify-between mb-12 lg:mb-16">
           <div>
             <p className="eyebrow mb-4">
-              <span className="section-no text-terracotta">002</span>
+              <span className="section-no text-lavender-pastel">002</span>
               From the bench
             </p>
             <h2 className="display text-4xl lg:text-6xl">
               Featured
               <br className="sm:hidden" />
-              <em className="italic"> creations</em>
+              <em className="italic gold-text"> creations</em>
             </h2>
           </div>
           <Link
             href="/shop"
-            className="hidden sm:inline-flex items-center gap-1 text-sm text-ink hover:text-terracotta transition-colors border-b border-ink/30 hover:border-terracotta pb-1"
+            className="hidden sm:inline-flex items-center gap-1 text-sm text-ivory-soft
+                       hover:text-lavender-pastel transition-colors duration-500
+                       border-b border-ivory-soft/30 hover:border-lavender-pastel pb-1"
           >
             View all
             <ArrowRight className="w-4 h-4" aria-hidden />
@@ -48,7 +55,7 @@ export default function FeaturedCreations() {
           ))}
         </div>
 
-        <div className="px-5 mt-6 sm:hidden">
+        <div className="px-5 mt-8 sm:hidden">
           <Link href="/shop" className="btn-outline w-full justify-center">
             View all creations
             <ArrowRight className="w-4 h-4" aria-hidden />

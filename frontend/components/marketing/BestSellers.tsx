@@ -8,21 +8,23 @@ export default function BestSellers() {
   if (products.length === 0) return null
 
   return (
-    <section className="px-5 lg:px-8 py-16 lg:py-28 max-w-6xl mx-auto">
-      <div className="flex items-end justify-between mb-10 lg:mb-14">
+    <section className="px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">
+      <div className="flex items-end justify-between mb-12 lg:mb-16">
         <div>
           <p className="eyebrow mb-4">
-            <span className="section-no text-terracotta">004</span>
+            <span className="section-no text-lavender-pastel">004</span>
             Loved by many
           </p>
           <h2 className="display text-4xl lg:text-6xl">
             Best{' '}
-            <em className="italic">sellers</em>
+            <em className="italic gold-text">sellers</em>
           </h2>
         </div>
         <Link
           href="/best-sellers"
-          className="hidden sm:inline-flex items-center gap-1 text-sm text-ink hover:text-terracotta transition-colors border-b border-ink/30 hover:border-terracotta pb-1"
+          className="hidden sm:inline-flex items-center gap-1 text-sm text-ivory-soft
+                     hover:text-lavender-pastel transition-colors duration-500
+                     border-b border-ivory-soft/30 hover:border-lavender-pastel pb-1"
         >
           View all
           <ArrowRight className="w-4 h-4" aria-hidden />
