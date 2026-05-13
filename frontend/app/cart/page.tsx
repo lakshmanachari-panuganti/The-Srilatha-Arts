@@ -21,9 +21,9 @@ export default function CartPage() {
     return (
       <main className="min-h-svh max-w-2xl mx-auto px-5 py-20 lg:py-28 text-center">
         <ShoppingBag className="w-12 h-12 text-terracotta/60 mx-auto mb-4" aria-hidden />
-        <p className="eyebrow justify-center mb-3">Empty bag</p>
+        <p className="eyebrow justify-center mb-3">Empty cart</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
-          Your bag is <em className="italic">waiting</em>
+          Your cart is <em className="italic">waiting</em>
         </h1>
         <p className="text-ink-soft mb-8">
           Nothing here yet. Browse the collection and pick a piece that calls to you.
@@ -39,7 +39,7 @@ export default function CartPage() {
   return (
     <main className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16 lg:grid lg:grid-cols-3 lg:gap-12">
       <div className="lg:col-span-2">
-        <p className="eyebrow mb-3">Your bag</p>
+        <p className="eyebrow mb-3">Your cart</p>
         <h1 className="display text-4xl lg:text-5xl mb-2">
           {items.length} {items.length === 1 ? 'piece' : 'pieces'}
         </h1>
