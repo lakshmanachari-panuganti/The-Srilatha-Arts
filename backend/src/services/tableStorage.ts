@@ -25,6 +25,18 @@ async function listAll(tableName: string, filter?: string): Promise<Row[]> {
   return rows
 }
 
+async function listPaginated(
+  tableName: string,
+  filter: string | undefined,
+  page: number,
+  size: number,
+): Promise<{ rows: Row[]; total: number }> {
+  const all = await listAll(tableName, filter)
+  const total = all.length
+  const start = (page - 1) * size
+  return { rows: all.slice(start, start + size), total }
+}
+
 // ─── PRODUCTS ────────────────────────────────────────────────
 
 export async function getAllProducts(): Promise<Row[]> {
@@ -75,21 +87,56 @@ export async function deleteProduct(category: string, productId: string): Promis
   await client.deleteEntity(category, productId)
 }
 
-// ─── ORDERS ──────────────────────────────────────────────────
+// ─── ORDERS (new PK=userEmail scheme — §3) ───────────────────
 
 export async function createOrder(order: Row): Promise<void> {
   const client = getTableClient('orders')
   await client.createEntity(order as any)
 }
 
-export async function getOrder(status: string, orderId: string): Promise<Row | null> {
+/**
+ * Get an order by owner email + orderId.
+ * New PK strategy: partitionKey = userEmail, rowKey = orderId.
+ */
+export async function getOrderByOwner(userEmail: string, orderId: string): Promise<Row | null> {
   const client = getTableClient('orders')
   try {
-    return (await client.getEntity(status, orderId)) as Row
+    return (await client.getEntity(userEmail, orderId)) as Row
   } catch (error: any) {
     if (error.statusCode === 404) return null
     throw error
   }
+}
+
+/**
+ * Find an order by ID regardless of owner — scans all partitions.
+ * Used by admin endpoints.
+ */
+export async function getOrderById(orderId: string): Promise<Row | null> {
+  const rows = await listAll('orders', odata`RowKey eq ${orderId}`)
+  return rows[0] ?? null
+}
+
+/**
+ * List all orders for a user (GET /api/orders/me).
+ * Single-partition query — fast.
+ */
+export async function getOrdersByUser(userEmail: string): Promise<Row[]> {
+  const rows = await listAll('orders', odata`PartitionKey eq ${userEmail}`)
+  return rows.sort(
+    (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+  )
+}
+
+/**
+ * Update an order's fields in-place (merge update — no row move).
+ */
+export async function mergeOrder(userEmail: string, orderId: string, fields: Row): Promise<void> {
+  const client = getTableClient('orders')
+  await client.updateEntity(
+    { partitionKey: userEmail, rowKey: orderId, ...fields },
+    'Merge',
+  )
 }
 
 export async function getAllOrders(): Promise<Row[]> {
@@ -99,6 +146,7 @@ export async function getAllOrders(): Promise<Row[]> {
   )
 }
 
+// Legacy compat — used during migration; remove after Stage 2.
 export async function updateOrderStatus(
   currentStatus: string,
   orderId: string,
@@ -117,6 +165,8 @@ export async function updateOrderStatus(
   await client.deleteEntity(currentStatus, orderId)
 }
 
+// ─── ORDER ITEMS ─────────────────────────────────────────────
+
 export async function createOrderItem(item: Row): Promise<void> {
   const client = getTableClient('orderItems')
   await client.createEntity(item as any)
@@ -124,6 +174,52 @@ export async function createOrderItem(item: Row): Promise<void> {
 
 export async function getOrderItems(orderId: string): Promise<Row[]> {
   return listAll('orderItems', odata`PartitionKey eq ${orderId}`)
+}
+
+// ─── ORDER EVENTS (append-only audit log — §2.1) ─────────────
+
+export async function appendOrderEvent(event: Row): Promise<void> {
+  const client = getTableClient('orderEvents')
+  await client.createEntity(event as any)
+}
+
+export async function getOrderEvents(orderId: string, includeInternal = false): Promise<Row[]> {
+  const rows = await listAll('orderEvents', odata`PartitionKey eq ${orderId}`)
+  const filtered = includeInternal
+    ? rows
+    : rows.filter((e) => e.channel !== 'internal')
+  return filtered.sort(
+    (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
+  )
+}
+
+// ─── ORDERS BY STATUS (secondary index — §3.1) ──────────────
+
+export async function upsertOrderByStatus(row: Row): Promise<void> {
+  const client = getTableClient('ordersByStatus')
+  await client.upsertEntity(row as any, 'Replace')
+}
+
+export async function deleteOrderByStatus(status: string, rowKey: string): Promise<void> {
+  const client = getTableClient('ordersByStatus')
+  try {
+    await client.deleteEntity(status, rowKey)
+  } catch (error: any) {
+    if (error.statusCode !== 404) throw error
+  }
+}
+
+export async function getOrdersByStatus(
+  status: string,
+  page = 1,
+  size = 20,
+): Promise<{ rows: Row[]; total: number }> {
+  return listPaginated(
+    'ordersByStatus',
+    odata`PartitionKey eq ${status}`,
+    page,
+    size,
+  )
 }
 
 // ─── USERS ───────────────────────────────────────────────────
@@ -213,6 +309,223 @@ export async function upsertAnnouncement(announcement: Row): Promise<void> {
 export async function deleteAnnouncement(id: string): Promise<void> {
   const client = getTableClient('announcements')
   await client.deleteEntity('banner', id)
+}
+
+// ─── COUPONS ─────────────────────────────────────────────────
+
+export async function getCoupon(code: string): Promise<Row | null> {
+  const client = getTableClient('coupons')
+  try {
+    return (await client.getEntity('coupon', code.toUpperCase())) as Row
+  } catch (error: any) {
+    if (error.statusCode === 404) return null
+    throw error
+  }
+}
+
+export async function listCoupons(): Promise<Row[]> {
+  return listAll('coupons')
+}
+
+export async function upsertCoupon(coupon: Row): Promise<void> {
+  const client = getTableClient('coupons')
+  await client.upsertEntity(coupon as any, 'Replace')
+}
+
+export async function deleteCoupon(code: string): Promise<void> {
+  const client = getTableClient('coupons')
+  await client.deleteEntity('coupon', code.toUpperCase())
+}
+
+export async function getCouponRedemptions(code: string): Promise<Row[]> {
+  return listAll('couponRedemptions', odata`PartitionKey eq ${code.toUpperCase()}`)
+}
+
+export async function getCouponRedemptionsByUser(code: string, userEmail: string): Promise<Row[]> {
+  const rows = await getCouponRedemptions(code)
+  return rows.filter((r) => r.userEmail === userEmail)
+}
+
+export async function createCouponRedemption(redemption: Row): Promise<void> {
+  const client = getTableClient('couponRedemptions')
+  await client.createEntity(redemption as any)
+}
+
+// ─── WISHLIST ────────────────────────────────────────────────
+
+export async function getWishlist(userEmail: string): Promise<Row[]> {
+  return listAll('wishlist', odata`PartitionKey eq ${userEmail}`)
+}
+
+export async function addToWishlist(userEmail: string, productId: string): Promise<void> {
+  const client = getTableClient('wishlist')
+  await client.upsertEntity(
+    {
+      partitionKey: userEmail,
+      rowKey: productId,
+      addedAt: new Date().toISOString(),
+    } as any,
+    'Replace',
+  )
+}
+
+export async function removeFromWishlist(userEmail: string, productId: string): Promise<void> {
+  const client = getTableClient('wishlist')
+  try {
+    await client.deleteEntity(userEmail, productId)
+  } catch (error: any) {
+    if (error.statusCode !== 404) throw error
+  }
+}
+
+export async function isInWishlist(userEmail: string, productId: string): Promise<boolean> {
+  const client = getTableClient('wishlist')
+  try {
+    await client.getEntity(userEmail, productId)
+    return true
+  } catch {
+    return false
+  }
+}
+
+// ─── REVIEWS ─────────────────────────────────────────────────
+
+export async function getReviewsByProduct(productId: string, onlyApproved = true): Promise<Row[]> {
+  const rows = await listAll('reviews', odata`PartitionKey eq ${productId}`)
+  return onlyApproved ? rows.filter((r) => r.status === 'approved') : rows
+}
+
+export async function getReview(productId: string, reviewId: string): Promise<Row | null> {
+  const client = getTableClient('reviews')
+  try {
+    return (await client.getEntity(productId, reviewId)) as Row
+  } catch (error: any) {
+    if (error.statusCode === 404) return null
+    throw error
+  }
+}
+
+export async function createReview(review: Row): Promise<void> {
+  const client = getTableClient('reviews')
+  await client.createEntity(review as any)
+}
+
+export async function updateReview(review: Row): Promise<void> {
+  const client = getTableClient('reviews')
+  await client.upsertEntity(review as any, 'Replace')
+}
+
+export async function getAllReviews(status?: string): Promise<Row[]> {
+  const rows = await listAll('reviews')
+  if (status) return rows.filter((r) => r.status === status)
+  return rows
+}
+
+// ─── CUSTOM ORDERS ───────────────────────────────────────────
+
+export async function createCustomOrder(order: Row): Promise<void> {
+  const client = getTableClient('customOrders')
+  await client.createEntity(order as any)
+}
+
+export async function getCustomOrder(rowKey: string): Promise<Row | null> {
+  const client = getTableClient('customOrders')
+  try {
+    return (await client.getEntity('inbox', rowKey)) as Row
+  } catch (error: any) {
+    if (error.statusCode === 404) return null
+    throw error
+  }
+}
+
+export async function listCustomOrders(status?: string): Promise<Row[]> {
+  const rows = await listAll('customOrders')
+  if (status) return rows.filter((r) => r.status === status)
+  return rows.sort(
+    (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+  )
+}
+
+export async function updateCustomOrder(order: Row): Promise<void> {
+  const client = getTableClient('customOrders')
+  await client.upsertEntity(order as any, 'Replace')
+}
+
+// ─── ADDRESSES ───────────────────────────────────────────────
+
+export async function getAddresses(userEmail: string): Promise<Row[]> {
+  return listAll('addresses', odata`PartitionKey eq ${userEmail}`)
+}
+
+export async function getAddress(userEmail: string, addressId: string): Promise<Row | null> {
+  const client = getTableClient('addresses')
+  try {
+    return (await client.getEntity(userEmail, addressId)) as Row
+  } catch (error: any) {
+    if (error.statusCode === 404) return null
+    throw error
+  }
+}
+
+export async function upsertAddress(address: Row): Promise<void> {
+  const client = getTableClient('addresses')
+  await client.upsertEntity(address as any, 'Replace')
+}
+
+export async function deleteAddress(userEmail: string, addressId: string): Promise<void> {
+  const client = getTableClient('addresses')
+  await client.deleteEntity(userEmail, addressId)
+}
+
+/**
+ * Clear `isDefault` on all addresses except the specified one.
+ */
+export async function clearDefaultAddress(userEmail: string, exceptId?: string): Promise<void> {
+  const addresses = await getAddresses(userEmail)
+  const client = getTableClient('addresses')
+  for (const addr of addresses) {
+    if (addr.isDefault && addr.rowKey !== exceptId) {
+      await client.updateEntity(
+        { partitionKey: userEmail, rowKey: addr.rowKey, isDefault: false },
+        'Merge',
+      )
+    }
+  }
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────
+
+export async function logNotification(notification: Row): Promise<void> {
+  const client = getTableClient('notifications')
+  await client.createEntity(notification as any)
+}
+
+// ─── AUDIT LOG ───────────────────────────────────────────────
+
+export async function appendAuditLog(entry: Row): Promise<void> {
+  const client = getTableClient('auditLog')
+  await client.createEntity(entry as any)
+}
+
+export async function getAuditLog(page = 1, size = 50): Promise<{ rows: Row[]; total: number }> {
+  return listPaginated('auditLog', undefined, page, size)
+}
+
+// ─── RATE LIMIT COUNTERS ─────────────────────────────────────
+
+export async function getRateLimitCounter(key: string): Promise<Row | null> {
+  const client = getTableClient('rateLimits')
+  try {
+    return (await client.getEntity('counter', key)) as Row
+  } catch (error: any) {
+    if (error.statusCode === 404) return null
+    throw error
+  }
+}
+
+export async function upsertRateLimitCounter(counter: Row): Promise<void> {
+  const client = getTableClient('rateLimits')
+  await client.upsertEntity(counter as any, 'Replace')
 }
 
 // ─── CONFIG ──────────────────────────────────────────────────
