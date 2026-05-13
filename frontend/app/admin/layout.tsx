@@ -1,4 +1,6 @@
+'use client'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Package, ShoppingBag, LayoutDashboard, Tag, MessageSquare, Ticket, Image as ImageIcon, Settings, LogOut } from 'lucide-react'
 
 const navItems = [
@@ -13,6 +15,13 @@ const navItems = [
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  
+  // Do not show the sidebar on the login page
+  if (pathname === '/admin/login' || pathname === '/admin/login/') {
+    return <>{children}</>
+  }
+
   return (
     <div className="min-h-screen bg-[#F8F7FC] flex flex-col lg:flex-row">
       {/* Mobile Header */}
