@@ -357,14 +357,14 @@ async function adminCouponById(
       const existing = await getCoupon(code)
       if (!existing) return errorResponse('Coupon not found', 404, origin)
       const body = (await request.json()) as Record<string, unknown>
-      const updated = { ...existing, ...body, rowKey: code, updatedAt: new Date().toISOString() }
+      const updated: any = { ...existing, ...body, rowKey: code, updatedAt: new Date().toISOString() }
       if (Array.isArray(updated.applicableCategories)) {
         updated.applicableCategories = JSON.stringify(updated.applicableCategories)
       }
       if (Array.isArray(updated.applicableProducts)) {
         updated.applicableProducts = JSON.stringify(updated.applicableProducts)
       }
-      await upsertCoupon(updated)
+      await upsertCoupon(updated as Row)
       return jsonResponse({ coupon: toApi(updated) }, 200, {}, origin)
     }
 
