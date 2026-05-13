@@ -100,11 +100,39 @@ export default function AdminNewProductPage() {
           {/* Images */}
           <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-4">
             <h2 className="font-serif text-lg text-ink">Images</h2>
-            <div className="border-2 border-dashed border-ink/10 rounded-xl p-8 text-center hover:border-lavender/40 transition-colors cursor-pointer">
+            <label className="border-2 border-dashed border-ink/10 rounded-xl p-8 text-center hover:border-lavender/40 transition-colors cursor-pointer block relative">
+              <input 
+                type="file" 
+                multiple 
+                accept="image/png, image/jpeg, image/webp" 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                onChange={(e) => {
+                  if (e.target.files) {
+                    const newImages = Array.from(e.target.files).map(f => URL.createObjectURL(f))
+                    setImages(prev => [...prev, ...newImages])
+                  }
+                }} 
+              />
               <Upload className="w-8 h-8 text-ink-mute mx-auto mb-3" />
               <p className="text-sm font-medium text-ink mb-1">Drop images here or click to upload</p>
               <p className="text-xs text-ink-mute">PNG, JPG, WebP · max 5 MB each</p>
-            </div>
+            </label>
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                {images.map((url, i) => (
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-ink/10 group bg-white">
+                    <img src={url} alt={`Preview ${i}`} className="object-cover w-full h-full" />
+                    <button 
+                      type="button" 
+                      onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))} 
+                      className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
