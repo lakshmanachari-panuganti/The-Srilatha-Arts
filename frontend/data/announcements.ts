@@ -27,7 +27,7 @@ export const ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: 'custom-slots',
-    message: 'Custom commissions open · 2 slots left this month',
+    message: 'Custom Creations open · 2 slots left this month',
     href: '/custom-order',
     priority: 4,
     theme: 'gold',

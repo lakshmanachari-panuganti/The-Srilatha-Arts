@@ -42,7 +42,7 @@ export default function CustomOrderCTA() {
         <div className="relative z-10">
           <span className="inline-flex items-center gap-2 text-[11px] tracking-[0.32em] uppercase text-lavender-pastel mb-5">
             <Sparkles className="w-3.5 h-3.5" aria-hidden />
-            Commissions open
+            Custom Creations
             <Sparkles className="w-3.5 h-3.5" aria-hidden />
           </span>
           <h2 className="font-serif text-4xl sm:text-5xl lg:text-7xl leading-[1.02] text-ivory mb-4">
@@ -51,14 +51,14 @@ export default function CustomOrderCTA() {
             <em className="italic gold-text">We&apos;ll craft it.</em>
           </h2>
           <p className="text-ivory-soft/70 max-w-reader mx-auto text-base lg:text-lg leading-relaxed mb-8">
-            Commission a one-of-a-kind piece — tell us the form, palette and story; we&apos;ll bring
-            it to life in two to four weeks.
+            Did you Dream it? then Describe it — the colours, the mood, the story it should whisper.
+            Our hands will shape it into your own masterpiece within one to two weeks.
           </p>
           <Link
             href="/custom-order"
             className="btn-dark inline-flex"
           >
-            Start your commission
+            Start your Custom Creations 
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
         </div>

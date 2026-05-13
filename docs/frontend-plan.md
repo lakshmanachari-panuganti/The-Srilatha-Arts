@@ -394,7 +394,7 @@ A slim, premium ticker pinned to the very top of every public page that scrolls 
 - `✨ FLAT 30% OFF on Resin Art · Code SRILATHA30 · Ends Sunday`
 - `🎁 Free shipping on orders above ₹2,999 · Pan-India delivery`
 - `🪔 Diwali Collection live · Handcrafted in Hyderabad with love`
-- `🖼️ Custom commissions open · 2 slots left this month`
+- `🖼️ Custom Creations open · 2 slots left this month`
 
 Keep each message ≤ 80 characters so the loop reads naturally on a 360 px screen.
 

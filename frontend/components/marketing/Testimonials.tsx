@@ -14,7 +14,7 @@ const reviews = [
     location: 'Bangalore',
     rating: 5,
     quote:
-      'Commissioned a mandala for my mother's seventieth. The colors, the precision, the timing — all perfect. She cried.',
+      'Got a mandala for my mother\'s seventieth. The colors, the precision, the timing — all perfect. She cried.',
     art: 'Custom Dot Mandala',
   },
   {
