@@ -1,0 +1,65 @@
+name: Deploy Backend · DEV
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend-dev.yml'
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  WORKING_DIRECTORY: backend
+  AZURE_FUNCTIONAPP_NAME: func-thesrilathaarts-dev
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy BackEnd - Dev
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          lfs: false
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Build
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          npm run build
+          npm prune --omit=dev
+
+      - name: Deploy to Azure Functions
+        # Only deploy on push or workflow_dispatch, not on PRs (unless you want ephemeral backend environments)
+        if: github.event_name != 'pull_request'
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.WORKING_DIRECTORY }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_DEV }}
