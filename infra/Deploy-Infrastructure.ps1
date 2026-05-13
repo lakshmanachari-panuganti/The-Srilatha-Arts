@@ -87,8 +87,8 @@ $config = @{
         StaticWebApp   = 'swa-thesrilathaarts-prd'
         KeyVault       = 'kv-thesrilathaarts-prd'
         AppInsights    = 'appi-thesrilathaarts-prd'
-        CorsOrigins    = @('https://www.thesrilathaarts.com', 'https://thesrilathaarts.com')
-        CookieDomain   = '.thesrilathaarts.com'
+        CorsOrigins    = @('https://www.srilatha.art', 'https://srilatha.art')
+        CookieDomain   = '.srilatha.art'
     }
 }
 
