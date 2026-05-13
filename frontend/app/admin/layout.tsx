@@ -23,9 +23,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F7FC] flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-plum flex flex-col lg:flex-row">
       {/* Mobile Header */}
-      <header className="lg:hidden bg-white border-b border-ink/5 p-4 flex items-center justify-between sticky top-0 z-30">
+      <header className="lg:hidden bg-plum-light border-b border-ink/5 p-4 flex items-center justify-between sticky top-0 z-30">
         <Link href="/" className="font-serif text-xl text-ink tracking-wide">
           Srilatha<em className="italic gold-text ml-1.5">Art</em>
         </Link>
@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </header>
 
       {/* Sidebar (Desktop) */}
-      <aside className="hidden lg:flex w-64 bg-white border-r border-ink/5 flex-col fixed inset-y-0 left-0 z-20">
+      <aside className="hidden lg:flex w-64 bg-plum-light border-r border-ink/5 flex-col fixed inset-y-0 left-0 z-20">
         <div className="p-6 border-b border-ink/5">
           <Link href="/" className="font-serif text-2xl text-ink tracking-wide">
             Srilatha<em className="italic gold-text ml-1.5">Art</em>

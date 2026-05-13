@@ -25,17 +25,17 @@ export default function AdminProductsPage() {
           <input
             type="text"
             placeholder="Search products..."
-            className="w-full pl-10 pr-4 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
+            className="w-full pl-10 pr-4 h-10 bg-plum-light border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 h-10 bg-white border border-ink/10 rounded-lg text-sm text-ink hover:bg-paper transition-colors">
+        <button className="flex items-center gap-2 px-4 h-10 bg-plum-light border border-ink/10 rounded-lg text-sm text-ink hover:bg-paper transition-colors">
           <Filter className="w-4 h-4 text-ink-mute" />
           Filter
         </button>
       </div>
 
       {/* Products Table */}
-      <div className="bg-white border border-ink/10 rounded-xl overflow-x-auto">
+      <div className="bg-plum-light border border-ink/10 rounded-xl overflow-x-auto">
         <table className="w-full text-left text-sm text-ink min-w-[800px]">
           <thead className="bg-paper border-b border-ink/10 text-ink-soft font-medium">
             <tr>
