@@ -46,16 +46,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-ink-soft rounded-lg hover:bg-lavender-pastel/30 hover:text-plum transition-colors"
-            >
-              <item.icon className="w-4 h-4" />
-              {item.name}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive = item.href === '/admin'
+              ? pathname === '/admin' || pathname === '/admin/'
+              : pathname.startsWith(item.href)
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-lavender-pastel/30 text-plum'
+                    : 'text-ink-soft hover:bg-lavender-pastel/30 hover:text-plum'
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.name}
+              </Link>
+            )
+          })}
         </nav>
 
         <div className="p-4 border-t border-ink/5">
