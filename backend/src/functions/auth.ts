@@ -7,6 +7,7 @@ import {
 } from '../services/auth'
 import { getUser, getAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import { generateCsrfToken, buildCsrfCookie } from '../services/csrf'
 
 // GET /api/auth/me  - hydrates the current session for the SPA
 export async function authMe(
@@ -90,6 +91,23 @@ export async function authLogout(
   )
 }
 
+// GET /api/auth/csrf - issues CSRF token cookie + JSON value
+export async function authCsrf(
+  request: HttpRequest,
+  _context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const token = generateCsrfToken()
+  return jsonResponse(
+    { csrfToken: token },
+    200,
+    { 'Set-Cookie': buildCsrfCookie(token) },
+    origin,
+  )
+}
+
 app.http('authMe', {
   methods: ['GET', 'OPTIONS'],
   route: 'api/auth/me',
@@ -102,4 +120,11 @@ app.http('authLogout', {
   route: 'api/auth/logout',
   authLevel: 'anonymous',
   handler: authLogout,
+})
+
+app.http('authCsrf', {
+  methods: ['GET', 'OPTIONS'],
+  route: 'api/auth/csrf',
+  authLevel: 'anonymous',
+  handler: authCsrf,
 })

@@ -71,7 +71,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
           className="btn-outline flex-1 sm:flex-none disabled:opacity-40"
         >
           <ShoppingBag className="w-4 h-4" aria-hidden />
-          <span className="hidden sm:inline">Add to bag</span>
+          <span className="hidden sm:inline">Add to cart</span>
           <span className="sm:hidden">Add</span>
         </button>
         <button
