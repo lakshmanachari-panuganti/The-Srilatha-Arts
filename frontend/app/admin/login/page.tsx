@@ -1,17 +1,22 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Lock } from 'lucide-react'
+import { ArrowRight, Lock, AlertCircle, Loader2 } from 'lucide-react'
+import { useAdminAuth } from '@/stores/adminAuth'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const router = useRouter()
+  const { login, isLoading, error, clearError } = useAdminAuth()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In Phase 2: Call POST /api/auth/admin/login
-    // For now, mock redirect to admin dashboard
-    window.location.href = '/admin'
+    const success = await login(username, password)
+    if (success) {
+      router.replace('/admin')
+    }
   }
 
   return (
@@ -35,19 +40,27 @@ export default function AdminLoginPage() {
             <h1 className="font-serif text-2xl">Secure Login</h1>
           </div>
 
+          {error && (
+            <div className="flex items-start gap-2 p-3 mb-5 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-ink-soft mb-1.5" htmlFor="email">
-                Admin Email
+              <label className="block text-sm font-medium text-ink-soft mb-1.5" htmlFor="username">
+                Username
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => { setUsername(e.target.value); clearError() }}
                 required
+                autoComplete="username"
                 className="w-full h-11 px-4 bg-plum-light border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
-                placeholder="studio@thesrilathaarts.com"
+                placeholder="admin"
               />
             </div>
             <div>
@@ -58,16 +71,30 @@ export default function AdminLoginPage() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); clearError() }}
                 required
+                autoComplete="current-password"
                 className="w-full h-11 px-4 bg-plum-light border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>
 
-            <button type="submit" className="btn-dark w-full justify-center h-12 mt-2">
-              Access Workspace
-              <ArrowRight className="w-4 h-4 ml-2" />
+            <button
+              type="submit"
+              disabled={isLoading || !username || !password}
+              className="btn-dark w-full justify-center h-12 mt-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Access Workspace
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
             </button>
           </form>
         </div>
