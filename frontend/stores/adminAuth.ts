@@ -40,12 +40,25 @@ export const useAdminAuth = create<AdminAuthState>()(
           set({ user: res.user, token: res.token, isLoading: false, error: null })
           return true
         } catch (err) {
-          const message =
-            err instanceof ApiError
-              ? err.body && typeof err.body === 'object' && 'error' in err.body
+          let message: string
+
+          if (err instanceof ApiError) {
+            // Backend responded with a structured error — surface its message
+            message =
+              err.body && typeof err.body === 'object' && 'error' in err.body
                 ? String((err.body as { error: string }).error)
                 : err.message
-              : 'Login failed. Please try again.'
+          } else if (
+            err instanceof TypeError &&
+            /fetch|network/i.test(err.message)
+          ) {
+            // CORS block, DNS failure, or backend unreachable all surface as TypeError
+            message =
+              'Unable to reach the server. This may be a network issue or a CORS configuration problem. Please check your connection and try again.'
+          } else {
+            message = 'An unexpected error occurred. Please try again.'
+          }
+
           set({ isLoading: false, error: message })
           return false
         }
