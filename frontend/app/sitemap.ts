@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next'
 import { CATEGORIES } from '@/data/categories'
-import { PRODUCTS } from '@/data/products'
+import { getAllProducts } from '@/data/products'
 
 // Required by Next.js 15 + `output: 'export'` - emit sitemap.xml at build time.
 export const dynamic = 'force-static'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://srilatha.art'
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const products = await getAllProducts()
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.srilatha.art'
   const now = new Date()
 
   const staticRoutes = [
@@ -38,7 +39,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
-  const productRoutes = PRODUCTS.map((p) => ({
+  const productRoutes = products.map((p) => ({
     url: `${base}/product/${p.id}`,
     lastModified: now,
     changeFrequency: 'weekly' as const,

@@ -3,8 +3,8 @@ import { ArrowRight } from 'lucide-react'
 import ProductCard from '@/components/shop/ProductCard'
 import { getFeaturedProducts } from '@/data/products'
 
-export default function FeaturedCreations() {
-  const products = getFeaturedProducts()
+export default async function FeaturedCreations() {
+  const products = await getFeaturedProducts()
   if (products.length === 0) return null
 
   return (

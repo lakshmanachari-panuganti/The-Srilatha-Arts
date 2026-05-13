@@ -1,0 +1,61 @@
+name: Deploy Backend · PRD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend-prd.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend-prd
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+  WORKING_DIRECTORY: backend
+  AZURE_FUNCTIONAPP_NAME: func-thesrilathaarts-prd
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy BackEnd - Prd
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          lfs: false
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Build
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          npm run build
+          npm prune --omit=dev
+
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.WORKING_DIRECTORY }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PRD }}
