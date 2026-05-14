@@ -1,5 +1,10 @@
 {
-  "routes": [],
+  "routes": [
+    {
+      "route": "/product/*",
+      "rewrite": "/product/__shell__/index.html"
+    }
+  ],
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [
