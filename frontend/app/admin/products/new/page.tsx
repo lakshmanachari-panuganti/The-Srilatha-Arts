@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, Plus, X, Loader2, AlertCircle } from 'lucide-react'
 import { CATEGORIES } from '@/data/categories'
 import { apiFetch, ApiError } from '@/lib/api'
+import { useAdminAuth } from '@/stores/adminAuth'
 
 interface ImageEntry {
   preview: string
@@ -16,12 +17,14 @@ interface ImageEntry {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api'
 
-async function uploadFile(file: File, category: string): Promise<string> {
+async function uploadFile(file: File, category: string, token: string | null): Promise<string> {
   const fd = new FormData()
   fd.append('file', file)
+  const headers: Record<string, string> = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
   const res = await fetch(
     `${API_BASE}/admin/upload?category=${encodeURIComponent(category || 'general')}`,
-    { method: 'POST', credentials: 'include', body: fd },
+    { method: 'POST', credentials: 'include', headers, body: fd },
   )
   const json = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(json.error || `Upload failed (${res.status})`)
@@ -30,12 +33,15 @@ async function uploadFile(file: File, category: string): Promise<string> {
 
 export default function AdminNewProductPage() {
   const router = useRouter()
+  const { token } = useAdminAuth()
   const [images, setImages] = useState<ImageEntry[]>([])
   const [category, setCategory] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const categoryRef = useRef(category)
   categoryRef.current = category
+  const tokenRef = useRef(token)
+  tokenRef.current = token
 
   const handleFilesSelected = async (files: FileList) => {
     const newEntries: ImageEntry[] = Array.from(files).map((f) => ({
@@ -51,7 +57,7 @@ export default function AdminNewProductPage() {
       Array.from(files).map(async (file, i) => {
         const idx = startIndex + i
         try {
-          const url = await uploadFile(file, categoryRef.current)
+          const url = await uploadFile(file, categoryRef.current, tokenRef.current)
           setImages((prev) =>
             prev.map((entry, j) =>
               j === idx ? { ...entry, url, uploading: false } : entry,
