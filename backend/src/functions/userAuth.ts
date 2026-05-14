@@ -10,9 +10,11 @@ import {
   comparePassword,
   buildAuthCookie,
   buildClearCookie,
+  extractToken,
+  extractTokenFromCookie,
+  verifyToken,
 } from '../services/auth'
 import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/tableStorage'
-import { extractToken, extractTokenFromCookie, verifyToken } from '../services/auth'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
