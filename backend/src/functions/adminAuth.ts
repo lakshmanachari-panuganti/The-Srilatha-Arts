@@ -7,10 +7,11 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import {
   generateToken,
   comparePassword,
+  hashPassword,
   buildAuthCookie,
   buildClearCookie,
 } from '../services/auth'
-import { getAdmin, updateAdmin } from '../services/tableStorage'
+import { getAdmin, updateAdmin, getAllAdmins, createAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 
 // ─── POST /api/auth/admin/login ──────────────────────────────
@@ -127,4 +128,67 @@ app.http('adminLogout', {
   route: 'api/auth/admin/logout',
   authLevel: 'anonymous',
   handler: adminLogout,
+})
+
+// ─── POST /api/auth/admin/setup ───────────────────────────────
+// One-time bootstrap: creates the first admin account.
+// Returns 403 if any admin already exists.
+
+export async function adminSetup(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  try {
+    // Refuse if admins already exist
+    const existing = await getAllAdmins()
+    if (existing.length > 0) {
+      return errorResponse('Setup already completed', 403, origin)
+    }
+
+    const body = (await request.json()) as {
+      username?: string
+      password?: string
+      name?: string
+      setupKey?: string
+    }
+
+    // Require a setup key to prevent accidental/malicious invocation
+    const expectedKey = process.env.ADMIN_SETUP_KEY
+    if (!expectedKey || body.setupKey !== expectedKey) {
+      return errorResponse('Invalid setup key', 403, origin)
+    }
+
+    if (!body.username || !body.password) {
+      return errorResponse('username and password are required', 400, origin)
+    }
+
+    const username = body.username.toLowerCase().trim()
+    const passwordHash = await hashPassword(body.password)
+
+    await createAdmin({
+      partitionKey: 'admin',
+      rowKey: username,
+      name: body.name ?? username,
+      role: 'superadmin',
+      passwordHash,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    })
+
+    context.log(`adminSetup: created first admin "${username}"`)
+    return jsonResponse({ ok: true, username }, 201, {}, origin)
+  } catch (err: unknown) {
+    context.error('adminSetup: unexpected error', err)
+    return errorResponse('Setup failed', 500, origin)
+  }
+}
+
+app.http('adminSetup', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/auth/admin/setup',
+  authLevel: 'anonymous',
+  handler: adminSetup,
 })
