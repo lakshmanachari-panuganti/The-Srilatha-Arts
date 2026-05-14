@@ -1,6 +1,13 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api'
 
+// Auth token injected by the admin/user auth stores at login.
+// Avoids prop-drilling a token into every apiFetch call site.
+let _authToken: string | null = null
+export function setApiAuthToken(token: string | null) {
+  _authToken = token
+}
+
 export interface ApiOptions extends Omit<RequestInit, 'body'> {
   body?: unknown
   query?: Record<string, string | number | boolean | undefined | null>
@@ -30,6 +37,7 @@ export async function apiFetch<T>(path: string, opts: ApiOptions = {}): Promise<
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(_authToken ? { Authorization: `Bearer ${_authToken}` } : {}),
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
