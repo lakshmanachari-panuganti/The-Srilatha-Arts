@@ -12,6 +12,7 @@ import {
   buildClearCookie,
 } from '../services/auth'
 import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/tableStorage'
+import { extractToken, extractTokenFromCookie, verifyToken } from '../services/auth'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
@@ -294,14 +295,19 @@ export async function googleAuth(
           googleId,
           picture,
           isActive: true,
+          profileComplete: false,
           createdAt: now,
           lastLogin: now,
         })
       }
     }
 
+    // Reload the user after create/update so we have the latest state
+    const finalUser = (await getUser(user?.rowKey || email)) ?? { rowKey: email, name, picture, phone: '' }
+    const needsProfileSetup = !finalUser.profileComplete
+
     const token = generateToken({
-      id: user?.rowKey || email,
+      id: finalUser.rowKey || email,
       role: 'customer',
     })
     const cookie = buildAuthCookie(token)
@@ -309,12 +315,14 @@ export async function googleAuth(
     return jsonResponse(
       {
         user: {
-          email: user?.rowKey || email,
-          name: user?.name || name,
-          picture: user?.picture || picture,
+          email: finalUser.rowKey || email,
+          name: finalUser.name || name,
+          picture: finalUser.picture || picture,
+          phone: finalUser.phone || undefined,
           role: 'customer',
         },
         token,
+        needsProfileSetup,
       },
       200,
       { 'Set-Cookie': cookie },
@@ -383,4 +391,87 @@ app.http('userLogout', {
   route: 'api/auth/logout',
   authLevel: 'anonymous',
   handler: userLogout,
+})
+
+// ─── PATCH /api/auth/profile ─────────────────────────────────
+// Lets a Google-authenticated user set their display name and phone after
+// first sign-in. Sets profileComplete = true so the modal is not shown again.
+
+export async function updateProfile(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const cookieHeader = request.headers.get('cookie')
+  const authHeader = request.headers.get('authorization')
+  const token =
+    extractTokenFromCookie(cookieHeader) || extractToken(authHeader || undefined)
+
+  if (!token) return errorResponse('Authentication required', 401, origin)
+
+  const payload = verifyToken(token)
+  if (!payload || payload.role !== 'customer') {
+    return errorResponse('Authentication required', 401, origin)
+  }
+
+  try {
+    const body = (await request.json()) as { name?: string; phone?: string }
+
+    if (!body.name || !body.name.trim()) {
+      return errorResponse('Full name is required', 400, origin)
+    }
+
+    const name = body.name.trim()
+    if (name.length > 100) return errorResponse('Name must be 100 characters or less', 400, origin)
+
+    const phone = body.phone?.trim() || ''
+    if (phone && phone.length > 20) return errorResponse('Phone must be 20 characters or less', 400, origin)
+
+    const user = await getUser(payload.id)
+    if (!user || user.isActive === false) {
+      return errorResponse('User not found', 404, origin)
+    }
+
+    await updateUser({
+      ...user,
+      name,
+      phone,
+      profileComplete: true,
+    })
+
+    return jsonResponse(
+      {
+        user: {
+          email: user.rowKey,
+          name,
+          phone: phone || undefined,
+          picture: user.picture || undefined,
+          role: 'customer',
+        },
+      },
+      200,
+      {},
+      origin,
+    )
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      context.error(`updateProfile: Azure Table error (HTTP ${azErr.statusCode})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('updateProfile: unexpected error', err)
+    return errorResponse('Failed to update profile. Please try again.', 500, origin)
+  }
+}
+
+app.http('updateProfile', {
+  methods: ['PATCH', 'OPTIONS'],
+  route: 'api/auth/profile',
+  authLevel: 'anonymous',
+  handler: updateProfile,
 })
