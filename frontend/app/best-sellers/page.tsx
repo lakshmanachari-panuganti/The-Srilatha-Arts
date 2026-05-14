@@ -1,15 +1,13 @@
 import type { Metadata } from 'next'
 import CategoryChips from '@/components/shop/CategoryChips'
-import ProductGrid from '@/components/shop/ProductGrid'
-import { getBestSellers } from '@/data/products'
+import ProductListClient from '@/components/shop/ProductListClient'
 
 export const metadata: Metadata = {
   title: 'Best Sellers',
   description: 'The pieces our community loves most.',
 }
 
-export default async function BestSellersPage() {
-  const products = await getBestSellers()
+export default function BestSellersPage() {
   return (
     <>
       <CategoryChips />
@@ -20,7 +18,7 @@ export default async function BestSellersPage() {
         </h1>
       </header>
       <div className="max-w-6xl mx-auto py-8 lg:py-14">
-        <ProductGrid products={products} />
+        <ProductListClient filter="best" />
       </div>
     </>
   )
