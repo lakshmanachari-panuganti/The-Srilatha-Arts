@@ -101,6 +101,13 @@ async function createNewOrder(
     if (!body.customerName) return errorResponse('Customer name is required', 400, origin)
     if (!body.customerPhone) return errorResponse('Phone number is required', 400, origin)
 
+    // Validate item quantities before any storage calls.
+    for (const item of body.items) {
+      if (!Number.isInteger(item.qty) || item.qty < 1 || item.qty > 100) {
+        return errorResponse('Each item quantity must be a whole number between 1 and 100', 400, origin)
+      }
+    }
+
     // Authoritative price lookup — never trust client-side prices (§13).
     let subtotal = 0
     const itemSnapshots: OrderItemSnapshot[] = []

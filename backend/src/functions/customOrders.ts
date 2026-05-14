@@ -21,6 +21,9 @@ import { enqueueNotification } from '../services/queue'
 import { randomUUID } from 'crypto'
 import type { CustomOrderStatus } from '../types'
 
+// Art forms supported by the business (used for validation).
+const VALID_ART_FORMS = ['resin', 'dot-mandala', 'lippan', 'pichwai', 'kolam', 'other']
+
 function getClientIp(request: HttpRequest): string {
   return (
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -91,6 +94,31 @@ async function submitCustomOrder(
     if (!body.artForm) return errorResponse('Art form is required', 400, origin)
     if (!body.description) return errorResponse('Description is required', 400, origin)
 
+    const customerName = body.customerName.trim()
+    const description = body.description.trim()
+
+    if (customerName.length > 100) {
+      return errorResponse('Name must be 100 characters or less', 400, origin)
+    }
+    if (description.length > 2000) {
+      return errorResponse('Description must be 2000 characters or less', 400, origin)
+    }
+    if (body.customerPhone && body.customerPhone.trim().length > 20) {
+      return errorResponse('Phone must be 20 characters or less', 400, origin)
+    }
+    if (body.customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.customerEmail.trim())) {
+      return errorResponse('Invalid email format', 400, origin)
+    }
+    if (!VALID_ART_FORMS.includes(body.artForm.toLowerCase())) {
+      return errorResponse(`Art form must be one of: ${VALID_ART_FORMS.join(', ')}`, 400, origin)
+    }
+    if (body.size && body.size.length > 50) {
+      return errorResponse('Size must be 50 characters or less', 400, origin)
+    }
+    if (body.palette && body.palette.length > 100) {
+      return errorResponse('Palette must be 100 characters or less', 400, origin)
+    }
+
     const inquiryId = randomUUID().slice(0, 12)
     const now = new Date().toISOString()
 
@@ -99,13 +127,13 @@ async function submitCustomOrder(
       rowKey: `NEW_${inquiryId}`,
       inquiryId,
       status: 'NEW',
-      customerName: body.customerName.trim(),
+      customerName,
       customerEmail: body.customerEmail?.toLowerCase().trim() || '',
       customerPhone: body.customerPhone?.trim() || '',
-      artForm: body.artForm,
+      artForm: body.artForm.toLowerCase(),
       size: body.size || '',
       palette: body.palette || '',
-      description: body.description.trim(),
+      description,
       referenceImages: body.referenceImages ? JSON.stringify(body.referenceImages) : '[]',
       budget: body.budget || '',
       createdAt: now,
@@ -126,8 +154,12 @@ async function submitCustomOrder(
           inquiryId,
         },
       })
-    } catch {
-      // Non-fatal — admin will see it in the dashboard
+    } catch (notifyErr) {
+      // Non-fatal — admin will see it in the dashboard, but log so we know the queue is unhealthy.
+      context.warn('submitCustomOrder: admin notification enqueue failed (non-fatal)', {
+        inquiryId,
+        error: String(notifyErr),
+      })
     }
 
     return jsonResponse(
@@ -160,8 +192,17 @@ async function adminListCustomOrders(
 
   try {
     const status = request.query.get('status') || undefined
-    const orders = await listCustomOrders(status)
-    return jsonResponse({ orders: orders.map(toApi) }, 200, {}, origin)
+    const page = Math.max(1, parseInt(request.query.get('page') || '1', 10) || 1)
+    const pageSize = Math.min(
+      Math.max(1, parseInt(request.query.get('pageSize') || '20', 10) || 20),
+      100,
+    )
+
+    let orders = await listCustomOrders(status)
+    const total = orders.length
+    orders = orders.slice((page - 1) * pageSize, page * pageSize)
+
+    return jsonResponse({ orders: orders.map(toApi), total, page, pageSize }, 200, {}, origin)
   } catch (err) {
     context.error('adminListCustomOrders failed', err)
     return errorResponse('Failed to load custom orders', 500, origin)
@@ -220,8 +261,13 @@ async function adminUpdateCustomOrder(
           new DefaultAzureCredential(),
         )
         await client.deleteEntity('inbox', existing.rowKey)
-      } catch {
-        // Non-fatal
+      } catch (deleteErr) {
+        // Non-fatal — the new row was already written. Log for manual cleanup.
+        context.warn('adminUpdateCustomOrder: old row deletion failed after status move (non-fatal, manual cleanup may be needed)', {
+          oldRowKey: existing.rowKey,
+          newRowKey: `${newStatus}_${inquiryId}`,
+          error: String(deleteErr),
+        })
       }
       return jsonResponse({ order: toApi(newRow) }, 200, {}, origin)
     }

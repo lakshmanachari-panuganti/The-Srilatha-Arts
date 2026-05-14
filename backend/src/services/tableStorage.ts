@@ -421,6 +421,16 @@ export async function getAllReviews(status?: string): Promise<Row[]> {
   return rows
 }
 
+/**
+ * Find an existing review by a specific user for a specific product.
+ * Used to prevent duplicate reviews (H-06).
+ * Scans a single partition (by productId) so this is bounded.
+ */
+export async function getReviewByUser(productId: string, userEmail: string): Promise<Row | null> {
+  const rows = await listAll('reviews', odata`PartitionKey eq ${productId} and userEmail eq ${userEmail}`)
+  return rows[0] ?? null
+}
+
 // ─── CUSTOM ORDERS ───────────────────────────────────────────
 
 export async function createCustomOrder(order: Row): Promise<void> {
