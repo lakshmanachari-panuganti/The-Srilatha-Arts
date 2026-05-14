@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { apiFetch, ApiError } from '@/lib/api'
+import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
 
 interface AdminUser {
   username: string
@@ -38,6 +38,7 @@ export const useAdminAuth = create<AdminAuthState>()(
             },
           )
           set({ user: res.user, token: res.token, isLoading: false, error: null })
+          setApiAuthToken(res.token)
           return true
         } catch (err) {
           let message: string
@@ -66,6 +67,7 @@ export const useAdminAuth = create<AdminAuthState>()(
 
       logout: () => {
         set({ user: null, token: null, error: null })
+        setApiAuthToken(null)
         // Clear the httpOnly tsa_token cookie server-side.
         // Fire-and-forget: the UI is already cleared; if this fails the cookie
         // expires naturally after 24 h and the next API call returns 401.
@@ -79,6 +81,10 @@ export const useAdminAuth = create<AdminAuthState>()(
     {
       name: 'tsa-admin-auth',
       partialize: (state) => ({ user: state.user, token: state.token }),
+      onRehydrateStorage: () => (state) => {
+        // Restore the token into apiFetch after a page refresh.
+        if (state?.token) setApiAuthToken(state.token)
+      },
     },
   ),
 )
