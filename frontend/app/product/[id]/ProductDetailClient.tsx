@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -47,13 +46,16 @@ function Feature({ icon: Icon, label }: { icon: React.ComponentType<{ className?
 }
 
 export default function ProductDetailClient() {
-  // Avoid hydration mismatch when the shell page is served for a different URL.
-  // The server HTML is always a loading skeleton; we only read the real id client-side.
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  // The shell HTML is served for ALL /product/* URLs via the SWA rewrite rule.
+  // useParams() would return '__shell__' (from the server-rendered router state),
+  // so we read window.location.pathname directly after mount to get the real ID.
+  const [id, setId] = useState<string | null>(null)
 
-  const params = useParams<{ id: string }>()
-  const id = mounted ? params.id : null
+  useEffect(() => {
+    // pathname: /product/lippan-34cb30c7/  →  parts[1] = 'lippan-34cb30c7'
+    const parts = window.location.pathname.split('/').filter(Boolean)
+    setId(parts[1] ?? null)
+  }, [])
 
   const { data: productData, isLoading: loadingProduct, isError } = useQuery({
     queryKey: ['product', id],
@@ -74,7 +76,7 @@ export default function ProductDetailClient() {
 
   const related = (relatedData?.products ?? []).filter((r) => r.id !== p?.id).slice(0, 4)
 
-  if (!mounted || loadingProduct) return <ProductSkeleton />
+  if (!id || loadingProduct) return <ProductSkeleton />
 
   if (isError || !p) {
     return (
