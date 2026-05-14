@@ -31,18 +31,37 @@ async function addressesHandler(request: HttpRequest, context: InvocationContext
       return jsonResponse({ addresses: addresses.map(toApi) }, 200, {}, origin)
     }
     if (request.method === 'POST') {
-      const body = (await request.json()) as Record<string, any>
-      if (!body.fullName || !body.phone || !body.line1 || !body.city || !body.state || !body.pincode) {
+      const body = (await request.json()) as Record<string, unknown>
+
+      const fullName = ((body.fullName || '') as string).trim()
+      const phone    = ((body.phone    || '') as string).trim()
+      const line1    = ((body.line1    || '') as string).trim()
+      const line2    = ((body.line2    || '') as string).trim()
+      const city     = ((body.city     || '') as string).trim()
+      const state    = ((body.state    || '') as string).trim()
+      const pincode  = ((body.pincode  || '') as string).trim()
+      const label    = ((body.label    || 'Home') as string).trim()
+
+      if (!fullName || !phone || !line1 || !city || !state || !pincode) {
         return errorResponse('All address fields are required', 400, origin)
       }
+      if (fullName.length > 100) return errorResponse('Full name must be 100 characters or less', 400, origin)
+      if (phone.length > 20)     return errorResponse('Phone must be 20 characters or less', 400, origin)
+      if (line1.length > 200)    return errorResponse('Address line 1 must be 200 characters or less', 400, origin)
+      if (line2.length > 200)    return errorResponse('Address line 2 must be 200 characters or less', 400, origin)
+      if (city.length > 100)     return errorResponse('City must be 100 characters or less', 400, origin)
+      if (state.length > 100)    return errorResponse('State must be 100 characters or less', 400, origin)
+      if (label.length > 50)     return errorResponse('Label must be 50 characters or less', 400, origin)
+      if (!/^\d{6}$/.test(pincode)) return errorResponse('Pincode must be exactly 6 digits', 400, origin)
+
       const addressId = randomUUID().slice(0, 12)
       const now = new Date().toISOString()
       if (body.isDefault) await clearDefaultAddress(user.userId)
       const row: Row = {
-        partitionKey: user.userId, rowKey: addressId, label: body.label || 'Home',
-        fullName: body.fullName, phone: body.phone, line1: body.line1,
-        line2: body.line2 || '', city: body.city, state: body.state,
-        pincode: body.pincode, isDefault: body.isDefault === true,
+        partitionKey: user.userId, rowKey: addressId, label,
+        fullName, phone, line1,
+        line2, city, state,
+        pincode, isDefault: body.isDefault === true,
         createdAt: now, updatedAt: now,
       }
       await upsertAddress(row)

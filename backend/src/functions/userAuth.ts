@@ -9,12 +9,24 @@ import {
   hashPassword,
   comparePassword,
   buildAuthCookie,
+  buildClearCookie,
 } from '../services/auth'
 import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import { checkAndIncrement } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+// No default fallback — validated at call time so Google sign-in can be disabled
+// simply by not setting this env var rather than causing a startup failure.
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+
+function getClientIp(request: HttpRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  )
+}
 
 // ─── POST /api/auth/register ─────────────────────────────────
 
@@ -24,6 +36,13 @@ export async function userRegister(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  // Rate limit: 5 registration attempts per hour per IP
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`register:${ip}`, 5, 3_600_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many registration attempts. Please try again later.', 429, origin)
+  }
 
   try {
     const body = (await request.json()) as {
@@ -41,8 +60,17 @@ export async function userRegister(
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return errorResponse('Invalid email format', 400, origin)
     }
+
+    const name = body.name.trim()
+    if (name.length > 100) return errorResponse('Name must be 100 characters or less', 400, origin)
     if (body.password.length < 8) {
       return errorResponse('Password must be at least 8 characters', 400, origin)
+    }
+    if (body.password.length > 128) {
+      return errorResponse('Password must be 128 characters or less', 400, origin)
+    }
+    if (body.phone && body.phone.trim().length > 20) {
+      return errorResponse('Phone must be 20 characters or less', 400, origin)
     }
 
     const existing = await getUser(email)
@@ -56,7 +84,7 @@ export async function userRegister(
     await createUser({
       partitionKey: 'customer',
       rowKey: email,
-      name: body.name.trim(),
+      name,
       phone: body.phone?.trim() || '',
       passwordHash,
       authProvider: 'local',
@@ -72,7 +100,7 @@ export async function userRegister(
 
     return jsonResponse(
       {
-        user: { email, name: body.name.trim(), role: 'customer' },
+        user: { email, name, role: 'customer' },
         token, // V1 compat — drop in V2
       },
       201,
@@ -109,6 +137,14 @@ export async function userLogin(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  // Rate limit: 10 attempts per 15 minutes per IP.
+  // Applied to all login attempts (not just failures) to prevent credential-stuffing.
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`login:${ip}`, 10, 15 * 60_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many login attempts. Please try again later.', 429, origin)
+  }
 
   try {
     const body = (await request.json()) as {
@@ -191,6 +227,18 @@ export async function googleAuth(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  // Rate limit: 10 attempts per 15 minutes per IP.
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`google_auth:${ip}`, 10, 15 * 60_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many attempts. Please try again later.', 429, origin)
+  }
+
+  if (!GOOGLE_CLIENT_ID) {
+    context.error('googleAuth: GOOGLE_CLIENT_ID is not configured — set env var to enable Google sign-in')
+    return errorResponse('Google sign-in is not available. Please use email/password login.', 503, origin)
+  }
 
   try {
     const body = (await request.json()) as { credential?: string }
@@ -315,4 +363,24 @@ app.http('googleAuth', {
   route: 'api/auth/google',
   authLevel: 'anonymous',
   handler: googleAuth,
+})
+
+// ─── POST /api/auth/logout ───────────────────────────────────
+// Clears the httpOnly tsa_token cookie. No auth required — clearing an
+// already-expired or missing cookie is harmless.
+
+export async function userLogout(
+  request: HttpRequest,
+  _context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  return jsonResponse({ ok: true }, 200, { 'Set-Cookie': buildClearCookie() }, origin)
+}
+
+app.http('userLogout', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/auth/logout',
+  authLevel: 'anonymous',
+  handler: userLogout,
 })

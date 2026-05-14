@@ -8,6 +8,7 @@ import {
   generateToken,
   comparePassword,
   buildAuthCookie,
+  buildClearCookie,
 } from '../services/auth'
 import { getAdmin, updateAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
@@ -107,4 +108,23 @@ app.http('adminLogin', {
   route: 'api/auth/admin/login',
   authLevel: 'anonymous',
   handler: adminLogin,
+})
+
+// ─── POST /api/auth/admin/logout ─────────────────────────────
+// Clears the httpOnly tsa_token cookie. No body required.
+
+export async function adminLogout(
+  request: HttpRequest,
+  _context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  return jsonResponse({ ok: true }, 200, { 'Set-Cookie': buildClearCookie() }, origin)
+}
+
+app.http('adminLogout', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/auth/admin/logout',
+  authLevel: 'anonymous',
+  handler: adminLogout,
 })

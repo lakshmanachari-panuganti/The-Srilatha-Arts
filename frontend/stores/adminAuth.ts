@@ -66,9 +66,12 @@ export const useAdminAuth = create<AdminAuthState>()(
 
       logout: () => {
         set({ user: null, token: null, error: null })
-        // Also clear the httpOnly cookie by calling a logout endpoint if available,
-        // but since we store the token client-side too, clearing state is sufficient
-        // for the frontend guard.
+        // Clear the httpOnly tsa_token cookie server-side.
+        // Fire-and-forget: the UI is already cleared; if this fails the cookie
+        // expires naturally after 24 h and the next API call returns 401.
+        apiFetch('/auth/admin/logout', { method: 'POST' }).catch(() => {
+          // Intentionally ignored — local state is authoritative for the guard.
+        })
       },
 
       clearError: () => set({ error: null }),
