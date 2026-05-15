@@ -43,11 +43,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          # NPM cache intentionally disabled: package-lock.json does not yet exist
-          # in the repo, so setup-node's cache step errors with
-          # "Some specified paths were not resolved, unable to cache dependencies."
-          # Once `npm install` has run once and a lockfile is committed,
-          # re-enable with: `cache: npm` + `cache-dependency-path: frontend/package-lock.json`.
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -67,7 +64,8 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ env.API_BASE_URL }}
           NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID: 328603516609-qounbpbak7g5ijnit634rikk5btul4ic.apps.googleusercontent.com
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          NODE_ENV: production
         run: npm run build
 
       - name: Deploy to Azure Static Web Apps
