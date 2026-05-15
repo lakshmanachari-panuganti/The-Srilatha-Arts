@@ -322,7 +322,7 @@ export default function LoginClient() {
                     autoComplete="name"
                     value={su.name}
                     onChange={(e) => setSu((s) => ({ ...s, name: e.target.value }))}
-                    placeholder="Priya Sharma"
+                    placeholder="Albert Einstein"
                     className={inputCls}
                   />
                 </div>
