@@ -68,14 +68,32 @@ export default function MobileDrawer() {
                   The <span className="gold-text">Srilatha</span> Arts
                 </span>
               </Link>
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Close menu"
-                className="min-h-11 min-w-11 flex items-center justify-center
-                           text-ivory-mute hover:text-ivory transition-colors duration-500"
-              >
-                <X className="w-5 h-5" aria-hidden />
-              </button>
+              <div className="flex items-center gap-2">
+                {authUser ? (
+                  <button
+                    onClick={() => { logout(); setOpen(false) }}
+                    className="text-xs text-ivory-mute hover:text-lavender-pastel transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="text-xs text-ivory-mute hover:text-lavender-pastel transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
+                  >
+                    Sign in
+                  </Link>
+                )}
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Close menu"
+                  className="min-h-11 min-w-11 flex items-center justify-center
+                             text-ivory-mute hover:text-ivory transition-colors duration-500"
+                >
+                  <X className="w-5 h-5" aria-hidden />
+                </button>
+              </div>
             </div>
 
             <nav className="px-5 py-8">
