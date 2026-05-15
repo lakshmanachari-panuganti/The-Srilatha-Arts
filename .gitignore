@@ -46,3 +46,6 @@ frontend/.env
 *.tsbuildinfo
 next-env.d.ts
 frontend/next-env.d.ts
+
+test-results/
+playwright-report/

@@ -1,0 +1,29 @@
+{
+  "name": "the-srilatha-arts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lakshmanachari-panuganti/The-Srilatha-Arts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lakshmanachari-panuganti/The-Srilatha-Arts/issues"
+  },
+  "homepage": "https://github.com/lakshmanachari-panuganti/The-Srilatha-Arts#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}
