@@ -41,7 +41,7 @@ const columns = [
 export default function Footer() {
   return (
     <footer className="relative z-10 mt-20"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(43,30,52,0.6)' }}
+            style={{ borderTop: '1px solid rgba(167,139,250,0.35)', background: 'linear-gradient(180deg, rgba(109,40,217,0.18) 0%, rgba(76,29,149,0.35) 100%), #EDE9FE' }}
     >
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}

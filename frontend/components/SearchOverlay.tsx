@@ -60,7 +60,7 @@ export default function SearchOverlay() {
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-[80]"
           style={{
-            background: 'rgba(43,30,52,0.97)',
+            background: 'rgba(76,29,149,0.97)',
             backdropFilter: 'blur(20px)',
           }}
           role="dialog"

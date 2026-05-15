@@ -9,41 +9,41 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ── Surfaces (Bright & Airy) ────────────────────────────
-        plum: '#F8F4FF',                 // lavender white - primary bg (was dark plum)
-        'plum-light': '#EFE7FF',         // soft pastel lavender
-        'plum-warm': '#E9D5FF',          // lavender mist
-        lavender: '#C8A2F0',             // orchid lavender - section accent
-        'lavender-soft': '#D8B4F8',      // elegant lavender
-        'lavender-pastel': '#FFB7D5',    // blush pink accent
-        'lavender-light': '#FFFFFF',     // pure white for bright cards
-        'lavender-faint': '#F8F4FF',     // warm soft white
-        // ── Text (Elegant Plum) ──────────────────────────────────
-        ivory: '#4B3F72',                // elegant plum - primary text (was white)
-        'ivory-soft': '#6B5B95',         // muted lavender text
-        'ivory-mute': '#8A7BAb',         // lighter muted text
-        // ── Glass & Overlay (Light Mode) ─────────────────────────
-        'glass-surface': 'rgba(255,255,255,0.60)',
-        'glass-border': 'rgba(255,255,255,0.80)',
-        'glass-hover': 'rgba(255,255,255,0.90)',
-        'overlay-soft': 'rgba(248,244,255,0.60)',
-        'overlay-deep': 'rgba(75,63,114,0.30)',
-        // ── Legacy aliases (mapped to new light theme) ───────────
-        cream: '#FFFFFF',
-        'cream-deep': '#EFE7FF',
-        paper: 'rgba(255,255,255,0.60)',
-        ink: '#4B3F72',                  // primary text
-        'ink-soft': '#6B5B95',           // secondary text
-        'ink-mute': '#8A7BAb',           // tertiary text
-        'primary-dark': '#C8A2F0',
-        'primary-burnt': '#D8B4F8',
-        terracotta: '#FFD6BA',           // soft peach
-        'terracotta-deep': '#FFB7D5',    // blush pink
-        gold: '#D4AF37',                 // antique gold
-        'gold-light': '#F3D27A',         // champagne gold
+        // ── Surfaces (Vibrant Lavender) ──────────────────────────
+        plum: '#EDE9FE',                 // violet-100 — visible lavender page bg
+        'plum-light': '#DDD6FE',         // violet-200 — richer lavender
+        'plum-warm': '#C4B5FD',          // violet-300 — deep lavender mist
+        lavender: '#7C3AED',             // violet-600 — vivid primary brand
+        'lavender-soft': '#A78BFA',      // violet-400 — vibrant medium
+        'lavender-pastel': '#E879F9',    // fuchsia-400 — vivid magenta accent
+        'lavender-light': '#F5F3FF',     // violet-50  — lightest surface
+        'lavender-faint': '#EDE9FE',     // violet-100 — faint lavender
+        // ── Text (Deep Purple) ───────────────────────────────────
+        ivory: '#2E1065',                // violet-950 — deep purple primary text
+        'ivory-soft': '#4C1D95',         // violet-900 — secondary text
+        'ivory-mute': '#6D28D9',         // violet-700 — muted text
+        // ── Glass & Overlay (Lavender Mode) ──────────────────────
+        'glass-surface': 'rgba(237,233,254,0.70)',
+        'glass-border': 'rgba(167,139,250,0.40)',
+        'glass-hover': 'rgba(221,214,254,0.90)',
+        'overlay-soft': 'rgba(124,58,237,0.08)',
+        'overlay-deep': 'rgba(46,16,101,0.35)',
+        // ── Legacy aliases ────────────────────────────────────────
+        cream: '#F5F3FF',
+        'cream-deep': '#DDD6FE',
+        paper: 'rgba(237,233,254,0.70)',
+        ink: '#2E1065',
+        'ink-soft': '#4C1D95',
+        'ink-mute': '#6D28D9',
+        'primary-dark': '#7C3AED',
+        'primary-burnt': '#A78BFA',
+        terracotta: '#FDE68A',           // amber-200 — warm gold accent
+        'terracotta-deep': '#F59E0B',    // amber-500 — vivid gold
+        gold: '#D4AF37',
+        'gold-light': '#F3D27A',
         'gold-deep': '#B8962E',
-        clay: '#FFD6BA',
-        sage: '#A7F3D0',                 // muted mint
+        clay: '#FDE68A',
+        sage: '#A7F3D0',
       },
       fontFamily: {
         serif: ['var(--font-playfair)', 'Playfair Display', 'serif'],

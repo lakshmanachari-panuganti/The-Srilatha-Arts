@@ -75,7 +75,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               </span>
             )}
             {pct !== null && (
-              <span className="sticker" style={{ background: 'linear-gradient(135deg, #E9E4FF, #C8B6FF)', color: '#2B1E34' }}>
+              <span className="sticker" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7, #E879F9)', color: '#ffffff' }}>
                 −{pct}%
               </span>
             )}
@@ -97,7 +97,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        hover:text-lavender-pastel active:scale-90 transition-all duration-500"
             style={{
               borderRadius: '24px',
-              background: 'rgba(43,30,52,0.7)',
+              background: 'rgba(76,29,149,0.75)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
