@@ -90,7 +90,7 @@ export default function Footer() {
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
               <Image src="/images/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
               <span className="font-serif text-xl text-ivory">
-                The <span className="gold-text">Srilatha</span> Arts
+                <span className="gold-text">Srilatha Art</span>
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">

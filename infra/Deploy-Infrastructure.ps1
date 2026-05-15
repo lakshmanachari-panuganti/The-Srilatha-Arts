@@ -202,8 +202,7 @@ Write-Step "Resource Group: $($envCfg.ResourceGroup)"
 $rg = Get-AzResourceGroup -Name $envCfg.ResourceGroup -ErrorAction SilentlyContinue
 if ($rg) {
     Write-Success "Resource Group already exists : $($envCfg.ResourceGroup)"
-}
-else {
+} else {
     Write-Info "Creating Resource Group: $($envCfg.ResourceGroup)"
     New-AzResourceGroup -Name $envCfg.ResourceGroup -Location $envCfg.Location -Tag @{
         project   = 'thesrilathaarts'
@@ -223,8 +222,7 @@ $storageAccount = Get-AzStorageAccount `
 
 if ($storageAccount) {
     Write-Success "Storage Account exists : $($envCfg.StorageAccount)"
-}
-else {
+} else {
     Write-Info "Creating Storage Account: $($envCfg.StorageAccount)"
     $storageAccount = New-AzStorageAccount `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -248,8 +246,7 @@ $appInsights = Get-AzApplicationInsights `
 
 if ($appInsights) {
     Write-Success "Application Insights exists : $($envCfg.AppInsights)"
-}
-else {
+} else {
     Write-Info "Creating Application Insights: $($envCfg.AppInsights)"
     $appInsights = New-AzApplicationInsights `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -270,8 +267,7 @@ $functionApp = Get-AzFunctionApp `
 
 if ($functionApp) {
     Write-Success "Function App exists : $($envCfg.FunctionApp)"
-}
-else {
+} else {
     Write-Info "Creating Function App: $($envCfg.FunctionApp)"
     $functionApp = New-AzFunctionApp `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -296,8 +292,7 @@ $keyVault = Get-AzKeyVault `
 
 if ($keyVault) {
     Write-Success "Key Vault exists : $($envCfg.KeyVault)"
-}
-else {
+} else {
     Write-Info "Creating Key Vault: $($envCfg.KeyVault)"
     $keyVault = New-AzKeyVault `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -407,8 +402,7 @@ if ($storageAccount.AllowBlobPublicAccess -eq $false) {
         -Name $envCfg.StorageAccount `
         -AllowBlobPublicAccess $true | Out-Null
     Write-Success "Public blob access enabled"
-}
-else {
+} else {
     Write-Success "Public blob access already enabled"
 }
 
