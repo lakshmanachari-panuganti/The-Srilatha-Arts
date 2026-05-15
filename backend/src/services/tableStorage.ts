@@ -60,8 +60,9 @@ export async function getProduct(category: string, productId: string): Promise<R
 }
 
 export async function getProductById(productId: string): Promise<Row | null> {
-  // Product IDs are `<category>-<random>`; the category prefix lets us hit a single partition.
-  const category = productId.split('-')[0]
+  // ID format: <category>-<8hexchars> e.g. "dot-mandala-f55f2641"
+  // Strip last 9 chars (hyphen + 8 hex chars) to get the partition key (category).
+  const category = productId.slice(0, -9)
   return getProduct(category, productId)
 }
 
