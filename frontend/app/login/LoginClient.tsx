@@ -201,7 +201,7 @@ export default function LoginClient() {
             Welcome to
           </p>
           <h1 className="font-[var(--font-playfair)] text-3xl font-semibold text-[#2c1810]">
-            The Srilatha Arts
+            Srilatha Art
           </h1>
           <p className="mt-2 text-sm text-[#8b7355] font-[var(--font-montserrat)]">
             Sign in to explore handcrafted art

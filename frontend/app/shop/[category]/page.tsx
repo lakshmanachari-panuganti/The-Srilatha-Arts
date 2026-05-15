@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cat = CATEGORY_BY_SLUG[category]
   if (!cat) return { title: 'Not found' }
   return {
-    title: `${cat.title} · The Srilatha Arts`,
+    title: `${cat.title} · Srilatha Art`,
     description: cat.tagline,
   }
 }
