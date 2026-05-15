@@ -91,7 +91,7 @@ async function adminUpdateProduct(
   if (!id) return errorResponse('Missing product id', 400, origin)
 
   try {
-    const category = id.split('-')[0]
+    const category = id.slice(0, -9)   // e.g. 'dot-mandala-f55f2641' → 'dot-mandala'
     const existing = await getProduct(category, id)
     if (!existing) return errorResponse('Product not found', 404, origin)
 
@@ -147,7 +147,7 @@ async function adminDeleteProduct(
   if (!id) return errorResponse('Missing product id', 400, origin)
 
   try {
-    const category = id.split('-')[0]
+    const category = id.slice(0, -9)   // e.g. 'dot-mandala-f55f2641' → 'dot-mandala'
     await deleteProduct(category, id)
 
     await appendAuditLog({
