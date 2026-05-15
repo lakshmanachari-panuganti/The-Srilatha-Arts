@@ -67,6 +67,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ env.API_BASE_URL }}
           NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: 328603516609-qounbpbak7g5ijnit634rikk5btul4ic.apps.googleusercontent.com
         run: npm run build
 
       - name: Deploy to Azure Static Web Apps

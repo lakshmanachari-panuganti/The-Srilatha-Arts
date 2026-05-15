@@ -21,7 +21,7 @@ env:
   # custom domain (api.srilatha.art / www.srilatha.art) is wired up.
   # Until then this workflow will not run because rg-thesrilathaarts-prd / its SWA
   # do not exist; the AZURE_STATIC_WEB_APPS_API_TOKEN_PRD secret will be missing.
-  API_BASE_URL: https://api.srilatha.art/api
+  API_BASE_URL: https://func-thesrilathaarts-prd.azurewebsites.net/api
   SITE_URL: https://www.srilatha.art
 
 jobs:

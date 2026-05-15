@@ -1,16 +1,13 @@
 import type { Metadata } from 'next'
 import CategoryChips from '@/components/shop/CategoryChips'
-import ProductGrid from '@/components/shop/ProductGrid'
-import { getAllProducts } from '@/data/products'
+import ProductListClient from '@/components/shop/ProductListClient'
 
 export const metadata: Metadata = {
   title: 'Sale',
   description: 'Discounted pieces - handcrafted, still.',
 }
 
-export default async function SalePage() {
-  const allProducts = await getAllProducts()
-  const products = allProducts.filter((p) => p.isOnSale)
+export default function SalePage() {
   return (
     <>
       <CategoryChips />
@@ -28,7 +25,7 @@ export default async function SalePage() {
         </p>
       </header>
       <div className="max-w-6xl mx-auto py-8 lg:py-14">
-        <ProductGrid products={products} />
+        <ProductListClient filter="sale" />
       </div>
     </>
   )

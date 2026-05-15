@@ -19,6 +19,7 @@ import {
   getReview,
   updateReview,
   getAllReviews,
+  getReviewByUser,
   getOrdersByUser,
   Row,
 } from '../services/tableStorage'
@@ -110,6 +111,15 @@ async function submitReview(
       return errorResponse('Rating must be 1-5', 400, origin)
     }
     if (!body.body?.trim()) return errorResponse('Review body is required', 400, origin)
+    if (body.body.trim().length > 2000) {
+      return errorResponse('Review must be 2000 characters or less', 400, origin)
+    }
+    if (body.title && body.title.length > 200) {
+      return errorResponse('Review title must be 200 characters or less', 400, origin)
+    }
+    if (body.photos && body.photos.length > 10) {
+      return errorResponse('Maximum 10 photos allowed per review', 400, origin)
+    }
 
     // Verify user has a DELIVERED order containing this product
     const orders = await getOrdersByUser(user.userId)
@@ -126,6 +136,12 @@ async function submitReview(
         403,
         origin,
       )
+    }
+
+    // Prevent duplicate reviews from the same user for the same product (H-06).
+    const existingReview = await getReviewByUser(body.productId, user.userId)
+    if (existingReview) {
+      return errorResponse('You have already submitted a review for this product', 409, origin)
     }
 
     const reviewId = randomUUID().slice(0, 12)
@@ -166,8 +182,17 @@ async function adminReviews(
 
   try {
     const status = request.query.get('status') || undefined
-    const reviews = await getAllReviews(status)
-    return jsonResponse({ reviews: reviews.map(toApi) }, 200, {}, origin)
+    const page = Math.max(1, parseInt(request.query.get('page') || '1', 10) || 1)
+    const pageSize = Math.min(
+      Math.max(1, parseInt(request.query.get('pageSize') || '50', 10) || 50),
+      100,
+    )
+
+    let reviews = await getAllReviews(status)
+    const total = reviews.length
+    reviews = reviews.slice((page - 1) * pageSize, page * pageSize)
+
+    return jsonResponse({ reviews: reviews.map(toApi), total, page, pageSize }, 200, {}, origin)
   } catch (err) {
     context.error('adminReviews failed', err)
     return errorResponse('Failed to load reviews', 500, origin)

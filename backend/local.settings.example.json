@@ -10,6 +10,7 @@
     "BLOB_BASE_URL": "https://stthesrilathaartsdev.blob.core.windows.net",
     "JWT_SECRET": "change-this-to-a-long-random-secret-at-least-64-chars",
     "CSRF_SIGNING_KEY": "change-this-to-a-long-random-secret-at-least-64-chars",
+    "ADMIN_SETUP_KEY": "change-this-to-a-random-one-time-key-delete-after-use",
     "CORS_ORIGIN": "http://localhost:3000",
     "COOKIE_DOMAIN": "",
     "NOTIFICATIONS_QUEUE_NAME": "notifications-out",

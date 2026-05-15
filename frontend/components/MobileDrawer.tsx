@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { X, MessageCircle, Instagram } from 'lucide-react'
 import { useUI } from '@/stores/ui'
+import { useUserAuth } from '@/stores/userAuth'
 import { CATEGORIES } from '@/data/categories'
 
 const primaryLinks = [
@@ -17,6 +18,8 @@ const primaryLinks = [
 export default function MobileDrawer() {
   const open = useUI((s) => s.drawerOpen)
   const setOpen = useUI((s) => s.setDrawerOpen)
+  const authUser = useUserAuth((s) => s.user)
+  const logout = useUserAuth((s) => s.logout)
 
   return (
     <AnimatePresence>
@@ -65,14 +68,32 @@ export default function MobileDrawer() {
                   The <span className="gold-text">Srilatha</span> Arts
                 </span>
               </Link>
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Close menu"
-                className="min-h-11 min-w-11 flex items-center justify-center
-                           text-ivory-mute hover:text-ivory transition-colors duration-500"
-              >
-                <X className="w-5 h-5" aria-hidden />
-              </button>
+              <div className="flex items-center gap-2">
+                {authUser ? (
+                  <button
+                    onClick={() => { logout(); setOpen(false) }}
+                    className="text-xs text-ivory-mute hover:text-lavender-pastel transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="text-xs text-ivory-mute hover:text-lavender-pastel transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
+                  >
+                    Sign in
+                  </Link>
+                )}
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Close menu"
+                  className="min-h-11 min-w-11 flex items-center justify-center
+                             text-ivory-mute hover:text-ivory transition-colors duration-500"
+                >
+                  <X className="w-5 h-5" aria-hidden />
+                </button>
+              </div>
             </div>
 
             <nav className="px-5 py-8">
@@ -107,24 +128,57 @@ export default function MobileDrawer() {
 
               <p className="eyebrow mb-3">Account</p>
               <ul className="space-y-1">
-                <li>
-                  <Link
-                    href="/account"
-                    onClick={() => setOpen(false)}
-                    className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
-                  >
-                    Sign in
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/account/wishlist"
-                    onClick={() => setOpen(false)}
-                    className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
-                  >
-                    Wishlist
-                  </Link>
-                </li>
+                {authUser ? (
+                  <>
+                    <li>
+                      <Link
+                        href="/account"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        My Account ({authUser.name.split(' ')[0]})
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/account/wishlist"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        Wishlist
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => { logout(); setOpen(false) }}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500 text-left w-full"
+                      >
+                        Sign out
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li>
+                      <Link
+                        href="/login"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        Sign in
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/account/wishlist"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        Wishlist
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             </nav>
 

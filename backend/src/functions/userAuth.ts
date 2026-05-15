@@ -9,12 +9,27 @@ import {
   hashPassword,
   comparePassword,
   buildAuthCookie,
+  buildClearCookie,
+  extractToken,
+  extractTokenFromCookie,
+  verifyToken,
 } from '../services/auth'
 import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import { checkAndIncrement } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+// No default fallback — validated at call time so Google sign-in can be disabled
+// simply by not setting this env var rather than causing a startup failure.
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+
+function getClientIp(request: HttpRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  )
+}
 
 // ─── POST /api/auth/register ─────────────────────────────────
 
@@ -24,6 +39,13 @@ export async function userRegister(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  // Rate limit: 5 registration attempts per hour per IP
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`register:${ip}`, 5, 3_600_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many registration attempts. Please try again later.', 429, origin)
+  }
 
   try {
     const body = (await request.json()) as {
@@ -41,8 +63,17 @@ export async function userRegister(
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return errorResponse('Invalid email format', 400, origin)
     }
+
+    const name = body.name.trim()
+    if (name.length > 100) return errorResponse('Name must be 100 characters or less', 400, origin)
     if (body.password.length < 8) {
       return errorResponse('Password must be at least 8 characters', 400, origin)
+    }
+    if (body.password.length > 128) {
+      return errorResponse('Password must be 128 characters or less', 400, origin)
+    }
+    if (body.phone && body.phone.trim().length > 20) {
+      return errorResponse('Phone must be 20 characters or less', 400, origin)
     }
 
     const existing = await getUser(email)
@@ -56,7 +87,7 @@ export async function userRegister(
     await createUser({
       partitionKey: 'customer',
       rowKey: email,
-      name: body.name.trim(),
+      name,
       phone: body.phone?.trim() || '',
       passwordHash,
       authProvider: 'local',
@@ -72,16 +103,32 @@ export async function userRegister(
 
     return jsonResponse(
       {
-        user: { email, name: body.name.trim(), role: 'customer' },
+        user: { email, name, role: 'customer' },
         token, // V1 compat — drop in V2
       },
       201,
       { 'Set-Cookie': cookie },
       origin,
     )
-  } catch (err) {
-    context.error('userRegister failed', err)
-    return errorResponse('Registration failed', 500, origin)
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      if (azErr.statusCode === 403) {
+        context.error('userRegister: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+      }
+      if (azErr.code === 'TableNotFound') {
+        context.error('userRegister: "users" table does not exist in storage account', err)
+        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+      }
+      context.error(`userRegister: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('userRegister: unexpected error', err)
+    return errorResponse('An unexpected error occurred. Please try again later.', 500, origin)
   }
 }
 
@@ -93,6 +140,14 @@ export async function userLogin(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  // Rate limit: 10 attempts per 15 minutes per IP.
+  // Applied to all login attempts (not just failures) to prevent credential-stuffing.
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`login:${ip}`, 10, 15 * 60_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many login attempts. Please try again later.', 429, origin)
+  }
 
   try {
     const body = (await request.json()) as {
@@ -145,9 +200,25 @@ export async function userLogin(
       { 'Set-Cookie': cookie },
       origin,
     )
-  } catch (err) {
-    context.error('userLogin failed', err)
-    return errorResponse('Login failed', 500, origin)
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      if (azErr.statusCode === 403) {
+        context.error('userLogin: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+      }
+      if (azErr.code === 'TableNotFound') {
+        context.error('userLogin: "users" table does not exist in storage account', err)
+        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+      }
+      context.error(`userLogin: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('userLogin: unexpected error', err)
+    return errorResponse('An unexpected error occurred. Please try again later.', 500, origin)
   }
 }
 
@@ -159,6 +230,18 @@ export async function googleAuth(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  // Rate limit: 10 attempts per 15 minutes per IP.
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`google_auth:${ip}`, 10, 15 * 60_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many attempts. Please try again later.', 429, origin)
+  }
+
+  if (!GOOGLE_CLIENT_ID) {
+    context.error('googleAuth: GOOGLE_CLIENT_ID is not configured — set env var to enable Google sign-in')
+    return errorResponse('Google sign-in is not available. Please use email/password login.', 503, origin)
+  }
 
   try {
     const body = (await request.json()) as { credential?: string }
@@ -214,14 +297,19 @@ export async function googleAuth(
           googleId,
           picture,
           isActive: true,
+          profileComplete: false,
           createdAt: now,
           lastLogin: now,
         })
       }
     }
 
+    // Reload the user after create/update so we have the latest state
+    const finalUser = (await getUser(user?.rowKey || email)) ?? { rowKey: email, name, picture, phone: '' }
+    const needsProfileSetup = !finalUser.profileComplete
+
     const token = generateToken({
-      id: user?.rowKey || email,
+      id: finalUser.rowKey || email,
       role: 'customer',
     })
     const cookie = buildAuthCookie(token)
@@ -229,20 +317,38 @@ export async function googleAuth(
     return jsonResponse(
       {
         user: {
-          email: user?.rowKey || email,
-          name: user?.name || name,
-          picture: user?.picture || picture,
+          email: finalUser.rowKey || email,
+          name: finalUser.name || name,
+          picture: finalUser.picture || picture,
+          phone: finalUser.phone || undefined,
           role: 'customer',
         },
         token,
+        needsProfileSetup,
       },
       200,
       { 'Set-Cookie': cookie },
       origin,
     )
-  } catch (err) {
-    context.error('googleAuth failed', err)
-    return errorResponse('Google authentication failed', 500, origin)
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      if (azErr.statusCode === 403) {
+        context.error('googleAuth: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+      }
+      if (azErr.code === 'TableNotFound') {
+        context.error('googleAuth: "users" table does not exist in storage account', err)
+        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+      }
+      context.error(`googleAuth: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('googleAuth: unexpected error', err)
+    return errorResponse('Google authentication failed. Please try again later.', 500, origin)
   }
 }
 
@@ -267,4 +373,107 @@ app.http('googleAuth', {
   route: 'api/auth/google',
   authLevel: 'anonymous',
   handler: googleAuth,
+})
+
+// ─── POST /api/auth/logout ───────────────────────────────────
+// Clears the httpOnly tsa_token cookie. No auth required — clearing an
+// already-expired or missing cookie is harmless.
+
+export async function userLogout(
+  request: HttpRequest,
+  _context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  return jsonResponse({ ok: true }, 200, { 'Set-Cookie': buildClearCookie() }, origin)
+}
+
+app.http('userLogout', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/auth/logout',
+  authLevel: 'anonymous',
+  handler: userLogout,
+})
+
+// ─── PATCH /api/auth/profile ─────────────────────────────────
+// Lets a Google-authenticated user set their display name and phone after
+// first sign-in. Sets profileComplete = true so the modal is not shown again.
+
+export async function updateProfile(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const cookieHeader = request.headers.get('cookie')
+  const authHeader = request.headers.get('authorization')
+  const token =
+    extractTokenFromCookie(cookieHeader) || extractToken(authHeader || undefined)
+
+  if (!token) return errorResponse('Authentication required', 401, origin)
+
+  const payload = verifyToken(token)
+  if (!payload || payload.role !== 'customer') {
+    return errorResponse('Authentication required', 401, origin)
+  }
+
+  try {
+    const body = (await request.json()) as { name?: string; phone?: string }
+
+    if (!body.name || !body.name.trim()) {
+      return errorResponse('Full name is required', 400, origin)
+    }
+
+    const name = body.name.trim()
+    if (name.length > 100) return errorResponse('Name must be 100 characters or less', 400, origin)
+
+    const phone = body.phone?.trim() || ''
+    if (phone && phone.length > 20) return errorResponse('Phone must be 20 characters or less', 400, origin)
+
+    const user = await getUser(payload.id)
+    if (!user || user.isActive === false) {
+      return errorResponse('User not found', 404, origin)
+    }
+
+    await updateUser({
+      ...user,
+      name,
+      phone,
+      profileComplete: true,
+    })
+
+    return jsonResponse(
+      {
+        user: {
+          email: user.rowKey,
+          name,
+          phone: phone || undefined,
+          picture: user.picture || undefined,
+          role: 'customer',
+        },
+      },
+      200,
+      {},
+      origin,
+    )
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      context.error(`updateProfile: Azure Table error (HTTP ${azErr.statusCode})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('updateProfile: unexpected error', err)
+    return errorResponse('Failed to update profile. Please try again.', 500, origin)
+  }
+}
+
+app.http('updateProfile', {
+  methods: ['PATCH', 'OPTIONS'],
+  route: 'api/auth/profile',
+  authLevel: 'anonymous',
+  handler: updateProfile,
 })

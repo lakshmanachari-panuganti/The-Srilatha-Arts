@@ -91,7 +91,7 @@ async function adminUpdateProduct(
   if (!id) return errorResponse('Missing product id', 400, origin)
 
   try {
-    const category = id.split('-')[0]
+    const category = id.slice(0, -9)   // e.g. 'dot-mandala-f55f2641' → 'dot-mandala'
     const existing = await getProduct(category, id)
     if (!existing) return errorResponse('Product not found', 404, origin)
 
@@ -147,7 +147,7 @@ async function adminDeleteProduct(
   if (!id) return errorResponse('Missing product id', 400, origin)
 
   try {
-    const category = id.split('-')[0]
+    const category = id.slice(0, -9)   // e.g. 'dot-mandala-f55f2641' → 'dot-mandala'
     await deleteProduct(category, id)
 
     await appendAuditLog({
@@ -176,8 +176,11 @@ app.http('adminCreateProduct', {
   handler: adminCreateProduct,
 })
 
+// Note: OPTIONS is NOT listed here — adminDeleteProduct already registers OPTIONS
+// on this route. Registering OPTIONS in two functions on the same route causes
+// Azure Functions v4 to silently drop one handler (the PATCH handler was lost).
 app.http('adminUpdateProduct', {
-  methods: ['PATCH', 'OPTIONS'],
+  methods: ['PATCH'],
   route: 'api/admin/products/{id}',
   authLevel: 'anonymous',
   handler: adminUpdateProduct,
