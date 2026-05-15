@@ -98,7 +98,7 @@ export default function AdminSettingsPage() {
             <label className="block text-sm font-medium text-ink-soft mb-1.5">Store Name</label>
             <input
               type="text"
-              defaultValue="The Srilatha Arts"
+              defaultValue="Srilatha Art"
               className="w-full max-w-md h-11 px-4 bg-plum border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
             />
           </div>
@@ -106,7 +106,7 @@ export default function AdminSettingsPage() {
             <label className="block text-sm font-medium text-ink-soft mb-1.5">Contact Email</label>
             <input
               type="email"
-              defaultValue="hello@thesrilathaarts.com"
+              defaultValue="studio@srilatha.art"
               className="w-full max-w-md h-11 px-4 bg-plum border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
             />
           </div>
@@ -114,7 +114,7 @@ export default function AdminSettingsPage() {
             <label className="block text-sm font-medium text-ink-soft mb-1.5">WhatsApp Number</label>
             <input
               type="tel"
-              defaultValue="+91 98765 43210"
+              defaultValue="+91 98484 33740"
               className="w-full max-w-md h-11 px-4 bg-plum border border-ink/10 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent transition-all"
             />
           </div>

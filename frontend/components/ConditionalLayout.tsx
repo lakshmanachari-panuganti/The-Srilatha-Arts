@@ -1,10 +1,13 @@
 'use client'
 import { usePathname } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import MarqueeBanner from '@/components/MarqueeBanner'
 import Header from '@/components/Header'
 import BottomTabBar from '@/components/BottomTabBar'
 import Footer from '@/components/Footer'
+import { apiFetch } from '@/lib/api'
 import { ANNOUNCEMENTS } from '@/data/announcements'
+import type { Announcement } from '@/types'
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '/'
@@ -20,9 +23,22 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const showTabs = !isAdmin && !isAuth && !isCheckout
   const showFooter = !isAdmin && !isAuth && !isCheckout
 
+  const { data: apiData } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: () => apiFetch<{ announcements: Announcement[] }>('/announcements'),
+    enabled: showMarquee,
+    staleTime: 5 * 60_000,
+  })
+
+  // Use live announcements from backend; fall back to static data if backend returns empty
+  const announcements =
+    (apiData?.announcements?.length ?? 0) > 0
+      ? apiData!.announcements.filter((a) => a.active)
+      : ANNOUNCEMENTS.filter((a) => a.active)
+
   return (
     <>
-      {showMarquee && <MarqueeBanner items={ANNOUNCEMENTS.filter((a) => a.active)} />}
+      {showMarquee && <MarqueeBanner items={announcements} />}
       {showChrome && <Header />}
       <main id="main" className="relative z-10 pb-24 lg:pb-0">
         {children}

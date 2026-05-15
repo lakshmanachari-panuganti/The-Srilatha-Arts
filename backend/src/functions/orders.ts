@@ -2,7 +2,7 @@
  * Customer Order Endpoints (§4.1).
  *
  * POST   /api/orders          — create order
- * GET    /api/orders/me       — list user's orders
+ * GET    /api/my-orders       — list user's orders (renamed from /orders/me to avoid route conflict)
  * GET    /api/orders/{id}     — owner OR admin
  * GET    /api/orders/{id}/events — owner timeline
  * POST   /api/orders/{id}/cancel
@@ -100,6 +100,13 @@ async function createNewOrder(
     if (!body.shippingAddress) return errorResponse('Shipping address is required', 400, origin)
     if (!body.customerName) return errorResponse('Customer name is required', 400, origin)
     if (!body.customerPhone) return errorResponse('Phone number is required', 400, origin)
+
+    // Validate item quantities before any storage calls.
+    for (const item of body.items) {
+      if (!Number.isInteger(item.qty) || item.qty < 1 || item.qty > 100) {
+        return errorResponse('Each item quantity must be a whole number between 1 and 100', 400, origin)
+      }
+    }
 
     // Authoritative price lookup — never trust client-side prices (§13).
     let subtotal = 0
@@ -497,7 +504,7 @@ app.http('createNewOrder', {
 
 app.http('listMyOrders', {
   methods: ['GET', 'OPTIONS'],
-  route: 'api/orders/me',
+  route: 'api/my-orders',          // avoid route conflict with api/orders/{id}
   authLevel: 'anonymous',
   handler: listMyOrders,
 })

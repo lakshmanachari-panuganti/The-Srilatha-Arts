@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { apiFetch, ApiError } from '@/lib/api'
+import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
 
 interface AdminUser {
   username: string
@@ -38,14 +38,28 @@ export const useAdminAuth = create<AdminAuthState>()(
             },
           )
           set({ user: res.user, token: res.token, isLoading: false, error: null })
+          setApiAuthToken(res.token)
           return true
         } catch (err) {
-          const message =
-            err instanceof ApiError
-              ? err.body && typeof err.body === 'object' && 'error' in err.body
+          let message: string
+
+          if (err instanceof ApiError) {
+            // Backend responded with a structured error — surface its message
+            message =
+              err.body && typeof err.body === 'object' && 'error' in err.body
                 ? String((err.body as { error: string }).error)
                 : err.message
-              : 'Login failed. Please try again.'
+          } else if (
+            err instanceof TypeError &&
+            /fetch|network/i.test(err.message)
+          ) {
+            // CORS block, DNS failure, or backend unreachable all surface as TypeError
+            message =
+              'Unable to reach the server. This may be a network issue or a CORS configuration problem. Please check your connection and try again.'
+          } else {
+            message = 'An unexpected error occurred. Please try again.'
+          }
+
           set({ isLoading: false, error: message })
           return false
         }
@@ -53,9 +67,13 @@ export const useAdminAuth = create<AdminAuthState>()(
 
       logout: () => {
         set({ user: null, token: null, error: null })
-        // Also clear the httpOnly cookie by calling a logout endpoint if available,
-        // but since we store the token client-side too, clearing state is sufficient
-        // for the frontend guard.
+        setApiAuthToken(null)
+        // Clear the httpOnly tsa_token cookie server-side.
+        // Fire-and-forget: the UI is already cleared; if this fails the cookie
+        // expires naturally after 24 h and the next API call returns 401.
+        apiFetch('/auth/admin/logout', { method: 'POST' }).catch(() => {
+          // Intentionally ignored — local state is authoritative for the guard.
+        })
       },
 
       clearError: () => set({ error: null }),
@@ -63,6 +81,10 @@ export const useAdminAuth = create<AdminAuthState>()(
     {
       name: 'tsa-admin-auth',
       partialize: (state) => ({ user: state.user, token: state.token }),
+      onRehydrateStorage: () => (state) => {
+        // Restore the token into apiFetch after a page refresh.
+        if (state?.token) setApiAuthToken(state.token)
+      },
     },
   ),
 )

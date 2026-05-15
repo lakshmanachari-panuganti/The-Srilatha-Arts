@@ -1,11 +1,23 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import ProductCard from '@/components/shop/ProductCard'
-import { getBestSellers } from '@/data/products'
+import { apiFetch } from '@/lib/api'
+import type { Product } from '@/types'
 
-export default async function BestSellers() {
-  const products = await getBestSellers()
-  if (products.length === 0) return null
+export default function BestSellers() {
+  const { data: products = [], isLoading } = useQuery<Product[]>({
+    queryKey: ['products', 'best'],
+    queryFn: async () => {
+      const res = await apiFetch<{ products: Product[] }>('/products?bestSellers=true')
+      return res.products || []
+    },
+    staleTime: 60_000,
+  })
+
+  if (isLoading || products.length === 0) return null
 
   return (
     <section className="px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">

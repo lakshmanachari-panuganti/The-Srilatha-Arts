@@ -60,8 +60,9 @@ export async function getProduct(category: string, productId: string): Promise<R
 }
 
 export async function getProductById(productId: string): Promise<Row | null> {
-  // Product IDs are `<category>-<random>`; the category prefix lets us hit a single partition.
-  const category = productId.split('-')[0]
+  // ID format: <category>-<8hexchars> e.g. "dot-mandala-f55f2641"
+  // Strip last 9 chars (hyphen + 8 hex chars) to get the partition key (category).
+  const category = productId.slice(0, -9)
   return getProduct(category, productId)
 }
 
@@ -419,6 +420,16 @@ export async function getAllReviews(status?: string): Promise<Row[]> {
   const rows = await listAll('reviews')
   if (status) return rows.filter((r) => r.status === status)
   return rows
+}
+
+/**
+ * Find an existing review by a specific user for a specific product.
+ * Used to prevent duplicate reviews (H-06).
+ * Scans a single partition (by productId) so this is bounded.
+ */
+export async function getReviewByUser(productId: string, userEmail: string): Promise<Row | null> {
+  const rows = await listAll('reviews', odata`PartitionKey eq ${productId} and userEmail eq ${userEmail}`)
+  return rows[0] ?? null
 }
 
 // ─── CUSTOM ORDERS ───────────────────────────────────────────

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Search, Ticket, Copy, ToggleLeft, ToggleRight, Trash2, Pencil } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, Search, Ticket, Copy, ToggleLeft, ToggleRight, Trash2, Pencil, X } from 'lucide-react'
 import { formatINR, formatDate } from '@/lib/format'
+import { apiFetch } from '@/lib/api'
 
 type CouponType = 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING'
 
@@ -22,61 +23,35 @@ interface Coupon {
   promoteInBanner: boolean
 }
 
-const MOCK_COUPONS: Coupon[] = [
-  {
-    code: 'SRILATHA30',
-    type: 'PERCENTAGE',
-    value: 30,
-    description: 'Flat 30% off site-wide',
-    minOrderAmount: 200000,
-    maxDiscount: 300000,
-    startDate: '2026-05-01T00:00:00Z',
-    endDate: '2026-05-31T23:59:59Z',
-    usageLimit: 500,
-    currentUsage: 142,
-    active: true,
-    firstTimeOnly: false,
-    promoteInBanner: true,
-  },
-  {
-    code: 'WELCOME200',
-    type: 'FIXED_AMOUNT',
-    value: 20000,
-    description: '₹200 off your first order',
-    minOrderAmount: 100000,
-    startDate: '2026-01-01T00:00:00Z',
-    usageLimit: 1000,
-    currentUsage: 387,
-    active: true,
-    firstTimeOnly: true,
-    promoteInBanner: false,
-  },
-  {
-    code: 'FREESHIP',
-    type: 'FREE_SHIPPING',
-    value: 0,
-    description: 'Free shipping on any order',
-    startDate: '2026-05-01T00:00:00Z',
-    endDate: '2026-06-30T23:59:59Z',
-    currentUsage: 58,
-    active: true,
-    firstTimeOnly: false,
-    promoteInBanner: false,
-  },
-  {
-    code: 'RESIN20',
-    type: 'PERCENTAGE',
-    value: 20,
-    description: '20% off Resin Art only',
-    startDate: '2026-04-01T00:00:00Z',
-    endDate: '2026-04-30T23:59:59Z',
-    usageLimit: 200,
-    currentUsage: 200,
-    active: false,
-    firstTimeOnly: false,
-    promoteInBanner: false,
-  },
-]
+interface FormState {
+  code: string
+  type: CouponType
+  value: string
+  description: string
+  minOrderAmount: string
+  maxDiscount: string
+  startDate: string
+  endDate: string
+  usageLimit: string
+  active: boolean
+  firstTimeOnly: boolean
+  promoteInBanner: boolean
+}
+
+const BLANK_FORM: FormState = {
+  code: '',
+  type: 'PERCENTAGE',
+  value: '',
+  description: '',
+  minOrderAmount: '',
+  maxDiscount: '',
+  startDate: '',
+  endDate: '',
+  usageLimit: '',
+  active: true,
+  firstTimeOnly: false,
+  promoteInBanner: false,
+}
 
 const TYPE_LABELS: Record<CouponType, string> = {
   PERCENTAGE: '% Off',
@@ -90,19 +65,147 @@ const TYPE_COLORS: Record<CouponType, string> = {
   FREE_SHIPPING: 'bg-green-50 text-green-700 ring-green-600/20',
 }
 
+// All monetary amounts stored in paise — divide by 100 to display in ₹
 function formatCouponValue(coupon: Coupon): string {
   switch (coupon.type) {
     case 'PERCENTAGE': return `${coupon.value}% off`
-    case 'FIXED_AMOUNT': return `${formatINR(coupon.value)} off`
+    case 'FIXED_AMOUNT': return `${formatINR(coupon.value / 100)} off`
     case 'FREE_SHIPPING': return 'Free shipping'
   }
 }
 
 export default function AdminCouponsPage() {
+  const [coupons, setCoupons] = useState<Coupon[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showActive, setShowActive] = useState<'all' | 'active' | 'inactive'>('all')
+  const [toggling, setToggling] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
-  const filtered = MOCK_COUPONS.filter((c) => {
+  // Form (null = closed, 'new' = create, code = edit)
+  const [formMode, setFormMode] = useState<'new' | string | null>(null)
+  const [form, setForm] = useState<FormState>(BLANK_FORM)
+  const [saving, setSaving] = useState(false)
+
+  const fetchCoupons = useCallback(async () => {
+    try {
+      const data = await apiFetch<{ coupons: Coupon[] }>('/admin/coupons')
+      setCoupons(data.coupons ?? [])
+    } catch (err) {
+      console.error('Failed to load coupons', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchCoupons() }, [fetchCoupons])
+
+  const openNew = () => {
+    setForm(BLANK_FORM)
+    setFormMode('new')
+  }
+
+  const openEdit = (c: Coupon) => {
+    setForm({
+      code: c.code,
+      type: c.type,
+      value: c.type === 'FIXED_AMOUNT' ? String(c.value / 100) : String(c.value),
+      description: c.description ?? '',
+      minOrderAmount: c.minOrderAmount ? String(c.minOrderAmount / 100) : '',
+      maxDiscount: c.maxDiscount ? String(c.maxDiscount / 100) : '',
+      startDate: c.startDate ? c.startDate.slice(0, 10) : '',
+      endDate: c.endDate ? c.endDate.slice(0, 10) : '',
+      usageLimit: c.usageLimit ? String(c.usageLimit) : '',
+      active: c.active,
+      firstTimeOnly: c.firstTimeOnly,
+      promoteInBanner: c.promoteInBanner,
+    })
+    setFormMode(c.code)
+  }
+
+  const closeForm = () => {
+    setFormMode(null)
+    setForm(BLANK_FORM)
+  }
+
+  const buildBody = () => {
+    // Convert display values back to paise for monetary amounts
+    const valueNum = parseFloat(form.value) || 0
+    return {
+      type: form.type,
+      // FIXED_AMOUNT: user enters ₹ rupees, store as paise (* 100)
+      // PERCENTAGE: user enters %, store as-is
+      value: form.type === 'FIXED_AMOUNT' ? Math.round(valueNum * 100) : valueNum,
+      description: form.description || undefined,
+      minOrderAmount: form.minOrderAmount ? Math.round(parseFloat(form.minOrderAmount) * 100) : undefined,
+      maxDiscount: form.maxDiscount ? Math.round(parseFloat(form.maxDiscount) * 100) : undefined,
+      startDate: form.startDate || undefined,
+      endDate: form.endDate || undefined,
+      usageLimit: form.usageLimit ? parseInt(form.usageLimit) : undefined,
+      active: form.active,
+      firstTimeOnly: form.firstTimeOnly,
+      promoteInBanner: form.promoteInBanner,
+    }
+  }
+
+  const handleSave = async () => {
+    if (!form.type) return
+    if (formMode === 'new' && !form.code.trim()) return
+    setSaving(true)
+    try {
+      if (formMode === 'new') {
+        const data = await apiFetch<{ coupon: Coupon }>('/admin/coupons', {
+          method: 'POST',
+          body: { code: form.code.trim().toUpperCase(), ...buildBody() },
+        })
+        setCoupons((prev) => [data.coupon, ...prev])
+      } else {
+        const data = await apiFetch<{ coupon: Coupon }>(`/admin/coupons/${formMode}`, {
+          method: 'PATCH',
+          body: buildBody(),
+        })
+        setCoupons((prev) => prev.map((c) => (c.code === formMode ? data.coupon : c)))
+      }
+      closeForm()
+    } catch (err: unknown) {
+      console.error('Failed to save coupon', err)
+      const msg = err instanceof Error ? err.message : 'Failed to save coupon. Please try again.'
+      alert(msg)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleToggle = async (coupon: Coupon) => {
+    setToggling(coupon.code)
+    try {
+      const data = await apiFetch<{ coupon: Coupon }>(`/admin/coupons/${coupon.code}`, {
+        method: 'PATCH',
+        body: { active: !coupon.active },
+      })
+      setCoupons((prev) => prev.map((c) => (c.code === coupon.code ? data.coupon : c)))
+    } catch (err) {
+      console.error('Failed to toggle coupon', err)
+    } finally {
+      setToggling(null)
+    }
+  }
+
+  const handleDelete = async (code: string) => {
+    if (!confirm(`Delete coupon "${code}"? This cannot be undone.`)) return
+    setDeleting(code)
+    try {
+      await apiFetch(`/admin/coupons/${code}`, { method: 'DELETE' })
+      setCoupons((prev) => prev.filter((c) => c.code !== code))
+    } catch (err) {
+      console.error('Failed to delete coupon', err)
+      alert('Failed to delete coupon. Please try again.')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const filtered = coupons.filter((c) => {
     if (showActive === 'active' && !c.active) return false
     if (showActive === 'inactive' && c.active) return false
     if (search) {
@@ -119,11 +222,169 @@ export default function AdminCouponsPage() {
           <h1 className="font-serif text-3xl text-ink mb-1">Coupons</h1>
           <p className="text-ink-soft text-sm">Create and manage discount codes.</p>
         </div>
-        <button className="btn-dark text-sm h-10 px-4 shrink-0 self-start sm:self-auto">
+        <button
+          onClick={openNew}
+          className="btn-dark text-sm h-10 px-4 shrink-0 self-start sm:self-auto"
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Coupon
         </button>
       </header>
+
+      {/* Create / Edit form */}
+      {formMode !== null && (
+        <div className="bg-plum-light border border-lavender/30 rounded-xl p-5 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-medium text-ink">
+              {formMode === 'new' ? 'New Coupon' : `Edit ${formMode}`}
+            </h2>
+            <button onClick={closeForm} className="text-ink-mute hover:text-ink">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {formMode === 'new' && (
+              <div>
+                <label className="block text-xs font-medium text-ink-soft mb-1">Code *</label>
+                <input
+                  type="text"
+                  value={form.code}
+                  onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
+                  placeholder="SAVE20"
+                  className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-lavender"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-medium text-ink-soft mb-1">Type *</label>
+              <select
+                value={form.type}
+                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as CouponType }))}
+                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+              >
+                <option value="PERCENTAGE">Percentage Off (%)</option>
+                <option value="FIXED_AMOUNT">Fixed Amount (₹)</option>
+                <option value="FREE_SHIPPING">Free Shipping</option>
+              </select>
+            </div>
+
+            {form.type !== 'FREE_SHIPPING' && (
+              <div>
+                <label className="block text-xs font-medium text-ink-soft mb-1">
+                  {form.type === 'PERCENTAGE' ? 'Discount (%)' : 'Discount (₹)'}
+                </label>
+                <input
+                  type="number"
+                  value={form.value}
+                  onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
+                  min={0}
+                  placeholder={form.type === 'PERCENTAGE' ? '20' : '200'}
+                  className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-medium text-ink-soft mb-1">Description</label>
+              <input
+                type="text"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Flat 20% off site-wide"
+                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-ink-soft mb-1">Min Order (₹)</label>
+              <input
+                type="number"
+                value={form.minOrderAmount}
+                onChange={(e) => setForm((f) => ({ ...f, minOrderAmount: e.target.value }))}
+                min={0}
+                placeholder="999"
+                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+              />
+            </div>
+
+            {form.type === 'PERCENTAGE' && (
+              <div>
+                <label className="block text-xs font-medium text-ink-soft mb-1">Max Discount (₹)</label>
+                <input
+                  type="number"
+                  value={form.maxDiscount}
+                  onChange={(e) => setForm((f) => ({ ...f, maxDiscount: e.target.value }))}
+                  min={0}
+                  placeholder="500"
+                  className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-medium text-ink-soft mb-1">Start Date</label>
+              <input
+                type="date"
+                value={form.startDate}
+                onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-ink-soft mb-1">End Date</label>
+              <input
+                type="date"
+                value={form.endDate}
+                onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
+                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-ink-soft mb-1">Usage Limit</label>
+              <input
+                type="number"
+                value={form.usageLimit}
+                onChange={(e) => setForm((f) => ({ ...f, usageLimit: e.target.value }))}
+                min={1}
+                placeholder="Unlimited"
+                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+              />
+            </div>
+
+            <div className="sm:col-span-2 flex flex-wrap gap-x-6 gap-y-2">
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input type="checkbox" checked={form.active} onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))} className="rounded" />
+                Active
+              </label>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input type="checkbox" checked={form.firstTimeOnly} onChange={(e) => setForm((f) => ({ ...f, firstTimeOnly: e.target.checked }))} className="rounded" />
+                First-time buyers only
+              </label>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input type="checkbox" checked={form.promoteInBanner} onChange={(e) => setForm((f) => ({ ...f, promoteInBanner: e.target.checked }))} className="rounded" />
+                Promote in banner
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-5">
+            <button
+              onClick={handleSave}
+              disabled={saving || (formMode === 'new' && !form.code.trim())}
+              className="btn-dark text-sm h-9 px-4 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : formMode === 'new' ? 'Create Coupon' : 'Save Changes'}
+            </button>
+            <button onClick={closeForm} className="text-sm text-ink-mute hover:text-ink px-2">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -150,9 +411,15 @@ export default function AdminCouponsPage() {
         </div>
       </div>
 
-      {/* Coupon Cards - mobile-first */}
+      {/* Coupon Cards */}
       <div className="space-y-4">
-        {filtered.length === 0 && (
+        {loading && (
+          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+            <p className="text-ink-soft text-sm">Loading coupons…</p>
+          </div>
+        )}
+
+        {!loading && filtered.length === 0 && (
           <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
             <Ticket className="w-8 h-8 text-ink-mute mx-auto mb-3" />
             <p className="text-ink font-medium mb-1">No coupons found</p>
@@ -163,6 +430,8 @@ export default function AdminCouponsPage() {
         {filtered.map((coupon) => {
           const isExpired = coupon.endDate && new Date(coupon.endDate).getTime() < Date.now()
           const isMaxed = coupon.usageLimit && coupon.currentUsage >= coupon.usageLimit
+          const isToggling = toggling === coupon.code
+          const isDeleting = deleting === coupon.code
 
           return (
             <div
@@ -181,6 +450,7 @@ export default function AdminCouponsPage() {
                       {coupon.code}
                     </code>
                     <button
+                      onClick={() => navigator.clipboard.writeText(coupon.code)}
                       className="text-ink-mute hover:text-lavender transition-colors"
                       title="Copy code"
                     >
@@ -203,9 +473,9 @@ export default function AdminCouponsPage() {
 
                   <p className="text-sm font-medium text-ink mb-1">
                     {formatCouponValue(coupon)}
-                    {coupon.minOrderAmount && (
+                    {coupon.minOrderAmount != null && coupon.minOrderAmount > 0 && (
                       <span className="text-ink-soft font-normal ml-1">
-                        · Min order {formatINR(coupon.minOrderAmount)}
+                        · Min order {formatINR(coupon.minOrderAmount / 100)}
                       </span>
                     )}
                   </p>
@@ -230,7 +500,9 @@ export default function AdminCouponsPage() {
                 {/* Right: status + actions */}
                 <div className="flex items-center gap-3 shrink-0">
                   <button
-                    className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                    onClick={() => handleToggle(coupon)}
+                    disabled={isToggling}
+                    className={`flex items-center gap-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
                       coupon.active
                         ? 'text-green-700 hover:text-green-800'
                         : 'text-ink-mute hover:text-ink'
@@ -244,13 +516,16 @@ export default function AdminCouponsPage() {
                     )}
                   </button>
                   <button
+                    onClick={() => openEdit(coupon)}
                     className="text-ink-mute hover:text-plum transition-colors"
                     title="Edit"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
-                    className="text-ink-mute hover:text-red-600 transition-colors"
+                    onClick={() => handleDelete(coupon.code)}
+                    disabled={isDeleting}
+                    className="text-ink-mute hover:text-red-600 transition-colors disabled:opacity-50"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />

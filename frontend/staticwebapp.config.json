@@ -1,7 +1,12 @@
 {
-  "routes": [],
+  "routes": [
+    {
+      "route": "/product/*",
+      "rewrite": "/product/__shell__/index.html"
+    }
+  ],
   "navigationFallback": {
-    "rewrite": "/404.html",
+    "rewrite": "/index.html",
     "exclude": [
       "/_next/*",
       "/images/*",

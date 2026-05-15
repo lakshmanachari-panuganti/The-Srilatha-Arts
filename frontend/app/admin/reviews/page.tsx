@@ -1,15 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Search, Star, CheckCircle2, EyeOff, MessageSquare, Clock } from 'lucide-react'
 import { formatDate } from '@/lib/format'
+import { apiFetch } from '@/lib/api'
 
 type ReviewStatus = 'pending' | 'approved' | 'hidden'
 
 interface Review {
   id: string
   productId: string
-  productName: string
+  productName?: string
   userName: string
   rating: number
   title?: string
@@ -18,52 +19,6 @@ interface Review {
   adminReply?: string
   createdAt: string
 }
-
-const MOCK_REVIEWS: Review[] = [
-  {
-    id: 'rev-001',
-    productId: 'resin-river-tray-large',
-    productName: 'Ocean River Resin Tray',
-    userName: 'Priya Sharma',
-    rating: 5,
-    title: 'Absolutely stunning!',
-    body: 'The colors are even more vibrant in person. The resin has a glass-like finish that catches the light beautifully.',
-    status: 'pending',
-    createdAt: '2026-05-11T16:00:00Z',
-  },
-  {
-    id: 'rev-002',
-    productId: 'mandala-aurora-12',
-    productName: 'Aurora Dot Mandala - 12" Round',
-    userName: 'Rajesh K.',
-    rating: 4,
-    title: 'Beautiful craftsmanship',
-    body: 'Got this for my mother\'s birthday. She loved it. Only wish the packaging was slightly sturdier.',
-    status: 'pending',
-    createdAt: '2026-05-10T09:30:00Z',
-  },
-  {
-    id: 'rev-003',
-    productId: 'lippan-peacock-square',
-    productName: 'Lippan Peacock - 16" Square',
-    userName: 'Ananya R.',
-    rating: 5,
-    body: 'The mirrors catch the lamp light every evening — it\'s the soul of the room now.',
-    status: 'approved',
-    adminReply: 'Thank you for the kind words, Ananya! We\'re so glad the piece found its home.',
-    createdAt: '2026-05-05T14:20:00Z',
-  },
-  {
-    id: 'rev-004',
-    productId: 'resin-cosmos-coasters-4',
-    productName: 'Cosmos Resin Coasters (Set of 4)',
-    userName: 'Vikram S.',
-    rating: 2,
-    body: 'One coaster had a small bubble defect. Otherwise the colors are good.',
-    status: 'hidden',
-    createdAt: '2026-05-03T11:00:00Z',
-  },
-]
 
 const STATUS_CONFIG: Record<ReviewStatus, { label: string; color: string; icon: typeof Clock }> = {
   pending:  { label: 'Pending',  color: 'bg-amber-50 text-amber-700 ring-amber-600/20',  icon: Clock },
@@ -85,23 +40,79 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default function AdminReviewsPage() {
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'all' | ReviewStatus>('all')
   const [search, setSearch] = useState('')
+  const [updating, setUpdating] = useState<string | null>(null)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState('')
 
-  const filtered = MOCK_REVIEWS.filter((r) => {
+  const fetchReviews = useCallback(async () => {
+    try {
+      const data = await apiFetch<{ reviews: Review[] }>('/admin/reviews')
+      setReviews(data.reviews ?? [])
+    } catch (err) {
+      console.error('Failed to load reviews', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchReviews() }, [fetchReviews])
+
+  const updateStatus = async (id: string, status: ReviewStatus) => {
+    setUpdating(id)
+    try {
+      await apiFetch(`/admin/reviews/${id}`, { method: 'PATCH', body: { status } })
+      setReviews((prev) => prev.map((r) => r.id === id ? { ...r, status } : r))
+    } catch (err) {
+      console.error('Failed to update review', err)
+      alert('Failed to update review. Please try again.')
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  const submitReply = async (id: string) => {
+    if (!replyText.trim()) return
+    setUpdating(id)
+    try {
+      await apiFetch(`/admin/reviews/${id}`, {
+        method: 'PATCH',
+        body: { adminReply: replyText.trim(), status: 'approved' },
+      })
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? { ...r, adminReply: replyText.trim(), status: 'approved' }
+            : r,
+        ),
+      )
+      setReplyingTo(null)
+      setReplyText('')
+    } catch (err) {
+      console.error('Failed to submit reply', err)
+      alert('Failed to submit reply. Please try again.')
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  const filtered = reviews.filter((r) => {
     if (activeTab !== 'all' && r.status !== activeTab) return false
     if (search) {
       const q = search.toLowerCase()
       return (
         r.userName.toLowerCase().includes(q) ||
-        r.productName.toLowerCase().includes(q) ||
+        (r.productName?.toLowerCase().includes(q) ?? false) ||
         r.body.toLowerCase().includes(q)
       )
     }
     return true
   })
 
-  const pendingCount = MOCK_REVIEWS.filter((r) => r.status === 'pending').length
+  const pendingCount = reviews.filter((r) => r.status === 'pending').length
 
   return (
     <div>
@@ -122,10 +133,10 @@ export default function AdminReviewsPage() {
       {/* Tabs */}
       <div className="chip-rail mb-6">
         <button onClick={() => setActiveTab('all')} className={`chip ${activeTab === 'all' ? 'is-active' : ''}`}>
-          All ({MOCK_REVIEWS.length})
+          All ({reviews.length})
         </button>
         {(['pending', 'approved', 'hidden'] as ReviewStatus[]).map((s) => {
-          const count = MOCK_REVIEWS.filter((r) => r.status === s).length
+          const count = reviews.filter((r) => r.status === s).length
           return (
             <button key={s} onClick={() => setActiveTab(s)} className={`chip ${activeTab === s ? 'is-active' : ''}`}>
               {STATUS_CONFIG[s].label} ({count})
@@ -148,7 +159,13 @@ export default function AdminReviewsPage() {
 
       {/* Review Cards */}
       <div className="space-y-4">
-        {filtered.length === 0 && (
+        {loading && (
+          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+            <p className="text-ink-soft text-sm">Loading reviews…</p>
+          </div>
+        )}
+
+        {!loading && filtered.length === 0 && (
           <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
             <MessageSquare className="w-8 h-8 text-ink-mute mx-auto mb-3" />
             <p className="text-ink font-medium mb-1">No reviews found</p>
@@ -159,6 +176,9 @@ export default function AdminReviewsPage() {
         {filtered.map((review) => {
           const cfg = STATUS_CONFIG[review.status]
           const Icon = cfg.icon
+          const isUpdating = updating === review.id
+          const isReplying = replyingTo === review.id
+
           return (
             <div
               key={review.id}
@@ -172,8 +192,9 @@ export default function AdminReviewsPage() {
                     <Stars rating={review.rating} />
                   </div>
                   <p className="text-xs text-ink-mute">
-                    on <span className="font-medium">{review.productName}</span>
-                    <span className="mx-1.5">·</span>
+                    {review.productName && (
+                      <>on <span className="font-medium">{review.productName}</span><span className="mx-1.5">·</span></>
+                    )}
                     {formatDate(review.createdAt)}
                   </p>
                 </div>
@@ -197,34 +218,61 @@ export default function AdminReviewsPage() {
                 </div>
               )}
 
+              {/* Reply textarea */}
+              {isReplying && (
+                <div className="mb-4">
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Write your reply…"
+                    rows={3}
+                    className="w-full px-3 py-2 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender resize-none"
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => submitReply(review.id)}
+                      disabled={isUpdating || !replyText.trim()}
+                      className="btn-dark text-xs h-8 px-3 disabled:opacity-50"
+                    >
+                      {isUpdating ? 'Sending…' : 'Send Reply'}
+                    </button>
+                    <button
+                      onClick={() => { setReplyingTo(null); setReplyText('') }}
+                      className="text-xs text-ink-mute hover:text-ink px-2"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex items-center gap-3 flex-wrap">
-                {review.status === 'pending' && (
-                  <>
-                    <button className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:text-green-800 transition-colors">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Approve
-                    </button>
-                    <button className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition-colors">
-                      <EyeOff className="w-4 h-4" />
-                      Hide
-                    </button>
-                  </>
-                )}
-                {review.status === 'approved' && (
-                  <button className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition-colors">
-                    <EyeOff className="w-4 h-4" />
-                    Hide
-                  </button>
-                )}
-                {review.status === 'hidden' && (
-                  <button className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:text-green-800 transition-colors">
+                {review.status !== 'approved' && (
+                  <button
+                    onClick={() => updateStatus(review.id, 'approved')}
+                    disabled={isUpdating}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:text-green-800 transition-colors disabled:opacity-50"
+                  >
                     <CheckCircle2 className="w-4 h-4" />
-                    Approve
+                    {isUpdating ? 'Updating…' : 'Approve'}
                   </button>
                 )}
-                {!review.adminReply && (
-                  <button className="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta hover:text-plum transition-colors">
+                {review.status !== 'hidden' && (
+                  <button
+                    onClick={() => updateStatus(review.id, 'hidden')}
+                    disabled={isUpdating}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+                  >
+                    <EyeOff className="w-4 h-4" />
+                    {isUpdating ? 'Updating…' : 'Hide'}
+                  </button>
+                )}
+                {!review.adminReply && !isReplying && (
+                  <button
+                    onClick={() => setReplyingTo(review.id)}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta hover:text-plum transition-colors"
+                  >
                     <MessageSquare className="w-4 h-4" />
                     Reply
                   </button>

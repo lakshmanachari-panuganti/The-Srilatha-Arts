@@ -76,8 +76,13 @@ $config = @{
         StaticWebApp   = 'swa-thesrilathaarts-dev'   # not auto-created here; reserved name
         KeyVault       = 'kv-thesrilathaarts-dev'    # 22 chars
         AppInsights    = 'appi-thesrilathaarts-dev'
-        CorsOrigins    = @('http://localhost:3000')   # SWA URL appended after SWA is wired via Portal
+        CorsOrigins    = @(
+            'http://localhost:3000',
+            'https://delightful-mushroom-062e18100.7.azurestaticapps.net',
+            'https://www.lucky1.online'
+        )
         CookieDomain   = ''                            # empty in DEV
+        WebsiteUrl     = 'delightful-mushroom-062e18100.7.azurestaticapps.net'
     }
     PRD = @{
         ResourceGroup  = 'rg-thesrilathaarts-prd'
@@ -87,8 +92,13 @@ $config = @{
         StaticWebApp   = 'swa-thesrilathaarts-prd'
         KeyVault       = 'kv-thesrilathaarts-prd'
         AppInsights    = 'appi-thesrilathaarts-prd'
-        CorsOrigins    = @('https://www.srilatha.art', 'https://srilatha.art')
+        CorsOrigins    = @(
+            'https://www.srilatha.art',
+            'https://srilatha.art',
+            'https://salmon-wave-01c7b8300.7.azurestaticapps.net'
+        )
         CookieDomain   = '.srilatha.art'
+        WebsiteUrl     = 'www.srilatha.art'
     }
 }
 
@@ -105,7 +115,7 @@ $tableNames = @(
     'announcements',
     'wishlist', 'reviews', 'customOrders',
     'addresses', 'notifications',
-    'staff', 'auditLog'
+    'staff', 'auditLog', 'rateLimits'
 )
 
 # ─── Storage Queues (per new-backend.md §2.3) ────────────────────────────────
@@ -192,7 +202,8 @@ Write-Step "Resource Group: $($envCfg.ResourceGroup)"
 $rg = Get-AzResourceGroup -Name $envCfg.ResourceGroup -ErrorAction SilentlyContinue
 if ($rg) {
     Write-Success "Resource Group already exists : $($envCfg.ResourceGroup)"
-} else {
+}
+else {
     Write-Info "Creating Resource Group: $($envCfg.ResourceGroup)"
     New-AzResourceGroup -Name $envCfg.ResourceGroup -Location $envCfg.Location -Tag @{
         project   = 'thesrilathaarts'
@@ -212,7 +223,8 @@ $storageAccount = Get-AzStorageAccount `
 
 if ($storageAccount) {
     Write-Success "Storage Account exists : $($envCfg.StorageAccount)"
-} else {
+}
+else {
     Write-Info "Creating Storage Account: $($envCfg.StorageAccount)"
     $storageAccount = New-AzStorageAccount `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -236,7 +248,8 @@ $appInsights = Get-AzApplicationInsights `
 
 if ($appInsights) {
     Write-Success "Application Insights exists : $($envCfg.AppInsights)"
-} else {
+}
+else {
     Write-Info "Creating Application Insights: $($envCfg.AppInsights)"
     $appInsights = New-AzApplicationInsights `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -257,7 +270,8 @@ $functionApp = Get-AzFunctionApp `
 
 if ($functionApp) {
     Write-Success "Function App exists : $($envCfg.FunctionApp)"
-} else {
+}
+else {
     Write-Info "Creating Function App: $($envCfg.FunctionApp)"
     $functionApp = New-AzFunctionApp `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -282,7 +296,8 @@ $keyVault = Get-AzKeyVault `
 
 if ($keyVault) {
     Write-Success "Key Vault exists : $($envCfg.KeyVault)"
-} else {
+}
+else {
     Write-Info "Creating Key Vault: $($envCfg.KeyVault)"
     $keyVault = New-AzKeyVault `
         -ResourceGroupName $envCfg.ResourceGroup `
@@ -392,7 +407,8 @@ if ($storageAccount.AllowBlobPublicAccess -eq $false) {
         -Name $envCfg.StorageAccount `
         -AllowBlobPublicAccess $true | Out-Null
     Write-Success "Public blob access enabled"
-} else {
+}
+else {
     Write-Success "Public blob access already enabled"
 }
 

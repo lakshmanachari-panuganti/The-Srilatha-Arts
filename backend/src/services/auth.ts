@@ -2,9 +2,14 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { TokenPayload } from '../types'
 
-const JWT_SECRET = process.env.JWT_SECRET!
+// Fail fast at module load — non-null assertion only catches TypeScript, not runtime.
+// Without this, jwt.sign would throw a cryptic error on every request instead of at startup.
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET
+  if (!secret) throw new Error('[auth] JWT_SECRET environment variable is required')
+  return secret
+})()
 const COOKIE_NAME = 'tsa_token'
-const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || ''
 
 export function generateToken(payload: TokenPayload, isAdmin = false): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: isAdmin ? '24h' : '7d' })
@@ -43,13 +48,15 @@ export function extractTokenFromCookie(cookieHeader?: string | null): string | n
 
 export function buildAuthCookie(token: string, isAdmin = false): string {
   const maxAge = isAdmin ? 24 * 60 * 60 : 7 * 24 * 60 * 60
-  const domain = COOKIE_DOMAIN ? `; Domain=${COOKIE_DOMAIN}` : ''
+  const cookieDomain = process.env.COOKIE_DOMAIN || ''
+  const domain = cookieDomain ? `; Domain=${cookieDomain}` : ''
   // SameSite=Lax keeps the cookie attached for top-level navigations,
   // Secure is required by browsers for SameSite=None and recommended otherwise.
   return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}${domain}`
 }
 
 export function buildClearCookie(): string {
-  const domain = COOKIE_DOMAIN ? `; Domain=${COOKIE_DOMAIN}` : ''
+  const cookieDomain = process.env.COOKIE_DOMAIN || ''
+  const domain = cookieDomain ? `; Domain=${cookieDomain}` : ''
   return `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0${domain}`
 }

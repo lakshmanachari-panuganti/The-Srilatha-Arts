@@ -9,7 +9,13 @@
 
 import { randomBytes, createHmac } from 'crypto'
 
-const CSRF_SIGNING_KEY = process.env.CSRF_SIGNING_KEY || 'dev-csrf-key-change-me'
+// Fail fast at module load — a missing key would silently use a hardcoded value in dev
+// and cause all tokens to be invalid across restarts in production.
+const CSRF_SIGNING_KEY = (() => {
+  const key = process.env.CSRF_SIGNING_KEY
+  if (!key) throw new Error('[csrf] CSRF_SIGNING_KEY environment variable is required')
+  return key
+})()
 const CSRF_COOKIE_NAME = 'tsa_csrf'
 const CSRF_TTL_SECONDS = 24 * 60 * 60  // 24 hours
 

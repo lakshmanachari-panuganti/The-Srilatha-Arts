@@ -1,11 +1,23 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import ProductCard from '@/components/shop/ProductCard'
-import { getFeaturedProducts } from '@/data/products'
+import { apiFetch } from '@/lib/api'
+import type { Product } from '@/types'
 
-export default async function FeaturedCreations() {
-  const products = await getFeaturedProducts()
-  if (products.length === 0) return null
+export default function FeaturedCreations() {
+  const { data: products = [], isLoading } = useQuery<Product[]>({
+    queryKey: ['products', 'featured'],
+    queryFn: async () => {
+      const res = await apiFetch<{ products: Product[] }>('/products?featured=true')
+      return res.products || []
+    },
+    staleTime: 60_000,
+  })
+
+  if (isLoading || products.length === 0) return null
 
   return (
     <section className="relative py-20 lg:py-32 overflow-hidden">

@@ -30,6 +30,13 @@ import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '.
 import { checkAndIncrement } from '../services/rateLimit'
 import { randomUUID } from 'crypto'
 
+// Supported types have full discount calculation logic.
+// BUY_X_GET_Y is defined in the type system but not yet implemented —
+// coupon creation is rejected with a clear error rather than silently
+// saving a record that would always apply a zero discount (M-10).
+const VALID_COUPON_TYPES = ['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING', 'BUY_X_GET_Y'] as const
+const UNSUPPORTED_COUPON_TYPES: string[] = ['BUY_X_GET_Y']
+
 function toApi(row: Row) {
   return {
     code: row.rowKey,
@@ -207,7 +214,15 @@ async function validateCoupon(
         appliedTo = 'shipping'
         break
       default:
-        discount = 0
+        // BUY_X_GET_Y or any unknown type — creation is blocked by admin validation,
+        // but existing rows with this type should not silently grant a discount.
+        context.warn(`validateCoupon: coupon "${code}" has unsupported type "${coupon.type}" — treating as invalid`)
+        return jsonResponse(
+          { valid: false, reason: 'INVALID', message: 'This coupon type is not currently supported' },
+          200,
+          {},
+          origin,
+        )
     }
 
     return jsonResponse(
@@ -292,6 +307,22 @@ async function adminCoupons(
       const body = (await request.json()) as Record<string, unknown>
       if (!body.code || !body.type) {
         return errorResponse('Code and type are required', 400, origin)
+      }
+
+      const couponType = String(body.type)
+      if (!(VALID_COUPON_TYPES as readonly string[]).includes(couponType)) {
+        return errorResponse(
+          `Invalid coupon type "${couponType}". Valid types: ${VALID_COUPON_TYPES.join(', ')}`,
+          400,
+          origin,
+        )
+      }
+      if (UNSUPPORTED_COUPON_TYPES.includes(couponType)) {
+        return errorResponse(
+          `Coupon type "${couponType}" is not yet supported. Use PERCENTAGE, FIXED_AMOUNT, or FREE_SHIPPING.`,
+          422,
+          origin,
+        )
       }
 
       const code = String(body.code).toUpperCase().trim()

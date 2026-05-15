@@ -2,9 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import CategoryChips from '@/components/shop/CategoryChips'
-import ProductGrid from '@/components/shop/ProductGrid'
+import ProductListClient from '@/components/shop/ProductListClient'
 import { CATEGORY_BY_SLUG, CATEGORIES } from '@/data/categories'
-import { getProductsByCategory } from '@/data/products'
 
 interface Props {
   params: Promise<{ category: string }>
@@ -19,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cat = CATEGORY_BY_SLUG[category]
   if (!cat) return { title: 'Not found' }
   return {
-    title: `${cat.title} · The Srilatha Arts`,
+    title: `${cat.title} · Srilatha Art`,
     description: cat.tagline,
   }
 }
@@ -28,8 +27,6 @@ export default async function ShopCategoryPage({ params }: Props) {
   const { category } = await params
   const cat = CATEGORY_BY_SLUG[category]
   if (!cat) notFound()
-
-  const products = await getProductsByCategory(category)
 
   return (
     <>
@@ -49,7 +46,6 @@ export default async function ShopCategoryPage({ params }: Props) {
           {cat.origin}
         </p>
         <p className="text-ink-mute text-sm">
-          {products.length} {products.length === 1 ? 'piece' : 'pieces'} ·{' '}
           <Link href="/the-craft" className="text-terracotta hover:underline">
             learn how it&apos;s made
           </Link>
@@ -57,7 +53,7 @@ export default async function ShopCategoryPage({ params }: Props) {
       </header>
 
       <div className="max-w-6xl mx-auto py-6 lg:py-10">
-        <ProductGrid products={products} />
+        <ProductListClient category={category} showCount />
       </div>
     </>
   )
