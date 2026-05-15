@@ -17,10 +17,6 @@ env:
   # See https://endoflife.date/nodejs
   NODE_VERSION: '22'
   WORKING_DIRECTORY: frontend
-  # PRD URLs - update once rg-thesrilathaarts-prd is provisioned and the
-  # custom domain (api.srilatha.art / www.srilatha.art) is wired up.
-  # Until then this workflow will not run because rg-thesrilathaarts-prd / its SWA
-  # do not exist; the AZURE_STATIC_WEB_APPS_API_TOKEN_PRD secret will be missing.
   API_BASE_URL: https://func-thesrilathaarts-prd.azurewebsites.net/api
   SITE_URL: https://www.srilatha.art
 
@@ -45,11 +41,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          # NPM cache intentionally disabled: package-lock.json does not yet exist
-          # in the repo, so setup-node's cache step errors with
-          # "Some specified paths were not resolved, unable to cache dependencies."
-          # Once `npm install` has run once and a lockfile is committed,
-          # re-enable with: `cache: npm` + `cache-dependency-path: frontend/package-lock.json`.
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
