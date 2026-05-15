@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { X, MessageCircle, Instagram } from 'lucide-react'
 import { useUI } from '@/stores/ui'
+import { useUserAuth } from '@/stores/userAuth'
 import { CATEGORIES } from '@/data/categories'
 
 const primaryLinks = [
@@ -17,6 +18,8 @@ const primaryLinks = [
 export default function MobileDrawer() {
   const open = useUI((s) => s.drawerOpen)
   const setOpen = useUI((s) => s.setDrawerOpen)
+  const authUser = useUserAuth((s) => s.user)
+  const logout = useUserAuth((s) => s.logout)
 
   return (
     <AnimatePresence>
@@ -107,24 +110,57 @@ export default function MobileDrawer() {
 
               <p className="eyebrow mb-3">Account</p>
               <ul className="space-y-1">
-                <li>
-                  <Link
-                    href="/account"
-                    onClick={() => setOpen(false)}
-                    className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
-                  >
-                    Sign in
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/account/wishlist"
-                    onClick={() => setOpen(false)}
-                    className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
-                  >
-                    Wishlist
-                  </Link>
-                </li>
+                {authUser ? (
+                  <>
+                    <li>
+                      <Link
+                        href="/account"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        My Account ({authUser.name.split(' ')[0]})
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/account/wishlist"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        Wishlist
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => { logout(); setOpen(false) }}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500 text-left w-full"
+                      >
+                        Sign out
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li>
+                      <Link
+                        href="/login"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        Sign in
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/account/wishlist"
+                        onClick={() => setOpen(false)}
+                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      >
+                        Wishlist
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             </nav>
 

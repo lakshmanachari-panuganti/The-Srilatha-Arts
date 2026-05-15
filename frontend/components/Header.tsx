@@ -2,10 +2,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { Menu, Search, ShoppingBag } from 'lucide-react'
+import { Menu, Search, ShoppingBag, User } from 'lucide-react'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
 import { useCart, cartCount } from '@/stores/cart'
 import { useUI } from '@/stores/ui'
+import { useUserAuth } from '@/stores/userAuth'
 import MobileDrawer from '@/components/MobileDrawer'
 import SearchOverlay from '@/components/SearchOverlay'
 import { cn } from '@/lib/cn'
@@ -18,6 +19,7 @@ export default function Header() {
 
   const setDrawerOpen = useUI((s) => s.setDrawerOpen)
   const setSearchOpen = useUI((s) => s.setSearchOpen)
+  const authUser = useUserAuth((s) => s.user)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -93,7 +95,7 @@ export default function Header() {
             />
           </Link>
 
-          {/* Right: search + cart */}
+          {/* Right: search + account + cart */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setSearchOpen(true)}
@@ -103,6 +105,24 @@ export default function Header() {
             >
               <Search className="w-5 h-5" aria-hidden />
             </button>
+            {/* Account / Login icon — desktop only */}
+            <Link
+              href={authUser ? '/account' : '/login'}
+              aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
+              className="hidden lg:flex min-h-11 min-w-11 items-center justify-center
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500 relative"
+            >
+              {authUser ? (
+                <span
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+                             bg-lavender-pastel/30 text-ivory border border-lavender-pastel/40"
+                >
+                  {authUser.name.charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <User className="w-5 h-5" aria-hidden />
+              )}
+            </Link>
             <Link
               href="/cart"
               aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
