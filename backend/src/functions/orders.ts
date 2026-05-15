@@ -2,7 +2,7 @@
  * Customer Order Endpoints (§4.1).
  *
  * POST   /api/orders          — create order
- * GET    /api/orders/me       — list user's orders
+ * GET    /api/my-orders       — list user's orders (renamed from /orders/me to avoid route conflict)
  * GET    /api/orders/{id}     — owner OR admin
  * GET    /api/orders/{id}/events — owner timeline
  * POST   /api/orders/{id}/cancel
@@ -504,7 +504,7 @@ app.http('createNewOrder', {
 
 app.http('listMyOrders', {
   methods: ['GET', 'OPTIONS'],
-  route: 'api/orders/me',
+  route: 'api/my-orders',          // avoid route conflict with api/orders/{id}
   authLevel: 'anonymous',
   handler: listMyOrders,
 })
