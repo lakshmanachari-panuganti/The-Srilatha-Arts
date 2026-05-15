@@ -1,21 +1,85 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag, X, CheckCircle2 } from 'lucide-react'
 import { useCart, cartSubtotal } from '@/stores/cart'
 import { formatINR } from '@/lib/format'
+import { apiFetch } from '@/lib/api'
 
 const FREE_SHIPPING_THRESHOLD = 2999
+
+interface CouponResult {
+  valid: true
+  code: string
+  displayDiscount: number
+  appliedTo: 'cart' | 'shipping'
+  message: string
+}
 
 export default function CartPage() {
   const items = useCart((s) => s.items)
   const setQty = useCart((s) => s.setQty)
   const remove = useCart((s) => s.remove)
 
+  const [couponInput, setCouponInput] = useState('')
+  const [couponResult, setCouponResult] = useState<CouponResult | null>(null)
+  const [couponError, setCouponError] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+
   const subtotal = cartSubtotal(items)
-  const shipping = subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 99
-  const total = subtotal + shipping
+  const discount = couponResult?.appliedTo === 'cart' ? couponResult.displayDiscount : 0
+  const baseShipping = subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 99
+  const shippingDiscount = couponResult?.appliedTo === 'shipping' ? Math.min(couponResult.displayDiscount, baseShipping) : 0
+  const shipping = Math.max(0, baseShipping - shippingDiscount)
+  const total = Math.max(0, subtotal - discount) + shipping
   const toFreeShip = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase()
+    if (!code) return
+    setCouponLoading(true)
+    setCouponError('')
+    try {
+      const data = await apiFetch<{ valid: boolean; code?: string; displayDiscount?: number; appliedTo?: string; message: string }>(
+        '/coupons/validate',
+        {
+          method: 'POST',
+          body: {
+            code,
+            items: items.map((i) => ({
+              productId: i.productId,
+              category: i.category,
+              price: Math.round(i.price * 100), // convert rupees → paise
+              qty: i.quantity,
+            })),
+          },
+        },
+      )
+      if (data.valid) {
+        setCouponResult({
+          valid: true,
+          code: data.code!,
+          displayDiscount: data.displayDiscount!,
+          appliedTo: (data.appliedTo as 'cart' | 'shipping') ?? 'cart',
+          message: data.message,
+        })
+        setCouponInput('')
+      } else {
+        setCouponError(data.message)
+        setCouponResult(null)
+      }
+    } catch {
+      setCouponError('Could not validate coupon. Please try again.')
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setCouponResult(null)
+    setCouponError('')
+  }
 
   if (items.length === 0) {
     return (
@@ -130,15 +194,64 @@ export default function CartPage() {
               <dt>Subtotal</dt>
               <dd className="text-ink">{formatINR(subtotal)}</dd>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-emerald-600">
+                <dt>Coupon ({couponResult!.code})</dt>
+                <dd>−{formatINR(discount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between text-ink-soft">
               <dt>Shipping</dt>
-              <dd className="text-ink">{shipping === 0 ? 'Free' : formatINR(shipping)}</dd>
+              <dd className="text-ink">
+                {shipping === 0 ? (shippingDiscount > 0 ? <span className="text-emerald-600">Free (coupon)</span> : 'Free') : formatINR(shipping)}
+              </dd>
             </div>
             <div className="flex justify-between text-ink pt-3 mt-3 border-t border-ink/10 font-medium text-base">
               <dt>Total</dt>
               <dd className="font-serif text-xl">{formatINR(total)}</dd>
             </div>
           </dl>
+
+          {/* Coupon input */}
+          <div className="mt-5 border-t border-ink/10 pt-5">
+            {couponResult ? (
+              <div className="flex items-center justify-between rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm">
+                <span className="flex items-center gap-2 text-emerald-700 font-medium">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
+                  {couponResult.message}
+                </span>
+                <button onClick={removeCoupon} aria-label="Remove coupon" className="text-emerald-500 hover:text-emerald-700 ml-2">
+                  <X className="w-4 h-4" aria-hidden />
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-mute" aria-hidden />
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
+                      onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                      placeholder="Coupon code"
+                      className="w-full pl-8 pr-3 h-10 rounded-full border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+                    />
+                  </div>
+                  <button
+                    onClick={applyCoupon}
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="h-10 px-4 rounded-full bg-terracotta text-white text-sm font-medium disabled:opacity-50 hover:bg-terracotta/90 transition-colors whitespace-nowrap"
+                  >
+                    {couponLoading ? '…' : 'Apply'}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="text-xs text-red-600 px-1">{couponError}</p>
+                )}
+              </div>
+            )}
+          </div>
 
           <Link href="/checkout" className="btn-dark w-full justify-center mt-6">
             Checkout
