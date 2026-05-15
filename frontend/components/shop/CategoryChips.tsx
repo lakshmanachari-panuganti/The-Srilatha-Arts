@@ -19,7 +19,7 @@ export default function CategoryChips() {
       aria-label="Categories"
       className="sticky top-[calc(var(--banner-h)+4rem)] lg:top-[calc(var(--banner-h)+5rem)] z-30"
       style={{
-        background: 'rgba(43,30,52,0.88)',
+        background: 'rgba(76,29,149,0.88)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',

@@ -45,16 +45,16 @@ export default function MobileDrawer() {
             className="fixed top-0 bottom-0 left-0 z-[71] w-[86vw] max-w-sm
                        overflow-y-auto safe-pt"
             style={{
-              background: 'rgba(43,30,52,0.95)',
+              background: 'rgba(76,29,149,0.95)',
               backdropFilter: 'blur(24px)',
-              borderRight: '1px solid rgba(255,255,255,0.08)',
+              borderRight: '1px solid rgba(167,139,250,0.25)',
             }}
           >
             <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4"
                  style={{
-                   background: 'rgba(43,30,52,0.95)',
+                   background: 'rgba(76,29,149,0.95)',
                    backdropFilter: 'blur(24px)',
-                   borderBottom: '1px solid rgba(255,255,255,0.06)',
+                   borderBottom: '1px solid rgba(167,139,250,0.20)',
                  }}
             >
               <Link

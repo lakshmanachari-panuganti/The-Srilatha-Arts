@@ -25,10 +25,10 @@ export default function BottomTabBar() {
       aria-label="Primary"
       className="lg:hidden fixed bottom-0 inset-x-0 z-40 safe-pb"
       style={{
-        background: 'rgba(43,30,52,0.92)',
+        background: 'rgba(76,29,149,0.92)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        borderTop: '1px solid rgba(167,139,250,0.30)',
       }}
     >
       <ul className="grid grid-cols-5 h-16">
@@ -60,8 +60,9 @@ export default function BottomTabBar() {
                       : 'scale-100',
                   )}
                   style={raised ? {
-                    background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
-                    color: '#2B1E34',
+                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 60%, #E879F9 100%)',
+                    color: '#ffffff',
+                    boxShadow: '0 4px 20px rgba(124,58,237,0.55)',
                   } : undefined}
                 >
                   <Icon className={raised ? 'w-5 h-5' : 'w-[18px] h-[18px]'} aria-hidden />

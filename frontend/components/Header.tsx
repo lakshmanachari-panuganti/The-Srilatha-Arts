@@ -47,7 +47,7 @@ export default function Header() {
               ? 'glass-strong'
               : 'bg-plum/40 backdrop-blur-sm',
           )}
-          style={{ borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent' }}
+          style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
         >
           {/* Left: hamburger (mobile) + minimal nav (desktop) */}
           <div className="flex items-center gap-1">
