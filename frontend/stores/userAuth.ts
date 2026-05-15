@@ -18,6 +18,8 @@ interface UserAuthState {
   needsProfileSetup: boolean
 
   loginWithGoogle: (credential: string) => Promise<{ needsProfileSetup: boolean } | null>
+  loginWithEmail: (email: string, password: string) => Promise<boolean>
+  register: (name: string, email: string, password: string, phone: string) => Promise<boolean>
   completeProfile: (name: string, phone: string) => Promise<boolean>
   logout: () => Promise<void>
   clearError: () => void
@@ -57,6 +59,38 @@ export const useUserAuth = create<UserAuthState>()(
           const message = extractErrorMessage(err)
           set({ isLoading: false, error: message })
           return null
+        }
+      },
+
+      loginWithEmail: async (email: string, password: string) => {
+        set({ isLoading: true, error: null })
+        try {
+          const res = await apiFetch<{ user: AuthUser; token: string }>('/auth/login', {
+            method: 'POST',
+            body: { email, password },
+          })
+          setApiAuthToken(res.token)
+          set({ user: res.user, token: res.token, isLoading: false, error: null })
+          return true
+        } catch (err) {
+          set({ isLoading: false, error: extractErrorMessage(err) })
+          return false
+        }
+      },
+
+      register: async (name: string, email: string, password: string, phone: string) => {
+        set({ isLoading: true, error: null })
+        try {
+          const res = await apiFetch<{ user: AuthUser; token: string }>('/auth/register', {
+            method: 'POST',
+            body: { name, email, password, phone: phone || undefined },
+          })
+          setApiAuthToken(res.token)
+          set({ user: res.user, token: res.token, isLoading: false, error: null })
+          return true
+        } catch (err) {
+          set({ isLoading: false, error: extractErrorMessage(err) })
+          return false
         }
       },
 
