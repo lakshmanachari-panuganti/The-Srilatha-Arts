@@ -4,8 +4,8 @@ import Image from 'next/image'
 import { Heart, Plus } from 'lucide-react'
 import type { Product } from '@/types'
 import { formatINR, discountPct } from '@/lib/format'
-import { useCart } from '@/stores/cart'
 import { useWishlist } from '@/stores/wishlist'
+import { useAddToCart } from '@/hooks/useAddToCart'
 import { useHaptic } from '@/hooks/useHaptic'
 import { cn } from '@/lib/cn'
 
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function ProductCard({ product, variant = 'grid', priority = false }: Props) {
-  const addToCart = useCart((s) => s.add)
+  const { addToCart } = useAddToCart()
   const toggleWishlist = useWishlist((s) => s.toggle)
   const inWishlist = useWishlist((s) => s.has(product.id))
   const haptic = useHaptic()
@@ -25,8 +25,9 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
 
   const onAdd = (e: React.MouseEvent) => {
     e.preventDefault()
-    addToCart(product)
-    haptic([12, 30, 12])
+    // useAddToCart returns false if it redirected to login — no haptic
+    // in that case (the page is unmounting anyway).
+    if (addToCart(product)) haptic([12, 30, 12])
   }
 
   const onWish = (e: React.MouseEvent) => {

@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Lock, ShieldCheck, Truck } from 'lucide-react'
+import {
+  ArrowRight, Lock, ShieldCheck, Truck,
+  Pencil, Trash2, Plus, Check, X as XIcon,
+} from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { useCart, cartSubtotal } from '@/stores/cart'
 import { useUserAuth } from '@/stores/userAuth'
@@ -51,11 +54,41 @@ interface ShippingForm {
   pincode: string
 }
 
+interface SavedAddress {
+  id: string
+  label: string
+  fullName: string
+  phone: string
+  line1: string
+  line2?: string
+  city: string
+  state: string
+  pincode: string
+  isDefault: boolean
+  createdAt: string
+}
+
 function emptyShipping(): ShippingForm {
   return { fullName: '', phone: '', email: '', line1: '', line2: '', city: '', state: '', pincode: '' }
 }
 
+function shippingFromSaved(a: SavedAddress, email: string): ShippingForm {
+  return {
+    fullName: a.fullName,
+    phone: a.phone,
+    email,
+    line1: a.line1,
+    line2: a.line2 || '',
+    city: a.city,
+    state: a.state,
+    pincode: a.pincode,
+  }
+}
+
 const CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js'
+// Sentinel selectedId value meaning "I'm entering a new address". Using a
+// fixed non-uuid string keeps the radio model simple.
+const NEW_ADDRESS_ID = '__new__'
 
 export default function CheckoutClient() {
   const router = useRouter()
@@ -64,17 +97,31 @@ export default function CheckoutClient() {
   const clear = useCart((s) => s.clear)
   const user = useUserAuth((s) => s.user)
 
+  // Auth gate: /checkout is only meaningful for signed-in users. Send the
+  // unauthenticated user to /login and bring them right back here.
+  useEffect(() => {
+    if (!hydrated) return
+    if (!user) router.replace('/login?next=' + encodeURIComponent('/checkout'))
+  }, [hydrated, user, router])
+
   const [form, setForm] = useState<ShippingForm>(emptyShipping)
+  const [saveNewAddress, setSaveNewAddress] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [scriptReady, setScriptReady] = useState(false)
   const [success, setSuccess] = useState<{ orderId: string } | null>(null)
 
+  const [addresses, setAddresses] = useState<SavedAddress[] | null>(null)
+  const [selectedId, setSelectedId] = useState<string>(NEW_ADDRESS_ID)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<ShippingForm>(emptyShipping)
+  const [editBusy, setEditBusy] = useState(false)
+
   const subtotal = cartSubtotal(items)
   const shipping = subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 99
   const total = subtotal + shipping
 
-  // Pre-fill from logged-in user
+  // Prefill name/phone/email from the signed-in user on first render.
   useEffect(() => {
     if (!user) return
     setForm((f) => ({
@@ -85,7 +132,27 @@ export default function CheckoutClient() {
     }))
   }, [user])
 
-  // Load Razorpay Checkout script once
+  // Fetch saved addresses. If any exist, default to the user's default
+  // address (or the first), otherwise stay on "new".
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    apiFetch<{ addresses: SavedAddress[] }>('/addresses')
+      .then((r) => {
+        if (cancelled) return
+        setAddresses(r.addresses)
+        if (r.addresses.length > 0) {
+          const def = r.addresses.find((a) => a.isDefault) || r.addresses[0]
+          setSelectedId(def.id)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAddresses([])
+      })
+    return () => { cancelled = true }
+  }, [user])
+
+  // Lazy-load Razorpay Checkout
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (window.Razorpay) { setScriptReady(true); return }
@@ -102,22 +169,85 @@ export default function CheckoutClient() {
     document.head.appendChild(s)
   }, [])
 
-  // After hydration, an empty cart means there's nothing to check out
   const cartEmpty = hydrated && items.length === 0 && !success
   useEffect(() => {
     if (cartEmpty) router.replace('/cart')
   }, [cartEmpty, router])
 
+  const selectedAddress: SavedAddress | null = useMemo(() => {
+    if (!addresses) return null
+    return addresses.find((a) => a.id === selectedId) || null
+  }, [addresses, selectedId])
+
+  // Whichever data set we'll actually charge against — the active saved
+  // address (if one is selected) or the manual form.
+  const activeShipping: ShippingForm = useMemo(() => {
+    if (selectedAddress) return shippingFromSaved(selectedAddress, user?.email || form.email)
+    return form
+  }, [selectedAddress, form, user])
+
   const validate = useMemo<string | null>(() => {
-    if (!form.fullName.trim()) return 'Please enter your full name'
-    if (!/^[+\d][\d\s-]{7,19}$/.test(form.phone.trim())) return 'Please enter a valid phone number'
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return 'Please enter a valid email'
-    if (!form.line1.trim()) return 'Please enter your address'
-    if (!form.city.trim()) return 'Please enter your city'
-    if (!form.state.trim()) return 'Please enter your state'
-    if (!/^\d{6}$/.test(form.pincode.trim())) return 'Pincode must be exactly 6 digits'
+    const s = activeShipping
+    if (!s.fullName.trim()) return 'Please enter your full name'
+    if (!/^[+\d][\d\s-]{7,19}$/.test(s.phone.trim())) return 'Please enter a valid phone number'
+    if (s.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email.trim())) return 'Please enter a valid email'
+    if (!s.line1.trim()) return 'Please enter your address'
+    if (!s.city.trim()) return 'Please enter your city'
+    if (!s.state.trim()) return 'Please enter your state'
+    if (!/^\d{6}$/.test(s.pincode.trim())) return 'Pincode must be exactly 6 digits'
     return null
-  }, [form])
+  }, [activeShipping])
+
+  async function handleDeleteAddress(id: string) {
+    if (!confirm('Remove this address from your address book?')) return
+    try {
+      await apiFetch(`/addresses/${id}`, { method: 'DELETE' })
+      setAddresses((prev) => prev?.filter((a) => a.id !== id) || [])
+      if (selectedId === id) setSelectedId(NEW_ADDRESS_ID)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not remove address')
+    }
+  }
+
+  function startEdit(a: SavedAddress) {
+    setEditingId(a.id)
+    setEditForm({
+      fullName: a.fullName,
+      phone: a.phone,
+      email: '',
+      line1: a.line1,
+      line2: a.line2 || '',
+      city: a.city,
+      state: a.state,
+      pincode: a.pincode,
+    })
+  }
+
+  async function saveEdit() {
+    if (!editingId) return
+    setError('')
+    setEditBusy(true)
+    try {
+      const r = await apiFetch<{ address: SavedAddress }>(`/addresses/${editingId}`, {
+        method: 'PATCH',
+        body: {
+          fullName: editForm.fullName.trim(),
+          phone: editForm.phone.trim(),
+          line1: editForm.line1.trim(),
+          line2: editForm.line2.trim(),
+          city: editForm.city.trim(),
+          state: editForm.state.trim(),
+          pincode: editForm.pincode.trim(),
+        },
+      })
+      setAddresses((prev) => (prev || []).map((a) => (a.id === editingId ? r.address : a)))
+      setEditingId(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save address')
+    } finally {
+      setEditBusy(false)
+    }
+  }
 
   async function handlePay() {
     setError('')
@@ -133,12 +263,38 @@ export default function CheckoutClient() {
 
     setSubmitting(true)
     try {
-      // 1. Server creates internal order + Razorpay order with authoritative pricing.
+      // If the customer chose "new address" and ticked "save for next time",
+      // persist it to their address book FIRST so future checkouts get the
+      // picker. Failure here is non-fatal — we'd still want to take the
+      // payment for the order they're trying to place right now.
+      if (selectedId === NEW_ADDRESS_ID && saveNewAddress && user) {
+        try {
+          const r = await apiFetch<{ address: SavedAddress }>('/addresses', {
+            method: 'POST',
+            body: {
+              fullName: form.fullName.trim(),
+              phone: form.phone.trim(),
+              line1: form.line1.trim(),
+              line2: form.line2.trim(),
+              city: form.city.trim(),
+              state: form.state.trim(),
+              pincode: form.pincode.trim(),
+              label: 'Home',
+              isDefault: !addresses || addresses.length === 0,
+            },
+          })
+          setAddresses((prev) => [...(prev || []), r.address])
+        } catch {
+          // intentionally swallowed — see comment above
+        }
+      }
+
+      const s = activeShipping
       const res = await apiFetch<{
         order: {
           id: string
           razorpayOrderId: string
-          amount: number          // paise
+          amount: number
           displayTotal: number
           currency: string
           customerName: string
@@ -151,18 +307,18 @@ export default function CheckoutClient() {
         body: {
           items: items.map((i) => ({ productId: i.productId, qty: i.quantity })),
           shippingAddress: {
-            fullName: form.fullName.trim(),
-            phone: form.phone.trim(),
-            email: form.email.trim(),
-            line1: form.line1.trim(),
-            line2: form.line2.trim(),
-            city: form.city.trim(),
-            state: form.state.trim(),
-            pincode: form.pincode.trim(),
+            fullName: s.fullName.trim(),
+            phone: s.phone.trim(),
+            email: s.email.trim(),
+            line1: s.line1.trim(),
+            line2: s.line2.trim(),
+            city: s.city.trim(),
+            state: s.state.trim(),
+            pincode: s.pincode.trim(),
           },
-          customerName: form.fullName.trim(),
-          customerPhone: form.phone.trim(),
-          customerEmail: form.email.trim() || undefined,
+          customerName: s.fullName.trim(),
+          customerPhone: s.phone.trim(),
+          customerEmail: (s.email.trim() || user?.email || '') || undefined,
         },
       })
 
@@ -171,7 +327,6 @@ export default function CheckoutClient() {
         return
       }
 
-      // 2. Open Razorpay Checkout.
       const rzp = new window.Razorpay({
         key: res.keyId,
         amount: res.order.amount,
@@ -191,7 +346,6 @@ export default function CheckoutClient() {
           ondismiss: () => setSubmitting(false),
         },
         handler: async (rzpRes) => {
-          // 3. Verify the signature server-side before considering paid.
           try {
             await apiFetch<{ ok: true; orderId: string }>('/razorpay/verify', {
               method: 'POST',
@@ -246,13 +400,18 @@ export default function CheckoutClient() {
     )
   }
 
-  if (!hydrated || cartEmpty) {
+  // While unauthenticated, render the loader — the redirect effect above
+  // will move the user to /login on the next tick.
+  if (!hydrated || cartEmpty || !user) {
     return (
       <main className="min-h-svh max-w-2xl mx-auto px-5 py-20 text-center">
         <div className="animate-pulse text-ink-mute">Loading…</div>
       </main>
     )
   }
+
+  const hasSaved = (addresses?.length ?? 0) > 0
+  const usingNew = selectedId === NEW_ADDRESS_ID
 
   return (
     <main className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16 lg:grid lg:grid-cols-3 lg:gap-12">
@@ -265,25 +424,166 @@ export default function CheckoutClient() {
           <p className="text-ink-soft mt-2 text-sm">Pay securely with UPI, cards, or netbanking via Razorpay.</p>
         </header>
 
-        <div className="card p-6 lg:p-7">
-          <h2 className="font-serif text-2xl mb-5">Shipping details</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="fullName" label="Full name" required value={form.fullName} onChange={(v) => setForm({ ...form, fullName: v })} autoComplete="name" />
-            <Field id="phone" label="Phone" required value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} autoComplete="tel" type="tel" placeholder="+91 98765 43210" />
-            <div className="sm:col-span-2">
-              <Field id="email" label="Email (optional but recommended)" value={form.email} onChange={(v) => setForm({ ...form, email: v })} autoComplete="email" type="email" />
+        {/* ── Saved addresses ─────────────────────────────────── */}
+        {hasSaved && (
+          <div className="card p-6 lg:p-7">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-serif text-2xl">Deliver to</h2>
+              <p className="text-xs text-ink-mute">{addresses!.length} saved</p>
             </div>
-            <div className="sm:col-span-2">
-              <Field id="line1" label="Address line 1" required value={form.line1} onChange={(v) => setForm({ ...form, line1: v })} autoComplete="address-line1" />
-            </div>
-            <div className="sm:col-span-2">
-              <Field id="line2" label="Address line 2 (optional)" value={form.line2} onChange={(v) => setForm({ ...form, line2: v })} autoComplete="address-line2" />
-            </div>
-            <Field id="city" label="City" required value={form.city} onChange={(v) => setForm({ ...form, city: v })} autoComplete="address-level2" />
-            <Field id="state" label="State" required value={form.state} onChange={(v) => setForm({ ...form, state: v })} autoComplete="address-level1" />
-            <Field id="pincode" label="Pincode" required value={form.pincode} onChange={(v) => setForm({ ...form, pincode: v })} autoComplete="postal-code" inputMode="numeric" maxLength={6} />
+
+            <ul className="space-y-3">
+              {addresses!.map((a) => {
+                const checked = selectedId === a.id
+                const isEditing = editingId === a.id
+                return (
+                  <li
+                    key={a.id}
+                    className={`rounded-2xl border transition-colors ${
+                      checked ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                    }`}
+                  >
+                    {isEditing ? (
+                      <div className="p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <Field id={`e-name-${a.id}`} label="Name" required value={editForm.fullName} onChange={(v) => setEditForm({ ...editForm, fullName: v })} />
+                          <Field id={`e-phone-${a.id}`} label="Phone" required type="tel" value={editForm.phone} onChange={(v) => setEditForm({ ...editForm, phone: v })} />
+                          <div className="sm:col-span-2">
+                            <Field id={`e-l1-${a.id}`} label="Address line 1" required value={editForm.line1} onChange={(v) => setEditForm({ ...editForm, line1: v })} />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Field id={`e-l2-${a.id}`} label="Address line 2" value={editForm.line2} onChange={(v) => setEditForm({ ...editForm, line2: v })} />
+                          </div>
+                          <Field id={`e-city-${a.id}`} label="City" required value={editForm.city} onChange={(v) => setEditForm({ ...editForm, city: v })} />
+                          <Field id={`e-state-${a.id}`} label="State" required value={editForm.state} onChange={(v) => setEditForm({ ...editForm, state: v })} />
+                          <Field id={`e-pin-${a.id}`} label="Pincode" required value={editForm.pincode} onChange={(v) => setEditForm({ ...editForm, pincode: v })} inputMode="numeric" maxLength={6} />
+                        </div>
+                        <div className="flex gap-2 mt-4">
+                          <button type="button" onClick={saveEdit} disabled={editBusy} className="btn-dark text-sm h-10 px-4 disabled:opacity-60">
+                            <Check className="w-4 h-4" aria-hidden /> {editBusy ? 'Saving…' : 'Save changes'}
+                          </button>
+                          <button type="button" onClick={() => setEditingId(null)} className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="flex items-start gap-3 p-4 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="address"
+                          value={a.id}
+                          checked={checked}
+                          onChange={() => setSelectedId(a.id)}
+                          className="mt-1 accent-terracotta"
+                          aria-label={`Use the ${a.label} address`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-ink">{a.fullName}</p>
+                            <span className="text-[10px] tracking-wider uppercase text-ink-mute bg-cream-deep rounded-full px-2 py-0.5">
+                              {a.label || 'Home'}
+                            </span>
+                            {a.isDefault && (
+                              <span className="text-[10px] tracking-wider uppercase text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-ink-soft mt-1">
+                            {a.line1}{a.line2 ? `, ${a.line2}` : ''}<br />
+                            {a.city}, {a.state} {a.pincode}<br />
+                            <span className="text-ink-mute">{a.phone}</span>
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-1 -mt-1">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); startEdit(a) }}
+                            aria-label="Edit address"
+                            className="p-2 text-ink-mute hover:text-terracotta"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); handleDeleteAddress(a.id) }}
+                            aria-label="Remove address"
+                            className="p-2 text-ink-mute hover:text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </label>
+                    )}
+                  </li>
+                )
+              })}
+
+              {/* "Use a new address" radio */}
+              <li
+                className={`rounded-2xl border transition-colors ${
+                  usingNew ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                }`}
+              >
+                <label className="flex items-start gap-3 p-4 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="address"
+                    value={NEW_ADDRESS_ID}
+                    checked={usingNew}
+                    onChange={() => setSelectedId(NEW_ADDRESS_ID)}
+                    className="mt-1 accent-terracotta"
+                  />
+                  <div className="flex items-center gap-2 text-ink">
+                    <Plus className="w-4 h-4" aria-hidden />
+                    <span className="font-medium">Use a different address</span>
+                  </div>
+                </label>
+              </li>
+            </ul>
           </div>
-        </div>
+        )}
+
+        {/* ── New / first-time address form ───────────────────── */}
+        {(usingNew || !hasSaved) && (
+          <div className="card p-6 lg:p-7">
+            <h2 className="font-serif text-2xl mb-1">
+              {hasSaved ? 'New shipping address' : 'Shipping address'}
+            </h2>
+            <p className="text-xs text-ink-mute mb-5">
+              {hasSaved
+                ? 'Enter the address you want this order shipped to.'
+                : 'We’ll save this address for next time.'}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field id="fullName" label="Full name" required value={form.fullName} onChange={(v) => setForm({ ...form, fullName: v })} autoComplete="name" />
+              <Field id="phone" label="Phone" required value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} autoComplete="tel" type="tel" placeholder="+91 98765 43210" />
+              <div className="sm:col-span-2">
+                <Field id="email" label="Email (optional but recommended)" value={form.email} onChange={(v) => setForm({ ...form, email: v })} autoComplete="email" type="email" />
+              </div>
+              <div className="sm:col-span-2">
+                <Field id="line1" label="Address line 1" required value={form.line1} onChange={(v) => setForm({ ...form, line1: v })} autoComplete="address-line1" />
+              </div>
+              <div className="sm:col-span-2">
+                <Field id="line2" label="Address line 2 (optional)" value={form.line2} onChange={(v) => setForm({ ...form, line2: v })} autoComplete="address-line2" />
+              </div>
+              <Field id="city" label="City" required value={form.city} onChange={(v) => setForm({ ...form, city: v })} autoComplete="address-level2" />
+              <Field id="state" label="State" required value={form.state} onChange={(v) => setForm({ ...form, state: v })} autoComplete="address-level1" />
+              <Field id="pincode" label="Pincode" required value={form.pincode} onChange={(v) => setForm({ ...form, pincode: v })} autoComplete="postal-code" inputMode="numeric" maxLength={6} />
+            </div>
+
+            <label className="mt-5 flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
+              <input
+                type="checkbox"
+                checked={saveNewAddress}
+                onChange={(e) => setSaveNewAddress(e.target.checked)}
+                className="accent-terracotta"
+              />
+              Save this address for next time
+            </label>
+          </div>
+        )}
 
         <div className="flex items-center gap-3 text-xs text-ink-soft">
           <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden />
@@ -291,6 +591,7 @@ export default function CheckoutClient() {
         </div>
       </section>
 
+      {/* ── Order summary + Pay button ────────────────────────── */}
       <aside className="lg:col-span-1 mt-10 lg:mt-0">
         <div className="lg:sticky lg:top-32 card p-6 lg:p-7">
           <h2 className="font-serif text-2xl mb-5">Your order</h2>
@@ -384,3 +685,6 @@ function Row({ label, value }: { label: string; value: string }) {
     </div>
   )
 }
+
+// Silence unused-import warning if XIcon ends up only referenced in jsdoc.
+void XIcon
