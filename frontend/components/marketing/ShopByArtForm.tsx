@@ -13,16 +13,16 @@ export default function ShopByArtForm() {
       <div className="mb-12 lg:mb-20 max-w-2xl">
         <p className="eyebrow mb-4">
           <span className="section-no text-lavender-pastel">001</span>
-          The collections
+          Shop by art style
         </p>
         <h2 className="display text-4xl lg:text-6xl mb-4">
-          Five disciplines,
+          Five handmade
           <br />
-          one <em className="font-serif italic gold-text">studio</em>.
+          art <em className="font-serif italic gold-text">styles</em>.
         </h2>
         <p className="text-ivory-soft text-base lg:text-lg leading-relaxed">
-          From the meditative rhythm of Dot Mandala to the salt-desert mirror work of Lippan - each
-          art form has its own voice. Pick one that calls to you.
+          From calming dot patterns to bright mirror work, each style has its own look and feel.
+          Pick the one you love.
         </p>
       </div>
 

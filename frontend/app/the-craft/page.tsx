@@ -1,18 +1,42 @@
 import type { Metadata } from 'next'
-import PlaceholderPage from '@/components/PlaceholderPage'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { CATEGORIES } from '@/data/categories'
 
 export const metadata: Metadata = {
-  title: 'The Craft',
-  description: 'How each art form is made - long-form editorial pages.',
+  title: 'How it’s made',
+  description: 'A short look at the five handmade art styles we make.',
 }
 
 export default function TheCraftPage() {
   return (
-    <PlaceholderPage
-      eyebrow="Long-form editorial"
-      title="How it's all made"
-      goldWord="made"
-      description="Per-art-form editorial pages with history, technique, video and a 'shop this form' CTA are being typeset. Subscribe below to be notified."
-    />
+    <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
+      <p className="eyebrow mb-3">How it’s made</p>
+      <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-6">
+        Five art styles, <em className="italic gold-text">explained</em>
+      </h1>
+      <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-12">
+        Each style has its own way of being made. Here&apos;s a quick look at each one — and what
+        makes it special.
+      </p>
+
+      <div className="space-y-12">
+        {CATEGORIES.map((c) => (
+          <article key={c.slug}>
+            <h2 className="font-serif text-2xl lg:text-3xl text-ivory mb-3">{c.title}</h2>
+            <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
+              {c.origin}
+            </p>
+            <Link
+              href={`/shop/${c.slug}`}
+              className="inline-flex items-center gap-1 text-sm text-lavender-pastel hover:underline"
+            >
+              Shop {c.title}
+              <ArrowRight className="w-4 h-4" aria-hidden />
+            </Link>
+          </article>
+        ))}
+      </div>
+    </main>
   )
 }

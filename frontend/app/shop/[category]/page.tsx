@@ -36,7 +36,7 @@ export default async function ShopCategoryPage({ params }: Props) {
           <span className="section-no text-terracotta">
             {String(cat.ordinal).padStart(3, '0')}
           </span>
-          The collection
+          Shop by style
         </p>
         <h1 className="display text-4xl md:text-5xl lg:text-7xl mb-5">
           {cat.title.split(' ').slice(0, -1).join(' ')}{' '}
@@ -47,7 +47,7 @@ export default async function ShopCategoryPage({ params }: Props) {
         </p>
         <p className="text-ink-mute text-sm">
           <Link href="/the-craft" className="text-terracotta hover:underline">
-            learn how it&apos;s made
+            See how it&apos;s made
           </Link>
         </p>
       </header>

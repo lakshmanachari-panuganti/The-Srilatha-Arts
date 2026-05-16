@@ -25,7 +25,7 @@ export default function BestSellers() {
         <div>
           <p className="eyebrow mb-4">
             <span className="section-no text-lavender-pastel">004</span>
-            Loved by many
+            Most loved
           </p>
           <h2 className="display text-4xl lg:text-6xl">
             Best{' '}

@@ -6,10 +6,10 @@ export const metadata: Metadata = { title: 'Collections' }
 export default function CollectionsPage() {
   return (
     <PlaceholderPage
-      eyebrow="Curated bundles"
-      title="Collections"
-      goldWord="Collections"
-      description="Themed bundles - Diwali Picks, Housewarming Gifts and more - coming soon."
+      eyebrow="Coming soon"
+      title="Themed gift sets"
+      goldWord="gift sets"
+      description="We're putting together themed sets — Diwali picks, housewarming gifts and more. Check back soon, or browse all our pieces in the meantime."
     />
   )
 }

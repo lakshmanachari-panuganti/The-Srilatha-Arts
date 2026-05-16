@@ -61,7 +61,7 @@ export default function Hero() {
           className="eyebrow justify-center mb-6"
         >
           <span className="w-8 h-px bg-gradient-to-r from-transparent to-lavender-pastel" />
-          Hyderabad · est. 2020
+          Made in Hyderabad · since 2020
           <span className="w-8 h-px bg-gradient-to-l from-transparent to-lavender-pastel" />
         </motion.p>
 
@@ -94,11 +94,11 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="display text-5xl sm:text-6xl lg:text-8xl mb-5 lg:mb-7"
         >
-          Where Tradition
+          Handmade Indian
           <br />
-          Meets{' '}
+          art for your{' '}
           <span className="relative italic font-serif">
-            <span className="gold-text">Creativity</span>
+            <span className="gold-text">home</span>
             <svg
               viewBox="0 0 200 12"
               preserveAspectRatio="none"
@@ -123,8 +123,8 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.3 }}
           className="text-ivory-soft text-base lg:text-lg max-w-reader mx-auto mb-8 lg:mb-10 leading-relaxed"
         >
-          A small studio crafting Resin, Dot Mandala, Lippan, Pichwai and Kolam art - by hand, one
-          piece at a time, for homes across India.
+          Beautiful wall art in five styles — Resin, Dot Mandala, Lippan, Pichwai and Kolam.
+          Each piece is made by hand, one at a time, in our Hyderabad studio.
         </motion.p>
 
         {/* CTAs */}
@@ -135,11 +135,11 @@ export default function Hero() {
           className="flex flex-col sm:flex-row gap-3 justify-center mb-14"
         >
           <Link href="/shop" className="btn-dark">
-            Explore the collection
+            Shop all art
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
           <Link href="/custom-order" className="btn-outline">
-            Start your Custom Creations
+            Order a custom piece
           </Link>
         </motion.div>
 
@@ -150,11 +150,11 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.7 }}
           className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] tracking-[0.18em] uppercase text-ivory-mute"
         >
-          <span>Free shipping ₹2,999+</span>
+          <span>Free shipping above ₹2,999</span>
           <span className="w-1 h-1 rounded-full bg-lavender-soft/40" aria-hidden />
-          <span>Handmade in Hyderabad</span>
+          <span>Made by hand in Hyderabad</span>
           <span className="w-1 h-1 rounded-full bg-lavender-soft/40" aria-hidden />
-          <span>Ships in 5–7 days</span>
+          <span>Delivered in 5–7 days</span>
         </motion.div>
       </div>
     </section>

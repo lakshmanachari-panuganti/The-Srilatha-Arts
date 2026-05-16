@@ -26,28 +26,28 @@ export default function OurStoryTeaser() {
             />
             <span className="absolute top-5 left-5 sticker -rotate-2">
               <span className="opacity-70 mr-2">003</span>
-              The Studio
+              Our studio
             </span>
           </div>
         </div>
 
         <div className="lg:col-span-6 lg:pl-6">
-          <p className="eyebrow mb-4">Our story</p>
+          <p className="eyebrow mb-4">About us</p>
           <h2 className="display text-4xl lg:text-6xl mb-5">
-            A skylit room in
+            Made in
             <br />
             <em className="italic gold-text">Hyderabad</em>.
           </h2>
           <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
-            Every piece begins in a small studio on the outskirts of Hyderabad - a workspace lit by a
-            single skylight, scented with resin and rice flour.
+            Every piece is made by hand in our small Hyderabad studio. We take our time so each
+            artwork comes out exactly right.
           </p>
           <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-8">
-            What started as a quiet practice of dot mandalas during the lockdown became a small craft
-            house. Today, Srilatha and her two-person team ship art to homes across India.
+            Srilatha started painting dot mandalas during the lockdown. Today, she and her small team
+            ship handmade art to homes all over India.
           </p>
           <Link href="/our-story" className="btn-link">
-            Read the full story
+            Read our full story
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
         </div>

@@ -89,15 +89,15 @@ export default function CartPage() {
     return (
       <main className="min-h-svh max-w-2xl mx-auto px-5 py-20 lg:py-28 text-center">
         <ShoppingBag className="w-12 h-12 text-terracotta/60 mx-auto mb-4" aria-hidden />
-        <p className="eyebrow justify-center mb-3">Empty cart</p>
+        <p className="eyebrow justify-center mb-3">Your cart</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
-          Your cart is <em className="italic">waiting</em>
+          Your cart is <em className="italic">empty</em>
         </h1>
         <p className="text-ink-soft mb-8">
-          Nothing here yet. Browse the collection and pick a piece that calls to you.
+          Nothing here yet. Have a look at our shop and add a piece you love.
         </p>
         <Link href="/shop" className="btn-dark">
-          Browse the shop
+          Start shopping
           <ArrowRight className="w-4 h-4" aria-hidden />
         </Link>
       </main>
@@ -181,7 +181,7 @@ export default function CartPage() {
 
           {toFreeShip > 0 && (
             <div className="bg-cream-deep rounded-2xl p-4 mb-5 text-sm text-ink">
-              Add <strong>{formatINR(toFreeShip)}</strong> more for free shipping.
+              Add <strong>{formatINR(toFreeShip)}</strong> more to get free shipping.
               <div className="h-1 rounded-full bg-ink/10 mt-2 overflow-hidden">
                 <div
                   className="h-full bg-terracotta transition-all"

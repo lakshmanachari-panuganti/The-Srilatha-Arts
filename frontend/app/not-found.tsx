@@ -5,13 +5,13 @@ export default function NotFound() {
     <main className="min-h-svh flex flex-col items-center justify-center px-6 text-center">
       <p className="eyebrow mb-3">404</p>
       <h1 className="display text-5xl md:text-6xl mb-4">
-        This canvas is <em className="italic">blank</em>
+        Page <em className="italic">not found</em>
       </h1>
       <p className="text-ink-soft max-w-md mb-8">
-        The page you were looking for could not be found. Perhaps it was reimagined into something new.
+        We couldn&apos;t find the page you were looking for. The link may be old or the page may have moved.
       </p>
       <Link href="/" className="btn-dark">
-        Back to the gallery
+        Back to home
       </Link>
     </main>
   )

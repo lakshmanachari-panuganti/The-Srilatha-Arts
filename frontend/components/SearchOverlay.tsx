@@ -75,7 +75,7 @@ export default function SearchOverlay() {
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search products, art forms, occasions…"
+                placeholder="Search for art, styles, gift ideas…"
                 className="flex-1 bg-transparent outline-none text-ivory placeholder:text-ivory-mute py-2 text-lg font-serif"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                 onFocus={(e) => e.target.style.borderBottomColor = 'rgba(200,182,255,0.5)'}
@@ -93,7 +93,7 @@ export default function SearchOverlay() {
 
             {q.trim() === '' ? (
               <div>
-                <p className="eyebrow mb-3">Popular</p>
+                <p className="eyebrow mb-3">Popular searches</p>
                 <div className="flex flex-wrap gap-2">
                   {popular.map((p) => (
                     <button key={p} onClick={() => setQ(p)} className="chip">
@@ -104,7 +104,7 @@ export default function SearchOverlay() {
               </div>
             ) : results.length === 0 ? (
               <p className="text-ivory-mute py-10 text-center font-serif text-lg italic">
-                No matches yet. Try a different word.
+                Nothing found. Try a different word.
               </p>
             ) : (
               <ul>

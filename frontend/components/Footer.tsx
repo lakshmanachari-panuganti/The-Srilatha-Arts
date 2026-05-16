@@ -49,12 +49,12 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}
         <div className="text-center max-w-xl mx-auto mb-14 lg:mb-20">
-          <p className="eyebrow justify-center mb-4">Join the circle</p>
+          <p className="eyebrow justify-center mb-4">Stay in touch</p>
           <h3 className="display text-3xl lg:text-4xl mb-3">
-            Stories from the <em className="italic gold-text">studio</em>
+            Updates from the <em className="italic gold-text">studio</em>
           </h3>
           <p className="text-ivory-mute text-sm lg:text-base mb-6">
-            New collections, behind-the-scenes notes, and the occasional discount. No spam.
+            New pieces, studio updates and the occasional discount — sent straight to your inbox. No spam, ever.
           </p>
           {newsletterSubmitted ? (
             <div
@@ -120,7 +120,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Handcrafted folk art from Hyderabad - Resin, Dot Mandala, Lippan, Pichwai, Kolam.
+              Handmade Indian wall art from Hyderabad — Resin, Dot Mandala, Lippan, Pichwai and Kolam styles.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <SocialLink href="https://instagram.com" label="Instagram">
@@ -170,7 +170,7 @@ export default function Footer() {
              style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p>© {new Date().getFullYear()} Srilatha Art. Made by hand in Hyderabad.</p>
-          <p className="font-hand text-lg text-lavender-pastel">Where Tradition Meets Creativity</p>
+          <p className="font-hand text-lg text-lavender-pastel">Handmade with care</p>
         </div>
       </div>
     </footer>
