@@ -14,7 +14,7 @@ import { extractCsrfFromCookie, verifyCsrfToken } from '../services/csrf'
 import { errorResponse } from '../utils/response'
 
 const SKIP_PATHS = [
-  '/api/payments/webhook',
+  '/api/razorpay/webhook',
   '/api/courier/webhook',
 ]
 

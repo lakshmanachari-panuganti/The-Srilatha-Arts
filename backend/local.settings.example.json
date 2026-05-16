@@ -17,7 +17,10 @@
     "WEBHOOKS_QUEUE_NAME": "webhooks-in",
     "REVIEW_QUEUE_NAME": "review-requests",
     "INVOICE_CONTAINER": "invoices",
-    "USER_UPLOAD_CONTAINER": "user-uploads"
+    "USER_UPLOAD_CONTAINER": "user-uploads",
+    "RAZORPAY_KEY_ID": "rzp_test_xxxxxxxxxxxxxx",
+    "RAZORPAY_KEY_SECRET": "your-razorpay-key-secret",
+    "RAZORPAY_WEBHOOK_SECRET": "the-secret-you-pasted-into-razorpay-dashboard-webhooks"
   },
   "Host": {
     "CORS": "http://localhost:3000",
