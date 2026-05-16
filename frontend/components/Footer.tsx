@@ -44,7 +44,7 @@ export default function Footer() {
 
   return (
     <footer className="relative z-10 mt-20"
-            style={{ borderTop: '1px solid rgba(167,139,250,0.35)', background: 'linear-gradient(180deg, rgba(109,40,217,0.18) 0%, rgba(76,29,149,0.35) 100%), #EDE9FE' }}
+      style={{ borderTop: '1px solid rgba(167,139,250,0.35)', background: 'linear-gradient(180deg, rgba(109,40,217,0.18) 0%, rgba(76,29,149,0.35) 100%), #EDE9FE' }}
     >
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}
@@ -120,7 +120,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Handmade Indian wall art from Hyderabad — Resin, Dot Mandala, Lippan, Pichwai and Kolam styles.
+              Handmade Indian art from Hyderabad - Resin, Dot Mandala, Lippan, Pichwai and Kolam styles.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <SocialLink href="https://instagram.com" label="Instagram">
@@ -136,7 +136,7 @@ export default function Footer() {
           </div>
 
           <div className="lg:col-span-3 lg:grid lg:grid-cols-3 lg:gap-8"
-               style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           >
             {columns.map((col) => (
               <FooterColumn key={col.title} title={col.title} links={col.links} />
@@ -145,7 +145,7 @@ export default function Footer() {
         </div>
 
         <div className="lg:hidden mt-12 pt-8 text-center"
-             style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
             <Image src="/images/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
@@ -167,7 +167,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ivory-mute"
-             style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p>© {new Date().getFullYear()} Srilatha Art. Made by hand in Hyderabad.</p>
           <p className="font-hand text-lg text-lavender-pastel">Handmade with care</p>

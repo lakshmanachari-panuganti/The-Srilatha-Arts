@@ -393,7 +393,7 @@ A slim, premium ticker pinned to the very top of every public page that scrolls 
 
 - `✨ FLAT 30% OFF on Resin Art · Code SRILATHA30 · Ends Sunday`
 - `🎁 Free shipping on orders above ₹2,999 · Pan-India delivery`
-- `🪔 Diwali Collection live · Handcrafted in Hyderabad with love`
+- `🪔 Diwali Collection live · Handcrafted in with love`
 - `🖼️ Custom Creations open · 2 slots left this month`
 
 Keep each message ≤ 80 characters so the loop reads naturally on a 360 px screen.
@@ -501,7 +501,7 @@ Mount the marquee inside `ConditionalLayout.tsx` *above* `<Header />` for public
 **Sections (in mobile scroll order):**
 
 1. **Hero** - 9:16 portrait video/photo, headline, primary CTA → /shop, secondary → /custom-order. Min-height `100svh`.
-2. **Trust strip** - horizontal scroll of: ✓ Free ship ₹2,999+ · ✓ Handmade in Hyderabad · ✓ 7-day exchange · ✓ Secure pay · ✓ Custom orders.
+2. **Trust strip** - horizontal scroll of: ✓ Free ship ₹2,999+ ·· ✓ 7-day exchange · ✓ Secure pay · ✓ Custom orders.
 3. **Shop by Art Form** - 2-col grid mobile / 4-col desktop. Each card → category page.
 4. **Featured Creations** - horizontal snap carousel mobile, 3-col grid desktop.
 5. **Scroll-story** - full-bleed art form reveal as you scroll (immersive).
@@ -1366,7 +1366,7 @@ The current code is a solid starting point - don't throw it away.
                   lg:px-12 lg:pb-0 lg:pt-0 lg:flex lg:items-center lg:min-h-[100svh]">
     <div className="max-w-md lg:max-w-xl">
       <p className="text-gold-light/80 text-[11px] tracking-[0.3em] uppercase mb-3">
-        Hyderabad · Handcrafted with Love
+        Handcrafted with Love
       </p>
       <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl
                      font-bold text-white leading-[1.05] mb-5">

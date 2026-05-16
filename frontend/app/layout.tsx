@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: '%s · Srilatha Art',
   },
   description:
-    'Handmade wall art from Hyderabad — Dot Mandala, Resin, Lippan, Pichwai and Kolam styles. Free shipping across India on orders above ₹2,999.',
+    'Handmade arts - Dot Mandala, Resin, Lippan, Pichwai and Kolam styles. Free shipping across India on orders above ₹2,999.',
   keywords: [
     'Dot Mandala',
     'Resin Art',

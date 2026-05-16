@@ -16,8 +16,8 @@ export default function OurStoryPage() {
         A small studio in <em className="italic gold-text">Hyderabad</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-6">
-        Hi! We are a small team that makes handmade Indian wall art. Everything you see on this site
-        is made by us in our home studio in Hyderabad — one piece at a time.
+        Hi! We are a small team that makes handmade rlegant art. Everything you see on this site
+        is made by us in our studio in Hyderabad.
       </p>
 
       <div className="my-10 relative aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-b from-plum-warm to-plum-light flex items-center justify-center">
