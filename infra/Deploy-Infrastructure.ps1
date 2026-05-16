@@ -321,10 +321,42 @@ $spObjectId = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID)
 
 Write-Success "Managed Identity enabled: $principalId"
 
-# Key Vault access policies (get/list secrets)
-Set-AzKeyVaultAccessPolicy -VaultName $envCfg.KeyVault -ObjectId $principalId -PermissionsToSecrets Get, List
-Set-AzKeyVaultAccessPolicy -VaultName $envCfg.KeyVault -ObjectId $spObjectId -PermissionsToSecrets Get, List, Set, Delete
-Write-Success "Key Vault access policies configured"
+# Key Vault access — assign RBAC roles at the *vault* scope.
+# Earlier versions of this script called Set-AzKeyVaultAccessPolicy, which is
+# a no-op when the vault has EnableRbacAuthorization (the modern default).
+# The previous DEV deploy also ended up with the SP's Key Vault Administrator
+# role mis-scoped to the Function App resource — fixed here by always using
+# the vault's resource id as the scope.
+$kvScope = $keyVault.ResourceId
+
+$kvRoles = @(
+    # The Function App's managed identity only needs read access — Function
+    # App settings resolve @Microsoft.KeyVault(...) references with Get.
+    @{ Principal = $principalId; Role = 'Key Vault Secrets User' }
+    # The deployer SP needs to read AND write so this script can rotate
+    # secrets on subsequent runs.
+    @{ Principal = $spObjectId;  Role = 'Key Vault Secrets Officer' }
+)
+foreach ($a in $kvRoles) {
+    $existing = Get-AzRoleAssignment -ObjectId $a.Principal -RoleDefinitionName $a.Role -Scope $kvScope -ErrorAction SilentlyContinue
+    if (-not $existing) {
+        New-AzRoleAssignment -ObjectId $a.Principal -RoleDefinitionName $a.Role -Scope $kvScope | Out-Null
+        Write-Success "Assigned: $($a.Role) on $kvScope"
+    } else {
+        Write-Info "Already assigned: $($a.Role) on $kvScope"
+    }
+}
+
+# Remove the mis-scoped legacy Key Vault Administrator role that earlier
+# runs of this script (or a prior manual fix-up) may have placed on the
+# Function App resource. Leaving it would be confusing rather than harmful.
+$badScope = $functionApp.Id
+Get-AzRoleAssignment -ObjectId $spObjectId -Scope $badScope -ErrorAction SilentlyContinue |
+    Where-Object { $_.RoleDefinitionName -eq 'Key Vault Administrator' } |
+    ForEach-Object {
+        Remove-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName $_.RoleDefinitionName -Scope $_.Scope -ErrorAction SilentlyContinue
+        Write-Info "Removed mis-scoped role: $($_.RoleDefinitionName) at $($_.Scope)"
+    }
 
 # Storage RBAC roles
 $storageRoles = @(
@@ -467,9 +499,34 @@ Set-AzKeyVaultSecret `
 
 Write-Success "Stored secret : CsrfSigningKey (randomly generated, 64 chars)"
 
-# Vendor secrets (Razorpay / Shiprocket / WhatsApp / Email) are intentionally
-# NOT created here - add them via the Portal or a follow-up script after you
-# sign up for those vendors. See new-backend.md §14.2 for the full list.
+# Razorpay webhook signing secret — we choose this value and register the
+# same one in the Razorpay Dashboard (Settings → Webhooks → Secret). Generated
+# fresh on first deploy; subsequent runs leave the existing version in place.
+$existingWh = Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RazorpayWebhookSecret' -ErrorAction SilentlyContinue
+if (-not $existingWh) {
+    $whBytes = New-Object byte[] 32
+    [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($whBytes)
+    $whValue = [Convert]::ToBase64String($whBytes)
+    $whSecure = ConvertTo-SecureString $whValue -AsPlainText -Force
+    Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RazorpayWebhookSecret' -SecretValue $whSecure | Out-Null
+    Write-Success "Stored secret : RazorpayWebhookSecret (newly generated — paste into Razorpay dashboard)"
+    Write-Info  "Webhook secret value: $whValue"
+} else {
+    Write-Info "RazorpayWebhookSecret already present — leaving the existing version in place"
+}
+
+# Razorpay KEY ID / KEY SECRET are vendor-specific — only create placeholders
+# so the Function App settings have something to bind to. Replace via:
+#   Set-AzKeyVaultSecret -VaultName $env:KEY_VAULT -Name RazorpayKeyId     -SecretValue (...)
+#   Set-AzKeyVaultSecret -VaultName $env:KEY_VAULT -Name RazorpayKeySecret -SecretValue (...)
+foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
+    $existing = Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name -ErrorAction SilentlyContinue
+    if (-not $existing) {
+        $placeholder = ConvertTo-SecureString 'replace-me' -AsPlainText -Force
+        Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name -SecretValue $placeholder | Out-Null
+        Write-Success "Stored placeholder secret : $name (set the real value out-of-band)"
+    }
+}
 
 # ============================================================================
 # STEP 10: Configure Function App Settings
