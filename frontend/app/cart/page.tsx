@@ -2,8 +2,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag, X, CheckCircle2 } from 'lucide-react'
 import { useCart, cartSubtotal } from '@/stores/cart'
+import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
 
@@ -18,9 +20,11 @@ interface CouponResult {
 }
 
 export default function CartPage() {
+  const router = useRouter()
   const items = useCart((s) => s.items)
   const setQty = useCart((s) => s.setQty)
   const remove = useCart((s) => s.remove)
+  const user = useUserAuth((s) => s.user)
 
   const [couponInput, setCouponInput] = useState('')
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null)
@@ -253,10 +257,22 @@ export default function CartPage() {
             )}
           </div>
 
-          <Link href="/checkout" className="btn-dark w-full justify-center mt-6">
-            Checkout
+          <button
+            type="button"
+            onClick={() => {
+              // Auth gate: keep the cart, send the user through login and
+              // bring them straight back to /checkout afterwards.
+              if (!user) {
+                router.push('/login?next=' + encodeURIComponent('/checkout'))
+                return
+              }
+              router.push('/checkout')
+            }}
+            className="btn-dark w-full justify-center mt-6"
+          >
+            {user ? 'Checkout' : 'Sign in to checkout'}
             <ArrowRight className="w-4 h-4" aria-hidden />
-          </Link>
+          </button>
           <Link
             href="/shop"
             className="block text-center text-sm text-ink-mute hover:text-terracotta mt-3"

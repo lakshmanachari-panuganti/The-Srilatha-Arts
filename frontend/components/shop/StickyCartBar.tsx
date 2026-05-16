@@ -3,23 +3,27 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Minus, Plus, ShoppingBag } from 'lucide-react'
 import type { Product } from '@/types'
-import { useCart } from '@/stores/cart'
+import { useAddToCart } from '@/hooks/useAddToCart'
 import { useHaptic } from '@/hooks/useHaptic'
 import { formatINR } from '@/lib/format'
 
 export default function StickyCartBar({ product }: { product: Product }) {
   const [qty, setQty] = useState(1)
-  const add = useCart((s) => s.add)
+  const { addToCart } = useAddToCart()
   const haptic = useHaptic()
   const router = useRouter()
 
   const onAdd = () => {
-    add(product, qty)
-    haptic([10, 25, 10])
+    if (addToCart(product, qty)) haptic([10, 25, 10])
+    // false → useAddToCart already redirected to /login
   }
 
   const onBuyNow = () => {
-    add(product, qty)
+    // If unauthenticated, addToCart redirects to /login?next=… and returns
+    // false; the post-login redirect lands the user back on this product
+    // page where they can hit "Buy now" again. We do NOT also push to
+    // /checkout in that case (would clobber the login redirect).
+    if (!addToCart(product, qty)) return
     haptic(20)
     router.push('/checkout')
   }
