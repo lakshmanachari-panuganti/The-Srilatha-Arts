@@ -13,6 +13,15 @@ import {
 } from '../services/auth'
 import { getAdmin, updateAdmin, getAllAdmins, createAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import { checkAndIncrement } from '../services/rateLimit'
+
+function getClientIp(request: HttpRequest): string {
+  return (
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  )
+}
 
 // ─── POST /api/auth/admin/login ──────────────────────────────
 
@@ -22,6 +31,14 @@ export async function adminLogin(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  // Rate limit: 10 attempts per 15 minutes per IP. Admin login is a
+  // high-value target so we cap it tighter than the public login path.
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`admin_login:${ip}`, 10, 15 * 60_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many attempts. Please try again later.', 429, origin)
+  }
 
   try {
     const body = (await request.json()) as {

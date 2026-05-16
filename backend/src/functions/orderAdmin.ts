@@ -24,6 +24,7 @@ import {
   Row,
 } from '../services/tableStorage'
 import { requireAdmin, AdminContext } from '../middleware/adminGuard'
+import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import {
   canTransition,
@@ -212,6 +213,8 @@ async function adminUpdateStatus(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
@@ -374,6 +377,8 @@ async function adminAddNote(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
@@ -455,6 +460,8 @@ async function adminBulkStatus(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
