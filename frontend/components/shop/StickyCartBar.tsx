@@ -41,7 +41,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
         <div className="hidden sm:block text-ivory">
           <p className="text-[11px] uppercase tracking-[0.22em] text-ivory-mute">Total</p>
-          <p className="font-serif text-xl leading-none">{formatINR(product.price * qty)}</p>
+          <p className="font-serif text-xl font-semibold leading-none tabular-nums">{formatINR(product.price * qty)}</p>
         </div>
 
         <div className="flex items-center h-11 overflow-hidden shrink-0"

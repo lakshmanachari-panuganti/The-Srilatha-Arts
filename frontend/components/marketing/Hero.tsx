@@ -58,7 +58,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="eyebrow justify-center mb-6"
+          className="eyebrow text-lavender-pastel justify-center mb-6"
         >
           <span className="w-8 h-px bg-gradient-to-r from-transparent to-lavender-pastel" />
           Made in Hyderabad · since 2020

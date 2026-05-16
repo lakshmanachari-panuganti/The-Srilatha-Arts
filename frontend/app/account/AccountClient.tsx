@@ -215,14 +215,14 @@ function OrdersTab() {
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <p className="text-xs uppercase tracking-wider text-ink-mute">Order</p>
-              <p className="font-serif text-lg text-ink">{o.id}</p>
+              <p className="font-serif text-lg text-ink tabular-nums">{o.id}</p>
               <p className="text-xs text-ink-mute mt-1">
                 {new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </p>
             </div>
             <div className="text-right">
               <StatusPill status={o.status} paymentStatus={o.paymentStatus} />
-              <p className="font-serif text-lg text-ink mt-1">{formatINR(o.displayTotal)}</p>
+              <p className="font-serif text-lg font-semibold text-ink mt-1 tabular-nums">{formatINR(o.displayTotal)}</p>
             </div>
           </div>
         </li>

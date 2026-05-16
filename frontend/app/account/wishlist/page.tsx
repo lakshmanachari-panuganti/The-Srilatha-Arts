@@ -51,7 +51,7 @@ export default function WishlistPage() {
               </div>
               <div className="pt-4 px-1">
                 <h3 className="font-serif text-base text-ink line-clamp-2">{item.title}</h3>
-                <p className="text-sm text-ink mt-1.5">{formatINR(item.price)}</p>
+                <p className="text-sm font-semibold text-ink mt-1.5 tabular-nums">{formatINR(item.price)}</p>
               </div>
             </Link>
             <button

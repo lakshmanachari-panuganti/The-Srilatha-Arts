@@ -720,15 +720,15 @@ export default function CheckoutClient() {
                   <p className="text-sm text-ink truncate">{item.title}</p>
                   <p className="text-xs text-ink-mute">Qty {item.quantity}</p>
                 </div>
-                <p className="text-sm text-ink">{formatINR(item.price * item.quantity)}</p>
+                <p className="text-sm font-semibold text-ink tabular-nums">{formatINR(item.price * item.quantity)}</p>
               </li>
             ))}
           </ul>
 
-          <dl className="mt-5 space-y-2.5 text-sm border-t border-ink/10 pt-5">
+          <dl className="mt-5 space-y-2.5 text-sm border-t border-ink/10 pt-5 tabular-nums">
             <Row label="Subtotal" value={formatINR(subtotal)} />
             <Row label="Shipping" value={shipping === 0 ? 'Free' : formatINR(shipping)} />
-            <div className="flex justify-between pt-3 mt-3 border-t border-ink/10 font-medium text-base">
+            <div className="flex justify-between pt-3 mt-3 border-t border-ink/10 font-semibold text-base">
               <dt>Total</dt>
               <dd className="font-serif text-xl">{formatINR(total)}</dd>
             </div>

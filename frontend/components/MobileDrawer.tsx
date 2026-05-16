@@ -111,7 +111,7 @@ export default function MobileDrawer() {
                 ))}
               </ul>
 
-              <p className="eyebrow mb-3">Shop by style</p>
+              <p className="eyebrow text-lavender-pastel mb-3">Shop by style</p>
               <ul className="space-y-1 mb-10">
                 {CATEGORIES.map((c) => (
                   <li key={c.slug}>
@@ -126,7 +126,7 @@ export default function MobileDrawer() {
                 ))}
               </ul>
 
-              <p className="eyebrow mb-3">Account</p>
+              <p className="eyebrow text-lavender-pastel mb-3">Account</p>
               <ul className="space-y-1">
                 {authUser ? (
                   <>
