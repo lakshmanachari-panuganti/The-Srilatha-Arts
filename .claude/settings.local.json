@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(git add frontend/lib/api.ts frontend/app/admin/products/new/page.tsx frontend/app/admin/products/edit/page.tsx)",
+      "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"EXIT $code\"; $out} else {\"Frontend typecheck OK\"})",
+      "PowerShell(Push-Location frontend; $out = npm test --silent 2>&1; $code = $LASTEXITCODE; Pop-Location; \"$code\"; $out | Select-Object -Last 8)",
+      "PowerShell(Push-Location backend; $out = npx tsc --noEmit 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"BACKEND EXIT $code\"; $out} else {\"Backend typecheck OK\"})",
+      "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"FRONTEND EXIT $code\"; $out} else {\"Frontend typecheck OK\"})",
+      "PowerShell(Push-Location backend; $out = npm test --silent 2>&1; $code = $LASTEXITCODE; Pop-Location; \"$code\"; $out | Select-Object -Last 8)",
+      "PowerShell(\"---\")",
+      "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"EXIT $code\"; $out} else {\"OK\"})"
+    ]
+  }
+}
