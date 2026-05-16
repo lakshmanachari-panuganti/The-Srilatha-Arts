@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send } from 'lucide-react'
+import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 const columns = [
@@ -39,6 +39,9 @@ const columns = [
 ] as const
 
 export default function Footer() {
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
+
   return (
     <footer className="relative z-10 mt-20"
             style={{ borderTop: '1px solid rgba(167,139,250,0.35)', background: 'linear-gradient(180deg, rgba(109,40,217,0.18) 0%, rgba(76,29,149,0.35) 100%), #EDE9FE' }}
@@ -53,36 +56,59 @@ export default function Footer() {
           <p className="text-ivory-mute text-sm lg:text-base mb-6">
             New collections, behind-the-scenes notes, and the occasional discount. No spam.
           </p>
-          <form
-            className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <div className="relative flex-1">
-              <Mail
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ivory-mute"
-                aria-hidden
-              />
-              <input
-                type="email"
-                required
-                placeholder="your@email.com"
-                aria-label="Email address"
-                className="w-full h-12 pl-11 pr-4
-                           bg-glass-surface text-ivory placeholder:text-ivory-mute
-                           outline-none transition-all duration-500"
-                style={{
-                  borderRadius: '24px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                }}
-                onFocus={(e) => e.target.style.borderColor = 'rgba(200,182,255,0.4)'}
-                onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-              />
+          {newsletterSubmitted ? (
+            <div
+              role="status"
+              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender-pastel"
+            >
+              <CheckCircle2 className="w-4 h-4" aria-hidden />
+              Thank you — we&apos;ll be in touch.
             </div>
-            <button type="submit" className="btn-dark whitespace-nowrap">
-              Subscribe
-              <Send className="w-4 h-4" aria-hidden />
-            </button>
-          </form>
+          ) : (
+            <form
+              className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+              onSubmit={(e) => {
+                e.preventDefault()
+                // Backend wiring not yet available — acknowledge the intent
+                // locally so the user gets feedback instead of a silent
+                // no-op. Wire to /api/newsletter when that endpoint exists.
+                if (!newsletterEmail.trim()) return
+                setNewsletterSubmitted(true)
+                setNewsletterEmail('')
+              }}
+            >
+              <div className="relative flex-1">
+                <Mail
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ivory-mute"
+                  aria-hidden
+                />
+                <label htmlFor="newsletter-email" className="sr-only">Email address</label>
+                <input
+                  id="newsletter-email"
+                  type="email"
+                  required
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  aria-label="Email address"
+                  autoComplete="email"
+                  className="w-full h-12 pl-11 pr-4
+                             bg-glass-surface text-ivory placeholder:text-ivory-mute
+                             outline-none transition-all duration-500"
+                  style={{
+                    borderRadius: '24px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(200,182,255,0.4)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
+              </div>
+              <button type="submit" className="btn-dark whitespace-nowrap">
+                Subscribe
+                <Send className="w-4 h-4" aria-hidden />
+              </button>
+            </form>
+          )}
         </div>
 
         <div className="lg:grid lg:grid-cols-5 lg:gap-10 lg:items-start">
@@ -124,7 +150,7 @@ export default function Footer() {
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
             <Image src="/images/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
             <span className="font-serif text-lg text-ivory">
-              The <span className="gold-text">Srilatha</span> Arts
+              <span className="gold-text">Srilatha</span> Art
             </span>
           </Link>
           <div className="flex items-center justify-center gap-2 mt-2">

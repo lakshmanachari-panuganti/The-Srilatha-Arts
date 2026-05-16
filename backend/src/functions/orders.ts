@@ -28,13 +28,18 @@ import {
 } from '../services/tableStorage'
 import { requireUser } from '../middleware/userGuard'
 import { requireAdmin } from '../middleware/adminGuard'
+import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { canCustomerCancel, canCustomerReturn } from '../services/orderState'
 import type { OrderStatus, OrderItemSnapshot } from '../types'
+import { randomBytes } from 'crypto'
 
+// 5-digit Math.random() collision space was 100K — a year of orders would
+// have measurable collisions, and an attacker could simply guess IDs.
+// Switch to crypto.randomBytes for 10 hex chars of entropy.
 function generateOrderId(): string {
   const year = new Date().getFullYear()
-  const seq = Math.floor(Math.random() * 99999).toString().padStart(5, '0')
+  const seq = randomBytes(5).toString('hex').toUpperCase()
   return `TSA-${year}-${seq}`
 }
 
@@ -81,6 +86,8 @@ async function createNewOrder(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   try {
     const user = requireUser(request)
@@ -332,6 +339,8 @@ async function cancelOrder(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const orderId = request.params.id
   if (!orderId) return errorResponse('Missing order id', 400, origin)
@@ -388,6 +397,8 @@ async function updateOrderAddress(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const orderId = request.params.id
   if (!orderId) return errorResponse('Missing order id', 400, origin)
@@ -441,6 +452,8 @@ async function requestReturn(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const orderId = request.params.id
   if (!orderId) return errorResponse('Missing order id', 400, origin)

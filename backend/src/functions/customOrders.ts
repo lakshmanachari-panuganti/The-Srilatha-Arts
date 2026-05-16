@@ -15,11 +15,26 @@ import {
   Row,
 } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
+import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
 import { enqueueNotification } from '../services/queue'
 import { randomUUID } from 'crypto'
+import { TableClient } from '@azure/data-tables'
+import { DefaultAzureCredential } from '@azure/identity'
 import type { CustomOrderStatus } from '../types'
+
+// Reuse a single TableClient for cross-partition deletes of obsolete rows
+// when a custom order moves between status partitions.
+const customOrdersTableClient = (() => {
+  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME
+  if (!accountName) return null
+  return new TableClient(
+    `https://${accountName}.table.core.windows.net`,
+    'customOrders',
+    new DefaultAzureCredential(),
+  )
+})()
 
 // Art forms supported by the business (used for validation).
 const VALID_ART_FORMS = ['resin', 'dot-mandala', 'lippan', 'pichwai', 'kolam', 'other']
@@ -66,6 +81,8 @@ async function submitCustomOrder(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   // Rate limit: 3/hour/IP
   const ip = getClientIp(request)
@@ -217,6 +234,8 @@ async function adminUpdateCustomOrder(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
@@ -252,15 +271,10 @@ async function adminUpdateCustomOrder(
       await createCustomOrder(newRow)
       // Delete old row
       try {
-        const { TableClient } = require('@azure/data-tables')
-        const { DefaultAzureCredential } = require('@azure/identity')
-        const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
-        const client = new TableClient(
-          `https://${accountName}.table.core.windows.net`,
-          'customOrders',
-          new DefaultAzureCredential(),
-        )
-        await client.deleteEntity('inbox', existing.rowKey)
+        if (!customOrdersTableClient) {
+          throw new Error('customOrders TableClient unavailable (AZURE_STORAGE_ACCOUNT_NAME unset)')
+        }
+        await customOrdersTableClient.deleteEntity('inbox', existing.rowKey)
       } catch (deleteErr) {
         // Non-fatal — the new row was already written. Log for manual cleanup.
         context.warn('adminUpdateCustomOrder: old row deletion failed after status move (non-fatal, manual cleanup may be needed)', {

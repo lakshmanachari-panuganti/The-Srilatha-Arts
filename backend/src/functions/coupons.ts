@@ -26,6 +26,7 @@ import {
 } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
 import { requireUser } from '../middleware/userGuard'
+import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
 import { randomUUID } from 'crypto'
@@ -82,6 +83,8 @@ async function validateCoupon(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   // Rate limit: 5/min/IP
   const ip = getClientIp(request)
@@ -94,11 +97,17 @@ async function validateCoupon(
     const body = (await request.json()) as {
       code?: string
       items?: { productId: string; category: string; price: number; qty: number }[]
-      userId?: string
     }
 
     if (!body.code) return errorResponse('Coupon code is required', 400, origin)
     const code = body.code.toUpperCase().trim()
+
+    // Per-user / first-time-only checks must run against the authenticated
+    // session — previously this trusted a `userId` field from the request
+    // body, which let any client claim to be a different user (or "no user")
+    // to bypass these limits.
+    const authedUser = requireUser(request)
+    const userId = authedUser?.userId
 
     const coupon = await getCoupon(code)
     if (!coupon) {
@@ -150,8 +159,8 @@ async function validateCoupon(
     }
 
     // Check per-user limit
-    if (body.userId && coupon.perUserLimit) {
-      const userRedemptions = await getCouponRedemptionsByUser(code, body.userId)
+    if (userId && coupon.perUserLimit) {
+      const userRedemptions = await getCouponRedemptionsByUser(code, userId)
       if (userRedemptions.length >= coupon.perUserLimit) {
         return jsonResponse(
           { valid: false, reason: 'USED', message: 'You have already used this coupon' },
@@ -162,9 +171,19 @@ async function validateCoupon(
       }
     }
 
-    // Check first-time-only
-    if (coupon.firstTimeOnly && body.userId) {
-      const allRedemptions = await getCouponRedemptionsByUser(code, body.userId)
+    // First-time-only coupons must require a logged-in user — anonymous
+    // visitors cannot claim them. Previously, omitting userId from the body
+    // silently passed this check.
+    if (coupon.firstTimeOnly) {
+      if (!userId) {
+        return jsonResponse(
+          { valid: false, reason: 'INACTIVE', message: 'Please sign in to apply this coupon' },
+          200,
+          {},
+          origin,
+        )
+      }
+      const allRedemptions = await getCouponRedemptionsByUser(code, userId)
       if (allRedemptions.length > 0) {
         return jsonResponse(
           { valid: false, reason: 'USED', message: 'This coupon is for first-time buyers only' },
@@ -293,6 +312,9 @@ async function adminCoupons(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  // CSRF only applies to state-changing methods; the helper exempts GET.
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
@@ -370,6 +392,8 @@ async function adminCouponById(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
@@ -388,7 +412,15 @@ async function adminCouponById(
       const existing = await getCoupon(code)
       if (!existing) return errorResponse('Coupon not found', 404, origin)
       const body = (await request.json()) as Record<string, unknown>
-      const updated: any = { ...existing, ...body, rowKey: code, updatedAt: new Date().toISOString() }
+      // Spread body BEFORE existing-derived locked fields so it can never
+      // overwrite partitionKey/rowKey or shadow the identity of the row.
+      const updated: any = {
+        ...existing,
+        ...body,
+        partitionKey: 'coupon',
+        rowKey: code,
+        updatedAt: new Date().toISOString(),
+      }
       if (Array.isArray(updated.applicableCategories)) {
         updated.applicableCategories = JSON.stringify(updated.applicableCategories)
       }

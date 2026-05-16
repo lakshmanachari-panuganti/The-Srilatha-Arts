@@ -18,6 +18,7 @@ import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
+import { enforceCsrf } from '../middleware/csrfGuard'
 
 // No default fallback — validated at call time so Google sign-in can be disabled
 // simply by not setting this env var rather than causing a startup failure.
@@ -405,6 +406,8 @@ export async function updateProfile(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const cookieHeader = request.headers.get('cookie')
   const authHeader = request.headers.get('authorization')

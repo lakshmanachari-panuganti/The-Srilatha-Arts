@@ -32,6 +32,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [hydrated, setHydrated] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  const isLoginRoute = pathname === '/admin/login' || pathname === '/admin/login/'
+
   // Wait for Zustand hydration from localStorage
   useEffect(() => {
     setHydrated(true)
@@ -42,26 +44,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setMobileMenuOpen(false)
   }, [pathname])
 
+  // Guard: redirect to login if not authenticated (after hydration).
+  // Calling router.replace during render triggers React warnings and races
+  // with concurrent rendering; route changes must happen in an effect.
+  useEffect(() => {
+    if (!hydrated) return
+    if (isLoginRoute) return
+    if (!user) router.replace('/admin/login')
+  }, [hydrated, isLoginRoute, user, router])
+
   // Do not show the sidebar on the login page
-  if (pathname === '/admin/login' || pathname === '/admin/login/') {
+  if (isLoginRoute) {
     return <>{children}</>
   }
 
-  // Guard: redirect to login if not authenticated (after hydration)
-  if (hydrated && !user) {
-    router.replace('/admin/login')
+  // Show loading state while hydrating, or while we're about to redirect.
+  if (!hydrated || !user) {
     return (
       <div className="min-h-screen bg-plum flex items-center justify-center">
-        <div className="animate-pulse text-ink-mute text-sm">Redirecting to login...</div>
-      </div>
-    )
-  }
-
-  // Show loading state while hydrating (prevents flash of login redirect)
-  if (!hydrated) {
-    return (
-      <div className="min-h-screen bg-plum flex items-center justify-center">
-        <div className="animate-pulse text-ink-mute text-sm">Loading...</div>
+        <div className="animate-pulse text-ink-mute text-sm">
+          {!hydrated ? 'Loading...' : 'Redirecting to login...'}
+        </div>
       </div>
     )
   }
