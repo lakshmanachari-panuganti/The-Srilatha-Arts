@@ -8,7 +8,9 @@
       "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"FRONTEND EXIT $code\"; $out} else {\"Frontend typecheck OK\"})",
       "PowerShell(Push-Location backend; $out = npm test --silent 2>&1; $code = $LASTEXITCODE; Pop-Location; \"$code\"; $out | Select-Object -Last 8)",
       "PowerShell(\"---\")",
-      "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"EXIT $code\"; $out} else {\"OK\"})"
+      "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"EXIT $code\"; $out} else {\"OK\"})",
+      "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"EXIT $code\"; $out | Select-Object -Last 40} else {\"Frontend typecheck OK\"})",
+      "PowerShell(Push-Location frontend; $out = npm test --silent 2>&1; $code = $LASTEXITCODE; Pop-Location; \"$code\"; $out | Select-Object -Last 12)"
     ]
   }
 }

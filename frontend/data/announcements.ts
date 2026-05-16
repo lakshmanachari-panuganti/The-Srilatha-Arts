@@ -19,7 +19,7 @@ export const ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: 'diwali-live',
-    message: 'Diwali Collection is live · Handcrafted in Hyderabad with love',
+    message: 'Diwali Collection is live · Handcrafted in our studio!',
     href: '/collections/diwali',
     priority: 3,
     theme: 'gold',

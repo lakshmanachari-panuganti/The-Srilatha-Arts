@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: 'Are your pieces really handmade?',
-    a: 'Yes — every single one. We make each piece by hand in our Hyderabad studio. That means no two pieces look exactly alike, and tiny differences are part of what makes them special.',
+    a: 'Yes - every single one. We make each piece by hand in our Hyderabad studio. That means no two pieces look exactly alike, and tiny differences are part of what makes them special.',
   },
   {
     q: 'How long does delivery take?',

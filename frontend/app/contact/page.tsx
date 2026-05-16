@@ -49,8 +49,8 @@ export default function ContactPage() {
         <div>
           <p className="text-ivory font-medium mb-1">We don&apos;t have a walk-in store</p>
           <p className="text-ivory-soft text-sm leading-relaxed">
-            We work out of a small home studio in Hyderabad. To order, please use the website or
-            message us — we ship anywhere in India.
+            We create all our handmade art from our studio in Hyderabad. To order, please use the website or
+            message us - we ship anywhere in India.
           </p>
         </div>
       </div>
