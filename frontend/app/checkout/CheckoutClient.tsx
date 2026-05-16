@@ -27,9 +27,10 @@ interface RazorpayOptions {
   currency: string
   name: string
   description?: string
+  image?: string                  // business logo (https URL)
   order_id: string
   prefill?: { name?: string; email?: string; contact?: string }
-  theme?: { color?: string }
+  theme?: { color?: string; backdrop_color?: string; hide_topbar?: boolean }
   notes?: Record<string, string>
   // Per-method opt-in. Razorpay only shows a method if it's both enabled on
   // the merchant account AND not explicitly set to false here.
@@ -53,12 +54,38 @@ interface RazorpayOptions {
       preferences?: { show_default_blocks?: boolean }
     }
   }
+  retry?: { enabled?: boolean; max_count?: number }
+  timeout?: number                // seconds before Checkout auto-closes
+  remember_customer?: boolean
+  send_sms_hash?: boolean
+  callback_url?: string
   handler: (response: {
     razorpay_payment_id: string
     razorpay_order_id: string
     razorpay_signature: string
   }) => void
-  modal?: { ondismiss?: () => void; escape?: boolean }
+  modal?: {
+    ondismiss?: () => void
+    escape?: boolean
+    confirm_close?: boolean
+    backdropclose?: boolean
+    handleback?: boolean
+    animation?: boolean
+  }
+}
+
+interface RazorpayFailureResponse {
+  error: {
+    code: string
+    description: string
+    source: string
+    step: string
+    reason: string
+    metadata: {
+      order_id?: string
+      payment_id?: string
+    }
+  }
 }
 interface RazorpayInstance {
   open: () => void
@@ -349,12 +376,21 @@ export default function CheckoutClient() {
         return
       }
 
+      // Absolute logo URL — Razorpay's iframe needs a fully-qualified https URL.
+      // Falls back to the production site if NEXT_PUBLIC_SITE_URL is unset
+      // (during local dev the image just won't load, which is fine).
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') ||
+        (typeof window !== 'undefined' ? window.location.origin : '')
+      const logoUrl = siteUrl ? `${siteUrl}/images/logo.png` : undefined
+
       const rzp = new window.Razorpay({
         key: res.keyId,
         amount: res.order.amount,
         currency: res.order.currency,
         name: 'Srilatha Art',
         description: `Order ${res.order.id}`,
+        image: logoUrl,
         order_id: res.order.razorpayOrderId,
         prefill: {
           name: res.order.customerName,
@@ -393,8 +429,22 @@ export default function CheckoutClient() {
             preferences: { show_default_blocks: true },
           },
         },
+        // Auto-retry failed attempts inside the same Checkout session.
+        retry: { enabled: true, max_count: 3 },
+        // 15-minute window. Mirrors Razorpay's recommended default and
+        // matches the Razorpay order's natural lifetime.
+        timeout: 15 * 60,
+        // Lets repeat customers skip re-entering UPI VPA / card number on
+        // the same browser (Razorpay-side tokenisation, not ours).
+        remember_customer: true,
+        send_sms_hash: true,
         modal: {
           escape: true,
+          // Prevent accidental close after the user has entered details
+          // but before they hit Pay.
+          confirm_close: true,
+          // Don't dismiss the modal when the backdrop is clicked.
+          backdropclose: false,
           ondismiss: () => setSubmitting(false),
         },
         handler: async (rzpRes) => {
@@ -418,9 +468,24 @@ export default function CheckoutClient() {
           }
         },
       })
-      rzp.on('payment.failed', () => {
-        setError('Payment failed. You can retry from the cart — no charge was made.')
+
+      // Razorpay surfaces granular failure metadata — show what actually
+      // went wrong instead of a generic message. Common reasons include:
+      //   payment_failed, BAD_REQUEST_ERROR, GATEWAY_ERROR, NETWORK_ERROR
+      // and `error.description` is human-readable.
+      rzp.on('payment.failed', (resp: unknown) => {
+        const f = resp as RazorpayFailureResponse
+        const reason = f?.error?.description || f?.error?.reason || 'Payment did not go through.'
+        const code = f?.error?.code ? ` (${f.error.code})` : ''
+        setError(
+          `${reason}${code}. No charge was made — you can retry from the cart.`,
+        )
         setSubmitting(false)
+        // Also log the full envelope to the console so dev / support can
+        // trace via App Insights browser telemetry if needed.
+        if (typeof console !== 'undefined') {
+          console.warn('[razorpay] payment.failed', f?.error)
+        }
       })
       rzp.open()
     } catch (err) {
