@@ -134,8 +134,12 @@ describe('buildCsrfCookie', () => {
     expect(buildCsrfCookie('tok')).toContain('Secure')
   })
 
-  it('is SameSite=Lax', () => {
-    expect(buildCsrfCookie('tok')).toContain('SameSite=Lax')
+  it('is SameSite=None (required for cross-site mutating fetches)', () => {
+    // SwA frontend lives on a different registrable domain than the
+    // Functions backend in dev/prd. SameSite=Lax would block the cookie
+    // from being attached to POST/PATCH/DELETE — we need None+Secure.
+    expect(buildCsrfCookie('tok')).toContain('SameSite=None')
+    expect(buildCsrfCookie('tok')).not.toContain('SameSite=Lax')
   })
 
   it('has a 24-hour Max-Age', () => {
