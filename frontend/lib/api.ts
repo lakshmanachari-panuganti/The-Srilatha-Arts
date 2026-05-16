@@ -51,6 +51,24 @@ async function ensureCsrfToken(): Promise<string | null> {
   return _csrfFetchInFlight
 }
 
+/**
+ * Exposed for non-JSON requests that bypass apiFetch — primarily multipart
+ * file uploads, which need to set their own Content-Type boundary and so
+ * cannot go through the normal JSON path. Call sites should attach the
+ * returned value (if non-null) as `X-CSRF-Token` on their fetch().
+ */
+export async function getCsrfToken(): Promise<string | null> {
+  return ensureCsrfToken()
+}
+
+export function getApiBase(): string {
+  return API_BASE
+}
+
+export function getAuthToken(): string | null {
+  return _authToken
+}
+
 export interface ApiOptions extends Omit<RequestInit, 'body'> {
   body?: unknown
   query?: Record<string, string | number | boolean | undefined | null>

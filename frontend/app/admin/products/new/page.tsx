@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, Plus, X, Loader2, AlertCircle } from 'lucide-react'
 import { CATEGORIES } from '@/data/categories'
-import { apiFetch, ApiError } from '@/lib/api'
+import { apiFetch, ApiError, getCsrfToken, getApiBase } from '@/lib/api'
 import { useAdminAuth } from '@/stores/adminAuth'
 
 interface ImageEntry {
@@ -15,15 +15,18 @@ interface ImageEntry {
   error: string | null
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api'
-
 async function uploadFile(file: File, category: string, token: string | null): Promise<string> {
   const fd = new FormData()
   fd.append('file', file)
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = `Bearer ${token}`
+  // Multipart uploads bypass apiFetch (which is JSON-only), so attach the
+  // CSRF token manually here. The backend's csrfGuard runs on every
+  // mutating handler including /api/admin/upload.
+  const csrf = await getCsrfToken()
+  if (csrf) headers['X-CSRF-Token'] = csrf
   const res = await fetch(
-    `${API_BASE}/admin/upload?category=${encodeURIComponent(category || 'general')}`,
+    `${getApiBase()}/admin/upload?category=${encodeURIComponent(category || 'general')}`,
     { method: 'POST', credentials: 'include', headers, body: fd },
   )
   const json = await res.json().catch(() => ({}))
