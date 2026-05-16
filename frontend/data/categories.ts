@@ -4,45 +4,45 @@ export const CATEGORIES: Category[] = [
   {
     slug: 'resin',
     title: 'Resin Art',
-    tagline: 'Liquid glass, captured forever',
+    tagline: 'Bright, glossy art with poured colour',
     origin:
-      'Translucent layers poured by hand - each piece a frozen river of color, light and ocean depth.',
+      'We pour clear resin in layers to lock in bright colours, sparkle and texture. The finish is smooth and glassy — easy to clean and very long lasting.',
     heroImage: '/images/logo.png',
     ordinal: 1,
   },
   {
     slug: 'dot-mandala',
     title: 'Dot Mandala',
-    tagline: 'Meditation, one dot at a time',
+    tagline: 'Hand-painted dot patterns',
     origin:
-      'Concentric patterns built dot by dot, a meditative geometry inspired by sacred Indian rangoli.',
+      'Mandalas drawn one dot at a time. Inspired by traditional Indian rangoli — calming to look at and a slow, careful craft to make.',
     heroImage: '/images/logo.png',
     ordinal: 2,
   },
   {
     slug: 'lippan',
     title: 'Lippan Art',
-    tagline: 'Mud, mirror and memory from Kutch',
+    tagline: 'Clay art with tiny mirrors',
     origin:
-      'A 400-year-old craft from the salt deserts of Kutch - clay reliefs studded with tiny mirrors that catch the lamp.',
+      'A 400-year-old folk craft from the Kutch region. Hand-shaped clay patterns set with small mirrors that catch the light beautifully.',
     heroImage: '/images/logo.png',
     ordinal: 3,
   },
   {
     slug: 'pichwai',
     title: 'Pichwai Art',
-    tagline: 'Devotional tapestries from Nathdwara',
+    tagline: 'Traditional Indian devotional paintings',
     origin:
-      'Hand-painted depictions of Lord Shrinathji - lotus, cow and peacock motifs in jewel tones.',
+      'Devotional art from Nathdwara, Rajasthan. Hand-painted scenes of Lord Shrinathji with cows, lotuses and peacocks in rich, jewel-like colours.',
     heroImage: '/images/logo.png',
     ordinal: 4,
   },
   {
     slug: 'kolam',
     title: 'Kolam Art',
-    tagline: 'Threshold prayers in white',
+    tagline: 'South Indian rangoli, made for the wall',
     origin:
-      'South Indian rice-flour patterns reimagined as enduring wall art - a daily blessing made permanent.',
+      'Traditional South Indian rangoli patterns — usually drawn each morning with rice flour — made into permanent wall art you can keep up all year.',
     heroImage: '/images/logo.png',
     ordinal: 5,
   },

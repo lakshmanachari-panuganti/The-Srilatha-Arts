@@ -202,8 +202,8 @@ function OrdersTab() {
       <div className="card p-10 text-center">
         <Package className="w-8 h-8 text-ink/20 mx-auto mb-3" aria-hidden />
         <h2 className="font-serif text-2xl text-ink mb-2">No orders yet</h2>
-        <p className="text-sm text-ink-soft mb-5">Place your first order and it will appear here.</p>
-        <Link href="/shop" className="btn-dark">Browse the shop</Link>
+        <p className="text-sm text-ink-soft mb-5">Once you place an order, you’ll see it here.</p>
+        <Link href="/shop" className="btn-dark">Start shopping</Link>
       </div>
     )
   }
@@ -351,7 +351,7 @@ function AddressesTab() {
         <div className="card p-10 text-center">
           <MapPin className="w-8 h-8 text-ink/20 mx-auto mb-3" aria-hidden />
           <h2 className="font-serif text-2xl text-ink mb-2">No saved addresses</h2>
-          <p className="text-sm text-ink-soft mb-5">Add one and we&apos;ll prefill it on every order.</p>
+          <p className="text-sm text-ink-soft mb-5">Save an address now and we’ll fill it in on every future order.</p>
           <button onClick={() => { setAdding(true); setForm(emptyAddress()) }} className="btn-dark">
             <Plus className="w-4 h-4" aria-hidden /> Add address
           </button>

@@ -502,16 +502,16 @@ export default function CheckoutClient() {
           <ShieldCheck className="w-6 h-6" aria-hidden />
         </div>
         <h1 className="display text-4xl mb-3">
-          Thank you, <em className="italic">your order is confirmed</em>
+          Thank you - your order is <em className="italic">confirmed</em>
         </h1>
-        <p className="text-ink-soft mb-2">Order reference</p>
+        <p className="text-ink-soft mb-2">Order number</p>
         <p className="font-serif text-2xl mb-8">{success.orderId}</p>
         <p className="text-ink-soft mb-8 text-sm">
-          We&apos;ve sent a confirmation to your email. You can track this order from your account.
+          We&apos;ve sent the order details to your email. You can also track it any time from your account.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/account" className="btn-dark">My orders <ArrowRight className="w-4 h-4" aria-hidden /></Link>
-          <Link href="/shop" className="text-sm text-ink-soft hover:text-terracotta self-center">Keep browsing</Link>
+          <Link href="/account" className="btn-dark">View my orders <ArrowRight className="w-4 h-4" aria-hidden /></Link>
+          <Link href="/shop" className="text-sm text-ink-soft hover:text-terracotta self-center">Continue shopping</Link>
         </div>
       </main>
     )
@@ -536,16 +536,16 @@ export default function CheckoutClient() {
         <header>
           <p className="eyebrow mb-3">Checkout</p>
           <h1 className="display text-4xl lg:text-5xl">
-            Almost <em className="italic">yours</em>
+            Place your <em className="italic">order</em>
           </h1>
-          <p className="text-ink-soft mt-2 text-sm">Pay securely with UPI, cards, or netbanking via Razorpay.</p>
+          <p className="text-ink-soft mt-2 text-sm">Pay safely with UPI, debit/credit card or netbanking. Powered by Razorpay.</p>
         </header>
 
         {/* ── Saved addresses ─────────────────────────────────── */}
         {hasSaved && (
           <div className="card p-6 lg:p-7">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-2xl">Deliver to</h2>
+              <h2 className="font-serif text-2xl">Shipping address</h2>
               <p className="text-xs text-ink-mute">{addresses!.length} saved</p>
             </div>
 
@@ -556,9 +556,8 @@ export default function CheckoutClient() {
                 return (
                   <li
                     key={a.id}
-                    className={`rounded-2xl border transition-colors ${
-                      checked ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
-                    }`}
+                    className={`rounded-2xl border transition-colors ${checked ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                      }`}
                   >
                     {isEditing ? (
                       <div className="p-4">
@@ -639,9 +638,8 @@ export default function CheckoutClient() {
 
               {/* "Use a new address" radio */}
               <li
-                className={`rounded-2xl border transition-colors ${
-                  usingNew ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
-                }`}
+                className={`rounded-2xl border transition-colors ${usingNew ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                  }`}
               >
                 <label className="flex items-start gap-3 p-4 cursor-pointer">
                   <input
@@ -671,7 +669,7 @@ export default function CheckoutClient() {
             <p className="text-xs text-ink-mute mb-5">
               {hasSaved
                 ? 'Enter the address you want this order shipped to.'
-                : 'We’ll save this address for next time.'}
+                : 'Where should we send your order? We’ll save it for next time.'}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field id="fullName" label="Full name" required value={form.fullName} onChange={(v) => setForm({ ...form, fullName: v })} autoComplete="name" />
@@ -697,14 +695,14 @@ export default function CheckoutClient() {
                 onChange={(e) => setSaveNewAddress(e.target.checked)}
                 className="accent-terracotta"
               />
-              Save this address for next time
+              Save this address to my account
             </label>
           </div>
         )}
 
         <div className="flex items-center gap-3 text-xs text-ink-soft">
           <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden />
-          Your payment is encrypted and processed by Razorpay. We never see your card details.
+          Your payment is safe with Razorpay. We never see your card or UPI details.
         </div>
       </section>
 

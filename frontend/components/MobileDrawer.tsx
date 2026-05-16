@@ -10,8 +10,8 @@ import { CATEGORIES } from '@/data/categories'
 
 const primaryLinks = [
   { href: '/shop', label: 'Shop' },
-  { href: '/custom-order', label: 'Custom Order' },
-  { href: '/our-story', label: 'Our Story' },
+  { href: '/custom-order', label: 'Custom orders' },
+  { href: '/our-story', label: 'About us' },
   { href: '/contact', label: 'Contact' },
 ] as const
 
@@ -65,7 +65,7 @@ export default function MobileDrawer() {
               >
                 <Image src="/images/logo.png" alt="" width={40} height={40} className="w-10 h-10" />
                 <span className="font-serif text-lg leading-none text-ivory">
-                  The <span className="gold-text">Srilatha</span> Arts
+                  <span className="gold-text">Srilatha</span> Art
                 </span>
               </Link>
               <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function MobileDrawer() {
                 ))}
               </ul>
 
-              <p className="eyebrow mb-3">By art form</p>
+              <p className="eyebrow mb-3">Shop by style</p>
               <ul className="space-y-1 mb-10">
                 {CATEGORIES.map((c) => (
                   <li key={c.slug}>

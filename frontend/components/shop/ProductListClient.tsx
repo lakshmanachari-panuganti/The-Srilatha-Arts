@@ -49,7 +49,7 @@ export default function ProductListClient({ filter = 'all', category, showCount 
     <>
       {showCount && (
         <p className="text-ink-mute text-sm px-5 lg:px-8 mb-6">
-          {products.length} {products.length === 1 ? 'piece' : 'pieces'} · handcrafted, one at a time
+          {products.length} {products.length === 1 ? 'piece' : 'pieces'} · made by hand, one at a time
         </p>
       )}
       <ProductGrid products={products} />

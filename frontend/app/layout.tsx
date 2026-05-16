@@ -28,20 +28,20 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://srilatha.art'),
   title: {
-    default: 'Srilatha Art - Where Tradition Meets Creativity',
+    default: 'Srilatha Art - Handcrafted with Heart & Soul',
     template: '%s · Srilatha Art',
   },
   description:
-    'Bespoke handcrafted Dot Mandala, Resin, Lippan, Pichwai and Kolam art - made by hand in Hyderabad. Free shipping pan-India above ₹2,999.',
+    'Handmade wall art from Hyderabad — Dot Mandala, Resin, Lippan, Pichwai and Kolam styles. Free shipping across India on orders above ₹2,999.',
   keywords: [
     'Dot Mandala',
     'Resin Art',
     'Lippan Art',
     'Pichwai Art',
     'Kolam Art',
-    'Handcrafted Wall Decor',
-    'Indian Folk Art',
-    'Hyderabad Artist',
+    'Handmade wall art',
+    'Indian folk art',
+    'Hyderabad artist',
   ],
   authors: [{ name: 'Srilatha' }],
   openGraph: {
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: '/',
     siteName: 'Srilatha Art',
-    title: 'Srilatha Art - Where Tradition Meets Creativity',
+    title: 'Srilatha Art - Handcrafted with Heart & Soul',
     description:
-      'Bespoke handcrafted Dot Mandala, Resin, Lippan, Pichwai and Kolam art - made by hand in Hyderabad.',
+      'Resin, Dot Mandala, , Lippan, Pichwai and Kolam styles. Made one piece at a time.',
     images: [
       { url: '/images/logo.png', width: 1200, height: 630, alt: 'Srilatha Art' },
     ],
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Srilatha Art',
-    description: 'Where Tradition Meets Creativity',
+    description: 'Handcrafted with Heart & Soul',
     images: ['/images/logo.png'],
   },
   icons: {

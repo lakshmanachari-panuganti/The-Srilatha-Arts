@@ -31,12 +31,12 @@ export default function FeaturedCreations() {
           <div>
             <p className="eyebrow mb-4">
               <span className="section-no text-lavender-pastel">002</span>
-              From the bench
+              Picked for you
             </p>
             <h2 className="display text-4xl lg:text-6xl">
               Featured
               <br className="sm:hidden" />
-              <em className="italic gold-text"> creations</em>
+              <em className="italic gold-text"> pieces</em>
             </h2>
           </div>
           <Link
@@ -69,7 +69,7 @@ export default function FeaturedCreations() {
 
         <div className="px-5 mt-8 sm:hidden">
           <Link href="/shop" className="btn-outline w-full justify-center">
-            View all creations
+            See all pieces
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
         </div>

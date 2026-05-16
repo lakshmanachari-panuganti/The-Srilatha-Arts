@@ -3,8 +3,8 @@ import CategoryChips from '@/components/shop/CategoryChips'
 import ProductListClient from '@/components/shop/ProductListClient'
 
 export const metadata: Metadata = {
-  title: 'Best Sellers',
-  description: 'The pieces our community loves most.',
+  title: 'Best sellers',
+  description: 'The pieces our customers love most.',
 }
 
 export default function BestSellersPage() {

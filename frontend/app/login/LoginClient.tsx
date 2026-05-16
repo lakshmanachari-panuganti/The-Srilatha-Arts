@@ -198,13 +198,13 @@ export default function LoginClient() {
         {/* Brand header */}
         <div className="mb-8 text-center">
           <p className="font-[var(--font-montserrat)] text-xs uppercase tracking-[0.2em] text-[#8b7355] mb-2">
-            Welcome to
+            Welcome
           </p>
           <h1 className="font-[var(--font-playfair)] text-3xl font-semibold text-[#2c1810]">
             Srilatha Art
           </h1>
           <p className="mt-2 text-sm text-[#8b7355] font-[var(--font-montserrat)]">
-            Sign in to explore handcrafted art
+            Sign in to your account or create a new one
           </p>
         </div>
 
@@ -434,10 +434,10 @@ export default function LoginClient() {
             )}
 
             <p className="mt-6 text-xs text-center text-[#b8a99a] font-[var(--font-montserrat)] leading-relaxed">
-              By continuing you agree to our{' '}
+              By signing in you agree to our{' '}
               <a href="/terms" className="underline hover:text-[#8b7355]">Terms</a>{' '}
               and{' '}
-              <a href="/privacy-policy" className="underline hover:text-[#8b7355]">Privacy Policy</a>.
+              <a href="/privacy-policy" className="underline hover:text-[#8b7355]">Privacy policy</a>.
             </p>
           </div>
         </div>
@@ -457,10 +457,10 @@ export default function LoginClient() {
                 👋
               </div>
               <h2 id="modal-title" className="font-[var(--font-playfair)] text-2xl font-semibold text-[#2c1810]">
-                Almost there!
+                One last step
               </h2>
               <p className="mt-1 text-sm text-[#8b7355] font-[var(--font-montserrat)]">
-                Confirm your name so we can personalise your experience.
+                Tell us your name so we can address you properly.
               </p>
             </div>
 

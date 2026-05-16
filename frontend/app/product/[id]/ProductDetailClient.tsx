@@ -215,7 +215,7 @@ export default function ProductDetailClient() {
               </>
             )}
           </div>
-          <p className="text-xs text-ink-mute mb-7">Inclusive of all taxes</p>
+          <p className="text-xs text-ink-mute mb-7">Price includes all taxes</p>
 
           <div className="flex flex-wrap gap-2 mb-7">
             <Pill label={p.size} />
@@ -226,9 +226,9 @@ export default function ProductDetailClient() {
           <p className="text-ink/85 leading-relaxed mb-7 text-base lg:text-lg">{p.description}</p>
 
           <div className="card-cream p-6 mb-8 space-y-3">
-            <Feature icon={Hand} label="Handmade - no two are alike" />
-            <Feature icon={Sparkles} label={`Crafted in ${p.timeToMake}`} />
-            <Feature icon={Truck} label="Free shipping above ₹2,999 · Pan-India" />
+            <Feature icon={Hand} label="Handmade — every piece is one of a kind" />
+            <Feature icon={Sparkles} label={`Made in ${p.timeToMake}`} />
+            <Feature icon={Truck} label="Free shipping above ₹2,999 across India" />
           </div>
 
           <details className="border-t border-ink/10 py-5 group">
@@ -245,10 +245,10 @@ export default function ProductDetailClient() {
               <span className="text-ink-mute group-open:rotate-45 transition-transform" aria-hidden>＋</span>
             </summary>
             <p className="text-ink-soft text-sm leading-relaxed mt-3">
-              Dispatched from Hyderabad. Most orders arrive in 5–7 working days. 7-day exchange on
-              unopened items.{' '}
+              We ship from Hyderabad. Most orders reach you in 5–7 working days. You can return
+              unused items within 7 days of delivery.{' '}
               <Link href="/shipping-and-returns" className="text-terracotta hover:underline">
-                Read full policy
+                Read the full policy
               </Link>
               .
             </p>
@@ -259,7 +259,7 @@ export default function ProductDetailClient() {
       {related.length > 0 && (
         <section className="max-w-6xl mx-auto pt-14 pb-20">
           <h2 className="font-serif text-3xl lg:text-4xl text-ink px-5 lg:px-8 mb-8">
-            You may also <em className="italic">love</em>
+            You may also <em className="italic">like</em>
           </h2>
           <div className="lg:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-2 scrollbar-hide">
             {related.map((r) => (
@@ -311,7 +311,7 @@ export default function ProductDetailClient() {
         {/* Review submission form */}
         {showForm && (
           <div className="card p-6 mb-8">
-            <h3 className="font-serif text-xl text-ink mb-4">Your review</h3>
+            <h3 className="font-serif text-xl text-ink mb-4">Write your review</h3>
             <div className="mb-4">
               <label className="block text-xs text-ink-mute mb-2 tracking-wider uppercase">Rating</label>
               <div className="flex gap-1">
@@ -330,7 +330,7 @@ export default function ProductDetailClient() {
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="Summarise your experience"
+                placeholder="A short title for your review"
                 className="w-full h-10 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
               />
             </div>
@@ -340,7 +340,7 @@ export default function ProductDetailClient() {
                 value={formBody}
                 onChange={(e) => setFormBody(e.target.value)}
                 rows={4}
-                placeholder="Share your thoughts about this piece…"
+                placeholder="Tell us what you liked or didn’t…"
                 className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
               />
             </div>
@@ -365,7 +365,7 @@ export default function ProductDetailClient() {
 
         {formSuccess && (
           <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-4 mb-6 text-sm text-emerald-700">
-            Thank you! Your review has been submitted for moderation and will appear shortly.
+            Thanks for the review! We’ll publish it on the site shortly after a quick check.
           </div>
         )}
 
@@ -373,10 +373,10 @@ export default function ProductDetailClient() {
         {reviews.length === 0 ? (
           <div className="text-center py-12 text-ink-soft">
             <Star className="w-8 h-8 text-ink/15 mx-auto mb-3" aria-hidden />
-            <p className="text-sm">No reviews yet. Be the first to share your experience.</p>
+            <p className="text-sm">No reviews yet. Be the first to leave one!</p>
             {!user && (
               <Link href="/login" className="mt-3 inline-block text-sm text-terracotta hover:underline">
-                Sign in to write a review
+                Sign in to leave a review
               </Link>
             )}
           </div>
