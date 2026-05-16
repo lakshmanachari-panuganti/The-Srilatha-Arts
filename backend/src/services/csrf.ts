@@ -55,11 +55,24 @@ export function verifyCsrfToken(token: string): boolean {
 
 /**
  * Build a Set-Cookie header string for the CSRF cookie.
+ *
+ * SameSite=None is REQUIRED here because the frontend (SWA) and the API
+ * (Azure Functions) live on different registrable domains. With SameSite=Lax
+ * (the default we used to ship) the browser refuses to attach the cookie to
+ * any cross-site fetch — including the POST/PATCH/DELETE that this cookie
+ * exists to validate — so every mutating call fails with "Missing CSRF token".
+ *
+ * Security note: the value carried by this cookie is the *public* CSRF
+ * token (not a session). Its only job is to be compared against the
+ * X-CSRF-Token header sent by JS. Letting it ride cross-site is fine; the
+ * token itself is HMAC-signed and short-lived. Auth cookies (tsa_token)
+ * stay Lax — the app uses Authorization: Bearer for cross-origin auth.
  */
 export function buildCsrfCookie(token: string): string {
   const domain = process.env.COOKIE_DOMAIN ? `; Domain=${process.env.COOKIE_DOMAIN}` : ''
-  // NOT HttpOnly — JS needs to read this to echo in X-CSRF-Token header.
-  return `${CSRF_COOKIE_NAME}=${token}; Secure; SameSite=Lax; Path=/; Max-Age=${CSRF_TTL_SECONDS}${domain}`
+  // NOT HttpOnly — JS needs to read this from JSON (cross-origin can't read
+  // the cookie itself; the JSON value is the fallback channel).
+  return `${CSRF_COOKIE_NAME}=${token}; Secure; SameSite=None; Path=/; Max-Age=${CSRF_TTL_SECONDS}${domain}`
 }
 
 /**
