@@ -49,7 +49,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}
         <div className="text-center max-w-xl mx-auto mb-14 lg:mb-20">
-          <p className="eyebrow justify-center mb-4">Stay in touch</p>
+          <p className="eyebrow text-lavender-pastel justify-center mb-4">Stay in touch</p>
           <h3 className="display text-3xl lg:text-4xl mb-3">
             Updates from the <em className="italic gold-text">studio</em>
           </h3>

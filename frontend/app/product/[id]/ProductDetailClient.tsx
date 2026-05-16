@@ -203,10 +203,10 @@ export default function ProductDetailClient() {
           )}
 
           <div className="flex items-baseline gap-3 mb-1">
-            <span className="font-serif text-3xl text-ink">{formatINR(p.price)}</span>
+            <span className="font-serif text-3xl font-semibold text-ink tabular-nums">{formatINR(p.price)}</span>
             {p.compareAtPrice && (
               <>
-                <span className="text-ink-mute line-through">{formatINR(p.compareAtPrice)}</span>
+                <span className="text-ink-mute line-through tabular-nums">{formatINR(p.compareAtPrice)}</span>
                 {pct !== null && (
                   <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-terracotta px-2 py-1 rounded-full">
                     Save {pct}%

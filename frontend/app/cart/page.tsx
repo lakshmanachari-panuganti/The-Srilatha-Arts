@@ -145,7 +145,7 @@ export default function CartPage() {
                     >
                       <Minus className="w-3.5 h-3.5" aria-hidden />
                     </button>
-                    <span className="min-w-7 text-center text-ink text-sm font-medium">
+                    <span className="min-w-7 text-center text-ink text-sm font-semibold tabular-nums">
                       {item.quantity}
                     </span>
                     <button
@@ -157,7 +157,7 @@ export default function CartPage() {
                     </button>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-ink">
+                    <p className="font-semibold text-ink tabular-nums">
                       {formatINR(item.price * item.quantity)}
                     </p>
                     <button
@@ -193,7 +193,7 @@ export default function CartPage() {
             </div>
           )}
 
-          <dl className="space-y-2.5 text-sm">
+          <dl className="space-y-2.5 text-sm tabular-nums">
             <div className="flex justify-between text-ink-soft">
               <dt>Subtotal</dt>
               <dd className="text-ink">{formatINR(subtotal)}</dd>
@@ -210,7 +210,7 @@ export default function CartPage() {
                 {shipping === 0 ? (shippingDiscount > 0 ? <span className="text-emerald-600">Free (coupon)</span> : 'Free') : formatINR(shipping)}
               </dd>
             </div>
-            <div className="flex justify-between text-ink pt-3 mt-3 border-t border-ink/10 font-medium text-base">
+            <div className="flex justify-between text-ink pt-3 mt-3 border-t border-ink/10 font-semibold text-base">
               <dt>Total</dt>
               <dd className="font-serif text-xl">{formatINR(total)}</dd>
             </div>

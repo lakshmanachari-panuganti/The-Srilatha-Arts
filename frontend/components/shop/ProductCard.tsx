@@ -140,9 +140,9 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             {product.title}
           </h3>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-ivory font-medium">{formatINR(product.price)}</span>
+            <span className="text-ivory font-semibold tabular-nums">{formatINR(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-xs text-ivory-mute line-through">
+              <span className="text-xs text-ivory-mute line-through tabular-nums">
                 {formatINR(product.compareAtPrice)}
               </span>
             )}
