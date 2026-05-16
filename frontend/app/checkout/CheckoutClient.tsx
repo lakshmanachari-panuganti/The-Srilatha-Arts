@@ -31,6 +31,28 @@ interface RazorpayOptions {
   prefill?: { name?: string; email?: string; contact?: string }
   theme?: { color?: string }
   notes?: Record<string, string>
+  // Per-method opt-in. Razorpay only shows a method if it's both enabled on
+  // the merchant account AND not explicitly set to false here.
+  method?: {
+    upi?: boolean
+    card?: boolean
+    netbanking?: boolean
+    wallet?: boolean
+    emi?: boolean
+    paylater?: boolean
+    qr?: boolean
+  }
+  // Custom display config (block-based) — used to feature UPI at the top.
+  config?: {
+    display?: {
+      blocks?: Record<string, {
+        name?: string
+        instruments?: Array<{ method: string; flows?: string[] }>
+      }>
+      sequence?: string[]
+      preferences?: { show_default_blocks?: boolean }
+    }
+  }
   handler: (response: {
     razorpay_payment_id: string
     razorpay_order_id: string
@@ -341,6 +363,36 @@ export default function CheckoutClient() {
         },
         notes: { internalOrderId: res.order.id },
         theme: { color: '#6D28D9' },
+        // Explicitly opt every method in. Razorpay shows a method only when
+        // it's both enabled on the merchant account AND not set to false
+        // here, so this guarantees nothing is being suppressed client-side.
+        method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+          wallet: true,
+          paylater: true,
+          emi: true,
+        },
+        // Feature UPI prominently at the top of the Checkout sheet (Indian
+        // customers expect it as the primary option). `show_default_blocks`
+        // keeps Cards / Netbanking / Wallet / Pay Later visible below.
+        // If UPI is disabled on the merchant account this block is silently
+        // skipped — it never errors out.
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: 'Pay using UPI',
+                instruments: [
+                  { method: 'upi', flows: ['collect', 'intent', 'qr'] },
+                ],
+              },
+            },
+            sequence: ['block.upi'],
+            preferences: { show_default_blocks: true },
+          },
+        },
         modal: {
           escape: true,
           ondismiss: () => setSubmitting(false),
