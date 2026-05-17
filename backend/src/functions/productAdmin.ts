@@ -5,6 +5,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
 import { upsertProduct, deleteProduct, getProduct, appendAuditLog, Row } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
+import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '../utils/response'
 import { randomUUID } from 'crypto'
 
@@ -16,6 +17,8 @@ async function adminCreateProduct(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
@@ -83,6 +86,8 @@ async function adminUpdateProduct(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)
@@ -98,11 +103,13 @@ async function adminUpdateProduct(
     const body = (await request.json()) as Record<string, unknown>
     const now = new Date().toISOString()
 
+    // Authoritative partitionKey/rowKey come from the existing entity so a
+    // forged body field cannot move/duplicate the row across partitions.
     const updated: Row = {
       ...existing,
       ...body,
-      partitionKey: category,
-      rowKey: id,
+      partitionKey: existing.partitionKey,
+      rowKey: existing.rowKey,
       updatedAt: now,
     }
 
@@ -139,6 +146,8 @@ async function adminDeleteProduct(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)

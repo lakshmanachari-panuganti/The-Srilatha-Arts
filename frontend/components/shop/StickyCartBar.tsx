@@ -3,23 +3,27 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Minus, Plus, ShoppingBag } from 'lucide-react'
 import type { Product } from '@/types'
-import { useCart } from '@/stores/cart'
+import { useAddToCart } from '@/hooks/useAddToCart'
 import { useHaptic } from '@/hooks/useHaptic'
 import { formatINR } from '@/lib/format'
 
 export default function StickyCartBar({ product }: { product: Product }) {
   const [qty, setQty] = useState(1)
-  const add = useCart((s) => s.add)
+  const { addToCart } = useAddToCart()
   const haptic = useHaptic()
   const router = useRouter()
 
   const onAdd = () => {
-    add(product, qty)
-    haptic([10, 25, 10])
+    if (addToCart(product, qty)) haptic([10, 25, 10])
+    // false → useAddToCart already redirected to /login
   }
 
   const onBuyNow = () => {
-    add(product, qty)
+    // If unauthenticated, addToCart redirects to /login?next=… and returns
+    // false; the post-login redirect lands the user back on this product
+    // page where they can hit "Buy now" again. We do NOT also push to
+    // /checkout in that case (would clobber the login redirect).
+    if (!addToCart(product, qty)) return
     haptic(20)
     router.push('/checkout')
   }
@@ -37,7 +41,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
         <div className="hidden sm:block text-ivory">
           <p className="text-[11px] uppercase tracking-[0.22em] text-ivory-mute">Total</p>
-          <p className="font-serif text-xl leading-none">{formatINR(product.price * qty)}</p>
+          <p className="font-serif text-xl font-semibold leading-none tabular-nums">{formatINR(product.price * qty)}</p>
         </div>
 
         <div className="flex items-center h-11 overflow-hidden shrink-0"

@@ -25,6 +25,7 @@ import {
 } from '../services/tableStorage'
 import { requireUser } from '../middleware/userGuard'
 import { requireAdmin } from '../middleware/adminGuard'
+import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { randomUUID } from 'crypto'
 
@@ -93,6 +94,8 @@ async function submitReview(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const user = requireUser(request)
   if (!user) return errorResponse('Authentication required', 401, origin)
@@ -121,16 +124,22 @@ async function submitReview(
       return errorResponse('Maximum 10 photos allowed per review', 400, origin)
     }
 
-    // Verify user has a DELIVERED order containing this product
+    // Verify user has a DELIVERED order containing this product, and
+    // capture THAT order's id (not just any delivered order) for the
+    // proof-of-purchase trail. Previously the orderId field could record
+    // an unrelated order, which made review-source auditing unreliable.
     const orders = await getOrdersByUser(user.userId)
-    const hasDelivered = orders.some((o) => {
-      if (o.status !== 'DELIVERED') return false
+    let proofOrderId = ''
+    for (const o of orders) {
+      if (o.status !== 'DELIVERED') continue
       const items = safeJson(o.items)
-      if (!Array.isArray(items)) return false
-      return items.some((i: { productId: string }) => i.productId === body.productId)
-    })
-
-    if (!hasDelivered) {
+      if (!Array.isArray(items)) continue
+      if (items.some((i: { productId: string }) => i.productId === body.productId)) {
+        proofOrderId = o.rowKey
+        break
+      }
+    }
+    if (!proofOrderId) {
       return errorResponse(
         'You can only review products from delivered orders',
         403,
@@ -144,6 +153,31 @@ async function submitReview(
       return errorResponse('You have already submitted a review for this product', 409, origin)
     }
 
+    // Sanitise photo URLs: only allow https:// hosted on our own blob domain.
+    // Stops javascript:/data: URLs and prevents reviews from embedding hot
+    // links to attacker-controlled servers (which could later turn malicious).
+    const allowedHost = (() => {
+      const base = process.env.BLOB_BASE_URL
+      if (!base) return null
+      try { return new URL(base).hostname.toLowerCase() } catch { return null }
+    })()
+    const photoUrls = Array.isArray(body.photos)
+      ? body.photos
+          .filter((u): u is string => typeof u === 'string')
+          .map((u) => u.trim())
+          .filter((u) => {
+            try {
+              const parsed = new URL(u)
+              if (parsed.protocol !== 'https:') return false
+              if (allowedHost && parsed.hostname.toLowerCase() !== allowedHost) return false
+              return true
+            } catch {
+              return false
+            }
+          })
+          .slice(0, 10)
+      : []
+
     const reviewId = randomUUID().slice(0, 12)
     const now = new Date().toISOString()
 
@@ -155,8 +189,8 @@ async function submitReview(
       rating: body.rating,
       title: body.title || '',
       body: body.body.trim(),
-      photos: body.photos ? JSON.stringify(body.photos) : '[]',
-      orderId: orders.find((o) => o.status === 'DELIVERED')?.rowKey || '',
+      photos: JSON.stringify(photoUrls),
+      orderId: proofOrderId,
       status: 'pending',
       createdAt: now,
     })
@@ -207,6 +241,8 @@ async function adminUpdateReview(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const admin = requireAdmin(request)
   if (!admin) return errorResponse('Unauthorized', 401, origin)

@@ -64,10 +64,10 @@ export default function Header() {
                 Shop
               </Link>
               <Link href="/custom-order" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                Custom
+                Custom orders
               </Link>
               <Link href="/our-story" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                Our Story
+                About us
               </Link>
               <Link href="/contact" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Contact

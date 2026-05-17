@@ -13,13 +13,13 @@ export default function WishlistPage() {
     return (
       <main className="min-h-svh max-w-2xl mx-auto px-5 py-20 lg:py-28 text-center">
         <Heart className="w-12 h-12 text-terracotta/60 mx-auto mb-4" aria-hidden />
-        <p className="eyebrow justify-center mb-3">Saved pieces</p>
+        <p className="eyebrow justify-center mb-3">Wishlist</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
           Your <em className="italic">wishlist</em> is empty
         </h1>
-        <p className="text-ink-soft mb-8">Tap the heart on any piece to save it for later.</p>
+        <p className="text-ink-soft mb-8">Tap the heart icon on any piece to save it for later.</p>
         <Link href="/shop" className="btn-dark">
-          Browse the shop
+          Start shopping
           <ArrowRight className="w-4 h-4" aria-hidden />
         </Link>
       </main>
@@ -29,10 +29,10 @@ export default function WishlistPage() {
   return (
     <main className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16">
       <header className="mb-8">
-        <p className="eyebrow mb-3">Saved pieces</p>
-        <h1 className="display text-4xl md:text-5xl">Your wishlist</h1>
+        <p className="eyebrow mb-3">Wishlist</p>
+        <h1 className="display text-4xl md:text-5xl">Your saved pieces</h1>
         <p className="text-ink-mute text-sm mt-2">
-          {items.length} {items.length === 1 ? 'piece' : 'pieces'} saved
+          {items.length} {items.length === 1 ? 'piece' : 'pieces'} saved for later
         </p>
       </header>
 
@@ -51,7 +51,7 @@ export default function WishlistPage() {
               </div>
               <div className="pt-4 px-1">
                 <h3 className="font-serif text-base text-ink line-clamp-2">{item.title}</h3>
-                <p className="text-sm text-ink mt-1.5">{formatINR(item.price)}</p>
+                <p className="text-sm font-semibold text-ink mt-1.5 tabular-nums">{formatINR(item.price)}</p>
               </div>
             </Link>
             <button

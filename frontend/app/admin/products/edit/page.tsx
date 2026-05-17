@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Upload, Save, Trash2, Loader2, X, AlertCircle } from 'lucide-react'
 import { CATEGORIES } from '@/data/categories'
 import { getProductById } from '@/data/products'
-import { apiFetch, ApiError } from '@/lib/api'
+import { apiFetch, ApiError, getCsrfToken, getApiBase } from '@/lib/api'
 import { useAdminAuth } from '@/stores/adminAuth'
 import type { Product } from '@/types'
 
@@ -17,15 +17,18 @@ interface ImageEntry {
   error: string | null
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api'
-
 async function uploadFile(file: File, category: string, token: string | null): Promise<string> {
   const fd = new FormData()
   fd.append('file', file)
   const headers: Record<string, string> = {}
   if (token) headers['Authorization'] = `Bearer ${token}`
+  // Multipart uploads bypass apiFetch (which is JSON-only), so attach the
+  // CSRF token manually here. The backend's csrfGuard runs on every
+  // mutating handler including /api/admin/upload.
+  const csrf = await getCsrfToken()
+  if (csrf) headers['X-CSRF-Token'] = csrf
   const res = await fetch(
-    `${API_BASE}/admin/upload?category=${encodeURIComponent(category || 'general')}`,
+    `${getApiBase()}/admin/upload?category=${encodeURIComponent(category || 'general')}`,
     { method: 'POST', credentials: 'include', headers, body: fd },
   )
   const json = await res.json().catch(() => ({}))
@@ -210,6 +213,53 @@ function EditProduct() {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Images — placed first so the admin can swap photos before
+              touching the rest of the form. */}
+          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-4">
+            <h2 className="font-serif text-lg text-ink">Images</h2>
+            <label className="border-2 border-dashed border-ink/10 rounded-xl p-8 text-center hover:border-lavender/40 transition-colors cursor-pointer block relative">
+              <input
+                type="file"
+                multiple
+                accept="image/png, image/jpeg, image/webp"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={(e) => { if (e.target.files) handleFilesSelected(e.target.files) }}
+              />
+              <Upload className="w-8 h-8 text-ink-mute mx-auto mb-3" />
+              <p className="text-sm font-medium text-ink mb-1">Drop images here or click to upload</p>
+              <p className="text-xs text-ink-mute">PNG, JPG, WebP · max 5 MB each</p>
+            </label>
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                {images.map((entry, i) => (
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-ink/10 group bg-white">
+                    <img src={entry.preview} alt={`Preview ${i}`} className="object-cover w-full h-full" />
+                    {entry.uploading && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      </div>
+                    )}
+                    {entry.error && (
+                      <div className="absolute inset-0 bg-red-900/70 flex flex-col items-center justify-center p-2">
+                        <AlertCircle className="w-5 h-5 text-white mb-1" />
+                        <p className="text-white text-xs text-center leading-tight">{entry.error}</p>
+                      </div>
+                    )}
+                    {!entry.uploading && (
+                      <button
+                        type="button"
+                        onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Basic Info */}
           <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-5">
             <h2 className="font-serif text-lg text-ink">Basic Information</h2>
@@ -283,51 +333,6 @@ function EditProduct() {
             </div>
           </div>
 
-          {/* Images */}
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-4">
-            <h2 className="font-serif text-lg text-ink">Images</h2>
-            <label className="border-2 border-dashed border-ink/10 rounded-xl p-8 text-center hover:border-lavender/40 transition-colors cursor-pointer block relative">
-              <input
-                type="file"
-                multiple
-                accept="image/png, image/jpeg, image/webp"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                onChange={(e) => { if (e.target.files) handleFilesSelected(e.target.files) }}
-              />
-              <Upload className="w-8 h-8 text-ink-mute mx-auto mb-3" />
-              <p className="text-sm font-medium text-ink mb-1">Drop images here or click to upload</p>
-              <p className="text-xs text-ink-mute">PNG, JPG, WebP · max 5 MB each</p>
-            </label>
-            {images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
-                {images.map((entry, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-ink/10 group bg-white">
-                    <img src={entry.preview} alt={`Preview ${i}`} className="object-cover w-full h-full" />
-                    {entry.uploading && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <Loader2 className="w-6 h-6 text-white animate-spin" />
-                      </div>
-                    )}
-                    {entry.error && (
-                      <div className="absolute inset-0 bg-red-900/70 flex flex-col items-center justify-center p-2">
-                        <AlertCircle className="w-5 h-5 text-white mb-1" />
-                        <p className="text-white text-xs text-center leading-tight">{entry.error}</p>
-                      </div>
-                    )}
-                    {!entry.uploading && (
-                      <button
-                        type="button"
-                        onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
-                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Sidebar */}

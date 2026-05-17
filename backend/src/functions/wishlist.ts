@@ -15,6 +15,7 @@ import {
   Row,
 } from '../services/tableStorage'
 import { requireUser } from '../middleware/userGuard'
+import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '../utils/response'
 
 async function wishlistHandler(
@@ -23,6 +24,8 @@ async function wishlistHandler(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const user = requireUser(request)
   if (!user) return errorResponse('Authentication required', 401, origin)
@@ -71,6 +74,8 @@ async function wishlistRemove(
 ): Promise<HttpResponseInit> {
   const origin = request.headers.get('origin')
   if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
 
   const user = requireUser(request)
   if (!user) return errorResponse('Authentication required', 401, origin)

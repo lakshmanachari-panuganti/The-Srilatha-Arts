@@ -6,7 +6,7 @@ const reviews = [
     location: 'Mumbai',
     rating: 5,
     quote:
-      'My Lippan piece arrived hand-wrapped with a note. The mirrors catch the lamp every evening - it is the soul of the room.',
+      'My Lippan piece came beautifully packed with a handwritten note. The little mirrors look lovely under the lamp every evening.',
     art: 'Lippan Art',
   },
   {
@@ -14,7 +14,7 @@ const reviews = [
     location: 'Bangalore',
     rating: 5,
     quote:
-      'Got a mandala for my mother\'s seventieth. The colors, the precision, the timing - all perfect. She cried.',
+      'I ordered a mandala for my mother\'s 70th birthday. The colours and the details were perfect, and it arrived right on time. She loved it.',
     art: 'Custom Dot Mandala',
   },
   {
@@ -22,7 +22,7 @@ const reviews = [
     location: 'Hyderabad',
     rating: 5,
     quote:
-      'These resin coasters made me fall in love with my morning coffee again. Photos do not do them justice.',
+      'The resin coasters look even better in person than in the photos. I use them every morning with my coffee.',
     art: 'Resin Coasters',
   },
 ]
@@ -38,10 +38,10 @@ export default function Testimonials() {
         <div className="mb-12 lg:mb-16 max-w-2xl">
           <p className="eyebrow mb-4">
             <span className="section-no text-lavender-pastel">005</span>
-            Words from collectors
+            Real customer reviews
           </p>
           <h2 className="display text-4xl lg:text-6xl">
-            What our <em className="italic gold-text">community</em> says.
+            What our <em className="italic gold-text">buyers</em> say.
           </h2>
         </div>
 

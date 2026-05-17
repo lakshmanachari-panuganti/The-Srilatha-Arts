@@ -3,9 +3,9 @@ import CategoryChips from '@/components/shop/CategoryChips'
 import ProductListClient from '@/components/shop/ProductListClient'
 
 export const metadata: Metadata = {
-  title: 'Shop · All handcrafted art',
+  title: 'Shop all handmade art',
   description:
-    'Browse the full collection - Resin, Dot Mandala, Lippan, Pichwai and Kolam art handcrafted in Hyderabad.',
+    'Browse all our handmade pieces — Resin, Dot Mandala, Lippan, Pichwai and Kolam — made by hand in Hyderabad.',
 }
 
 export default function ShopPage() {
@@ -13,9 +13,9 @@ export default function ShopPage() {
     <>
       <CategoryChips />
       <header className="px-5 lg:px-8 pt-10 pb-2 max-w-6xl mx-auto">
-        <p className="eyebrow mb-3">The collection</p>
+        <p className="eyebrow mb-3">Shop</p>
         <h1 className="display text-4xl md:text-5xl lg:text-7xl">
-          All <em className="italic">creations</em>
+          All <em className="italic">pieces</em>
         </h1>
       </header>
       <div className="max-w-6xl mx-auto py-8 lg:py-14">
