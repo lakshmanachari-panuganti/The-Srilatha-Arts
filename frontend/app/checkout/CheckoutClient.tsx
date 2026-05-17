@@ -13,7 +13,18 @@ import { useCart, cartSubtotal } from '@/stores/cart'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 
-const FREE_SHIPPING_THRESHOLD = 2999
+// Fallback values until /api/shipping-settings resolves.
+const FALLBACK_SHIPPING_BASE_RS = 99
+const FALLBACK_FREE_THRESHOLD_RS = 2999
+
+interface ShippingConfigApi {
+  shipping: {
+    baseCharge: number
+    effectiveCharge: number
+    freeThreshold: number
+    discountLabel?: string
+  }
+}
 
 declare global {
   interface Window {
@@ -166,9 +177,36 @@ export default function CheckoutClient() {
   const [editForm, setEditForm] = useState<ShippingForm>(emptyShipping)
   const [editBusy, setEditBusy] = useState(false)
 
+  // Admin-configurable shipping. Until the API call resolves we use the
+  // legacy hardcoded defaults so first paint isn't blank.
+  const [shippingBaseRs, setShippingBaseRs] = useState(FALLBACK_SHIPPING_BASE_RS)
+  const [shippingEffectiveRs, setShippingEffectiveRs] = useState(FALLBACK_SHIPPING_BASE_RS)
+  const [freeThresholdRs, setFreeThresholdRs] = useState(FALLBACK_FREE_THRESHOLD_RS)
+  const [shippingDiscountLabel, setShippingDiscountLabel] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    let cancelled = false
+    apiFetch<ShippingConfigApi>('/shipping-settings')
+      .then((r) => {
+        if (cancelled) return
+        setShippingBaseRs(r.shipping.baseCharge / 100)
+        setShippingEffectiveRs(r.shipping.effectiveCharge / 100)
+        setFreeThresholdRs(r.shipping.freeThreshold / 100)
+        setShippingDiscountLabel(r.shipping.discountLabel)
+      })
+      .catch(() => { /* keep fallback */ })
+    return () => { cancelled = true }
+  }, [])
+
   const subtotal = cartSubtotal(items)
-  const shipping = subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 99
+  const shipping =
+    subtotal === 0
+      ? 0
+      : subtotal >= freeThresholdRs
+        ? 0
+        : shippingEffectiveRs
   const total = subtotal + shipping
+  const adminShippingDiscountActive = shippingEffectiveRs < shippingBaseRs && shipping > 0
 
   // Prefill name/phone/email from the signed-in user on first render.
   useEffect(() => {
@@ -727,7 +765,26 @@ export default function CheckoutClient() {
 
           <dl className="mt-5 space-y-2.5 text-sm border-t border-ink/10 pt-5 tabular-nums">
             <Row label="Subtotal" value={formatINR(subtotal)} />
-            <Row label="Shipping" value={shipping === 0 ? 'Free' : formatINR(shipping)} />
+            <div className="flex justify-between text-ink-soft">
+              <dt>Shipping</dt>
+              <dd className="text-ink flex items-baseline gap-2">
+                {shipping === 0 ? (
+                  <span className="text-emerald-600 font-semibold">Free</span>
+                ) : adminShippingDiscountActive ? (
+                  <>
+                    <span className="text-ink-mute line-through">{formatINR(shippingBaseRs)}</span>
+                    <span className="text-emerald-600 font-semibold">{formatINR(shipping)}</span>
+                  </>
+                ) : (
+                  <span>{formatINR(shipping)}</span>
+                )}
+              </dd>
+            </div>
+            {adminShippingDiscountActive && shippingDiscountLabel && (
+              <p className="-mt-1 text-xs text-emerald-700">
+                {shippingDiscountLabel}
+              </p>
+            )}
             <div className="flex justify-between pt-3 mt-3 border-t border-ink/10 font-semibold text-base">
               <dt>Total</dt>
               <dd className="font-serif text-xl">{formatINR(total)}</dd>
@@ -751,7 +808,7 @@ export default function CheckoutClient() {
 
           <p className="text-xs text-ink-mute mt-4 flex items-center gap-2">
             <Truck className="w-3.5 h-3.5" aria-hidden />
-            Free shipping above {formatINR(FREE_SHIPPING_THRESHOLD)} · Pan-India.
+            Free shipping above {formatINR(freeThresholdRs)} · Pan-India.
           </p>
         </div>
       </aside>
