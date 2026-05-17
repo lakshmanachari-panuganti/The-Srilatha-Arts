@@ -1,15 +1,28 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag, X, CheckCircle2 } from 'lucide-react'
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag, X, CheckCircle2, BadgePercent } from 'lucide-react'
 import { useCart, cartSubtotal } from '@/stores/cart'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
 
-const FREE_SHIPPING_THRESHOLD = 2999
+// Fallback values used until the admin-configurable shipping settings
+// have loaded. These match the historical hardcoded defaults so an old
+// or offline cart still renders something sensible.
+const FALLBACK_BASE_CHARGE_RUPEES = 99
+const FALLBACK_THRESHOLD_RUPEES = 2999
+
+interface ShippingConfigApi {
+  shipping: {
+    baseCharge: number       // paise
+    effectiveCharge: number  // paise
+    freeThreshold: number    // paise
+    discountLabel?: string
+  }
+}
 
 interface CouponResult {
   valid: true
@@ -31,13 +44,41 @@ export default function CartPage() {
   const [couponError, setCouponError] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
 
+  // Admin-configurable shipping settings. Default to the legacy hardcoded
+  // values until the API call resolves so first paint doesn't look broken.
+  const [shippingBaseRs, setShippingBaseRs] = useState(FALLBACK_BASE_CHARGE_RUPEES)
+  const [shippingEffectiveRs, setShippingEffectiveRs] = useState(FALLBACK_BASE_CHARGE_RUPEES)
+  const [freeThresholdRs, setFreeThresholdRs] = useState(FALLBACK_THRESHOLD_RUPEES)
+  const [shippingDiscountLabel, setShippingDiscountLabel] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    let cancelled = false
+    apiFetch<ShippingConfigApi>('/shipping-settings')
+      .then((r) => {
+        if (cancelled) return
+        setShippingBaseRs(r.shipping.baseCharge / 100)
+        setShippingEffectiveRs(r.shipping.effectiveCharge / 100)
+        setFreeThresholdRs(r.shipping.freeThreshold / 100)
+        setShippingDiscountLabel(r.shipping.discountLabel)
+      })
+      .catch(() => { /* keep fallback values */ })
+    return () => { cancelled = true }
+  }, [])
+
   const subtotal = cartSubtotal(items)
   const discount = couponResult?.appliedTo === 'cart' ? couponResult.displayDiscount : 0
-  const baseShipping = subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 99
+  // baseShipping = what we'd charge with no coupon, using the admin's current rate.
+  const baseShipping =
+    subtotal === 0
+      ? 0
+      : subtotal >= freeThresholdRs
+        ? 0
+        : shippingEffectiveRs
   const shippingDiscount = couponResult?.appliedTo === 'shipping' ? Math.min(couponResult.displayDiscount, baseShipping) : 0
   const shipping = Math.max(0, baseShipping - shippingDiscount)
   const total = Math.max(0, subtotal - discount) + shipping
-  const toFreeShip = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+  const toFreeShip = Math.max(0, freeThresholdRs - subtotal)
+  const adminShippingDiscountActive = shippingEffectiveRs < shippingBaseRs && baseShipping > 0
 
   const applyCoupon = async () => {
     const code = couponInput.trim().toUpperCase()
@@ -186,7 +227,7 @@ export default function CartPage() {
                 <div
                   className="h-full bg-terracotta transition-all"
                   style={{
-                    width: `${Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)}%`,
+                    width: `${Math.min(100, (subtotal / freeThresholdRs) * 100)}%`,
                   }}
                 />
               </div>
@@ -206,10 +247,31 @@ export default function CartPage() {
             )}
             <div className="flex justify-between text-ink-soft">
               <dt>Shipping</dt>
-              <dd className="text-ink">
-                {shipping === 0 ? (shippingDiscount > 0 ? <span className="text-emerald-600">Free (coupon)</span> : 'Free') : formatINR(shipping)}
+              <dd className="text-ink flex items-baseline gap-2">
+                {shipping === 0 ? (
+                  <span className="text-emerald-600 font-semibold">
+                    {shippingDiscount > 0 ? 'Free (coupon)' : 'Free'}
+                  </span>
+                ) : adminShippingDiscountActive ? (
+                  <>
+                    <span className="text-ink-mute line-through tabular-nums">
+                      {formatINR(shippingBaseRs)}
+                    </span>
+                    <span className="text-emerald-600 font-semibold tabular-nums">
+                      {formatINR(shipping)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="tabular-nums">{formatINR(shipping)}</span>
+                )}
               </dd>
             </div>
+            {adminShippingDiscountActive && shipping > 0 && shippingDiscountLabel && (
+              <p className="-mt-1 text-xs text-emerald-700 flex items-center gap-1.5">
+                <BadgePercent className="w-3.5 h-3.5" aria-hidden />
+                {shippingDiscountLabel}
+              </p>
+            )}
             <div className="flex justify-between text-ink pt-3 mt-3 border-t border-ink/10 font-semibold text-base">
               <dt>Total</dt>
               <dd className="font-serif text-xl">{formatINR(total)}</dd>

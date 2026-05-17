@@ -31,6 +31,7 @@ import { requireAdmin } from '../middleware/adminGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { canCustomerCancel, canCustomerReturn } from '../services/orderState'
+import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
 import type { OrderStatus, OrderItemSnapshot } from '../types'
 import { randomBytes } from 'crypto'
 
@@ -141,8 +142,10 @@ async function createNewOrder(
       })
     }
 
-    // Shipping (free above ₹2999 = 299900 paise)
-    const shippingAmount = subtotal >= 299900 ? 0 : 9900 // ₹99
+    // Shipping is admin-configurable via /admin/settings. computeShippingAmount
+    // applies the free-threshold and the effective (possibly discounted) charge.
+    const shippingCfg = await getShippingConfig()
+    const shippingAmount = computeShippingAmount(subtotal, shippingCfg)
     const totalAmount = subtotal + shippingAmount
     const displayTotal = totalAmount / 100
 

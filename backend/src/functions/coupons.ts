@@ -29,6 +29,7 @@ import { requireUser } from '../middleware/userGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
+import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
 import { randomUUID } from 'crypto'
 
 // Supported types have full discount calculation logic.
@@ -229,8 +230,15 @@ async function validateCoupon(
         discount = coupon.value
         break
       case 'FREE_SHIPPING':
-        discount = 9900 // ₹99 shipping
-        appliedTo = 'shipping'
+        // The discount must equal whatever shipping would have been
+        // charged on this cart — looking that up dynamically so it
+        // matches the admin-configured rate (including any active
+        // shipping discount and the free-threshold rule).
+        {
+          const cfg = await getShippingConfig()
+          discount = computeShippingAmount(cartTotal, cfg)
+          appliedTo = 'shipping'
+        }
         break
       default:
         // BUY_X_GET_Y or any unknown type — creation is blocked by admin validation,
