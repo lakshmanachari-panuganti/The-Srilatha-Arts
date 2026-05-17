@@ -5,9 +5,12 @@
 | DEV | `rg-thesrilathaarts-dev` | `https://delightful-mushroom-062e18100.7.azurestaticapps.net/` | `func-thesrilathaarts-dev` |
 | PRD | `rg-thesrilathaarts-prd` | `https://www.srilatha.art/` | `func-thesrilathaarts-prd` |
 
-> **Status as of 2026-05-17:** PRD is functionally on par with DEV for
-> Razorpay payments. Webhook signature verification is in place. The
-> Key Vault hardening below remains open work for an admin account.
+> **Status as of 2026-05-17:** PR #8 (develop → main) has been merged.
+> Both the prd Function App and the prd SWA have redeployed. Razorpay
+> endpoints are live (`/api/razorpay/{webhook,create-order,verify}`),
+> the new copy + typography are on `https://www.srilatha.art/`, and the
+> webhook signature check is rejecting unsigned posts as expected.
+> The Key Vault hardening below remains open work for an admin account.
 
 ---
 
@@ -198,20 +201,34 @@ prefix differs.
 
 - [x] **Step 1** — PRD Function App has `RAZORPAY_KEY_ID`,
       `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. _(applied 2026-05-17)_
-- [ ] "Test webhook" from Razorpay Dashboard returns 200 with no
-      signature-mismatch warning in App Insights.
+- [x] **`develop` → `main` PR merged** — code is now on PRD: Razorpay
+      endpoints, auth-gated cart, saved-address book, plain-English
+      copy, typography refresh, CSRF `SameSite=None`. _(merged 2026-05-17 via PR #8)_
+- [x] **PRD deploy verified** — probed live endpoints:
+      `/api/auth/csrf` → 200, `/api/razorpay/webhook` POST → 400
+      `"Bad signature"` (signature check is engaged),
+      `/api/razorpay/{create-order,verify}` POST → 403 (CSRF guard is
+      engaged), `/checkout/` and `/account/` static pages → 200.
+      Home page contains all the new copy and none of the old
+      phrasing. _(verified 2026-05-17)_
+- [ ] **"Test webhook" from Razorpay Dashboard** returns 200 with no
+      signature-mismatch warning in App Insights. _(can be triggered
+      from the dashboard now that the endpoint is live)_
 - [ ] **Step 2a + 2b** — `kv-thesrilathaarts-prd` has the two RBAC role
       assignments at the vault scope and any stray Function App-scoped
       role is removed. (Same status on DEV.)
 - [ ] **Step 3** — the three app settings show green "Key vault reference"
       badges. (Same status on DEV.)
-- [ ] One real test payment completed via Razorpay Checkout on
-      `https://www.srilatha.art/`, ends on the success page, internal
-      order visible in `/account` with `paymentStatus = CAPTURED`.
-      _(Requires the develop branch to be merged into main and deployed
-      to PRD frontend + backend first.)_
+- [ ] **End-to-end test payment** — one real Razorpay Checkout on
+      `https://www.srilatha.art/` with the test card
+      `4111 1111 1111 1111`, ends on the success page, the order is
+      visible in `/account` with `paymentStatus = CAPTURED`.
 - [ ] Webhook event for that same payment shows `200` in Razorpay
       Dashboard → Webhooks → "Recent Deliveries".
 
-PRD is **functionally on par with DEV** when the first box is ticked; the
-remaining boxes are hardening / verification rather than blockers.
+PRD is **fully on par with DEV** for everything that does not need
+admin-level RBAC authority. The remaining open boxes are either:
+- a one-off test you trigger from the Razorpay dashboard (test webhook
+  + real test payment), or
+- the Key Vault hardening that needs an Owner / User Access
+  Administrator account.
