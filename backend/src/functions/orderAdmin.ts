@@ -26,6 +26,7 @@ import {
 import { requireAdmin, AdminContext } from '../middleware/adminGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import { createRefund } from '../services/razorpay'
 import {
   canTransition,
   validateTransitionPayload,
@@ -62,10 +63,19 @@ function toApi(row: Row) {
     holdReason: row.holdReason || undefined,
     razorpayOrderId: row.razorpayOrderId || undefined,
     razorpayPaymentId: row.razorpayPaymentId || undefined,
+    razorpayRefundId: row.razorpayRefundId || undefined,
     invoiceUrl: row.invoiceUrl || undefined,
     customerNote: row.customerNote || undefined,
+    // Return-flow metadata so the admin order detail page can render the
+    // customer's reason / comment / photos and any prior decline / refund.
+    returnRequestedAt: row.returnRequestedAt || undefined,
+    returnReason: row.returnReason || undefined,
+    returnComment: row.returnComment || undefined,
+    returnPhotos: safeJson(row.returnPhotos) || [],
+    returnDeclineReason: row.returnDeclineReason || undefined,
     refundedAt: row.refundedAt || undefined,
     refundAmount: row.refundAmount || undefined,
+    refundFailureReason: row.refundFailureReason || undefined,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }
@@ -267,6 +277,43 @@ async function adminUpdateStatus(
 
     const now = new Date().toISOString()
 
+    // Razorpay refund — runs FIRST when moving to REFUNDED on a card/UPI/
+    // netbanking order, so we don't mark the order REFUNDED in our system
+    // unless the gateway accepted the refund. Failure here keeps the order
+    // at whatever it was before and surfaces the gateway's error to admin.
+    let razorpayRefundId: string | undefined
+    if (to === 'REFUNDED' && body.refundAmount && order.razorpayPaymentId) {
+      try {
+        const refund = await createRefund({
+          paymentId: order.razorpayPaymentId,
+          amountPaise: Math.floor(body.refundAmount),
+          notes: {
+            internalOrderId: orderId,
+            initiatedBy: admin.adminId,
+            reason: order.returnReason || 'admin_initiated',
+          },
+        })
+        razorpayRefundId = refund.id
+      } catch (refundErr) {
+        const message = refundErr instanceof Error ? refundErr.message : 'Razorpay refund failed'
+        context.error(`adminUpdateStatus: Razorpay refund failed for ${orderId}`, refundErr)
+        await mergeOrder(order.partitionKey, orderId, {
+          refundFailureReason: message.slice(0, 500),
+          updatedAt: now,
+        })
+        await appendOrderEvent({
+          partitionKey: orderId,
+          rowKey: `${now}_refund_failed`,
+          channel: 'internal',
+          by: admin.adminId,
+          byRole: admin.role,
+          note: `Razorpay refund failed: ${message}`,
+          createdAt: now,
+        })
+        return errorResponse(`Razorpay refund failed: ${message}`, 502, origin)
+      }
+    }
+
     // 1. Update order row (merge, no row move)
     const updates: Row = {
       status: to,
@@ -279,6 +326,14 @@ async function adminUpdateStatus(
     if (body.refundAmount) {
       updates.refundAmount = body.refundAmount
       updates.refundedAt = now
+    }
+    if (razorpayRefundId) {
+      updates.razorpayRefundId = razorpayRefundId
+      // Also reflect the refund on the payment-status field so the
+      // admin orders list shows REFUNDED at a glance.
+      updates.paymentStatus = 'REFUNDED'
+      // Clear any previous failure note now that the refund went through.
+      updates.refundFailureReason = ''
     }
 
     await mergeOrder(order.partitionKey, orderId, updates)
@@ -521,6 +576,116 @@ async function adminBulkStatus(
   }
 }
 
+// ─── POST /api/admin/orders/{id}/return/decline ──────────────
+// Admin rejects a return request. State machine allows
+// RETURN_REQUESTED -> DELIVERED specifically for this case.
+
+async function adminDeclineReturn(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
+
+  const admin = requireAdmin(request)
+  if (!admin) return errorResponse('Unauthorized', 401, origin)
+
+  const orderId = request.params.id
+  if (!orderId) return errorResponse('Missing order id', 400, origin)
+
+  try {
+    const order = await getOrderById(orderId)
+    if (!order) return errorResponse('Order not found', 404, origin)
+    if (order.status !== 'RETURN_REQUESTED') {
+      return errorResponse(
+        `Cannot decline a return for an order in "${order.status}" status`,
+        400,
+        origin,
+      )
+    }
+
+    const body = (await request.json()) as { reason?: string; notifyCustomer?: boolean }
+    const reason = (body.reason || '').trim()
+    if (!reason || reason.length > 500) {
+      return errorResponse('Decline reason is required (1-500 characters)', 400, origin)
+    }
+
+    const now = new Date().toISOString()
+
+    await mergeOrder(order.partitionKey, orderId, {
+      status: 'DELIVERED',
+      returnDeclineReason: reason,
+      updatedAt: now,
+    })
+
+    // Move the secondary index back to the previous bucket
+    try {
+      await deleteOrderByStatus('RETURN_REQUESTED', `${order.createdAt}_${orderId}`)
+      await upsertOrderByStatus({
+        partitionKey: 'DELIVERED',
+        rowKey: `${order.createdAt}_${orderId}`,
+        orderId,
+        userEmail: order.partitionKey,
+        customerName: order.customerName,
+        displayTotal: order.displayTotal,
+        paymentStatus: order.paymentStatus,
+        createdAt: order.createdAt,
+        updatedAt: now,
+      })
+    } catch (indexErr) {
+      context.warn('ordersByStatus index update failed', indexErr)
+    }
+
+    await appendOrderEvent({
+      partitionKey: orderId,
+      rowKey: `${now}_return_declined`,
+      fromStatus: 'RETURN_REQUESTED',
+      toStatus: 'DELIVERED',
+      channel: 'status',
+      by: admin.adminId,
+      byRole: admin.role,
+      note: `Return declined: ${reason}`,
+      createdAt: now,
+    })
+
+    await appendAuditLog({
+      partitionKey: 'admin',
+      rowKey: `${now}_${admin.adminId}`,
+      staffId: admin.adminId,
+      action: 'order.return.decline',
+      resourceType: 'order',
+      resourceId: orderId,
+      details: JSON.stringify({ reason }),
+      createdAt: now,
+    })
+
+    if (body.notifyCustomer !== false && order.customerEmail) {
+      try {
+        await enqueueNotification({
+          userEmail: order.customerEmail,
+          channel: 'email',
+          templateKey: 'return_declined',
+          vars: {
+            customerName: order.customerName,
+            orderId,
+            reason,
+          },
+        })
+      } catch (notifyErr) {
+        context.warn('adminDeclineReturn: notification enqueue failed (non-fatal)', notifyErr)
+      }
+    }
+
+    return jsonResponse({ ok: true, status: 'DELIVERED', reason }, 200, {}, origin)
+  } catch (err) {
+    if (err instanceof SyntaxError) return errorResponse('Invalid request body', 400, origin)
+    context.error('adminDeclineReturn failed', err)
+    return errorResponse('Failed to decline return', 500, origin)
+  }
+}
+
 // ─── Route registrations ─────────────────────────────────────
 
 app.http('adminListOrders', {
@@ -563,4 +728,11 @@ app.http('adminBulkStatus', {
   route: 'api/admin/orders/bulk-status',
   authLevel: 'anonymous',
   handler: adminBulkStatus,
+})
+
+app.http('adminDeclineReturn', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/admin/orders/{id}/return/decline',
+  authLevel: 'anonymous',
+  handler: adminDeclineReturn,
 })
