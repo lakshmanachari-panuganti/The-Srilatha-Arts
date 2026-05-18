@@ -47,6 +47,31 @@ export type OrderStatus =
 
 export type PaymentStatus = 'PENDING' | 'CAPTURED' | 'FAILED' | 'REFUNDED' | 'COD'
 
+// Structured customer return reasons. Keep the set small and stable —
+// admins filter / report on these. "other" lets the customer free-text.
+export type ReturnReasonCode =
+  | 'damaged'
+  | 'wrong_item'
+  | 'not_as_described'
+  | 'size_issue'
+  | 'quality_issue'
+  | 'changed_mind'
+  | 'other'
+
+export const RETURN_REASON_CODES: readonly ReturnReasonCode[] = [
+  'damaged',
+  'wrong_item',
+  'not_as_described',
+  'size_issue',
+  'quality_issue',
+  'changed_mind',
+  'other',
+]
+
+export function isValidReturnReason(value: unknown): value is ReturnReasonCode {
+  return typeof value === 'string' && (RETURN_REASON_CODES as readonly string[]).includes(value)
+}
+
 export interface OrderEntity {
   partitionKey: string   // userEmail (or 'guest')
   rowKey: string         // orderId e.g. "TSA-2026-00001"
@@ -75,8 +100,14 @@ export interface OrderEntity {
   razorpayPaymentId?: string
   invoiceUrl?: string
   returnRequestedAt?: string
+  returnReason?: ReturnReasonCode  // structured code (e.g. 'damaged', 'wrong_item', ...)
+  returnComment?: string           // optional free-text from the customer
+  returnPhotos?: string            // JSON array of image URLs (validated to our blob domain)
+  returnDeclineReason?: string     // admin reason when a return is declined
   refundedAt?: string
-  refundAmount?: number
+  refundAmount?: number            // paise — partial refunds allowed
+  razorpayRefundId?: string        // 'rfnd_...' once Razorpay creates the refund
+  refundFailureReason?: string     // populated if the Razorpay refund call fails
   customerNote?: string
   addressEdited?: boolean
   createdAt: string
