@@ -10,7 +10,10 @@
 > endpoints are live (`/api/razorpay/{webhook,create-order,verify}`),
 > the new copy + typography are on `https://www.srilatha.art/`, and the
 > webhook signature check is rejecting unsigned posts as expected.
-> The Key Vault hardening below remains open work for an admin account.
+> Admin-configurable shipping settings are now on `develop` (commit
+> `e2272c9`) and will land on PRD with the next `develop → main` merge —
+> no extra action required after that. The Key Vault hardening below
+> remains open work for an admin account.
 
 ---
 
@@ -155,7 +158,73 @@ during the audit either.
 
 ---
 
-## 4. Switch from Razorpay TEST keys to LIVE keys (future)
+## 🆕 4. Admin-configurable shipping (lands with next develop → main merge)
+
+Shipping is no longer hardcoded. Admins can set the standard delivery
+charge, an optional discounted charge (renders as strike-through on the
+cart), and the free-shipping threshold from
+**`/admin/settings#shipping`**.
+
+### How it lands on PRD
+
+Nothing manual needed. When the next `develop → main` PR merges:
+
+- The `develop` codebase already contains the feature (`backend/src/services/shippingConfig.ts`,
+  `backend/src/functions/shippingSettings.ts`, plus the form on the
+  admin settings page).
+- The PRD Function App will pick up the three new routes:
+  - `GET  /api/shipping-settings`        — public, 60-second cache
+  - `GET  /api/admin/shipping-settings`  — admin
+  - `PATCH /api/admin/shipping-settings` — admin, CSRF-guarded
+- The PRD SWA will pick up the new admin form + dynamic cart/checkout.
+- The Azure Table `config` row (`PK='config'`, `RK='shipping'`) is
+  written lazily on first save. Until then `getShippingConfig()` returns
+  the defaults — which match the previous hardcoded values (₹99 charge,
+  ₹2999 threshold). **No silent price changes for existing customers.**
+
+### Optional: pre-seed a config row before deploy
+
+If you want to set up a discount during the deploy window so the strike-
+through appears the moment the new UI lights up, you can pre-write the
+row from PowerShell (the deployer SP has `Key Vault Administrator` at
+RG scope on prd which doesn't include Table write, so this needs a
+principal with `Storage Table Data Contributor` on
+`stthesrilathaartsprd`). Example values shown in paise:
+
+```powershell
+# Run after Connect-AzAccount as a principal with Storage Table Data
+# Contributor on the prd storage account.
+Import-Module Az.Storage
+$ctx = New-AzStorageContext -StorageAccountName 'stthesrilathaartsprd' -UseConnectedAccount
+$table = (Get-AzStorageTable -Name 'config' -Context $ctx).CloudTable
+
+$row = New-Object Microsoft.Azure.Cosmos.Table.DynamicTableEntity 'config','shipping'
+$row.Properties.Add('value', (New-Object Microsoft.Azure.Cosmos.Table.EntityProperty (
+  ConvertTo-Json @{
+    baseCharge      = 9900
+    effectiveCharge = 4900            # ₹49 — half-price delivery
+    freeThreshold   = 299900
+    discountLabel   = 'Festive offer · 50% off delivery'
+  } -Compress
+)))
+[Microsoft.Azure.Cosmos.Table.TableOperation]::InsertOrReplace($row) | ForEach-Object { $table.Execute($_) } | Out-Null
+```
+
+Easier path: do nothing. After deploy, sign in to `/admin/login`, go to
+**Settings → Shipping**, fill the form, hit Save.
+
+### Verification once live
+
+1. `curl https://www.srilatha.art/api/shipping-settings` returns the
+   defaults (or whatever was pre-seeded) as JSON.
+2. Open `/admin/settings#shipping` as a logged-in admin → form
+   prefills, hit Save with a discount → cart preview updates instantly.
+3. `https://www.srilatha.art/cart/` for a guest browser with any item
+   shows the strike-through `~~₹99~~  ₹49` line if a discount is set.
+
+---
+
+## 5. Switch from Razorpay TEST keys to LIVE keys (future)
 
 When you are ready to charge real money:
 
@@ -180,24 +249,35 @@ prefix differs.
 
 ---
 
-## 5. Other audit follow-ups that affect PRD
+## 6. Other audit follow-ups that affect PRD
 
-- [ ] Once payments are live, rotate the **test** Razorpay keys in the
-      Razorpay Dashboard out of habit (they were briefly visible in chat
-      context during the audit).
+- [ ] **Scrub the Razorpay test secrets from this doc + rotate them in
+      the Razorpay Dashboard.** The literal `RAZORPAY_KEY_ID` / `_SECRET`
+      / `_WEBHOOK_SECRET` values appear in plaintext in Sections 1 and 3
+      below as "re-apply" snippets, which means they live in committed
+      git history on both `develop` and `main`. For test-mode keys this
+      is acceptable risk; for production it would not be. Once Razorpay
+      live-mode goes on, rotate Key Secret + Webhook Secret in the
+      Dashboard and replace the snippets in this doc with placeholder
+      tokens.
 - [ ] Consider registering a **second** Razorpay webhook pointed at the
       DEV Function App URL
       (`https://func-thesrilathaarts-dev.azurewebsites.net/api/razorpay/webhook`)
       so dev/staging payment flows get the async reconciliation hop too.
-- [ ] Once PRD is updated from `main` to include the develop changes, run
-      a single test payment end-to-end on `https://www.srilatha.art/` with
-      the Razorpay test card `4111 1111 1111 1111` (any future expiry,
-      any CVV). Confirm the order appears in `/account` with
-      `paymentStatus = CAPTURED`.
+- [ ] Run a **single test payment end-to-end** on `https://www.srilatha.art/`
+      with the Razorpay test card `4111 1111 1111 1111` (any future
+      expiry, any CVV). Confirm the order appears in `/account` with
+      `paymentStatus = CAPTURED`. This sweeps up: webhook signature
+      check, sync verify hop, address persistence, order state machine,
+      account-page rendering.
+- [ ] After the next `develop → main` merge: load `/admin/settings#shipping`
+      as an admin, save a small discount, then confirm the cart on
+      `https://www.srilatha.art/` shows the strike-through pricing and
+      that `GET /api/shipping-settings` returns the saved values.
 
 ---
 
-## 6. Sanity checklist — declaring PRD "DEV-parity ready"
+## 7. Sanity checklist — declaring PRD "DEV-parity ready"
 
 - [x] **Step 1** — PRD Function App has `RAZORPAY_KEY_ID`,
       `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. _(applied 2026-05-17)_
@@ -225,6 +305,11 @@ prefix differs.
       visible in `/account` with `paymentStatus = CAPTURED`.
 - [ ] Webhook event for that same payment shows `200` in Razorpay
       Dashboard → Webhooks → "Recent Deliveries".
+- [ ] **Admin-configurable shipping is live on PRD** — after the next
+      `develop → main` merge, `GET /api/shipping-settings` on
+      `func-thesrilathaarts-prd` returns JSON (defaults are fine), and
+      saving a discount from `/admin/settings#shipping` is reflected on
+      `/cart` and `/checkout` within ~60 seconds.
 
 PRD is **fully on par with DEV** for everything that does not need
 admin-level RBAC authority. The remaining open boxes are either:
