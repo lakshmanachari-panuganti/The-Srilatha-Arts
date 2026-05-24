@@ -13,7 +13,7 @@ const columns = [
       { href: '/shop/resin', label: 'Resin Art' },
       { href: '/shop/dot-mandala', label: 'Dot Mandala' },
       { href: '/shop/lippan', label: 'Lippan Art' },
-      { href: '/shop/pichwai', label: 'Pichwai Art' },
+      { href: '/shop/pichwai', label: 'Wedding & Festive Decor' },
       { href: '/shop/kolam', label: 'Kolam Art' },
     ],
   },
@@ -120,7 +120,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Handmade Indian art from Hyderabad - Resin, Dot Mandala, Lippan, Pichwai and Kolam styles.
+              Handmade Indian art from Hyderabad - Resin, Dot Mandala, Lippan, Wedding Decoratives and Kolam styles.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <SocialLink href="https://instagram.com" label="Instagram">
