@@ -60,7 +60,7 @@ export default function ShopByArtForm() {
                   fill
                   sizes="(min-width: 768px) 50vw, 100vw"
                   priority={i < 2}
-                  className="object-contain p-8 sm:p-10 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
+                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
                 />
                 {/* Soft gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-plum/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />

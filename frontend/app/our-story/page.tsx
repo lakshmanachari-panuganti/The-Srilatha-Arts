@@ -20,13 +20,12 @@ export default function OurStoryPage() {
         is made by us in our studio in Hyderabad.
       </p>
 
-      <div className="my-10 relative aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-b from-plum-warm to-plum-light flex items-center justify-center">
+      <div className="my-10 relative aspect-[4/3] rounded-3xl overflow-hidden border border-glass-border shadow-editorial bg-gradient-to-b from-plum-warm/30 to-plum-light/10">
         <Image
-          src="/images/logo.png"
-          alt="Our studio in Hyderabad"
-          width={300}
-          height={300}
-          className="object-contain p-10"
+          src="/images/category/Lippan Art/ae24466c93d264e6050dc0b37ffd5956.jpg"
+          alt="Handmade Lippan mirror artwork from our studio"
+          fill
+          className="object-cover animate-slow-zoom"
         />
       </div>
 

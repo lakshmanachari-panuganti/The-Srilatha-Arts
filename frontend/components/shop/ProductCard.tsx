@@ -45,11 +45,11 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
     >
       <Link href={`/product/${product.id}`} className="block">
         <div className="relative aspect-[4/5] overflow-hidden
-                        bg-gradient-to-b from-plum-warm/80 to-plum-light/60
+                        bg-gradient-to-b from-lavender-light to-white
                         border border-glass-border
                         transition-all duration-700
-                        group-hover:border-lavender-pastel/20
-                        group-hover:shadow-lavender-glow"
+                        group-hover:border-lavender-pastel/30
+                        group-hover:shadow-editorial"
              style={{ borderRadius: '24px' }}
         >
           <Image
@@ -62,7 +62,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                 : '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
             }
             priority={priority}
-            className="object-contain p-6 sm:p-8 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
           />
 
           {/* Badges - top left */}

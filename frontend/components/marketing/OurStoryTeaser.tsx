@@ -18,11 +18,11 @@ export default function OurStoryTeaser() {
               <div className="w-3/4 h-3/4 rounded-full bg-lavender-soft/10 blur-[60px]" />
             </div>
             <Image
-              src="/images/logo.png"
-              alt="A view of the Hyderabad studio"
+              src="/images/category/DOT Mandala/a6f53f2d2b35d8d0bc980b77f559d27d.jpg"
+              alt="Meticulous hand-painting in our studio"
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="relative object-contain p-12 lg:p-20"
+              className="relative object-cover"
             />
             <span className="absolute top-5 left-5 sticker -rotate-2">
               <span className="opacity-70 mr-2">003</span>
