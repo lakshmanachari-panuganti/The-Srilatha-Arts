@@ -3,36 +3,16 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────
-   Typography system
-
-   The fonts themselves (Playfair Display, Montserrat, Caveat)
-   are loaded once in app/layout.tsx and exposed as CSS vars:
-     --font-playfair  → display / headings / serif accents
-     --font-montserrat → body / UI / forms
-     --font-caveat    → handwritten footer / decorative tagline
-
-   The roles below standardise:
-     - weight  (serif: 500/600 for headings, 400 for serif body)
-                (sans:  400 body, 500/600 UI, 700 reserved for
-                 short emphatic strings like prices or stickers)
-     - tracking (negative for large display, neutral for body,
-                 positive only for small all-caps eyebrows)
-     - color    (deep-purple ramp ivory / ivory-soft / ivory-mute
-                 on the page background; explicit lavender or
-                 white on dark sections — set inline there)
-     - feature-settings (kerning + common ligatures everywhere;
-                 contextual alternates for Montserrat ss01;
-                 tabular figures on prices via the .tabular-nums
-                 utility or in components that print money)
+   Lavender Theme Typography & Design Tokens
    ───────────────────────────────────────────────────────────── */
 
 @layer base {
   :root {
-    --color-plum: #EDE9FE;
-    --color-lavender: #7C3AED;
-    --color-lavender-soft: #A78BFA;
-    --color-lavender-pastel: #E879F9;
-    --color-ivory: #2E1065;
+    --color-plum: #F3E8FF;            /* Soft warm lavender (violet-100) */
+    --color-lavender: #8B5CF6;        /* Vivid primary lavender (violet-500) */
+    --color-lavender-soft: #A78BFA;   /* Medium lavender (violet-400) */
+    --color-lavender-pastel: #F472B6; /* Vibrant magenta/pink accent (pink-400) */
+    --color-ivory: #3B0764;           /* Deep dark purple text (violet-950) */
     --banner-h: 0px;
     --header-h: 64px;
     --tab-h: 68px;
@@ -42,88 +22,67 @@
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     scrollbar-gutter: stable;
-    /* OpenType: kerning + common ligatures + contextual alternates,
-       on by default everywhere. */
     font-feature-settings: 'kern', 'liga', 'clig', 'calt';
     text-rendering: optimizeLegibility;
   }
 
   body {
-    @apply bg-plum text-ivory font-sans antialiased;
+    @apply text-ivory font-sans antialiased;
     min-height: 100svh;
-    /* Crisper sub-pixel rendering on macOS / iOS Safari and Chrome on
-       any platform — small body type is the main beneficiary. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* ss01: Montserrat's alternate single-storey 'a' — a touch softer
-       and reads better at small sizes. cv11/zero: not present on most
-       fallback fonts, harmless. */
     font-feature-settings: 'kern', 'liga', 'calt', 'ss01';
-    /* Inherit-friendly default; consumers can override on individual
-       lines where they need lining figures (rare). */
     font-variant-numeric: lining-nums;
-    background-image:
-      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124, 58, 237, 0.35) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 50% at 100% 80%, rgba(232, 121, 249, 0.25) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 0% 60%, rgba(167, 139, 250, 0.30) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 30% at 50% 100%, rgba(109, 40, 217, 0.20) 0%, transparent 50%);
+    
+    /* Immersive colorful lavender gradient background */
+    background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 30%, #E9D5FF 70%, #FAE8FF 100%);
+    background-attachment: fixed;
   }
 
+  /* Decorative fluid blob overlays */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: theme('backgroundImage.paper-grain');
-    opacity: 0.025;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 90% 10%, rgba(244, 114, 182, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(167, 139, 250, 0.12) 0%, transparent 50%);
     pointer-events: none;
-    z-index: 1;
-    mix-blend-mode: overlay;
+    z-index: -1;
   }
 
-  /* Default heading style — picks up Playfair, balanced wrapping,
-     comfortable tracking. Components that need a different size or
-     weight set their own Tailwind classes, which still win because
-     atomics live in the utilities layer below this base layer. */
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif font-medium text-ivory;
     letter-spacing: -0.01em;
-    /* `balance` keeps headlines from leaving an orphan word; supported
-       in Chrome/Edge/Safari 17.4+ — degrades silently elsewhere. */
     text-wrap: balance;
   }
 
-  /* Paragraphs get the modern `pretty` wrapping (Chrome 117+, Safari
-     17.5+), which avoids short last lines. Falls back to `normal`. */
   p {
     text-wrap: pretty;
   }
 
-  /* <strong> defaults to 700 across browsers — that's heavy paired
-     with Playfair body. 600 (semibold) sits better against our serif
-     headings and Montserrat 400 body. */
   strong, b {
     font-weight: 600;
   }
 
-  /* Inherit font + feature settings into native form controls so
-     inputs match the rest of the page. */
   input, textarea, select, button {
     font-family: inherit;
     font-feature-settings: inherit;
     color: inherit;
   }
-  /* Caret picks up the brand colour. */
+
   input, textarea {
-    caret-color: theme('colors.lavender');
+    caret-color: var(--color-lavender);
   }
-  /* Placeholder copy is one step quieter than the muted text token. */
+
   ::placeholder {
-    color: theme('colors.ivory-mute');
-    opacity: 0.65;
+    color: #6B21A8;
+    opacity: 0.5;
   }
 
   ::selection {
-    @apply bg-lavender-pastel/25 text-ivory;
+    @apply bg-lavender-pastel/30 text-ivory;
   }
 
   a, button {
@@ -132,17 +91,18 @@
 
   /* Custom scrollbar for lavender theme */
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: rgba(196, 181, 253, 0.3);
+    background: rgba(243, 232, 255, 0.5);
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(124, 58, 237, 0.5);
-    border-radius: 3px;
+    background: linear-gradient(180deg, #A78BFA 0%, #8B5CF6 100%);
+    border-radius: 4px;
+    border: 2px solid #FAF5FF;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(124, 58, 237, 0.75);
+    background: linear-gradient(180deg, #C084FC 0%, #7C3AED 100%);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -160,212 +120,178 @@
 @layer components {
   /* ───────────── Typography ───────────── */
 
-  /* Gradient gold treatment for accent words inside headlines.
-     Pairs with `<em>` since our headlines often italicise the gold
-     word — Playfair's italic is more elegant for these. */
+  /* Gold metallic styling for accent text */
   .gold-text {
-    background: linear-gradient(135deg, #D4AF37 0%, #F3D27A 40%, #B8962E 100%);
+    background: linear-gradient(135deg, #D97706 0%, #F59E0B 40%, #B45309 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    /* Slight extra weight stops the gradient from looking thin on
-       smaller breakpoints. */
     font-weight: 600;
+    text-shadow: 0 1px 0px rgba(255, 255, 255, 0.2);
   }
 
   .terracotta-text {
-    @apply text-lavender-pastel;
+    @apply text-pink-500;
   }
 
-  /* Editorial eyebrow — small caps, wide tracking. Used on light
-     page backgrounds by default; on dark surfaces (Hero gradient,
-     Footer, MobileDrawer) override the colour inline with
-     `text-lavender-pastel`. */
   .eyebrow {
-    @apply inline-flex items-center gap-2 text-[11px] uppercase font-semibold;
-    letter-spacing: 0.28em;
-    color: theme('colors.ivory-soft');
+    @apply inline-flex items-center gap-2 text-[11px] uppercase font-bold tracking-[0.25em];
+    color: #6B21A8;
   }
 
-  /* Section number — editorial "001 / 002" style. Bumped from
-     regular to semibold for legibility at this size and tracking. */
   .section-no {
-    @apply font-serif text-base text-ivory-mute font-semibold;
+    @apply font-serif text-base text-lavender font-semibold;
     letter-spacing: 0.32em;
   }
 
-  /* Display headline — Playfair, tight optical tracking, balanced
-     wrapping. Consumers add size classes (`text-4xl lg:text-7xl`,
-     etc.) on top; this base just gets the family / weight / colour
-     / tracking right. */
   .display {
-    @apply font-serif font-semibold text-ivory;
-    line-height: 1.02;
+    @apply font-serif font-bold text-ivory;
+    line-height: 1.05;
     letter-spacing: -0.02em;
-    text-wrap: balance;
   }
 
-  /* Lede paragraph — for hero subheads and page intro paragraphs.
-     Slightly heavier than body, with a more generous line-height. */
   .lede {
-    @apply text-base lg:text-lg text-ivory-soft;
+    @apply text-base lg:text-lg text-purple-900;
     font-weight: 400;
     line-height: 1.7;
-    text-wrap: pretty;
   }
 
-  /* ───────────── Buttons ───────────── */
+  /* ───────────── Premium Buttons ───────────── */
 
-  /* All buttons share weight + tracking + height + radius. Variants
-     below only change colour and background. */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 min-h-12 px-7
-           text-sm font-semibold transition-all duration-500
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-pastel focus-visible:ring-offset-2 focus-visible:ring-offset-plum
-           active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
-    letter-spacing: 0.01em;
-    border-radius: 24px;
+    @apply inline-flex items-center justify-center gap-2 min-h-12 px-8
+           text-sm font-bold transition-all duration-300
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-soft
+           active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    letter-spacing: 0.03em;
+    border-radius: 9999px;
   }
 
   .btn-dark {
-    @apply btn text-white;
-    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 60%, #5B21B6 100%);
-    box-shadow: 0 4px 24px rgba(124, 58, 237, 0.45);
+    @apply btn text-white shadow-lg;
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
   }
   .btn-dark:hover {
-    box-shadow: 0 8px 36px rgba(124, 58, 237, 0.65);
+    box-shadow: 0 6px 28px rgba(139, 92, 246, 0.6);
     transform: translateY(-2px);
   }
 
   .btn-outline {
-    @apply btn text-ivory;
-    border: 1.5px solid rgba(124, 58, 237, 0.40);
-    border-radius: 24px;
+    @apply btn text-purple-950 bg-white/40 backdrop-blur-sm;
+    border: 2px solid rgba(139, 92, 246, 0.35);
   }
   .btn-outline:hover {
-    border-color: rgba(124, 58, 237, 0.70);
-    color: #4C1D95;
-    background: rgba(124, 58, 237, 0.08);
+    border-color: rgba(139, 92, 246, 0.85);
+    background: rgba(139, 92, 246, 0.1);
+    transform: translateY(-2px);
   }
 
-  /* Inline text link with a subtle underline — used in marketing
-     teasers and inside cards. Keeps the same weight as the button
-     family so they read as a system. */
   .btn-link {
-    @apply inline-flex items-center gap-2 text-sm font-semibold text-lavender
-           border-b border-lavender/40 hover:border-lavender pb-1
-           transition-all duration-500;
-    letter-spacing: 0.01em;
+    @apply inline-flex items-center gap-2 text-sm font-bold text-lavender
+           border-b-2 border-lavender/30 hover:border-lavender pb-1
+           transition-all duration-300;
   }
 
-  /* ───────────── Cards & surfaces - glassmorphism ───────────── */
+  /* ───────────── Colorful Lavender Glassmorphic Cards ───────────── */
 
   .card {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(167, 139, 250, 0.45);
-    border-radius: 24px;
-    box-shadow: 0 8px 32px 0 rgba(109, 40, 217, 0.12);
-    transition: box-shadow 0.5s ease, transform 0.5s ease, border-color 0.5s ease;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    border-radius: 28px;
+    box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.08);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .card:hover {
-    box-shadow: 0 16px 48px rgba(124, 58, 237, 0.25);
-    border-color: rgba(124, 58, 237, 0.55);
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 16px 40px rgba(139, 92, 246, 0.16);
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-4px);
   }
 
   .card-cream {
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgba(196, 181, 253, 0.60);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(12px);
+    border: 1.5px dashed rgba(167, 139, 250, 0.4);
   }
 
-  /* Sticker / pill badge — vivid lavender label. Now slightly
-     heavier so the small all-caps text stays crisp at any size. */
+  /* Stickers & Badges */
   .sticker {
     @apply inline-flex items-center justify-center
-           text-[10px] uppercase font-semibold
-           px-3 py-1.5;
-    letter-spacing: 0.18em;
-    border-radius: 24px;
-    background: linear-gradient(135deg, #7C3AED 0%, #A855F7 50%, #E879F9 100%);
+           text-[9px] uppercase font-bold
+           px-3.5 py-1.5 shadow-sm;
+    letter-spacing: 0.15em;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #C084FC 0%, #A855F7 50%, #F472B6 100%);
     color: #ffffff;
-    box-shadow: 0 2px 16px rgba(124, 58, 237, 0.45);
+    box-shadow: 0 2px 10px rgba(168, 85, 247, 0.3);
   }
 
-  /* Horizontal-scroll chip rail */
+  /* Horizontal Scroll Rails */
   .chip-rail {
-    @apply flex gap-2 overflow-x-auto snap-x snap-mandatory
-           -mx-5 px-5 pb-1 scrollbar-hide;
+    @apply flex gap-3 overflow-x-auto snap-x snap-mandatory
+           -mx-5 px-5 pb-2 scrollbar-hide;
   }
   .chip-rail > * {
     @apply snap-start shrink-0;
   }
 
   .chip {
-    @apply inline-flex items-center h-10 px-4 text-sm font-medium;
-    border-radius: 24px;
-    border: 1.5px solid rgba(124, 58, 237, 0.25);
-    background: rgba(245, 243, 255, 0.75);
-    color: #4C1D95;
-    transition: all 0.4s ease;
+    @apply inline-flex items-center h-10 px-5 text-sm font-semibold;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(139, 92, 246, 0.2);
+    background: rgba(255, 255, 255, 0.55);
+    color: #5B21B6;
+    transition: all 0.3s ease;
   }
   .chip:hover {
-    border-color: rgba(124, 58, 237, 0.55);
-    color: #2E1065;
-    background: rgba(221, 214, 254, 0.70);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #4C1D95;
+    background: rgba(243, 232, 255, 0.8);
   }
   .chip[aria-current='page'],
   .chip.is-active {
-    background: linear-gradient(135deg, #7C3AED, #A855F7);
+    background: linear-gradient(135deg, #8B5CF6, #EC4899);
     border-color: transparent;
     color: #ffffff;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.40);
-    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
   }
 
-  .sticky-cta {
-    position: sticky;
-    bottom: 0;
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-
-  /* Editorial deco rule - vivid lavender gradient */
+  /* Structural divider rules */
   .rule {
     height: 1px;
-    background: linear-gradient(to right, transparent, rgba(124, 58, 237, 0.6), rgba(232, 121, 249, 0.4), transparent);
+    background: linear-gradient(to right, transparent, rgba(139, 92, 246, 0.4), rgba(244, 114, 182, 0.4), transparent);
   }
 
-  /* ───────────── Glass surfaces ───────────── */
-
+  /* Glassmorphism primitives */
   .glass {
-    background: rgba(237, 233, 254, 0.65);
+    background: rgba(255, 255, 255, 0.45);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(167, 139, 250, 0.45);
+    border: 1px solid rgba(167, 139, 250, 0.25);
   }
 
   .glass-strong {
-    background: rgba(245, 243, 255, 0.92);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(196, 181, 253, 0.60);
+    border: 1px solid rgba(167, 139, 250, 0.35);
+    box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.1);
   }
-
-  /* ───────────── Lavender glow hover ───────────── */
 
   .glow-hover {
-    transition: box-shadow 0.5s ease, transform 0.5s ease;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glow-hover:hover {
-    box-shadow: 0 0 60px rgba(124, 58, 237, 0.40);
+    box-shadow: 0 0 40px rgba(167, 139, 250, 0.35);
     transform: translateY(-2px);
   }
 
-  /* ───────────── Kolam decorative dot pattern ───────────── */
-
   .kolam-dots {
-    background-image: radial-gradient(circle, rgba(124, 58, 237, 0.18) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(139, 92, 246, 0.12) 1.5px, transparent 1.5px);
     background-size: 24px 24px;
   }
 }
@@ -386,29 +312,12 @@
     padding-top: max(1rem, env(safe-area-inset-top));
   }
 
-  .min-h-svh {
-    min-height: 100svh;
-  }
-
-  /* Slight rotation classes for sticker/badge details */
-  .-rotate-2 { transform: rotate(-2deg); }
-  .-rotate-6 { transform: rotate(-6deg); }
-  .rotate-3  { transform: rotate(3deg); }
-
-  /* Text shadow for readability on images */
   .text-shadow-soft {
-    text-shadow: 0 2px 12px rgba(43, 30, 52, 0.6);
+    text-shadow: 0 2px 10px rgba(59, 7, 100, 0.15);
   }
 
-  /* Equal-width digits — apply to prices, totals, quantities so
-     rows in the summary line up cleanly. Tailwind also ships
-     `tabular-nums`; this alias is here for clarity at call sites. */
   .tnum {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum', 'kern';
   }
-
-  /* Balanced and pretty wrapping helpers for ad-hoc use. */
-  .text-balance { text-wrap: balance; }
-  .text-pretty { text-wrap: pretty; }
 }

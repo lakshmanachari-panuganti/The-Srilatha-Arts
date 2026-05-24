@@ -5,22 +5,19 @@ export default function CustomOrderCTA() {
   return (
     <section className="px-5 lg:px-8 py-20 lg:py-28">
       <div className="relative overflow-hidden max-w-6xl mx-auto text-center
-                      p-10 sm:p-14 lg:p-20"
-           style={{ borderRadius: '32px' }}
+                      p-10 sm:p-14 lg:p-20 border border-purple-200/50 shadow-xl"
+           style={{ borderRadius: '32px', background: 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(243,232,255,0.5) 100%)', backdropFilter: 'blur(16px)' }}
       >
-        {/* Glassmorphism background */}
-        <div className="absolute inset-0 glass-strong" />
-
         {/* Dreamy ambient glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px]
-                         rounded-full bg-lavender-soft/12 blur-[80px]" aria-hidden />
+                         rounded-full bg-purple-400/10 blur-[80px]" aria-hidden />
         <div className="absolute bottom-0 right-1/4 w-[300px] h-[200px]
-                         rounded-full bg-lavender-pastel/8 blur-[60px]" aria-hidden />
+                         rounded-full bg-pink-400/10 blur-[60px]" aria-hidden />
 
         {/* Decorative mandala dot pattern */}
         <svg
           viewBox="0 0 600 300"
-          className="absolute inset-0 w-full h-full text-lavender-pastel/8"
+          className="absolute inset-0 w-full h-full text-purple-400/10"
           preserveAspectRatio="xMidYMid slice"
           aria-hidden
         >
@@ -40,17 +37,17 @@ export default function CustomOrderCTA() {
         </svg>
 
         <div className="relative z-10">
-          <span className="inline-flex items-center gap-2 text-[11px] tracking-[0.32em] uppercase text-lavender-pastel mb-5">
-            <Sparkles className="w-3.5 h-3.5" aria-hidden />
+          <span className="inline-flex items-center gap-2 text-[11px] tracking-[0.32em] uppercase font-bold text-pink-500 mb-5">
+            <Sparkles className="w-3.5 h-3.5 text-pink-500" aria-hidden />
             Custom orders
-            <Sparkles className="w-3.5 h-3.5" aria-hidden />
+            <Sparkles className="w-3.5 h-3.5 text-pink-500" aria-hidden />
           </span>
-          <h2 className="font-serif text-4xl sm:text-5xl lg:text-7xl leading-[1.02] text-ivory mb-4">
+          <h2 className="font-serif text-4xl sm:text-5xl lg:text-7xl leading-[1.02] text-purple-950 font-bold mb-4">
             Want something custom?
             <br />
             <em className="italic gold-text">We&apos;ll make it for you.</em>
           </h2>
-          <p className="text-ivory-soft/70 max-w-reader mx-auto text-base lg:text-lg leading-relaxed mb-8">
+          <p className="text-purple-900/80 font-medium max-w-reader mx-auto text-base lg:text-lg leading-relaxed mb-8">
             Tell us what you have in mind — the colours, the size, the style. We&apos;ll make a piece
             just for you and ship it in one to two weeks.
           </p>
@@ -58,7 +55,7 @@ export default function CustomOrderCTA() {
             href="/custom-order"
             className="btn-dark inline-flex"
           >
-            Start a custom order
+            Start custom order
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
         </div>

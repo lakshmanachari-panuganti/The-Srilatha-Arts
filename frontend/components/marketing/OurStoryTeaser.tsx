@@ -9,13 +9,13 @@ export default function OurStoryTeaser() {
         {/* Image - editorial offset with glow */}
         <div className="lg:col-span-6">
           <div className="relative aspect-[4/5] overflow-hidden
-                          bg-gradient-to-b from-plum-warm to-plum-light
-                          border border-glass-border glow-hover"
-               style={{ borderRadius: '24px' }}
+                          bg-gradient-to-b from-purple-200 to-purple-50
+                          border border-purple-200 shadow-lg glow-hover"
+               style={{ borderRadius: '28px' }}
           >
             {/* Ambient glow behind image */}
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden>
-              <div className="w-3/4 h-3/4 rounded-full bg-lavender-soft/10 blur-[60px]" />
+              <div className="w-3/4 h-3/4 rounded-full bg-purple-400/10 blur-[60px]" />
             </div>
             <Image
               src="/images/category/DOT Mandala/a6f53f2d2b35d8d0bc980b77f559d27d.jpg"
@@ -33,20 +33,20 @@ export default function OurStoryTeaser() {
 
         <div className="lg:col-span-6 lg:pl-6">
           <p className="eyebrow mb-4">About us</p>
-          <h2 className="display text-4xl lg:text-6xl mb-5">
+          <h2 className="display text-4xl lg:text-6xl mb-5 text-purple-950">
             Made in
             <br />
             <em className="italic gold-text">Hyderabad</em>.
           </h2>
-          <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
+          <p className="text-purple-900 font-medium text-base lg:text-lg leading-relaxed mb-4 opacity-95">
             Every piece is made by hand in our small Hyderabad studio. We take our time so each
             artwork comes out exactly right.
           </p>
-          <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-8">
+          <p className="text-purple-900 font-medium text-base lg:text-lg leading-relaxed mb-8 opacity-95">
             Srilatha started painting dot mandalas during the lockdown. Today, she and her small team
             ship handmade art to homes all over India.
           </p>
-          <Link href="/our-story" className="btn-link">
+          <Link href="/our-story" className="btn-link text-purple-950 border-purple-300 hover:text-pink-500 hover:border-pink-500">
             Read our full story
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>

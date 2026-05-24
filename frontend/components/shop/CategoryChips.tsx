@@ -16,13 +16,12 @@ export default function CategoryChips() {
 
   return (
     <nav
-      aria-label="Categories"
-      className="sticky top-[calc(var(--banner-h)+4rem)] lg:top-[calc(var(--banner-h)+5rem)] z-30"
+      aria-label="Categories navigation"
+      className="sticky top-24 lg:top-28 z-30 border-b border-purple-200/50"
       style={{
-        background: 'rgba(76,29,149,0.88)',
+        background: 'rgba(255, 255, 255, 0.85)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}
     >
       <div className="chip-rail py-3 lg:py-4 max-w-6xl mx-auto lg:px-8">

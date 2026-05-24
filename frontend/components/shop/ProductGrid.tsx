@@ -5,8 +5,8 @@ export default function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
       <div className="px-5 py-20 text-center">
-        <p className="font-serif text-2xl text-ink mb-2">No pieces here yet</p>
-        <p className="text-sm text-ink-mute">Check back soon - Srilatha is at her bench.</p>
+        <p className="font-serif text-2xl font-bold text-purple-950 mb-2">No pieces here yet</p>
+        <p className="text-sm font-semibold text-purple-900/80">Check back soon - Srilatha is at her bench.</p>
       </div>
     )
   }
