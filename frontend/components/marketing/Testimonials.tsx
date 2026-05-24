@@ -32,22 +32,22 @@ export default function Testimonials() {
     <section className="relative px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">
       {/* Subtle ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px]
-                       rounded-full bg-lavender/8 blur-[100px]" aria-hidden />
+                       rounded-full bg-purple-300/10 blur-[100px]" aria-hidden />
 
       <div className="relative z-10">
         <div className="mb-12 lg:mb-16 max-w-2xl">
           <p className="eyebrow mb-4">
-            <span className="section-no text-lavender-pastel">005</span>
+            <span className="section-no text-pink-500">005</span>
             Real customer reviews
           </p>
-          <h2 className="display text-4xl lg:text-6xl">
+          <h2 className="display text-4xl lg:text-6xl text-purple-950">
             What our <em className="italic gold-text">buyers</em> say.
           </h2>
         </div>
 
         {/* Mobile carousel */}
         <div className="lg:hidden">
-          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-5 px-5 scrollbar-hide">
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-hide">
             {reviews.map((r) => (
               <ReviewCard key={r.name} {...r} />
             ))}
@@ -78,19 +78,19 @@ function ReviewCard({
   art: string
 }) {
   return (
-    <article className="card w-[80vw] sm:w-96 lg:w-auto shrink-0 snap-start p-7 lg:p-8 flex flex-col">
-      <Quote className="w-7 h-7 text-lavender-soft/60 mb-4" aria-hidden />
-      <p className="font-serif text-lg lg:text-xl text-ivory leading-relaxed mb-5 flex-1">
+    <article className="card w-[80vw] sm:w-96 lg:w-auto shrink-0 snap-start p-7 lg:p-8 flex flex-col bg-white/70 border border-purple-200/50">
+      <Quote className="w-7 h-7 text-pink-400 mb-4" aria-hidden />
+      <p className="font-serif text-lg lg:text-xl text-purple-950 font-bold leading-relaxed mb-5 flex-1">
         &ldquo;{quote}&rdquo;
       </p>
-      <div className="flex items-center gap-1 mb-3" aria-label={`Rated ${rating} out of 5`}>
+      <div className="flex items-center gap-1 mb-4" aria-label={`Rated ${rating} out of 5`}>
         {Array.from({ length: rating }).map((_, i) => (
-          <Star key={i} className="w-3.5 h-3.5 fill-lavender-pastel text-lavender-pastel" aria-hidden />
+          <Star key={i} className="w-4 h-4 fill-pink-500 text-pink-500" aria-hidden />
         ))}
       </div>
-      <div className="pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <p className="text-sm text-ivory font-medium">{name}</p>
-        <p className="text-xs text-ivory-mute mt-0.5">
+      <div className="pt-4 border-t border-purple-100">
+        <p className="text-sm text-purple-950 font-bold">{name}</p>
+        <p className="text-xs text-purple-900/80 font-semibold mt-0.5">
           {location} · {art}
         </p>
       </div>

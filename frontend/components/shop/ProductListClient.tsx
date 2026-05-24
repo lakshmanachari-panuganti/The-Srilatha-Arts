@@ -18,9 +18,9 @@ function GridSkeleton() {
     <ul className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12 lg:gap-x-7 lg:gap-y-16 px-5 lg:px-8">
       {Array.from({ length: 8 }).map((_, i) => (
         <li key={i} className="animate-pulse">
-          <div className="aspect-square rounded-2xl bg-ink/8 mb-4" />
-          <div className="h-4 w-3/4 rounded bg-ink/8 mb-2" />
-          <div className="h-3 w-1/2 rounded bg-ink/8" />
+          <div className="aspect-square rounded-2xl bg-purple-200/40 mb-4" />
+          <div className="h-4 w-3/4 rounded bg-purple-200/40 mb-2" />
+          <div className="h-3 w-1/2 rounded bg-purple-200/40" />
         </li>
       ))}
     </ul>
@@ -48,7 +48,7 @@ export default function ProductListClient({ filter = 'all', category, showCount 
   return (
     <>
       {showCount && (
-        <p className="text-ink-mute text-sm px-5 lg:px-8 mb-6">
+        <p className="text-purple-900/80 font-bold text-sm px-5 lg:px-8 mb-6">
           {products.length} {products.length === 1 ? 'piece' : 'pieces'} · made by hand, one at a time
         </p>
       )}

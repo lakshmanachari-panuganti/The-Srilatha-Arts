@@ -55,53 +55,53 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative overflow-hidden min-h-[90vh] flex items-center bg-plum/20">
-      {/* Dreamy ambient glow orbs */}
+    <section className="relative overflow-hidden min-h-[85vh] flex items-center bg-purple-50/10 py-10 lg:py-16">
+      {/* Immersive ambient glow blobs */}
       <div
         aria-hidden
         className="absolute -top-40 -right-32 w-[600px] h-[600px] rounded-full
-                   bg-gradient-to-br from-lavender-soft/20 via-lavender-pastel/15 to-transparent blur-[120px]
-                   animate-glow-pulse"
+                   bg-gradient-to-br from-purple-400/20 via-pink-400/10 to-transparent blur-[120px]
+                   animate-pulse duration-10000"
       />
       <div
         aria-hidden
         className="absolute top-1/2 -left-40 w-[500px] h-[500px] rounded-full
-                   bg-gradient-to-br from-lavender/15 via-plum-warm to-transparent blur-[100px]
-                   animate-glow-pulse [animation-delay:2s]"
+                   bg-gradient-to-br from-pink-300/15 via-purple-300/10 to-transparent blur-[100px]
+                   animate-pulse duration-10000 [animation-delay:3s]"
       />
 
-      {/* Subtle mandala-inspired decorative circle behind text */}
+      {/* Rotating mandala ornament in background */}
       <div
         aria-hidden
         className="absolute top-1/3 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px]
-                   opacity-[0.03] animate-gentle-rotate pointer-events-none"
+                   opacity-[0.05] animate-gentle-rotate pointer-events-none"
       >
         <svg viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-          <circle cx="400" cy="400" r="380" stroke="#C8B6FF" strokeWidth="0.5" strokeDasharray="8 12" />
-          <circle cx="400" cy="400" r="300" stroke="#C8B6FF" strokeWidth="0.5" strokeDasharray="4 8" />
-          <circle cx="400" cy="400" r="220" stroke="#C8B6FF" strokeWidth="0.5" strokeDasharray="3 6" />
-          {Array.from({ length: 12 }).map((_, i) => {
-            const angle = (i / 12) * Math.PI * 2
+          <circle cx="400" cy="400" r="380" stroke="#8B5CF6" strokeWidth="0.5" strokeDasharray="8 12" />
+          <circle cx="400" cy="400" r="300" stroke="#8B5CF6" strokeWidth="0.5" strokeDasharray="4 8" />
+          <circle cx="400" cy="400" r="220" stroke="#F472B6" strokeWidth="0.5" strokeDasharray="3 6" />
+          {Array.from({ length: 16 }).map((_, i) => {
+            const angle = (i / 16) * Math.PI * 2
             const x = 400 + Math.cos(angle) * 340
             const y = 400 + Math.sin(angle) * 340
-            return <circle key={i} cx={x} cy={y} r="4" fill="#C8B6FF" />
+            return <circle key={i} cx={x} cy={y} r="5" fill="#8B5CF6" />
           })}
         </svg>
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-5 lg:px-8 py-12 lg:py-20 z-10 w-full">
+      <div className="relative max-w-6xl mx-auto px-5 lg:px-8 z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
-          {/* Left Column: Premium Editorial Content */}
+          {/* Left Column: Bold Typography Content */}
           <div className="lg:col-span-7 text-left flex flex-col justify-center">
             {/* Eyebrow */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="eyebrow text-lavender-pastel mb-5 inline-flex items-center"
+              className="eyebrow text-pink-500 mb-5 inline-flex items-center"
             >
-              <Sparkles className="w-3.5 h-3.5 mr-2 animate-pulse" />
+              <Sparkles className="w-4 h-4 mr-2 animate-bounce text-pink-500" />
               <span>Made in Hyderabad · since 2020</span>
             </motion.div>
 
@@ -112,7 +112,7 @@ export default function Hero() {
               transition={{ duration: 1, delay: 0.1 }}
               className="display text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-6 font-serif leading-[1.05]"
             >
-              Handmade Indian
+              Handcrafted Indian
               <br />
               art for your{' '}
               <span className="relative inline-block italic font-serif">
@@ -120,13 +120,13 @@ export default function Hero() {
                 <svg
                   viewBox="0 0 200 12"
                   preserveAspectRatio="none"
-                  className="absolute -bottom-2 left-0 w-full h-3 text-lavender-soft"
+                  className="absolute -bottom-2 left-0 w-full h-3 text-pink-300"
                   aria-hidden
                 >
                   <path
                     d="M2 8 Q 50 2, 100 6 T 198 5"
                     stroke="currentColor"
-                    strokeWidth="2.5"
+                    strokeWidth="3"
                     fill="none"
                     strokeLinecap="round"
                   />
@@ -139,10 +139,10 @@ export default function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.2 }}
-              className="text-ivory-soft text-base lg:text-lg max-w-xl mb-8 lg:mb-10 leading-relaxed font-sans"
+              className="text-purple-950 text-base lg:text-lg max-w-xl mb-8 lg:mb-10 leading-relaxed font-sans font-medium opacity-90"
             >
               Beautiful, texturized wall art in five authentic styles — Resin Art, Dot Mandala, 
-              Lippan Clay work, Wedding Decoratives and Kolam. Each piece is individually hand-painted 
+              Lippan Clay work, Wedding Decoratives, and Kolam. Each piece is individually hand-painted 
               and framed in our Hyderabad studio.
             </motion.p>
 
@@ -151,14 +151,14 @@ export default function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-3 items-start mb-12 lg:mb-16"
+              className="flex flex-col sm:flex-row gap-4 items-start mb-12 lg:mb-16 w-full sm:w-auto"
             >
               <Link href="/shop" className="btn-dark w-full sm:w-auto text-center justify-center">
                 Shop all art
                 <ArrowRight className="w-4 h-4" aria-hidden />
               </Link>
-              <Link href="/custom-order" className="btn-outline w-full sm:w-auto text-center justify-center">
-                Order a custom piece
+              <Link href="/custom-order" className="btn-outline w-full sm:w-auto text-center justify-center border-purple-300 hover:border-purple-500">
+                Order custom piece
               </Link>
             </motion.div>
 
@@ -167,26 +167,26 @@ export default function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.4 }}
-              className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] tracking-[0.2em] uppercase text-ivory-mute border-t border-glass-border pt-6 max-w-xl"
+              className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] tracking-[0.2em] uppercase text-purple-900 border-t border-purple-200/50 pt-6 max-w-xl font-bold"
             >
               <span>Free shipping above ₹2,999</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-lavender-soft/40" aria-hidden />
+              <span className="w-1.5 h-1.5 rounded-full bg-pink-400" aria-hidden />
               <span>100% Handcrafted</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-lavender-soft/40" aria-hidden />
+              <span className="w-1.5 h-1.5 rounded-full bg-pink-400" aria-hidden />
               <span>Safe Delivery Guarantee</span>
             </motion.div>
           </div>
 
-          {/* Right Column: Dynamic Art Slideshow Card */}
+          {/* Right Column: High-Fidelity Slideshow Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 1.2, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="lg:col-span-5 w-full flex justify-center items-center"
           >
             <div 
               className="relative w-full aspect-[4/5] max-w-sm lg:max-w-none overflow-hidden
-                         border border-glass-border shadow-lavender-glow-lg bg-gradient-to-b from-plum-warm/30 to-plum/10"
+                         border border-purple-200 shadow-xl bg-gradient-to-b from-purple-100/50 to-white/30"
               style={{ borderRadius: '32px' }}
             >
               {/* Image Transition Slider */}
@@ -196,7 +196,7 @@ export default function Hero() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1.2, ease: 'easeInOut' }}
+                  transition={{ duration: 1, ease: 'easeInOut' }}
                   className="absolute inset-0 w-full h-full"
                 >
                   <motion.div
@@ -219,18 +219,18 @@ export default function Hero() {
               {/* Glassmorphic Caption Plate */}
               <div className="absolute bottom-5 inset-x-5 z-20">
                 <div 
-                  className="p-5 backdrop-blur-xl border border-white/20 bg-glass-surface"
+                  className="p-5 backdrop-blur-xl border border-white/40 bg-white/75 shadow-lg"
                   style={{ borderRadius: '24px' }}
                 >
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <div>
-                      <span className="text-[9px] uppercase tracking-[0.25em] font-semibold text-lavender-pastel block mb-1">
+                      <span className="text-[9px] uppercase tracking-[0.25em] font-black text-pink-600 block mb-1">
                         Style {slides[index].num}
                       </span>
-                      <h3 className="font-serif text-xl lg:text-2xl text-ivory font-semibold leading-tight">
+                      <h3 className="font-serif text-xl lg:text-2xl text-purple-950 font-bold leading-tight">
                         {slides[index].title}
                       </h3>
-                      <p className="text-xs text-ivory-soft leading-normal mt-0.5">
+                      <p className="text-xs text-purple-900 font-medium leading-normal mt-0.5 opacity-90">
                         {slides[index].tagline}
                       </p>
                     </div>
@@ -238,9 +238,9 @@ export default function Hero() {
                     <Link
                       href={slides[index].href}
                       aria-label={`View ${slides[index].title} collections`}
-                      className="shrink-0 w-11 h-11 rounded-full bg-lavender text-white
-                                 hover:bg-lavender-pastel transition-colors duration-500
-                                 flex items-center justify-center shadow-soft"
+                      className="shrink-0 w-11 h-11 rounded-full bg-gradient-to-tr from-purple-600 to-pink-500 text-white
+                                 hover:scale-105 hover:shadow-lg transition-all duration-300
+                                 flex items-center justify-center shadow-md"
                     >
                       <ArrowRight className="w-5 h-5" />
                     </Link>
@@ -251,26 +251,26 @@ export default function Hero() {
                     {slides.map((_, i) => (
                       <div
                         key={i}
-                        className="h-1 rounded-full flex-1 bg-white/20 overflow-hidden"
+                        className="h-1 rounded-full flex-1 bg-purple-200/50 overflow-hidden"
                       >
                         {i === index && (
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: '100%' }}
                             transition={{ duration: 4.5, ease: 'linear' }}
-                            className="h-full bg-lavender"
+                            className="h-full bg-pink-500"
                           />
                         )}
-                        {i < index && <div className="h-full w-full bg-lavender" />}
+                        {i < index && <div className="h-full w-full bg-pink-500" />}
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Soft Ambient Vignette Overlay */}
+              {/* Vignette Overlay */}
               <div 
-                className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" 
+                className="absolute inset-0 bg-gradient-to-t from-purple-950/20 via-transparent to-transparent pointer-events-none" 
                 aria-hidden 
               />
             </div>

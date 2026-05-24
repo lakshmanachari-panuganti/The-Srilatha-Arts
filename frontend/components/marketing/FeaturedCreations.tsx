@@ -20,20 +20,20 @@ export default function FeaturedCreations() {
   if (isLoading || products.length === 0) return null
 
   return (
-    <section className="relative py-20 lg:py-32 overflow-hidden">
+    <section className="relative py-20 lg:py-32 overflow-hidden border-y border-purple-100 bg-white/20">
       {/* Dreamy background glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-plum-light/50 via-plum to-plum" aria-hidden />
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 via-pink-50/30 to-purple-50/50" aria-hidden />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full
-                       bg-lavender-soft/8 blur-[100px]" aria-hidden />
+                       bg-purple-300/10 blur-[100px]" aria-hidden />
 
       <div className="relative max-w-6xl mx-auto z-10">
         <div className="px-5 lg:px-8 flex items-end justify-between mb-12 lg:mb-16">
           <div>
             <p className="eyebrow mb-4">
-              <span className="section-no text-lavender-pastel">002</span>
+              <span className="section-no text-pink-500">002</span>
               Picked for you
             </p>
-            <h2 className="display text-4xl lg:text-6xl">
+            <h2 className="display text-4xl lg:text-6xl text-purple-950">
               Featured
               <br className="sm:hidden" />
               <em className="italic gold-text"> pieces</em>
@@ -41,9 +41,9 @@ export default function FeaturedCreations() {
           </div>
           <Link
             href="/shop"
-            className="hidden sm:inline-flex items-center gap-1 text-sm text-ivory-soft
-                       hover:text-lavender-pastel transition-colors duration-500
-                       border-b border-ivory-soft/30 hover:border-lavender-pastel pb-1"
+            className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-purple-900
+                       hover:text-pink-500 transition-colors duration-500
+                       border-b-2 border-purple-200 hover:border-pink-500 pb-1"
           >
             View all
             <ArrowRight className="w-4 h-4" aria-hidden />
@@ -52,7 +52,7 @@ export default function FeaturedCreations() {
 
         {/* Mobile carousel */}
         <div className="lg:hidden">
-          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 px-5 scrollbar-hide">
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 px-5 scrollbar-hide">
             {products.map((p, i) => (
               <ProductCard key={p.id} product={p} variant="carousel" priority={i < 2} />
             ))}
