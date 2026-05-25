@@ -405,6 +405,14 @@
   .-rotate-6 { transform: rotate(-6deg); }
   .rotate-3  { transform: rotate(3deg); }
 
+  /* HeroSlideshow — subtle Ken-Burns zoom on the active slide so the
+     still photograph feels cinematic. Plays once per slide activation;
+     the React `key={src}` + the `isActive` conditional on the class
+     guarantees the animation restarts on every slide change. */
+  .hero-ken-burns {
+    animation: hero-ken-burns 7s ease-out both;
+  }
+
   /* Text shadow for readability on images */
   .text-shadow-soft {
     text-shadow: 0 2px 12px rgba(43, 30, 52, 0.6);
@@ -421,4 +429,15 @@
   /* Balanced and pretty wrapping helpers for ad-hoc use. */
   .text-balance { text-wrap: balance; }
   .text-pretty { text-wrap: pretty; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ken-burns {
+    animation: none !important;
+  }
+}
+
+@keyframes hero-ken-burns {
+  0%   { transform: scale(1.00); }
+  100% { transform: scale(1.06); }
 }
