@@ -51,6 +51,12 @@
   body {
     @apply bg-plum text-ivory font-sans antialiased;
     min-height: 100svh;
+    /* Defensive overflow clamp. A position:fixed; inset-x-0 element should be
+       exactly viewport-wide, but if anything else on the page pushes horizontal
+       scroll (a stray image, a transformed decoration, a wide marquee), the
+       bottom nav's right edge can end up clipped. Clamping body removes the
+       whole class of bug. Vertical scrolling is unaffected. */
+    overflow-x: hidden;
     /* Crisper sub-pixel rendering on macOS / iOS Safari and Chrome on
        any platform — small body type is the main beneficiary. */
     -webkit-font-smoothing: antialiased;
