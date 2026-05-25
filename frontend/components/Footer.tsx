@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { SOCIAL } from '@/lib/site-config'
 
 const columns = [
   {
@@ -59,10 +60,17 @@ export default function Footer() {
           {newsletterSubmitted ? (
             <div
               role="status"
-              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender-pastel"
+              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender-pastel text-center"
             >
-              <CheckCircle2 className="w-4 h-4" aria-hidden />
-              Thank you — we&apos;ll be in touch.
+              <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
+              {/*
+                Truthful copy. Until the newsletter backend is wired, we
+                shouldn't pretend the email was actually saved — that would
+                hurt trust the first time a subscriber notices nothing
+                ever arrives. We keep the form (the studio wants to see
+                interest) but the wording promises only what we can deliver.
+              */}
+              Thanks — we&apos;ll send a note when the studio newsletter launches.
             </div>
           ) : (
             <form
@@ -123,13 +131,13 @@ export default function Footer() {
               Handmade Indian art from Hyderabad - Resin, Dot Mandala, Lippan, Pichwai and Kolam styles.
             </p>
             <div className="flex items-center gap-2 mt-5">
-              <SocialLink href="https://instagram.com" label="Instagram">
+              <SocialLink href={SOCIAL.instagram} label="Instagram">
                 <Instagram className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href="https://facebook.com" label="Facebook">
+              <SocialLink href={SOCIAL.facebook} label="Facebook">
                 <Facebook className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href="https://youtube.com" label="YouTube">
+              <SocialLink href={SOCIAL.youtube} label="YouTube">
                 <Youtube className="w-4 h-4" aria-hidden />
               </SocialLink>
             </div>

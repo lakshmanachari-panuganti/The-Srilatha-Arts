@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react'
 
 export default function OurStoryTeaser() {
   return (
-    <section className="px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">
+    <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
       <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
         {/* Image - editorial offset with glow */}
         <div className="lg:col-span-6">
@@ -36,7 +36,7 @@ export default function OurStoryTeaser() {
           <h2 className="display text-4xl lg:text-6xl mb-5">
             Made in
             <br />
-            <em className="italic gold-text">Hyderabad</em>.
+            <em className="italic">Hyderabad</em>.
           </h2>
           <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
             Every piece is made by hand in our small Hyderabad studio. We take our time so each

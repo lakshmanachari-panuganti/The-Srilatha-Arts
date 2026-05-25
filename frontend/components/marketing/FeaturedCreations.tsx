@@ -20,14 +20,14 @@ export default function FeaturedCreations() {
   if (isLoading || products.length === 0) return null
 
   return (
-    <section className="relative py-20 lg:py-32 overflow-hidden">
+    <section className="relative py-14 sm:py-20 lg:py-32 overflow-hidden">
       {/* Dreamy background glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-plum-light/50 via-plum to-plum" aria-hidden />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full
                        bg-lavender-soft/8 blur-[100px]" aria-hidden />
 
       <div className="relative max-w-6xl mx-auto z-10">
-        <div className="px-5 lg:px-8 flex items-end justify-between mb-12 lg:mb-16">
+        <div className="px-5 lg:px-8 flex items-end justify-between mb-8 sm:mb-12 lg:mb-16">
           <div>
             <p className="eyebrow mb-4">
               <span className="section-no text-lavender-pastel">002</span>
@@ -36,7 +36,7 @@ export default function FeaturedCreations() {
             <h2 className="display text-4xl lg:text-6xl">
               Featured
               <br className="sm:hidden" />
-              <em className="italic gold-text"> pieces</em>
+              <em className="italic"> pieces</em>
             </h2>
           </div>
           <Link
