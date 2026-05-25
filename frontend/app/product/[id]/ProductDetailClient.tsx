@@ -16,12 +16,12 @@ import type { Product } from '@/types'
 function ProductSkeleton() {
   return (
     <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-14 lg:px-8 lg:pt-10 animate-pulse">
-      <div className="lg:rounded-[32px] overflow-hidden bg-purple-200/35 aspect-[4/5]" />
+      <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep aspect-[4/5]" />
       <div className="px-5 lg:px-0 pt-8 space-y-4">
-        <div className="h-4 w-24 bg-purple-200/40 rounded" />
-        <div className="h-10 w-3/4 bg-purple-200/40 rounded" />
-        <div className="h-8 w-1/3 bg-purple-200/40 rounded" />
-        <div className="h-32 bg-purple-200/40 rounded" />
+        <div className="h-4 w-24 bg-ink/10 rounded" />
+        <div className="h-10 w-3/4 bg-ink/10 rounded" />
+        <div className="h-8 w-1/3 bg-ink/10 rounded" />
+        <div className="h-32 bg-ink/10 rounded" />
       </div>
     </div>
   )
@@ -29,7 +29,7 @@ function ProductSkeleton() {
 
 function Pill({ label }: { label: string }) {
   return (
-    <span className="inline-flex h-9 px-4 items-center rounded-full border border-purple-200 bg-white/60 text-xs font-bold text-purple-900">
+    <span className="inline-flex h-9 px-4 items-center rounded-full border border-ink/12 bg-paper text-xs text-ink-soft">
       {label}
     </span>
   )
@@ -37,8 +37,8 @@ function Pill({ label }: { label: string }) {
 
 function Feature({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
   return (
-    <div className="flex items-center gap-3 text-sm font-bold text-purple-900">
-      <span className="w-9 h-9 rounded-full bg-white/70 border border-purple-200 text-pink-500 flex items-center justify-center shrink-0 shadow-sm">
+    <div className="flex items-center gap-3 text-sm text-ink/85">
+      <span className="w-9 h-9 rounded-full bg-paper text-terracotta flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4" aria-hidden />
       </span>
       {label}
@@ -47,9 +47,13 @@ function Feature({ icon: Icon, label }: { icon: React.ComponentType<{ className?
 }
 
 export default function ProductDetailClient() {
+  // The shell HTML is served for ALL /product/* URLs via the SWA rewrite rule.
+  // useParams() would return '__shell__' (from the server-rendered router state),
+  // so we read window.location.pathname directly after mount to get the real ID.
   const [id, setId] = useState<string | null>(null)
 
   useEffect(() => {
+    // pathname: /product/lippan-34cb30c7/  →  parts[1] = 'lippan-34cb30c7'
     const parts = window.location.pathname.split('/').filter(Boolean)
     setId(parts[1] ?? null)
   }, [])
@@ -131,9 +135,9 @@ export default function ProductDetailClient() {
   if (isError || !p) {
     return (
       <div className="max-w-6xl mx-auto px-5 pt-20 text-center">
-        <h1 className="font-serif text-3xl font-bold text-purple-950 mb-4">Product not found</h1>
-        <p className="text-purple-900 mb-8 font-medium">This product may have been removed or the link is incorrect.</p>
-        <Link href="/shop" className="btn-dark inline-flex items-center">
+        <h1 className="font-serif text-3xl text-ink mb-4">Product not found</h1>
+        <p className="text-ink-soft mb-8">This product may have been removed or the link is incorrect.</p>
+        <Link href="/shop" className="inline-flex h-11 px-6 items-center rounded-full bg-terracotta text-white text-sm font-medium hover:bg-terracotta/90 transition-colors">
           Browse the shop
         </Link>
       </div>
@@ -147,7 +151,7 @@ export default function ProductDetailClient() {
       <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-14 lg:px-8 lg:pt-10">
         {/* Gallery */}
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <div className="lg:rounded-[32px] overflow-hidden bg-purple-100/30 border border-purple-200/50 shadow-md">
+          <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep">
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5]">
               {(p.images.length > 0 ? p.images : ['/images/logo.png']).map((src, i) => (
                 <div key={i} className="relative shrink-0 w-full snap-center">
@@ -169,49 +173,49 @@ export default function ProductDetailClient() {
         <div className="px-5 lg:px-0 pt-8 lg:pt-0 pb-32 lg:pb-12">
           <Link
             href={`/shop/${category?.slug}`}
-            className="inline-flex items-center gap-1 text-xs font-bold text-purple-900/60 hover:text-pink-500 transition-colors mb-4 uppercase tracking-wider"
+            className="inline-flex items-center gap-1 text-xs text-ink-mute hover:text-terracotta transition-colors mb-4"
           >
             <ChevronLeft className="w-3.5 h-3.5" aria-hidden />
             {category?.title}
           </Link>
 
-          <h1 className="display text-3xl md:text-4xl lg:text-5xl mb-4 text-purple-950 font-bold leading-tight">{p.title}</h1>
+          <h1 className="display text-3xl md:text-4xl lg:text-5xl mb-4">{p.title}</h1>
 
           {p.rating !== undefined && (
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-2 mb-5">
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
                     className={
                       i < Math.round(p.rating ?? 0)
-                        ? 'w-4 h-4 fill-pink-500 text-pink-500'
-                        : 'w-4 h-4 text-purple-200'
+                        ? 'w-3.5 h-3.5 fill-gold text-gold'
+                        : 'w-3.5 h-3.5 text-ink/15'
                     }
                     aria-hidden
                   />
                 ))}
               </div>
-              <span className="text-xs font-bold text-purple-900/60">
+              <span className="text-xs text-ink-mute">
                 {p.rating?.toFixed(1)} · {p.reviewCount} reviews
               </span>
             </div>
           )}
 
           <div className="flex items-baseline gap-3 mb-1">
-            <span className="font-serif text-3xl font-black text-purple-950 tabular-nums">{formatINR(p.price)}</span>
+            <span className="font-serif text-3xl font-semibold text-ink tabular-nums">{formatINR(p.price)}</span>
             {p.compareAtPrice && (
               <>
-                <span className="text-purple-900/40 font-bold line-through tabular-nums">{formatINR(p.compareAtPrice)}</span>
+                <span className="text-ink-mute line-through tabular-nums">{formatINR(p.compareAtPrice)}</span>
                 {pct !== null && (
-                  <span className="text-[10px] tracking-[0.18em] font-bold text-white bg-pink-500 px-2 py-1 rounded-full shadow-sm">
+                  <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-terracotta px-2 py-1 rounded-full">
                     Save {pct}%
                   </span>
                 )}
               </>
             )}
           </div>
-          <p className="text-xs font-bold text-purple-900/50 mb-7">Inclusive of all taxes</p>
+          <p className="text-xs text-ink-mute mb-7">Inclusive of all taxes</p>
 
           <div className="flex flex-wrap gap-2 mb-7">
             <Pill label={p.size} />
@@ -219,31 +223,31 @@ export default function ProductDetailClient() {
             <Pill label={`Ships in ${p.timeToMake}`} />
           </div>
 
-          <p className="text-purple-900 font-medium leading-relaxed mb-7 text-base lg:text-lg opacity-90">{p.description}</p>
+          <p className="text-ink/85 leading-relaxed mb-7 text-base lg:text-lg">{p.description}</p>
 
-          <div className="card-cream p-6 mb-8 space-y-4">
+          <div className="card-cream p-6 mb-8 space-y-3">
             <Feature icon={Hand} label="Handmade — every piece is one of a kind" />
             <Feature icon={Sparkles} label={`Made in ${p.timeToMake}`} />
             <Feature icon={Truck} label="Free shipping above ₹2,999 across India" />
           </div>
 
-          <details className="border-t border-purple-200/60 py-5 group">
-            <summary className="cursor-pointer flex items-center justify-between text-purple-950 font-bold font-serif text-lg outline-none">
+          <details className="border-t border-ink/10 py-5 group">
+            <summary className="cursor-pointer flex items-center justify-between text-ink font-medium font-serif text-lg">
               Care instructions
-              <span className="text-purple-400 group-open:rotate-45 transition-transform" aria-hidden>＋</span>
+              <span className="text-ink-mute group-open:rotate-45 transition-transform" aria-hidden>＋</span>
             </summary>
-            <p className="text-purple-900/80 font-medium text-sm leading-relaxed mt-3">{p.careInstructions}</p>
+            <p className="text-ink-soft text-sm leading-relaxed mt-3">{p.careInstructions}</p>
           </details>
 
-          <details className="border-t border-purple-200/60 py-5 group">
-            <summary className="cursor-pointer flex items-center justify-between text-purple-950 font-bold font-serif text-lg outline-none">
+          <details className="border-t border-ink/10 py-5 group">
+            <summary className="cursor-pointer flex items-center justify-between text-ink font-medium font-serif text-lg">
               Shipping & returns
-              <span className="text-purple-400 group-open:rotate-45 transition-transform" aria-hidden>＋</span>
+              <span className="text-ink-mute group-open:rotate-45 transition-transform" aria-hidden>＋</span>
             </summary>
-            <p className="text-purple-900/80 font-medium text-sm leading-relaxed mt-3">
+            <p className="text-ink-soft text-sm leading-relaxed mt-3">
               We ship from Hyderabad. Most orders reach you in 5–7 working days. You can return
               unused items within 7 days of delivery.{' '}
-              <Link href="/shipping-and-returns" className="text-pink-500 font-bold hover:underline">
+              <Link href="/shipping-and-returns" className="text-terracotta hover:underline">
                 Read the full policy
               </Link>
               .
@@ -253,11 +257,11 @@ export default function ProductDetailClient() {
       </div>
 
       {related.length > 0 && (
-        <section className="max-w-6xl mx-auto pt-14 pb-20 border-t border-purple-200/30">
-          <h2 className="font-serif text-3xl lg:text-4xl text-purple-950 font-bold px-5 lg:px-8 mb-8">
+        <section className="max-w-6xl mx-auto pt-14 pb-20">
+          <h2 className="font-serif text-3xl lg:text-4xl text-ink px-5 lg:px-8 mb-8">
             You may also <em className="italic">like</em>
           </h2>
-          <div className="lg:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-4 scrollbar-hide">
+          <div className="lg:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-2 scrollbar-hide">
             {related.map((r) => (
               <ProductCard key={r.id} product={r} variant="carousel" />
             ))}
@@ -272,10 +276,10 @@ export default function ProductDetailClient() {
       )}
 
       {/* Reviews section */}
-      <section className="max-w-6xl mx-auto px-5 lg:px-8 pt-16 pb-8 border-t border-purple-200/30">
-        <div className="flex items-center justify-between mb-8">
+      <section className="max-w-6xl mx-auto px-5 lg:px-8 pt-16 pb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-serif text-3xl lg:text-4xl text-purple-950 font-bold">
+            <h2 className="font-serif text-3xl lg:text-4xl text-ink">
               Customer <em className="italic">reviews</em>
             </h2>
             {reviews.length > 0 && (
@@ -284,21 +288,21 @@ export default function ProductDetailClient() {
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      className={i < Math.round(avgRating) ? 'w-4 h-4 fill-pink-500 text-pink-500' : 'w-4 h-4 text-purple-200'}
+                      className={i < Math.round(avgRating) ? 'w-4 h-4 fill-gold text-gold' : 'w-4 h-4 text-ink/15'}
                       aria-hidden
                     />
                   ))}
                 </div>
-                <span className="text-sm font-bold text-purple-900/60">{avgRating.toFixed(1)} · {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}</span>
+                <span className="text-sm text-ink-soft">{avgRating.toFixed(1)} · {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}</span>
               </div>
             )}
           </div>
           {user && !showForm && !formSuccess && (
             <button
               onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-purple-300 text-sm font-bold text-purple-950 bg-white/70 hover:bg-purple-100 transition-colors"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
             >
-              <MessageSquare className="w-4 h-4 text-purple-950" aria-hidden />
+              <MessageSquare className="w-4 h-4" aria-hidden />
               Write a review
             </button>
           )}
@@ -306,52 +310,52 @@ export default function ProductDetailClient() {
 
         {/* Review submission form */}
         {showForm && (
-          <div className="card p-6 mb-8 border border-purple-200/50 bg-white/70">
-            <h3 className="font-serif text-xl text-purple-950 font-bold mb-4">Write your review</h3>
+          <div className="card p-6 mb-8">
+            <h3 className="font-serif text-xl text-ink mb-4">Write your review</h3>
             <div className="mb-4">
-              <label className="block text-xs font-bold text-purple-900/70 mb-2 tracking-wider uppercase">Rating</label>
+              <label className="block text-xs text-ink-mute mb-2 tracking-wider uppercase">Rating</label>
               <div className="flex gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <button key={i} onClick={() => setFormRating(i + 1)} aria-label={`${i + 1} star`}>
                     <Star
-                      className={i < formRating ? 'w-6 h-6 fill-pink-500 text-pink-500' : 'w-6 h-6 text-purple-200 hover:text-pink-400'}
+                      className={i < formRating ? 'w-6 h-6 fill-gold text-gold' : 'w-6 h-6 text-ink/20 hover:text-gold/60'}
                     />
                   </button>
                 ))}
               </div>
             </div>
             <div className="mb-3">
-              <label className="block text-xs font-bold text-purple-900/70 mb-1 tracking-wider uppercase">Title (optional)</label>
+              <label className="block text-xs text-ink-mute mb-1 tracking-wider uppercase">Title (optional)</label>
               <input
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="A short title for your review"
-                className="w-full h-10 px-4 rounded-xl border border-purple-200 bg-white/80 text-sm text-purple-950 placeholder:text-purple-700/55 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                className="w-full h-10 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
               />
             </div>
             <div className="mb-4">
-              <label className="block text-xs font-bold text-purple-900/70 mb-1 tracking-wider uppercase">Review</label>
+              <label className="block text-xs text-ink-mute mb-1 tracking-wider uppercase">Review</label>
               <textarea
                 value={formBody}
                 onChange={(e) => setFormBody(e.target.value)}
                 rows={4}
                 placeholder="Tell us what you liked or didn’t…"
-                className="w-full px-4 py-3 rounded-xl border border-purple-200 bg-white/80 text-sm text-purple-950 placeholder:text-purple-700/55 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
               />
             </div>
-            {formError && <p className="text-xs text-red-600 mb-3 font-semibold">{formError}</p>}
+            {formError && <p className="text-xs text-red-600 mb-3">{formError}</p>}
             <div className="flex gap-3">
               <button
                 onClick={submitReview}
                 disabled={formLoading || !formBody.trim()}
-                className="btn-dark min-h-10 h-10 px-6"
+                className="h-10 px-6 rounded-full bg-terracotta text-white text-sm font-medium disabled:opacity-50 hover:bg-terracotta/90 transition-colors"
               >
                 {formLoading ? 'Submitting…' : 'Submit review'}
               </button>
               <button
                 onClick={() => { setShowForm(false); setFormError('') }}
-                className="min-h-10 h-10 px-5 rounded-full border border-purple-200 text-sm font-bold text-purple-950 hover:bg-purple-100 transition-colors"
+                className="h-10 px-5 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
               >
                 Cancel
               </button>
@@ -360,18 +364,18 @@ export default function ProductDetailClient() {
         )}
 
         {formSuccess && (
-          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-4 mb-6 text-sm font-bold text-emerald-700">
+          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-4 mb-6 text-sm text-emerald-700">
             Thanks for the review! We’ll publish it on the site shortly after a quick check.
           </div>
         )}
 
         {/* Review list */}
         {reviews.length === 0 ? (
-          <div className="text-center py-12 text-purple-900/50">
-            <Star className="w-8 h-8 text-purple-200 mx-auto mb-3" aria-hidden />
-            <p className="text-sm font-bold">No reviews yet. Be the first to leave one!</p>
+          <div className="text-center py-12 text-ink-soft">
+            <Star className="w-8 h-8 text-ink/15 mx-auto mb-3" aria-hidden />
+            <p className="text-sm">No reviews yet. Be the first to leave one!</p>
             {!user && (
-              <Link href="/login" className="mt-3 inline-block text-sm font-black text-pink-500 hover:underline">
+              <Link href="/login" className="mt-3 inline-block text-sm text-terracotta hover:underline">
                 Sign in to leave a review
               </Link>
             )}
@@ -379,26 +383,26 @@ export default function ProductDetailClient() {
         ) : (
           <ul className="space-y-6">
             {reviews.map((r) => (
-              <li key={r.id} className="border-t border-purple-100 pt-6">
+              <li key={r.id} className="border-t border-ink/10 pt-6">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-bold text-purple-950 text-sm">{r.userName}</p>
+                    <p className="font-medium text-ink text-sm">{r.userName}</p>
                     <div className="flex items-center gap-1 mt-1">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          className={i < r.rating ? 'w-3.5 h-3.5 fill-pink-500 text-pink-500' : 'w-3.5 h-3.5 text-purple-200'}
+                          className={i < r.rating ? 'w-3.5 h-3.5 fill-gold text-gold' : 'w-3.5 h-3.5 text-ink/15'}
                           aria-hidden
                         />
                       ))}
                     </div>
                   </div>
-                  <time className="text-xs font-bold text-purple-900/40 shrink-0">
+                  <time className="text-xs text-ink-mute shrink-0">
                     {new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </time>
                 </div>
-                {r.title && <p className="font-bold text-purple-950 mt-2">{r.title}</p>}
-                <p className="text-purple-900 font-medium text-sm leading-relaxed mt-1">{r.body}</p>
+                {r.title && <p className="font-medium text-ink mt-2">{r.title}</p>}
+                <p className="text-ink/85 text-sm leading-relaxed mt-1">{r.body}</p>
               </li>
             ))}
           </ul>

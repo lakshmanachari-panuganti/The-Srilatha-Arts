@@ -2,12 +2,12 @@ name: Deploy Backend · DEV
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, feature/sai]
     paths:
       - 'backend/**'
       - '.github/workflows/deploy-backend-dev.yml'
   pull_request:
-    branches: [develop]
+    branches: [develop, feature/sai]
     paths:
       - 'backend/**'
   workflow_dispatch:
