@@ -36,24 +36,34 @@ export default function BottomTabBar() {
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
       }}
     >
-      <ul className="grid grid-cols-5 h-16 w-full max-w-full">
+      <ul
+        className="h-16"
+        style={{
+          // Explicit grid with `minmax(0,1fr)` + zero gap — guarantees five equal
+          // columns that each refuse to grow beyond their share, regardless of
+          // child content. Inline so it can never be overridden by a stale
+          // utility class shipped in an older CSS bundle.
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+          gap: 0,
+          width: '100%',
+        }}
+      >
         {tabs.map(({ href, label, icon: Icon, raised }) => {
           const active = isActive(href)
           return (
-            // `min-w-0` is the critical fix — without it a flex child refuses to
-            // shrink below its content width, and a slightly-wider label like
-            // "Account" pushes the column off-screen on narrow viewports.
-            <li key={href} className="flex min-w-0">
+            <li key={href} className="flex" style={{ minWidth: 0, overflow: 'hidden' }}>
               <Link
                 href={href}
                 onClick={() => haptic(8)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-1 w-full min-w-0 px-0.5',
+                  'flex flex-col items-center justify-center gap-1',
                   'font-medium transition-all duration-300',
                   active ? 'text-lavender-pastel' : 'text-lavender-light/85',
                   raised && '-mt-4',
                 )}
+                style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
               >
                 <span
                   className={cn(
@@ -76,8 +86,21 @@ export default function BottomTabBar() {
                   <Icon className="w-[18px] h-[18px]" aria-hidden />
                 </span>
                 <span
-                  className="block w-full text-center leading-none truncate tracking-tight"
-                  style={{ fontSize: '10.5px' }}
+                  // All sizing rules inline so they survive any cache or class
+                  // override. Truncation guarantees the label can never push
+                  // past its column even if a future label is longer than today.
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    maxWidth: '100%',
+                    fontSize: '10px',
+                    lineHeight: 1,
+                    letterSpacing: '-0.01em',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
                   {label}
                 </span>
