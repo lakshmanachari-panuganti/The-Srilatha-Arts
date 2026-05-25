@@ -193,8 +193,16 @@
      `text-lavender-pastel`. */
   .eyebrow {
     @apply inline-flex items-center gap-2 text-[11px] uppercase font-semibold;
-    letter-spacing: 0.28em;
+    /* Tighter on mobile — the 0.28em editorial tracking was pushing
+       eyebrows wider than viewport at 360px (see UI audit §2.2).
+       Widens back to 0.28em from the sm breakpoint up. */
+    letter-spacing: 0.16em;
     color: theme('colors.ivory-soft');
+  }
+  @media (min-width: 640px) {
+    .eyebrow {
+      letter-spacing: 0.28em;
+    }
   }
 
   /* Section number — editorial "001 / 002" style. Bumped from

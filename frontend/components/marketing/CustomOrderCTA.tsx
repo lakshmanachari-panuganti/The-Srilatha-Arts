@@ -3,9 +3,9 @@ import { ArrowRight, Sparkles } from 'lucide-react'
 
 export default function CustomOrderCTA() {
   return (
-    <section className="px-5 lg:px-8 py-20 lg:py-28">
+    <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-28">
       <div className="relative overflow-hidden max-w-6xl mx-auto text-center
-                      p-10 sm:p-14 lg:p-20"
+                      p-8 sm:p-12 lg:p-20"
            style={{ borderRadius: '32px' }}
       >
         {/* Glassmorphism background */}

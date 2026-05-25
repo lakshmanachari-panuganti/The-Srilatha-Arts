@@ -5,11 +5,15 @@ import { Home, Search, Sparkles, Heart, User } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useHaptic } from '@/hooks/useHaptic'
 
+// Five equal-weight tabs. The previous design had "Custom" as a raised,
+// gradient-filled floating button — visually it screamed louder than the
+// brand itself on every screen of the site. Demoted to a regular tab so
+// the nav reads as a quiet utility surface, not a sales pitch.
 const tabs = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/shop', label: 'Shop', icon: Search },
-  { href: '/custom-order', label: 'Custom', icon: Sparkles, raised: true as const },
-  { href: '/account/wishlist', label: 'Saved', icon: Heart },
+  { href: '/custom-order', label: 'Custom', icon: Sparkles },
+  { href: '/account/wishlist', label: 'Wishlist', icon: Heart },
   { href: '/account', label: 'Account', icon: User },
 ]
 
@@ -49,7 +53,7 @@ export default function BottomTabBar() {
           width: '100%',
         }}
       >
-        {tabs.map(({ href, label, icon: Icon, raised }) => {
+        {tabs.map(({ href, label, icon: Icon }) => {
           const active = isActive(href)
           return (
             <li key={href} className="flex" style={{ minWidth: 0, overflow: 'hidden' }}>
@@ -60,28 +64,18 @@ export default function BottomTabBar() {
                 className={cn(
                   'flex flex-col items-center justify-center gap-1',
                   'font-medium transition-all duration-300',
-                  active ? 'text-lavender-pastel' : 'text-lavender-light/85',
-                  raised && '-mt-4',
+                  // Active label is full-alpha lavender-pastel; inactive is
+                  // full-alpha lavender-light. Previous `/85` on inactive
+                  // labels was hard to read against the deep-purple bar.
+                  active ? 'text-lavender-pastel' : 'text-lavender-light',
                 )}
                 style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
               >
                 <span
                   className={cn(
                     'transition-transform duration-300 shrink-0',
-                    raised
-                      ? cn(
-                          'w-11 h-11 rounded-full flex items-center justify-center',
-                          active ? 'scale-105' : '',
-                        )
-                      : active
-                      ? 'scale-110'
-                      : 'scale-100',
+                    active ? 'scale-110' : 'scale-100',
                   )}
-                  style={raised ? {
-                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 60%, #E879F9 100%)',
-                    color: '#ffffff',
-                    boxShadow: '0 4px 16px rgba(124,58,237,0.40)',
-                  } : undefined}
                 >
                   <Icon className="w-[18px] h-[18px]" aria-hidden />
                 </span>

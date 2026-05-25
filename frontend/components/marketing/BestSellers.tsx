@@ -20,8 +20,8 @@ export default function BestSellers() {
   if (isLoading || products.length === 0) return null
 
   return (
-    <section className="px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">
-      <div className="flex items-end justify-between mb-12 lg:mb-16">
+    <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
+      <div className="flex items-end justify-between mb-8 sm:mb-12 lg:mb-16">
         <div>
           <p className="eyebrow mb-4">
             <span className="section-no text-lavender-pastel">004</span>
@@ -29,7 +29,7 @@ export default function BestSellers() {
           </p>
           <h2 className="display text-4xl lg:text-6xl">
             Best{' '}
-            <em className="italic gold-text">sellers</em>
+            <em className="italic">sellers</em>
           </h2>
         </div>
         <Link
