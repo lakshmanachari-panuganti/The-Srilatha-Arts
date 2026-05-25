@@ -12,15 +12,15 @@ export default function ShopByArtForm() {
       {/* Section header */}
       <div className="mb-12 lg:mb-20 max-w-2xl">
         <p className="eyebrow mb-4">
-          <span className="section-no text-pink-500">001</span>
+          <span className="section-no text-lavender-pastel">001</span>
           Shop by art style
         </p>
-        <h2 className="display text-4xl lg:text-6xl mb-4 text-purple-950">
+        <h2 className="display text-4xl lg:text-6xl mb-4">
           Five handmade
           <br />
           art <em className="font-serif italic gold-text">styles</em>.
         </h2>
-        <p className="text-purple-900 font-medium text-base lg:text-lg leading-relaxed opacity-90">
+        <p className="text-ivory-soft text-base lg:text-lg leading-relaxed">
           From calming dot patterns to bright mirror work, each style has its own look and feel.
           Pick the one you love.
         </p>
@@ -32,7 +32,7 @@ export default function ShopByArtForm() {
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-14 lg:gap-x-12 lg:gap-y-24"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-14 lg:gap-x-10 lg:gap-y-24"
       >
         {CATEGORIES.map((c, i) => (
           <motion.li
@@ -48,10 +48,11 @@ export default function ShopByArtForm() {
               className="group block"
             >
               <div className="relative aspect-[4/5] overflow-hidden mb-5
-                              bg-gradient-to-b from-purple-100 to-white
-                              border border-purple-200/50 shadow-md
-                              transition-all duration-700 group-hover:border-pink-300 group-hover:shadow-xl group-hover:shadow-purple-200/50"
-                   style={{ borderRadius: '28px' }}
+                              bg-gradient-to-b from-plum-warm/80 to-plum/60
+                              border border-glass-border
+                              transition-all duration-700 group-hover:border-lavender-pastel/20
+                              group-hover:shadow-lavender-glow"
+                   style={{ borderRadius: '24px' }}
               >
                 <Image
                   src={c.heroImage}
@@ -59,10 +60,10 @@ export default function ShopByArtForm() {
                   fill
                   sizes="(min-width: 768px) 50vw, 100vw"
                   priority={i < 2}
-                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
+                  className="object-contain p-8 sm:p-10 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
                 />
                 {/* Soft gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-purple-950/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-plum/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 {/* Small floating badge */}
                 <div className="absolute top-4 left-4">
                   <span className="sticker -rotate-2">
@@ -72,22 +73,22 @@ export default function ShopByArtForm() {
                 </div>
               </div>
 
-              <div className="flex items-start justify-between gap-3 px-1">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <h3 className="font-serif text-2xl lg:text-3xl text-purple-950 font-bold leading-tight mb-2
-                                 group-hover:text-pink-500 transition-colors duration-500">
+                  <h3 className="font-serif text-2xl lg:text-3xl text-ivory leading-tight mb-2
+                                 group-hover:text-lavender-pastel transition-colors duration-500">
                     {c.title}
                   </h3>
-                  <p className="text-purple-900/80 font-medium text-sm lg:text-base leading-relaxed line-clamp-2">
+                  <p className="text-ivory-mute text-sm lg:text-base leading-relaxed line-clamp-2">
                     {c.tagline}
                   </p>
                 </div>
                 <span
                   aria-hidden
                   className="shrink-0 w-10 h-10 rounded-full
-                             border border-purple-200 bg-white/50 text-purple-900
-                             group-hover:border-pink-300 group-hover:bg-pink-550 group-hover:text-pink-500
-                             flex items-center justify-center transition-all duration-500 shadow-sm group-hover:shadow-md group-hover:scale-105"
+                             border border-glass-border
+                             group-hover:border-lavender-pastel/40 group-hover:bg-lavender-soft/20 group-hover:text-lavender-pastel
+                             flex items-center justify-center transition-all duration-500 text-ivory-mute"
                 >
                   <ArrowUpRight className="w-4 h-4" />
                 </span>

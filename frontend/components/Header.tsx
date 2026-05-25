@@ -34,69 +34,74 @@ export default function Header() {
     <>
       <header
         className={cn(
-          'fixed inset-x-0 z-50 transition-all duration-500 top-4 px-4 max-w-6xl mx-auto',
-          hidden ? '-translate-y-28 opacity-0' : 'translate-y-0 opacity-100',
+          'fixed inset-x-0 z-50 transition-transform duration-500',
+          'top-[var(--banner-h)]',
+          hidden ? '-translate-y-full' : 'translate-y-0',
         )}
       >
         <div
           className={cn(
-            'flex items-center justify-between px-6 lg:px-10 h-16 lg:h-20 transition-all duration-500 rounded-full shadow-lg border',
+            'mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-20',
+            'transition-all duration-500',
             scrolled
-              ? 'bg-white/80 backdrop-blur-md border-purple-200/50 shadow-purple-100/50'
-              : 'bg-white/40 backdrop-blur-sm border-purple-100/20 shadow-transparent',
+              ? 'glass-strong'
+              : 'bg-plum/40 backdrop-blur-sm',
           )}
+          style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
         >
-          {/* Left: Mobile hamburger menu trigger & Desktop nav links */}
+          {/* Left: hamburger (mobile) + minimal nav (desktop) */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
               className="lg:hidden min-h-11 min-w-11 -ml-2 flex items-center justify-center
-                         text-purple-950 hover:text-pink-500 active:scale-95 transition-all duration-300"
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
-              <Menu className="w-6 h-6" aria-hidden />
+              <Menu className="w-5 h-5" aria-hidden />
             </button>
-            <nav className="hidden lg:flex items-center gap-8 text-sm font-bold tracking-wider uppercase">
-              <Link href="/shop" className="text-purple-900 hover:text-pink-500 transition-colors duration-300">
+            <nav className="hidden lg:flex items-center gap-8 text-sm">
+              <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Shop
               </Link>
-              <Link href="/custom-order" className="text-purple-900 hover:text-pink-500 transition-colors duration-300">
+              <Link href="/custom-order" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Custom orders
               </Link>
-              <Link href="/our-story" className="text-purple-900 hover:text-pink-500 transition-colors duration-300">
+              <Link href="/our-story" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 About us
               </Link>
-              <Link href="/contact" className="text-purple-900 hover:text-pink-500 transition-colors duration-300">
+              <Link href="/contact" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Contact
               </Link>
             </nav>
           </div>
 
-          {/* Center: Centered Logo Monogram */}
+          {/* Center: large round logo monogram */}
           <Link
             href="/"
             aria-label="Srilatha Art - home"
-            className="absolute left-1/2 -translate-x-1/2 flex items-center group"
+            className="absolute left-1/2 -translate-x-1/2 flex items-center"
           >
-            <div className="relative w-12 h-12 lg:w-16 lg:h-16 flex items-center justify-center rounded-full bg-purple-950 border-2 border-purple-300/30 overflow-hidden shadow-md group-hover:scale-105 group-hover:border-purple-400 transition-all duration-300">
-              <Image
-                src="/images/logo.png"
-                alt="Srilatha Art"
-                width={56}
-                height={56}
-                priority
-                className="w-10 h-10 lg:w-14 lg:h-14 object-contain"
-              />
-            </div>
+            <Image
+              src="/images/logo.png"
+              alt="Srilatha Art"
+              width={56}
+              height={56}
+              priority
+              className={cn(
+                'w-12 h-12 lg:w-14 lg:h-14 object-contain transition-all duration-500',
+                'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
+                scrolled ? 'opacity-100' : 'opacity-95',
+              )}
+            />
           </Link>
 
-          {/* Right: Search trigger, Account trigger, and Cart triggers */}
+          {/* Right: search + account + cart */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
               className="min-h-11 min-w-11 flex items-center justify-center
-                         text-purple-950 hover:text-pink-500 active:scale-95 transition-all duration-300"
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
               <Search className="w-5 h-5" aria-hidden />
             </button>
@@ -105,12 +110,12 @@ export default function Header() {
               href={authUser ? '/account' : '/login'}
               aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
               className="hidden lg:flex min-h-11 min-w-11 items-center justify-center
-                         text-purple-950 hover:text-pink-500 active:scale-95 transition-all duration-300 relative"
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500 relative"
             >
               {authUser ? (
                 <span
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black
-                             bg-gradient-to-tr from-purple-500 to-pink-400 text-white shadow-sm border border-white"
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
+                             bg-lavender-pastel/30 text-ivory border border-lavender-pastel/40"
                 >
                   {authUser.name.charAt(0).toUpperCase()}
                 </span>
@@ -122,16 +127,16 @@ export default function Header() {
               href="/cart"
               aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
               className="relative min-h-11 min-w-11 -mr-2 flex items-center justify-center
-                         text-purple-950 hover:text-pink-500 active:scale-95 transition-all duration-300"
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
               <ShoppingBag className="w-5 h-5" aria-hidden />
               {count > 0 && (
                 <span
-                  className="absolute top-2 right-1.5 min-w-[18px] h-[18px] px-1.5
-                             text-[10px] font-black leading-[18px] text-center text-white shadow-sm"
+                  className="absolute top-2 right-1.5 min-w-[18px] h-[18px] px-1
+                             text-[10px] font-bold leading-[18px] text-center text-plum"
                   style={{
                     borderRadius: '24px',
-                    background: 'linear-gradient(135deg, #EC4899, #8B5CF6)',
+                    background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
                   }}
                 >
                   {count > 99 ? '99+' : count}
@@ -142,8 +147,8 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Spacer so content doesn't slide under the floating header */}
-      <div aria-hidden className="h-24 lg:h-28" />
+      {/* Spacer so content doesn't slide under the fixed header */}
+      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+5rem)]" />
 
       <MobileDrawer />
       <SearchOverlay />

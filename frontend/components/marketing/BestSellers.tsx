@@ -24,36 +24,33 @@ export default function BestSellers() {
       <div className="flex items-end justify-between mb-12 lg:mb-16">
         <div>
           <p className="eyebrow mb-4">
-            <span className="section-no text-pink-500">004</span>
+            <span className="section-no text-lavender-pastel">004</span>
             Most loved
           </p>
-          <h2 className="display text-4xl lg:text-6xl text-purple-950">
+          <h2 className="display text-4xl lg:text-6xl">
             Best{' '}
             <em className="italic gold-text">sellers</em>
           </h2>
         </div>
         <Link
           href="/best-sellers"
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-purple-900
-                     hover:text-pink-500 transition-colors duration-500
-                     border-b-2 border-purple-200 hover:border-pink-500 pb-1"
+          className="hidden sm:inline-flex items-center gap-1 text-sm text-ivory-soft
+                     hover:text-lavender-pastel transition-colors duration-500
+                     border-b border-ivory-soft/30 hover:border-lavender-pastel pb-1"
         >
           View all
           <ArrowRight className="w-4 h-4" aria-hidden />
         </Link>
       </div>
 
-      {/* Mobile carousel */}
       <div className="lg:hidden">
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-hide">
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-5 px-5 scrollbar-hide">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} variant="carousel" />
           ))}
           <div className="shrink-0 w-2" aria-hidden />
         </div>
       </div>
-
-      {/* Desktop grid */}
       <div className="hidden lg:grid grid-cols-4 gap-7">
         {products.map((p) => (
           <ProductCard key={p.id} product={p} />

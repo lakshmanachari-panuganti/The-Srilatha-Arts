@@ -22,54 +22,52 @@ export default function BottomTabBar() {
 
   return (
     <nav
-      aria-label="Primary navigation"
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 safe-pb shadow-2xl border-t border-purple-200/50"
+      aria-label="Primary"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 safe-pb"
       style={{
-        background: 'rgba(255, 255, 255, 0.85)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: 'rgba(76,29,149,0.92)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderTop: '1px solid rgba(167,139,250,0.30)',
       }}
     >
-      <ul className="grid grid-cols-5 h-16 items-center">
+      <ul className="grid grid-cols-5 h-16">
         {tabs.map(({ href, label, icon: Icon, raised }) => {
           const active = isActive(href)
           return (
-            <li key={href} className="flex h-full">
+            <li key={href} className="flex">
               <Link
                 href={href}
                 onClick={() => haptic(8)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-0.5 w-full h-full relative',
-                  'text-[10px] font-bold tracking-wider uppercase transition-all duration-300',
-                  active ? 'text-pink-500 font-black' : 'text-purple-900',
-                  raised && '-mt-6',
+                  'flex flex-col items-center justify-center gap-1 w-full',
+                  'text-[10px] font-medium transition-all duration-300',
+                  active ? 'text-lavender-pastel' : 'text-ivory-mute',
+                  raised && '-mt-5',
                 )}
               >
                 <span
                   className={cn(
-                    'transition-all duration-300 flex items-center justify-center',
+                    'transition-transform duration-300',
                     raised
                       ? cn(
-                          'w-12 h-12 rounded-full flex items-center justify-center shadow-lg',
-                          active ? 'scale-110 rotate-12' : '',
+                          'w-12 h-12 rounded-full flex items-center justify-center shadow-card',
+                          active ? 'scale-110' : '',
                         )
                       : active
-                      ? 'scale-110 -translate-y-0.5'
+                      ? 'scale-110'
                       : 'scale-100',
                   )}
                   style={raised ? {
-                    background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 60%, #E879F9 100%)',
                     color: '#ffffff',
-                    boxShadow: '0 4px 16px rgba(139, 92, 246, 0.4)',
+                    boxShadow: '0 4px 20px rgba(124,58,237,0.55)',
                   } : undefined}
                 >
                   <Icon className={raised ? 'w-5 h-5' : 'w-[18px] h-[18px]'} aria-hidden />
                 </span>
-                <span className={cn(raised ? 'mt-1' : '')}>{label}</span>
-                {active && !raised && (
-                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-pink-500" />
-                )}
+                <span>{label}</span>
               </Link>
             </li>
           )

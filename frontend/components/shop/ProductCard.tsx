@@ -25,6 +25,8 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
 
   const onAdd = (e: React.MouseEvent) => {
     e.preventDefault()
+    // useAddToCart returns false if it redirected to login — no haptic
+    // in that case (the page is unmounting anyway).
     if (addToCart(product)) haptic([12, 30, 12])
   }
 
@@ -43,15 +45,15 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
     >
       <Link href={`/product/${product.id}`} className="block">
         <div className="relative aspect-[4/5] overflow-hidden
-                        bg-gradient-to-b from-purple-100/50 to-white
-                        border border-purple-200/50 shadow-md
+                        bg-gradient-to-b from-plum-warm/80 to-plum-light/60
+                        border border-glass-border
                         transition-all duration-700
-                        group-hover:border-pink-300
-                        group-hover:shadow-xl group-hover:shadow-purple-200/50"
+                        group-hover:border-lavender-pastel/20
+                        group-hover:shadow-lavender-glow"
              style={{ borderRadius: '24px' }}
         >
           <Image
-            src={product.images[0] || '/images/logo.png'}
+            src={product.images[0]}
             alt={product.title}
             fill
             sizes={
@@ -60,26 +62,26 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                 : '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
             }
             priority={priority}
-            className="object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
+            className="object-contain p-6 sm:p-8 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
           />
 
           {/* Badges - top left */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {product.isNewArrival && (
-              <span className="sticker bg-gradient-to-r from-purple-500 to-pink-400">New</span>
+              <span className="sticker">New</span>
             )}
             {product.isBestSeller && (
-              <span className="sticker" style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>
+              <span className="sticker" style={{ background: 'linear-gradient(135deg, #8A74C9, #5E4B8B)' }}>
                 Best Seller
               </span>
             )}
             {pct !== null && (
-              <span className="sticker font-black" style={{ background: 'linear-gradient(135deg, #EC4899, #F472B6)' }}>
+              <span className="sticker" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7, #E879F9)', color: '#ffffff' }}>
                 −{pct}%
               </span>
             )}
             {!product.inStock && (
-              <span className="sticker" style={{ background: 'rgba(59,7,100,0.6)', color: '#ffffff' }}>
+              <span className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: '#A49BB8' }}>
                 Sold Out
               </span>
             )}
@@ -91,18 +93,18 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onWish}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={inWishlist}
-            className="absolute top-3 right-3 w-10 h-10 z-10
-                       flex items-center justify-center text-purple-950
-                       hover:text-pink-500 hover:scale-110 active:scale-90 transition-all duration-300"
+            className="absolute top-3 right-3 w-10 h-10
+                       flex items-center justify-center text-ivory
+                       hover:text-lavender-pastel active:scale-90 transition-all duration-500"
             style={{
               borderRadius: '24px',
-              background: 'rgba(255, 255, 255, 0.75)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(139, 92, 246, 0.25)',
+              background: 'rgba(76,29,149,0.75)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
             <Heart
-              className={cn('w-4 h-4 transition-colors duration-300 text-purple-950', inWishlist && 'fill-pink-500 text-pink-500')}
+              className={cn('w-4 h-4 transition-colors duration-500', inWishlist && 'fill-lavender-pastel text-lavender-pastel')}
               aria-hidden
             />
           </button>
@@ -113,16 +115,16 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onAdd}
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
-            className="absolute bottom-3 right-3 w-11 h-11 z-10
-                       flex items-center justify-center text-white
+            className="absolute bottom-3 right-3 w-11 h-11
+                       flex items-center justify-center text-plum
                        opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
                        sm:opacity-100 sm:translate-y-0
-                       hover:scale-105 active:scale-90 transition-all duration-300
+                       active:scale-90 transition-all duration-500
                        disabled:opacity-40 disabled:pointer-events-none"
             style={{
               borderRadius: '24px',
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-              boxShadow: '0 4px 14px rgba(139,92,246,0.3)',
+              background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
+              boxShadow: '0 4px 16px rgba(138,116,201,0.3)',
             }}
           >
             <Plus className="w-5 h-5" aria-hidden />
@@ -130,17 +132,17 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
         </div>
 
         <div className="pt-4 px-1">
-          <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-purple-900/60 mb-1.5">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-ivory-mute mb-1.5">
             {product.category.replace('-', ' ')}
           </p>
-          <h3 className="font-serif text-lg sm:text-xl font-bold leading-snug text-purple-950
-                         line-clamp-2 group-hover:text-pink-500 transition-colors duration-500">
+          <h3 className="font-serif text-lg sm:text-xl leading-snug text-ivory
+                         line-clamp-2 group-hover:text-lavender-pastel transition-colors duration-500">
             {product.title}
           </h3>
           <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-purple-950 font-black tabular-nums">{formatINR(product.price)}</span>
+            <span className="text-ivory font-semibold tabular-nums">{formatINR(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-xs font-bold text-purple-900/50 line-through tabular-nums">
+              <span className="text-xs text-ivory-mute line-through tabular-nums">
                 {formatINR(product.compareAtPrice)}
               </span>
             )}

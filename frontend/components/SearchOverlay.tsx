@@ -48,7 +48,7 @@ export default function SearchOverlay() {
     ).slice(0, 8)
   }, [q, allProducts])
 
-  const popular = ['Dot Mandala', 'Resin Coasters', 'Lippan', 'Wedding Decor', 'Kolam']
+  const popular = ['Dot Mandala', 'Resin Coasters', 'Lippan', 'Pichwai', 'Kolam']
 
   return (
     <AnimatePresence>
