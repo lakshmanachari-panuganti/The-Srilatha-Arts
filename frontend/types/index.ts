@@ -2,8 +2,8 @@ export type CategorySlug =
   | 'resin'
   | 'dot-mandala'
   | 'lippan'
-  | 'pichwai'
   | 'kolam'
+  | 'wedding'
 
 export interface Category {
   slug: CategorySlug
