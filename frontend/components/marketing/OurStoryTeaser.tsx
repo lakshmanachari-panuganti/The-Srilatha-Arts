@@ -18,7 +18,7 @@ export default function OurStoryTeaser() {
               <div className="w-3/4 h-3/4 rounded-full bg-lavender-soft/10 blur-[60px]" />
             </div>
             <Image
-              src="/images/logo.png"
+              src="/Logos/logo.jpeg"
               alt="A view of the Hyderabad studio"
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"

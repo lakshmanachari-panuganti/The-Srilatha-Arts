@@ -122,7 +122,7 @@ export default function Footer() {
         <div className="lg:grid lg:grid-cols-5 lg:gap-10 lg:items-start">
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
-              <Image src="/images/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
+              <Image src="/Logos/logo.jpeg" alt="" width={48} height={48} className="w-12 h-12" />
               <span className="font-serif text-xl text-ivory">
                 <span className="gold-text">Srilatha Art</span>
               </span>
@@ -156,7 +156,7 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
-            <Image src="/images/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
+            <Image src="/Logos/logo.jpeg" alt="" width={36} height={36} className="w-9 h-9" />
             <span className="font-serif text-lg text-ivory">
               <span className="gold-text">Srilatha</span> Art
             </span>
@@ -178,7 +178,7 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p>© {new Date().getFullYear()} Srilatha Art. Made by hand in Hyderabad.</p>
-          <p className="font-hand text-lg text-lavender-pastel">Handmade with care</p>
+          <p className="font-serif italic text-base text-lavender-pastel">Handmade with care</p>
         </div>
       </div>
     </footer>

@@ -23,10 +23,7 @@ export default function BestSellers() {
     <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
       <div className="flex items-end justify-between mb-8 sm:mb-12 lg:mb-16">
         <div>
-          <p className="eyebrow mb-4">
-            <span className="section-no text-lavender-pastel">004</span>
-            Most loved
-          </p>
+          <p className="eyebrow mb-4">Most loved</p>
           <h2 className="display text-4xl lg:text-6xl">
             Best{' '}
             <em className="italic">sellers</em>

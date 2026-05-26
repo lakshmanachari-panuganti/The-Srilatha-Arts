@@ -11,10 +11,7 @@ export default function ShopByArtForm() {
     <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
       {/* Section header */}
       <div className="mb-10 sm:mb-12 lg:mb-20 max-w-2xl">
-        <p className="eyebrow mb-4">
-          <span className="section-no text-lavender-pastel">001</span>
-          Shop by art style
-        </p>
+        <p className="eyebrow mb-4">Shop by art style</p>
         <h2 className="display text-4xl lg:text-6xl mb-4">
           Five handmade
           <br />
