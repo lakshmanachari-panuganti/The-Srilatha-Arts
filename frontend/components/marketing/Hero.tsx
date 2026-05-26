@@ -65,24 +65,41 @@ export default function Hero() {
           Each piece is made by hand, one at a time, in our Hyderabad studio.
         </motion.p>
 
-        {/* CTAs */}
+        {/*
+          CTA hierarchy. Previous design had two equal-weight buttons side
+          by side — "Shop all art" filled and "Order a custom piece"
+          outlined. Equal visual weight = no decision made for the user
+          (audit §3). Now: Shop all art is the dominant action (filled,
+          full-width on mobile). Custom orders becomes a quieter text
+          link below — still discoverable but not competing.
+        */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.45 }}
-          className="flex flex-col sm:flex-row gap-3 justify-center mb-14"
+          className="flex flex-col items-center gap-3 mb-12"
         >
-          <Link href="/shop" className="btn-dark">
+          <Link href="/shop" className="btn-dark w-full sm:w-auto sm:min-w-[18rem] justify-center">
             Shop all art
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
-          <Link href="/custom-order" className="btn-outline">
-            Order a custom piece
+          <Link
+            href="/custom-order"
+            className="text-sm text-ivory-soft hover:text-lavender-pastel transition-colors duration-300 inline-flex items-center gap-1 underline-offset-4 hover:underline"
+          >
+            Or order a custom piece
+            <ArrowRight className="w-3.5 h-3.5" aria-hidden />
           </Link>
         </motion.div>
 
-        {/* Trust strip — tightened on mobile so the three lines don't
-            fragment with stray dot separators (see UI audit §1.8). */}
+        {/*
+          By-the-numbers trust strip — concrete signals beat adjectives
+          (audit §3). One real number ("Painting since 2020") anchors the
+          claim; the other two are verifiable service promises. Replace
+          "Painting since 2020" with shipped-count + review-rating once
+          the studio has the data ("1,200+ shipped", "★ 4.9 from 340
+          reviews").
+        */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -91,11 +108,11 @@ export default function Hero() {
                      gap-y-2 sm:gap-x-6 text-[11px] uppercase text-ivory-mute"
           style={{ letterSpacing: '0.12em' }}
         >
+          <span>Painting since 2020</span>
+          <span className="hidden sm:inline w-1 h-1 rounded-full bg-lavender-soft/40" aria-hidden />
           <span>Free shipping above ₹2,999</span>
           <span className="hidden sm:inline w-1 h-1 rounded-full bg-lavender-soft/40" aria-hidden />
-          <span>Made by hand in Hyderabad</span>
-          <span className="hidden sm:inline w-1 h-1 rounded-full bg-lavender-soft/40" aria-hidden />
-          <span>Delivered in 5–7 days</span>
+          <span>7-day easy returns</span>
         </motion.div>
       </div>
     </section>
