@@ -36,8 +36,8 @@
 
     # Rotate DEV (test) keys
     ./infra/Rotate-RazorpayApiKeys.ps1 -Environment dev `
-        -KeyId 'rzp_test_SpvVdRRtMQGCBX' `
-        -KeySecret 'pbwB38UbqCp6KDFcrbKrc5hr'
+        -KeyId 'rzp_test_xxxxxxxxxxxxxx' `
+        -KeySecret 'xxxxxxxxxxxxxxxxxxxxxxxx'
 
 .EXAMPLE
     # Rotate PRD (live) keys
