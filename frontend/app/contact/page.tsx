@@ -1,6 +1,16 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Mail, MessageCircle, Instagram, Clock, MapPin } from 'lucide-react'
+import { Mail, MessageCircle, Instagram, Clock, MapPin, Phone } from 'lucide-react'
+import {
+  SOCIAL,
+  INSTAGRAM_HANDLE,
+  STUDIO_EMAIL,
+  PHONE_DISPLAY,
+  PHONE_TEL,
+  whatsappLink,
+  emailLink,
+} from '@/lib/site-config'
+import PinterestIcon from '@/components/icons/PinterestIcon'
 
 export const metadata: Metadata = {
   title: 'Contact us',
@@ -21,25 +31,39 @@ export default function ContactPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
         <ContactCard
-          href="https://wa.me/919133266754"
+          href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
           icon={MessageCircle}
           label="WhatsApp"
-          value="+91 91332 66754"
+          value={PHONE_DISPLAY}
           note="Fastest way to reach us"
         />
         <ContactCard
-          href="mailto:studio@srilatha.art"
+          href={emailLink()}
           icon={Mail}
           label="Email"
-          value="studio@srilatha.art"
+          value={STUDIO_EMAIL}
           note="For detailed questions"
         />
         <ContactCard
-          href="https://instagram.com/thesrilathaarts"
+          href={SOCIAL.instagram}
           icon={Instagram}
           label="Instagram"
-          value="@thesrilathaarts"
+          value={INSTAGRAM_HANDLE}
           note="See work in progress"
+        />
+        <ContactCard
+          href={SOCIAL.pinterest}
+          icon={PinterestIcon}
+          label="Pinterest"
+          value="@srilatha_art"
+          note="Save and curate boards"
+        />
+        <ContactCard
+          href={`tel:${PHONE_TEL}`}
+          icon={Phone}
+          label="Phone"
+          value={PHONE_DISPLAY}
+          note="Mon–Sat, 10 am – 7 pm"
         />
         <Card icon={Clock} label="Hours" value="Mon–Sat, 10 am – 7 pm" note="We rest on Sundays" />
       </div>
