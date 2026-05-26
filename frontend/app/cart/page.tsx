@@ -341,6 +341,26 @@ export default function CartPage() {
           >
             Continue shopping
           </Link>
+
+          {/*
+            Payment-method strip — answers the "will my UPI work here?"
+            question BEFORE the customer commits to checkout. Per the
+            buyer-psychology audit, payment-method anxiety is one of the
+            top 3 Indian D2C abandonment reasons. A single line of trust
+            signals removes that friction in <1 second of scanning.
+          */}
+          <div className="mt-6 pt-5 border-t border-ink/10 text-center">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-ink-mute mb-2">
+              We accept
+            </p>
+            <p className="text-xs text-ink-soft leading-relaxed">
+              UPI · GPay · PhonePe · Paytm · Visa · Mastercard · RuPay · COD
+            </p>
+            <p className="text-[10px] text-ink-mute mt-2 inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-3 h-3 text-emerald-600" aria-hidden />
+              Razorpay-secured checkout · 256-bit SSL
+            </p>
+          </div>
         </div>
       </aside>
     </main>

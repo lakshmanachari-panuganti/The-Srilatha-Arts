@@ -72,12 +72,24 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             commercial signal wins).
           */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            {/*
+              Sticker priority: Sold Out > Low stock > discount > Best Seller > New.
+              Capped at 2 visible. Low-stock cue is honest urgency — handcrafted
+              inventory is genuinely limited, so "Only N left" is truthful (audit §3).
+            */}
             {(() => {
               const badges: React.ReactNode[] = []
               if (!product.inStock) {
                 badges.push(
                   <span key="oos" className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: '#A49BB8' }}>
                     Sold Out
+                  </span>,
+                )
+              }
+              if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
+                badges.push(
+                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #F59E0B, #FDE68A)', color: '#2E1065' }}>
+                    Only {product.stockQty} left
                   </span>,
                 )
               }
