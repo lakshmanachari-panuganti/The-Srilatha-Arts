@@ -35,9 +35,9 @@ If you ever need to re-apply (e.g. settings get wiped by a redeploy):
 
 ```powershell
 $razorpaySettings = @{
-    'RAZORPAY_KEY_ID'         = 'REMOVED-LEAKED-KEY-ID'
-    'RAZORPAY_KEY_SECRET'     = 'REMOVED-LEAKED-KEY-SECRET'
-    'RAZORPAY_WEBHOOK_SECRET' = 'REMOVED-LEAKED-WEBHOOK-SECRET'
+    'RAZORPAY_KEY_ID'         = '<paste from Razorpay Dashboard>'
+    'RAZORPAY_KEY_SECRET'     = '<paste from Razorpay Dashboard>'
+    'RAZORPAY_WEBHOOK_SECRET' = '<paste from Razorpay Dashboard>'
 }
 Update-AzFunctionAppSetting `
     -ResourceGroupName 'rg-thesrilathaarts-prd' `
@@ -121,9 +121,9 @@ as Step 2.
 # 1. Write the three secrets to the prd vault. The deployer SP CAN do
 #    this even today because Key Vault Administrator at RG scope grants
 #    Set-AzKeyVaultSecret.
-$kid  = ConvertTo-SecureString 'REMOVED-LEAKED-KEY-ID'   -AsPlainText -Force
-$ksec = ConvertTo-SecureString 'REMOVED-LEAKED-KEY-SECRET'  -AsPlainText -Force
-$wh   = ConvertTo-SecureString 'REMOVED-LEAKED-WEBHOOK-SECRET'           -AsPlainText -Force
+$kid  = ConvertTo-SecureString '<paste from Razorpay Dashboard>'   -AsPlainText -Force
+$ksec = ConvertTo-SecureString '<paste from Razorpay Dashboard>'   -AsPlainText -Force
+$wh   = ConvertTo-SecureString '<paste from Razorpay Dashboard>'   -AsPlainText -Force
 
 Set-AzKeyVaultSecret -VaultName 'kv-thesrilathaarts-prd' -Name 'RazorpayKeyId'         -SecretValue $kid
 Set-AzKeyVaultSecret -VaultName 'kv-thesrilathaarts-prd' -Name 'RazorpayKeySecret'     -SecretValue $ksec
