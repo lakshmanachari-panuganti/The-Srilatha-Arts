@@ -139,7 +139,18 @@ async function createPaymentOrder(
       })
     } catch (err) {
       context.error('createPaymentOrder: razorpay order creation failed', err)
-      return errorResponse('Could not initiate payment. Please try again.', 502, origin)
+      // The thrown message from createRazorpayOrder follows the format:
+      //   "[razorpay] order create failed (<status>): <description>"
+      // Surface the description to the caller so the failure is diagnosable
+      // from the browser (wrong keys, KYC, min-amount, etc.) instead of a
+      // generic "try again" that hides the actual cause.
+      const raw = err instanceof Error ? err.message : ''
+      const match = raw.match(/\[razorpay\] order create failed \((\d+)\): ([\s\S]+)$/)
+      const detail = match ? `${match[2].trim()} (upstream ${match[1]})` : ''
+      const message = detail
+        ? `Payment could not be started: ${detail}`
+        : 'Could not initiate payment. Please try again.'
+      return errorResponse(message, 502, origin)
     }
 
     const orderRow: Row = {
