@@ -23,9 +23,16 @@
 
 import { createHmac, timingSafeEqual } from 'crypto'
 
-const KEY_ID = process.env.RAZORPAY_KEY_ID
-const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET
-const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET
+// Trim on read. Azure Portal often preserves a trailing \r / space from
+// pasted values (especially when the source is Excel or the Razorpay
+// dashboard's copy button). A whitespace-padded secret base64-encodes
+// to a different string than the one Razorpay holds on file, which
+// Razorpay surfaces as HTTP 401 "Authentication failed" — visually
+// identical to a wrong/revoked key. Normalising here removes that
+// whole class of misconfiguration.
+const KEY_ID = process.env.RAZORPAY_KEY_ID?.trim() || undefined
+const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET?.trim() || undefined
+const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim() || undefined
 
 export function isRazorpayConfigured(): boolean {
   return Boolean(KEY_ID && KEY_SECRET)
