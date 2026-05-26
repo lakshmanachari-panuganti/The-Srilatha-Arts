@@ -7,7 +7,7 @@ import {
   Package, MapPin, LogOut, Heart, ChevronRight,
   Pencil, Trash2, Plus, Check,
 } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 
@@ -151,7 +151,7 @@ export default function AccountClient() {
             <li className="hidden lg:block">
               <button
                 onClick={async () => { await logout(); router.replace('/') }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-terracotta rounded-lg hover:bg-terracotta/10"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-50"
               >
                 <LogOut className="w-4 h-4" aria-hidden /> Sign out
               </button>
@@ -169,7 +169,7 @@ export default function AccountClient() {
           <div className="lg:hidden pt-3">
             <button
               onClick={async () => { await logout(); router.replace('/') }}
-              className="w-full text-sm text-terracotta inline-flex items-center justify-center gap-2 h-11 rounded-full border border-terracotta/30 hover:bg-terracotta/5"
+              className="w-full text-sm font-medium text-rose-700 inline-flex items-center justify-center gap-2 h-11 rounded-full border border-rose-300 bg-white/60 hover:bg-rose-50"
             >
               <LogOut className="w-4 h-4" aria-hidden /> Sign out
             </button>
@@ -197,7 +197,7 @@ function SideTab({
         aria-current={active ? 'page' : undefined}
         className={`whitespace-nowrap flex items-center gap-3 px-4 lg:px-3 py-2.5 text-sm rounded-full lg:rounded-lg transition-colors ${
           active
-            ? 'bg-terracotta text-white lg:bg-cream-deep lg:text-ink font-medium'
+            ? 'bg-lavender text-white lg:bg-cream-deep lg:text-ink font-medium'
             : 'bg-cream-deep/60 text-ink-soft hover:text-ink lg:bg-transparent'
         }`}
       >
@@ -208,17 +208,47 @@ function SideTab({
   )
 }
 
+// Shown when a tab's API call returns 401 — the JWT in localStorage
+// outlived its server-side validity. Clear local auth and prompt re-login.
+function SessionExpiredCard() {
+  const logout = useUserAuth((s) => s.logout)
+  const router = useRouter()
+  return (
+    <div className="card p-8 text-center">
+      <h2 className="font-serif text-2xl text-ink mb-2">Your session expired</h2>
+      <p className="text-sm text-ink-soft mb-5">
+        For your security, please sign in again to see your orders and addresses.
+      </p>
+      <button
+        onClick={async () => {
+          await logout()
+          router.replace('/login?next=' + encodeURIComponent('/account'))
+        }}
+        className="btn-dark"
+      >
+        Sign in again
+      </button>
+    </div>
+  )
+}
+
 // ─── Orders tab ──────────────────────────────────────────────
 
 function OrdersTab() {
   const [orders, setOrders] = useState<OrderSummary[] | null>(null)
   const [error, setError] = useState('')
+  const [expired, setExpired] = useState(false)
 
   useEffect(() => {
     apiFetch<{ orders: OrderSummary[] }>('/my-orders')
       .then((r) => setOrders(r.orders))
-      .catch((e) => setError(e instanceof Error ? e.message : 'Could not load orders'))
+      .catch((e) => {
+        if (e instanceof ApiError && e.status === 401) setExpired(true)
+        else setError(e instanceof Error ? e.message : 'Could not load orders')
+      })
   }, [])
+
+  if (expired) return <SessionExpiredCard />
 
   if (error) {
     return <div className="card p-6 text-sm text-red-600 bg-red-50 border-red-200">{error}</div>
@@ -498,6 +528,7 @@ function StatusPill({ status, paymentStatus }: { status: string; paymentStatus: 
 function AddressesTab() {
   const [addresses, setAddresses] = useState<SavedAddress[] | null>(null)
   const [error, setError] = useState('')
+  const [expired, setExpired] = useState(false)
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<AddressForm>(emptyAddress())
@@ -512,7 +543,8 @@ function AddressesTab() {
       const r = await apiFetch<{ addresses: SavedAddress[] }>('/addresses')
       setAddresses(r.addresses)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load addresses')
+      if (e instanceof ApiError && e.status === 401) setExpired(true)
+      else setError(e instanceof Error ? e.message : 'Could not load addresses')
     }
   }
 
@@ -579,6 +611,8 @@ function AddressesTab() {
     setError('')
   }
 
+  if (expired) return <SessionExpiredCard />
+
   if (addresses === null) {
     return <div className="card p-8 text-center text-ink-mute animate-pulse">Loading addresses…</div>
   }
@@ -628,7 +662,7 @@ function AddressesTab() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 -mt-1">
-                  <button onClick={() => startEdit(a)} aria-label="Edit address" className="p-2 text-ink-mute hover:text-terracotta">
+                  <button onClick={() => startEdit(a)} aria-label="Edit address" className="p-2 text-ink-mute hover:text-lavender">
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleDelete(a.id)} aria-label="Remove address" className="p-2 text-ink-mute hover:text-red-600">
