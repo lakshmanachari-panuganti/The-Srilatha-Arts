@@ -29,7 +29,7 @@ export default function CareGuidePage() {
         <Item>Don&apos;t place hot items directly on resin coasters; let them cool first.</Item>
       </Section>
 
-      <Section title="Dot Mandala &amp; Pichwai (painted art)">
+      <Section title="Dot Mandala (painted art)">
         <Item>Dust gently with a soft brush or dry cloth.</Item>
         <Item>If a corner gets a small bump or scratch, leave it as it is — re-touching at home can make it worse.</Item>
       </Section>

@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     template: '%s · Srilatha Art',
   },
   description:
-    'Handmade arts - Dot Mandala, Resin, Lippan, Pichwai and Kolam styles. Free shipping across India on orders above ₹2,999.',
+    'Handmade Indian art — Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives. Free shipping across India on orders above ₹2,999.',
   keywords: [
     'Dot Mandala',
     'Resin Art',
     'Lippan Art',
-    'Pichwai Art',
     'Kolam Art',
-    'Handmade wall art',
+    'Wedding Decoratives',
+    'Handmade Indian art',
     'Indian folk art',
     'Hyderabad artist',
   ],
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     siteName: 'Srilatha Art',
     title: 'Srilatha Art - Handcrafted with Heart & Soul',
     description:
-      'Resin, Dot Mandala, , Lippan, Pichwai and Kolam styles. Made one piece at a time.',
+      'Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives — made one piece at a time.',
     images: [
       { url: '/Logos/logo.jpeg', width: 1200, height: 630, alt: 'Srilatha Art' },
     ],
