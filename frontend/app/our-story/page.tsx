@@ -22,7 +22,7 @@ export default function OurStoryPage() {
 
       <div className="my-10 relative aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-b from-plum-warm to-plum-light flex items-center justify-center">
         <Image
-          src="/images/logo.png"
+          src="/Logos/logo.jpeg"
           alt="Our studio in Hyderabad"
           width={300}
           height={300}

@@ -8,36 +8,11 @@ export default function CustomOrderCTA() {
                       p-8 sm:p-12 lg:p-20"
            style={{ borderRadius: '32px' }}
       >
-        {/* Glassmorphism background */}
+        {/* Glassmorphism background — the only decoration this card needs.
+            Two glow orbs + a 70-circle mandala SVG were removed per audit
+            §1.6 + §1.3 (visual restraint, fewer DOM nodes). The card now
+            reads as one quiet premium block, not a CSS demo. */}
         <div className="absolute inset-0 glass-strong" />
-
-        {/* Dreamy ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px]
-                         rounded-full bg-lavender-soft/12 blur-[80px]" aria-hidden />
-        <div className="absolute bottom-0 right-1/4 w-[300px] h-[200px]
-                         rounded-full bg-lavender-pastel/8 blur-[60px]" aria-hidden />
-
-        {/* Decorative mandala dot pattern */}
-        <svg
-          viewBox="0 0 600 300"
-          className="absolute inset-0 w-full h-full text-lavender-pastel/8"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden
-        >
-          {Array.from({ length: 70 }).map((_, i) => {
-            const a = (i / 70) * Math.PI * 2
-            const r = 60 + (i % 5) * 28
-            return (
-              <circle
-                key={i}
-                cx={300 + Math.cos(a) * r}
-                cy={150 + Math.sin(a) * r * 0.7}
-                r="1.5"
-                fill="currentColor"
-              />
-            )
-          })}
-        </svg>
 
         <div className="relative z-10">
           <span className="inline-flex items-center gap-2 text-[11px] tracking-[0.32em] uppercase text-lavender-pastel mb-5">

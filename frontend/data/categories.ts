@@ -7,7 +7,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Bright, glossy art with poured colour',
     origin:
       'We pour clear resin in layers to lock in bright colours, sparkle and texture. The finish is smooth and glassy — easy to clean and very long lasting.',
-    heroImage: '/images/logo.png',
+    heroImage: '/Logos/logo.jpeg',
     ordinal: 1,
   },
   {
@@ -16,7 +16,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Hand-painted dot patterns',
     origin:
       'Mandalas drawn one dot at a time. Inspired by traditional Indian rangoli — calming to look at and a slow, careful craft to make.',
-    heroImage: '/images/logo.png',
+    heroImage: '/Logos/logo.jpeg',
     ordinal: 2,
   },
   {
@@ -25,7 +25,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Clay art with tiny mirrors',
     origin:
       'A 400-year-old folk craft from the Kutch region. Hand-shaped clay patterns set with small mirrors that catch the light beautifully.',
-    heroImage: '/images/logo.png',
+    heroImage: '/Logos/logo.jpeg',
     ordinal: 3,
   },
   {
@@ -34,7 +34,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'Traditional Indian devotional paintings',
     origin:
       'Devotional art from Nathdwara, Rajasthan. Hand-painted scenes of Lord Shrinathji with cows, lotuses and peacocks in rich, jewel-like colours.',
-    heroImage: '/images/logo.png',
+    heroImage: '/Logos/logo.jpeg',
     ordinal: 4,
   },
   {
@@ -43,7 +43,7 @@ export const CATEGORIES: Category[] = [
     tagline: 'South Indian rangoli, made for the wall',
     origin:
       'Traditional South Indian rangoli patterns — usually drawn each morning with rice flour — made into permanent wall art you can keep up all year.',
-    heroImage: '/images/logo.png',
+    heroImage: '/Logos/logo.jpeg',
     ordinal: 5,
   },
 ]

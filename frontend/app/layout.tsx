@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Playfair_Display, Montserrat, Caveat } from 'next/font/google'
+import { Playfair_Display, Montserrat } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
@@ -15,13 +15,6 @@ const montserrat = Montserrat({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-montserrat',
-  display: 'swap',
-})
-
-const caveat = Caveat({
-  subsets: ['latin'],
-  weight: ['400', '600'],
-  variable: '--font-caveat',
   display: 'swap',
 })
 
@@ -53,18 +46,18 @@ export const metadata: Metadata = {
     description:
       'Resin, Dot Mandala, , Lippan, Pichwai and Kolam styles. Made one piece at a time.',
     images: [
-      { url: '/images/logo.png', width: 1200, height: 630, alt: 'Srilatha Art' },
+      { url: '/Logos/logo.jpeg', width: 1200, height: 630, alt: 'Srilatha Art' },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Srilatha Art',
     description: 'Handcrafted with Heart & Soul',
-    images: ['/images/logo.png'],
+    images: ['/Logos/logo.jpeg'],
   },
   icons: {
-    icon: '/images/logo.png',
-    apple: '/images/logo.png',
+    icon: '/Logos/logo.jpeg',
+    apple: '/Logos/logo.jpeg',
   },
   manifest: '/manifest.webmanifest',
 }
@@ -80,7 +73,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${playfair.variable} ${montserrat.variable} ${caveat.variable}`}>
+    <html lang="en-IN" className={`${playfair.variable} ${montserrat.variable}`}>
       <body>
         <a
           href="#main"
