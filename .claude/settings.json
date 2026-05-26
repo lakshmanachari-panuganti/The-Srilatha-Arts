@@ -14,7 +14,15 @@
       "PowerShell(git add backend/local.settings.example.json backend/src/middleware/csrfGuard.ts backend/src/functions/payments.ts backend/src/services/razorpay.ts docs/QA_REPORT_2026-05-16.md frontend/.env.local.example frontend/app/checkout/page.tsx frontend/app/checkout/CheckoutClient.tsx frontend/staticwebapp.config.json infra/Deploy-Infrastructure.ps1)",
       "PowerShell(git push origin develop 2>&1)",
       "PowerShell(Push-Location frontend; $out = npm run typecheck 2>&1; $code = $LASTEXITCODE; Pop-Location; if\\($code -ne 0\\){\"EXIT $code\"; $out} else {\"Frontend typecheck OK\"})",
-      "PowerShell(Push-Location frontend; $out = npm test --silent 2>&1; $code = $LASTEXITCODE; Pop-Location; \"$code\"; $out | Select-Object -Last 8)"
+      "PowerShell(Push-Location frontend; $out = npm test --silent 2>&1; $code = $LASTEXITCODE; Pop-Location; \"$code\"; $out | Select-Object -Last 8)",
+      "Bash(set -e)",
+      "Bash(git remote *)",
+      "Bash(git stash *)",
+      "Bash(git fetch *)",
+      "Bash(git log *)",
+      "Bash(git update-index *)",
+      "Bash(grep -oE \"'[A-Za-z0-9+/]{16,}=*'\")",
+      "Bash(grep -oE \"\\(SecretValue|WebhookSecret\\)[^']*'[A-Za-z0-9+/=!@#\\\\$%^&*]{8,}'\")"
     ]
   },
   "tools": {

@@ -38,7 +38,7 @@
 
 .EXAMPLE
     # Use a value you already pasted into the Razorpay dashboard.
-    ./Rotate-RazorpayWebhookSecret.ps1 -Environment prd -WebhookSecret 'REMOVED-LEAKED-WEBHOOK-SECRET-PRD='
+    ./Rotate-RazorpayWebhookSecret.ps1 -Environment prd -WebhookSecret 'PbykpHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 .NOTES
     Requires:
@@ -68,18 +68,18 @@ $ErrorActionPreference = 'Stop'
 # ─── Environment → Azure resource mapping ──────────────────────────────────
 $envMap = @{
     'dev' = @{
-        ResourceGroup   = 'rg-thesrilathaarts-dev'
-        FunctionApp     = 'func-thesrilathaarts-dev'
-        FrontendUrl     = 'https://delightful-mushroom-062e18100.7.azurestaticapps.net'
-        WebhookUrl      = 'https://func-thesrilathaarts-dev.azurewebsites.net/api/razorpay/webhook'
-        RazorpayMode    = 'TEST mode (rzp_test_... keys)'
+        ResourceGroup = 'rg-thesrilathaarts-dev'
+        FunctionApp   = 'func-thesrilathaarts-dev'
+        FrontendUrl   = 'https://delightful-mushroom-062e18100.7.azurestaticapps.net'
+        WebhookUrl    = 'https://func-thesrilathaarts-dev.azurewebsites.net/api/razorpay/webhook'
+        RazorpayMode  = 'TEST mode (rzp_test_... keys)'
     }
     'prd' = @{
-        ResourceGroup   = 'rg-thesrilathaarts-prd'
-        FunctionApp     = 'func-thesrilathaarts-prd'
-        FrontendUrl     = 'https://www.srilatha.art'
-        WebhookUrl      = 'https://www.srilatha.art/api/razorpay/webhook'
-        RazorpayMode    = 'LIVE mode (rzp_live_... keys)'
+        ResourceGroup = 'rg-thesrilathaarts-prd'
+        FunctionApp   = 'func-thesrilathaarts-prd'
+        FrontendUrl   = 'https://www.srilatha.art'
+        WebhookUrl    = 'https://www.srilatha.art/api/razorpay/webhook'
+        RazorpayMode  = 'LIVE mode (rzp_live_... keys)'
     }
 }
 $envCfg = $envMap[$Environment]
