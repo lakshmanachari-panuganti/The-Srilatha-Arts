@@ -61,8 +61,8 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.3 }}
           className="text-ivory-soft text-base lg:text-lg max-w-reader mx-auto mb-8 lg:mb-10 leading-relaxed"
         >
-          Beautiful wall art in five styles — Resin, Dot Mandala, Lippan, Pichwai and Kolam.
-          Each piece is made by hand, one at a time, in our Hyderabad studio.
+          Beautiful handcrafted art in five styles — Resin, Dot Mandala, Lippan, Kolam and
+          Wedding Decoratives. Each piece is made by hand, one at a time, in our Hyderabad studio.
         </motion.p>
 
         {/*

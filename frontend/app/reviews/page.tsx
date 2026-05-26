@@ -46,7 +46,7 @@ const reviews = [
     rating: 5,
     quote:
       'Quick replies on WhatsApp, fair pricing, and the piece arrived earlier than promised. Highly recommend.',
-    product: 'Pichwai Art',
+    product: 'Wedding Decoratives',
   },
 ]
 

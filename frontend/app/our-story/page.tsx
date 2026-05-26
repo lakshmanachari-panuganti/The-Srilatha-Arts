@@ -37,7 +37,7 @@ export default function OurStoryPage() {
       </p>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
         One thing led to another. Today, we make five different styles of handmade art —
-        Dot Mandala, Resin, Lippan, Pichwai and Kolam — and we ship them to homes all over India.
+        Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives — and we ship them to homes all over India.
       </p>
 
       <h2 className="font-serif text-2xl lg:text-3xl text-ivory mt-12 mb-4">How we work</h2>
