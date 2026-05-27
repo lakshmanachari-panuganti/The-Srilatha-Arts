@@ -66,20 +66,21 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # ─── Environment → Azure resource mapping ──────────────────────────────────
+$AppSlug = "thesrilathaarts"
 $envMap = @{
-    'dev' = @{
-        ResourceGroup = 'rg-thesrilathaarts-dev'
-        FunctionApp   = 'func-thesrilathaarts-dev'
-        FrontendUrl   = 'https://delightful-mushroom-062e18100.7.azurestaticapps.net'
-        WebhookUrl    = 'https://func-thesrilathaarts-dev.azurewebsites.net/api/razorpay/webhook'
-        RazorpayMode  = 'TEST mode (rzp_test_... keys)'
+    "dev" = @{
+        ResourceGroup = "rg-$AppSlug-dev"
+        FunctionApp   = "func-$AppSlug-dev"
+        FrontendUrl   = "https://delightful-mushroom-062e18100.7.azurestaticapps.net"
+        WebhookUrl    = "https://func-$AppSlug-dev.azurewebsites.net/api/razorpay/webhook"
+        RazorpayMode  = "TEST mode (rzp_test_... keys)"
     }
-    'prd' = @{
-        ResourceGroup = 'rg-thesrilathaarts-prd'
-        FunctionApp   = 'func-thesrilathaarts-prd'
-        FrontendUrl   = 'https://www.srilatha.art'
-        WebhookUrl    = 'https://www.srilatha.art/api/razorpay/webhook'
-        RazorpayMode  = 'LIVE mode (rzp_live_... keys)'
+    "prd" = @{
+        ResourceGroup = "rg-$AppSlug-prd"
+        FunctionApp   = "func-$AppSlug-prd"
+        FrontendUrl   = "https://www.srilatha.art"
+        WebhookUrl    = "https://www.srilatha.art/api/razorpay/webhook"
+        RazorpayMode  = "LIVE mode (rzp_live_... keys)"
     }
 }
 $envCfg = $envMap[$Environment]

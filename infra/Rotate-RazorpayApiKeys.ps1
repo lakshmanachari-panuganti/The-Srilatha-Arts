@@ -82,16 +82,17 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # ─── Environment → Azure resource mapping ──────────────────────────────────
+$AppSlug = 'thesrilathaarts'
 $envMap = @{
     'dev' = @{
-        ResourceGroup = 'rg-thesrilathaarts-dev'
-        FunctionApp   = 'func-thesrilathaarts-dev'
+        ResourceGroup  = "rg-$AppSlug-dev"
+        FunctionApp    = "func-$AppSlug-dev"
         ExpectedPrefix = 'rzp_test_'
         RazorpayMode   = 'TEST mode'
     }
     'prd' = @{
-        ResourceGroup = 'rg-thesrilathaarts-prd'
-        FunctionApp   = 'func-thesrilathaarts-prd'
+        ResourceGroup  = "rg-$AppSlug-prd"
+        FunctionApp    = "func-$AppSlug-prd"
         ExpectedPrefix = 'rzp_live_'
         RazorpayMode   = 'LIVE mode'
     }
@@ -126,13 +127,10 @@ if (-not $trimmedKeyId.StartsWith($envCfg.ExpectedPrefix)) {
     }
 }
 
-# ─── Confirm we have an Az session ─────────────────────────────────────────
-$ctx = Get-AzContext -ErrorAction SilentlyContinue
-if (-not $ctx) {
-    throw "No Az session. Run docs/Azure-Connectivity.ps1 first."
-}
-Write-Host "Az context         : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -ForegroundColor DarkGray
-Write-Host ''
+# ─── Az session ─────────────────────────────────────────
+$securePassword = ConvertTo-SecureString $env:MY_APPREG_CLIENT_SECRET -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential ($env:MY_APPREG_CLIENT_ID, $securePassword)
+Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential $credential | Out-Null
 
 # ─── Confirm the target Function App exists ────────────────────────────────
 Import-Module Az.Functions -ErrorAction Stop -WarningAction SilentlyContinue
@@ -167,9 +165,9 @@ Update-AzFunctionAppSetting `
     -ResourceGroupName $envCfg.ResourceGroup `
     -Name $envCfg.FunctionApp `
     -AppSetting @{
-        'RAZORPAY_KEY_ID'     = $trimmedKeyId
-        'RAZORPAY_KEY_SECRET' = $trimmedKeySecret
-    } `
+    'RAZORPAY_KEY_ID'     = $trimmedKeyId
+    'RAZORPAY_KEY_SECRET' = $trimmedKeySecret
+} `
     -Force -ErrorAction Stop | Out-Null
 
 # ─── Verify ────────────────────────────────────────────────────────────────
@@ -177,7 +175,7 @@ $applied = (Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -N
     Where-Object { $_.Key -in @('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') } |
     Sort-Object Key
 
-$appliedKeyId     = ($applied | Where-Object { $_.Key -eq 'RAZORPAY_KEY_ID' }).Value
+$appliedKeyId = ($applied | Where-Object { $_.Key -eq 'RAZORPAY_KEY_ID' }).Value
 $appliedKeySecret = ($applied | Where-Object { $_.Key -eq 'RAZORPAY_KEY_SECRET' }).Value
 
 if ($appliedKeyId -ne $trimmedKeyId) {

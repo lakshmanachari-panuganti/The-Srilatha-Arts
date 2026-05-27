@@ -105,15 +105,17 @@ Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential
 # resource groups.
 
 # ── B.1  Per-environment resource names ─────────────────────────────
+$AppSlug = 'thesrilathaarts'
+
 $config = @{
     DEV = @{
-        ResourceGroup  = 'rg-thesrilathaarts-dev'
-        Location       = 'centralindia'
-        StorageAccount = 'stthesrilathaartsdev'      # 20 chars, lowercase
-        FunctionApp    = 'func-thesrilathaarts-dev'
-        StaticWebApp   = 'swa-thesrilathaarts-dev'   # reserved name only
-        KeyVault       = 'kv-thesrilathaarts-dev'    # 22 chars
-        AppInsights    = 'appi-thesrilathaarts-dev'
+        ResourceGroup  = "rg-$AppSlug-dev"
+        Location       = "centralindia"
+        StorageAccount = "st$($AppSlug)dev"      # 20 chars, lowercase
+        FunctionApp    = "func-$AppSlug-dev"
+        StaticWebApp   = "swa-$AppSlug-dev"   # reserved name only
+        KeyVault       = @("kv-$AppSlug-dev", "kv-$AppSlug-backup-dev")    # 22 chars
+        AppInsights    = "appi-$AppSlug-dev"
         CorsOrigins    = @(
             'http://localhost:3000',
             'https://delightful-mushroom-062e18100.7.azurestaticapps.net',
@@ -123,13 +125,13 @@ $config = @{
         WebsiteUrl     = 'delightful-mushroom-062e18100.7.azurestaticapps.net'
     }
     PRD = @{
-        ResourceGroup  = 'rg-thesrilathaarts-prd'
-        Location       = 'centralindia'
-        StorageAccount = 'stthesrilathaartsprd'
-        FunctionApp    = 'func-thesrilathaarts-prd'
-        StaticWebApp   = 'swa-thesrilathaarts-prd'
-        KeyVault       = 'kv-thesrilathaarts-prd'
-        AppInsights    = 'appi-thesrilathaarts-prd'
+        ResourceGroup  = "rg-$AppSlug-prd"
+        Location       = "centralindia"
+        StorageAccount = "st$($AppSlug)prd"
+        FunctionApp    = "func-$AppSlug-prd"
+        StaticWebApp   = "swa-$AppSlug-prd"
+        KeyVault       = @("kv-$AppSlug-prd", "kv-$AppSlug-backup-prd")
+        AppInsights    = "appi-$AppSlug-prd"
         CorsOrigins    = @(
             'https://www.srilatha.art',
             'https://srilatha.art',
@@ -163,10 +165,10 @@ $queueNames = @(
 # Public read for product / category / asset images; private for
 # invoices and user uploads.
 $blobContainers = @(
-    @{ Name = 'products';     PublicAccess = 'Blob' }
-    @{ Name = 'categories';   PublicAccess = 'Blob' }
-    @{ Name = 'assets';       PublicAccess = 'Blob' }
-    @{ Name = 'invoices';     PublicAccess = 'Off' }
+    @{ Name = 'products'; PublicAccess = 'Blob' }
+    @{ Name = 'categories'; PublicAccess = 'Blob' }
+    @{ Name = 'assets'; PublicAccess = 'Blob' }
+    @{ Name = 'invoices'; PublicAccess = 'Off' }
     @{ Name = 'user-uploads'; PublicAccess = 'Off' }
 )
 
@@ -189,20 +191,20 @@ $requiredModules = @(
 # the duplication harmless and the intent clearer.
 
 $sp_BootstrapRoles = @(
-    @{ Resource = 'storage'; Role = 'Storage Blob Data Contributor';  Why = 'Create blob containers + set CORS in Phase 4' }
+    @{ Resource = 'storage'; Role = 'Storage Blob Data Contributor'; Why = 'Create blob containers + set CORS in Phase 4' }
     @{ Resource = 'storage'; Role = 'Storage Table Data Contributor'; Why = 'Create tables in Phase 4' }
     @{ Resource = 'storage'; Role = 'Storage Queue Data Contributor'; Why = 'Create queues in Phase 4' }
-    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets Officer';     Why = 'Write secrets in Phase 5' }
+    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets Officer'; Why = 'Write secrets in Phase 5' }
 )
 
 $sp_RuntimeRoles = @(
     # Same as bootstrap — re-asserted at the end for the durable
     # documented role set (helps when this script is re-run with a
     # fresh SP that didn't go through Phase 3 yet).
-    @{ Resource = 'storage';  Role = 'Storage Blob Data Contributor';  Why = 'Deploy-time read/write of product + invoice blobs' }
-    @{ Resource = 'storage';  Role = 'Storage Table Data Contributor'; Why = 'Deploy-time data seed / patch' }
-    @{ Resource = 'storage';  Role = 'Storage Queue Data Contributor'; Why = 'Deploy-time queue inspection / drain' }
-    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets Officer';      Why = 'Rotate secrets on subsequent runs' }
+    @{ Resource = 'storage'; Role = 'Storage Blob Data Contributor'; Why = 'Deploy-time read/write of product + invoice blobs' }
+    @{ Resource = 'storage'; Role = 'Storage Table Data Contributor'; Why = 'Deploy-time data seed / patch' }
+    @{ Resource = 'storage'; Role = 'Storage Queue Data Contributor'; Why = 'Deploy-time queue inspection / drain' }
+    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets Officer'; Why = 'Rotate secrets on subsequent runs' }
 )
 
 # The Function App's System-Assigned Managed Identity needs these
@@ -213,11 +215,11 @@ $sp_RuntimeRoles = @(
 # distributed locks for queue/timer triggers).
 # Ref: https://learn.microsoft.com/azure/azure-functions/functions-reference#configure-an-identity-based-connection
 $mi_RuntimeRoles = @(
-    @{ Resource = 'keyvault';    Role = 'Key Vault Secrets User';          Why = 'Resolve @Microsoft.KeyVault(...) refs at startup' }
-    @{ Resource = 'storage';     Role = 'Storage Blob Data Owner';         Why = 'Identity-based AzureWebJobsStorage — host internal state' }
-    @{ Resource = 'storage';     Role = 'Storage Table Data Contributor';  Why = 'App data (orders, products, ...)' }
-    @{ Resource = 'storage';     Role = 'Storage Queue Data Contributor';  Why = 'Notifications, webhook ingest, review request queues' }
-    @{ Resource = 'appinsights'; Role = 'Monitoring Metrics Publisher';    Why = 'Forward-looking — AAD-based AI telemetry path' }
+    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets User'; Why = 'Resolve @Microsoft.KeyVault(...) refs at startup' }
+    @{ Resource = 'storage'; Role = 'Storage Blob Data Owner'; Why = 'Identity-based AzureWebJobsStorage — host internal state' }
+    @{ Resource = 'storage'; Role = 'Storage Table Data Contributor'; Why = 'App data (orders, products, ...)' }
+    @{ Resource = 'storage'; Role = 'Storage Queue Data Contributor'; Why = 'Notifications, webhook ingest, review request queues' }
+    @{ Resource = 'appinsights'; Role = 'Monitoring Metrics Publisher'; Why = 'Forward-looking — AAD-based AI telemetry path' }
 )
 
 
@@ -225,14 +227,14 @@ $mi_RuntimeRoles = @(
 #  PART C.  Helper functions
 # ═══════════════════════════════════════════════════════════════════
 
-function Write-Step    { param([string]$Message)
+function Write-Step { param([string]$Message)
     Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     Write-Host "▶ $Message" -ForegroundColor Cyan
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 }
 function Write-Success { param([string]$Message); Write-Host "  ✓ $Message" -ForegroundColor Green }
-function Write-Info    { param([string]$Message); Write-Host "  ℹ $Message" -ForegroundColor Yellow }
-function Write-Err     { param([string]$Message); Write-Host "  ✗ $Message" -ForegroundColor Red }
+function Write-Info { param([string]$Message); Write-Host "  ℹ $Message" -ForegroundColor Yellow }
+function Write-Err { param([string]$Message); Write-Host "  ✗ $Message" -ForegroundColor Red }
 
 # Idempotent role assignment helper. Returns $true on success / already-
 # present, $false on a hard failure (Forbidden / propagation lag). Never
@@ -270,8 +272,8 @@ function Resolve-RoleScope {
         [Parameter(Mandatory)] $AppInsights
     )
     switch ($ResourceKey) {
-        'storage'     { return @{ Id = $StorageAccount.Id; Label = "Storage Account [$($StorageAccount.StorageAccountName)]" } }
-        'keyvault'    { return @{ Id = $KeyVault.ResourceId; Label = "Key Vault [$($KeyVault.VaultName)]" } }
+        'storage' { return @{ Id = $StorageAccount.Id; Label = "Storage Account [$($StorageAccount.StorageAccountName)]" } }
+        'keyvault' { return @{ Id = $KeyVault.ResourceId; Label = "Key Vault [$($KeyVault.VaultName)]" } }
         'appinsights' { return @{ Id = $AppInsights.Id; Label = "App Insights [$($AppInsights.Name)]" } }
         default { throw "Unknown role-plan resource key: '$ResourceKey'" }
     }
@@ -355,7 +357,7 @@ if ($rg) {
 } else {
     Write-Info "Creating Resource Group     : $($envCfg.ResourceGroup)"
     New-AzResourceGroup -Name $envCfg.ResourceGroup -Location $envCfg.Location -Tag @{
-        project   = 'thesrilathaarts'
+        project   = $AppSlug
         env       = $Environment.ToLower()
         managedBy = 'Deploy-Infrastructure.ps1'
     } | Out-Null
@@ -415,7 +417,9 @@ if ($functionApp) {
 }
 
 # ── 2.5  Key Vault (RBAC mode is the modern default) ─────────────
-$keyVault = Get-AzKeyVault -ResourceGroupName $envCfg.ResourceGroup -VaultName $envCfg.KeyVault -ErrorAction SilentlyContinue
+$keyVault = $envCfg.KeyVault | ForEach-Object {
+    Get-AzKeyVault -ResourceGroupName $envCfg.ResourceGroup -VaultName $_ -ErrorAction SilentlyContinue
+}
 if ($keyVault) {
     Write-Success "Key Vault exists            : $($envCfg.KeyVault)"
 } else {
@@ -442,11 +446,11 @@ if ($keyVault) {
 Write-Step "PHASE 3 — Bootstrap deployer-SP RBAC (data plane access)"
 
 [void] (Apply-RolePlan `
-    -ObjectId $spObjectId `
-    -Plan $sp_BootstrapRoles `
-    -StorageAccount $storageAccount `
-    -KeyVault $keyVault `
-    -AppInsights $appInsights)
+        -ObjectId $spObjectId `
+        -Plan $sp_BootstrapRoles `
+        -StorageAccount $storageAccount `
+        -KeyVault $keyVault `
+        -AppInsights $appInsights)
 
 Write-Info "Waiting 15s for RBAC propagation before data-plane ops..."
 Start-Sleep -Seconds 15
@@ -501,12 +505,12 @@ foreach ($c in $blobContainers) {
 
 # ── 4.5  CORS rules on blob ──────────────────────────────────────
 $corsRules = @(@{
-    AllowedOrigins  = $envCfg.CorsOrigins
-    AllowedMethods  = @('GET', 'HEAD', 'OPTIONS')
-    AllowedHeaders  = @('*')
-    ExposedHeaders  = @('*')
-    MaxAgeInSeconds = 3600
-})
+        AllowedOrigins  = $envCfg.CorsOrigins
+        AllowedMethods  = @('GET', 'HEAD', 'OPTIONS')
+        AllowedHeaders  = @('*')
+        ExposedHeaders  = @('*')
+        MaxAgeInSeconds = 3600
+    })
 Remove-AzStorageCORSRule -ServiceType Blob -Context $storageCtx
 Set-AzStorageCORSRule -ServiceType Blob -Context $storageCtx -CorsRules $corsRules
 Write-Success "Blob CORS set for: $($envCfg.CorsOrigins -join ', ')"
@@ -651,20 +655,20 @@ Get-AzRoleAssignment -ObjectId $spObjectId -Scope $badScope -ErrorAction Silentl
 # ── 7.3  Grant Function App MI its runtime roles ─────────────────
 Write-Info "Applying Function App MI runtime roles..."
 [void] (Apply-RolePlan `
-    -ObjectId $principalId `
-    -Plan $mi_RuntimeRoles `
-    -StorageAccount $storageAccount `
-    -KeyVault $keyVault `
-    -AppInsights $appInsights)
+        -ObjectId $principalId `
+        -Plan $mi_RuntimeRoles `
+        -StorageAccount $storageAccount `
+        -KeyVault $keyVault `
+        -AppInsights $appInsights)
 
 # ── 7.4  Re-assert deployer SP durable roles ─────────────────────
 Write-Info "Re-asserting deployer SP durable roles..."
 [void] (Apply-RolePlan `
-    -ObjectId $spObjectId `
-    -Plan $sp_RuntimeRoles `
-    -StorageAccount $storageAccount `
-    -KeyVault $keyVault `
-    -AppInsights $appInsights)
+        -ObjectId $spObjectId `
+        -Plan $sp_RuntimeRoles `
+        -StorageAccount $storageAccount `
+        -KeyVault $keyVault `
+        -AppInsights $appInsights)
 
 Write-Info "Waiting 15s for RBAC propagation..."
 Start-Sleep -Seconds 15
@@ -682,7 +686,7 @@ if (-not $miAssignments) {
     Write-Success "Function App MI currently holds:"
     Write-Host ''
     "{0,-40} {1}" -f 'Role', 'Scope (shortened)' | Write-Host -ForegroundColor DarkGray
-    "{0,-40} {1}" -f ('─' * 38), ('─' * 60)        | Write-Host -ForegroundColor DarkGray
+    "{0,-40} {1}" -f ('─' * 38), ('─' * 60) | Write-Host -ForegroundColor DarkGray
     foreach ($a in $miAssignments | Sort-Object Scope, RoleDefinitionName) {
         $scopeShort = $a.Scope `
             -replace '^/subscriptions/[^/]+/resourceGroups/', 'rg:' `
@@ -693,8 +697,8 @@ if (-not $miAssignments) {
 
     # Hard-required runtime set — script fails loud if anything is missing.
     $required = @(
-        @{ Role = 'Key Vault Secrets User';         ScopeContains = $envCfg.KeyVault }
-        @{ Role = 'Storage Blob Data Owner';        ScopeContains = $envCfg.StorageAccount }
+        @{ Role = 'Key Vault Secrets User'; ScopeContains = $envCfg.KeyVault }
+        @{ Role = 'Storage Blob Data Owner'; ScopeContains = $envCfg.StorageAccount }
         @{ Role = 'Storage Table Data Contributor'; ScopeContains = $envCfg.StorageAccount }
         @{ Role = 'Storage Queue Data Contributor'; ScopeContains = $envCfg.StorageAccount }
     )
