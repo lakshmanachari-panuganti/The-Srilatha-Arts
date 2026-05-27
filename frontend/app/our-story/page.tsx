@@ -13,7 +13,7 @@ export default function OurStoryPage() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">About us</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-6">
-        A small studio in <em className="italic gold-text">Hyderabad</em>
+        A studio in <em className="italic gold-text">Hyderabad</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-6">
         Hi! We are a small team that makes handmade rlegant art. Everything you see on this site
@@ -22,7 +22,7 @@ export default function OurStoryPage() {
 
       <div className="my-10 relative aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-b from-plum-warm to-plum-light flex items-center justify-center">
         <Image
-          src="/images/logo.png"
+          src="/Logos/logo.jpeg"
           alt="Our studio in Hyderabad"
           width={300}
           height={300}
@@ -37,7 +37,7 @@ export default function OurStoryPage() {
       </p>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
         One thing led to another. Today, we make five different styles of handmade art —
-        Dot Mandala, Resin, Lippan, Pichwai and Kolam — and we ship them to homes all over India.
+        Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives — and we ship them to homes all over India.
       </p>
 
       <h2 className="font-serif text-2xl lg:text-3xl text-ivory mt-12 mb-4">How we work</h2>

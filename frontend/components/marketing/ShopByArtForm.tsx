@@ -8,17 +8,14 @@ import { fadeUp, stagger } from '@/lib/motion'
 
 export default function ShopByArtForm() {
   return (
-    <section className="px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">
+    <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
       {/* Section header */}
-      <div className="mb-12 lg:mb-20 max-w-2xl">
-        <p className="eyebrow mb-4">
-          <span className="section-no text-lavender-pastel">001</span>
-          Shop by art style
-        </p>
+      <div className="mb-10 sm:mb-12 lg:mb-20 max-w-2xl">
+        <p className="eyebrow mb-4">Shop by art style</p>
         <h2 className="display text-4xl lg:text-6xl mb-4">
           Five handmade
           <br />
-          art <em className="font-serif italic gold-text">styles</em>.
+          art <em className="font-serif italic">styles</em>.
         </h2>
         <p className="text-ivory-soft text-base lg:text-lg leading-relaxed">
           From calming dot patterns to bright mirror work, each style has its own look and feel.
@@ -32,7 +29,7 @@ export default function ShopByArtForm() {
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-14 lg:gap-x-10 lg:gap-y-24"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-8 sm:gap-y-14 lg:gap-x-10 lg:gap-y-24"
       >
         {CATEGORIES.map((c, i) => (
           <motion.li

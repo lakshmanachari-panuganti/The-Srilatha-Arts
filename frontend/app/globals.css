@@ -46,11 +46,21 @@
        on by default everywhere. */
     font-feature-settings: 'kern', 'liga', 'clig', 'calt';
     text-rendering: optimizeLegibility;
+    /* Horizontal overflow clamp on the root element. Putting overflow-x:hidden
+       only on body is unreliable on iOS Safari + some Android browsers — they
+       still let the html scroll. Both is the bulletproof combo. */
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   body {
     @apply bg-plum text-ivory font-sans antialiased;
     min-height: 100svh;
+    /* Belt + braces with the html rule above. Some browsers honour overflow on
+       body, some on html, some on both; clamp everywhere to be safe. */
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
     /* Crisper sub-pixel rendering on macOS / iOS Safari and Chrome on
        any platform — small body type is the main beneficiary. */
     -webkit-font-smoothing: antialiased;
@@ -183,8 +193,16 @@
      `text-lavender-pastel`. */
   .eyebrow {
     @apply inline-flex items-center gap-2 text-[11px] uppercase font-semibold;
-    letter-spacing: 0.28em;
+    /* Tighter on mobile — the 0.28em editorial tracking was pushing
+       eyebrows wider than viewport at 360px (see UI audit §2.2).
+       Widens back to 0.28em from the sm breakpoint up. */
+    letter-spacing: 0.16em;
     color: theme('colors.ivory-soft');
+  }
+  @media (min-width: 640px) {
+    .eyebrow {
+      letter-spacing: 0.28em;
+    }
   }
 
   /* Section number — editorial "001 / 002" style. Bumped from
@@ -395,6 +413,14 @@
   .-rotate-6 { transform: rotate(-6deg); }
   .rotate-3  { transform: rotate(3deg); }
 
+  /* HeroSlideshow — subtle Ken-Burns zoom on the active slide so the
+     still photograph feels cinematic. Plays once per slide activation;
+     the React `key={src}` + the `isActive` conditional on the class
+     guarantees the animation restarts on every slide change. */
+  .hero-ken-burns {
+    animation: hero-ken-burns 7s ease-out both;
+  }
+
   /* Text shadow for readability on images */
   .text-shadow-soft {
     text-shadow: 0 2px 12px rgba(43, 30, 52, 0.6);
@@ -411,4 +437,15 @@
   /* Balanced and pretty wrapping helpers for ad-hoc use. */
   .text-balance { text-wrap: balance; }
   .text-pretty { text-wrap: pretty; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-ken-burns {
+    animation: none !important;
+  }
+}
+
+@keyframes hero-ken-burns {
+  0%   { transform: scale(1.00); }
+  100% { transform: scale(1.06); }
 }

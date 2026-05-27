@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Menu, Search, ShoppingBag, User } from 'lucide-react'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
 import { useCart, cartCount } from '@/stores/cart'
@@ -11,9 +12,16 @@ import MobileDrawer from '@/components/MobileDrawer'
 import SearchOverlay from '@/components/SearchOverlay'
 import { cn } from '@/lib/cn'
 
+// Routes where the header is allowed to hide-on-scroll-down. Home + brand
+// pages tolerate it. PDP, cart, checkout, account need the cart icon + search
+// always reachable — hiding the header on those pages strands the user away
+// from key actions (audit §4).
+const HIDE_ON_SCROLL_ROUTES = ['/', '/our-story', '/the-craft', '/reviews', '/about']
+
 export default function Header() {
   const dir = useScrollDirection(8)
   const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname() || '/'
   const items = useCart((s) => s.items)
   const count = cartCount(items)
 
@@ -28,7 +36,8 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const hidden = dir === 'down' && scrolled
+  const canHide = HIDE_ON_SCROLL_ROUTES.includes(pathname)
+  const hidden = canHide && dir === 'down' && scrolled
 
   return (
     <>
@@ -82,7 +91,7 @@ export default function Header() {
             className="absolute left-1/2 -translate-x-1/2 flex items-center"
           >
             <Image
-              src="/images/logo.png"
+              src="/Logos/logo.jpeg"
               alt="Srilatha Art"
               width={56}
               height={56}

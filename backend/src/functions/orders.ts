@@ -31,8 +31,40 @@ import { requireAdmin } from '../middleware/adminGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { canCustomerCancel, canCustomerReturn } from '../services/orderState'
-import type { OrderStatus, OrderItemSnapshot } from '../types'
+import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
+import {
+  isValidReturnReason,
+  type OrderStatus,
+  type OrderItemSnapshot,
+  type ReturnReasonCode,
+} from '../types'
 import { randomBytes } from 'crypto'
+
+// Photo URLs on return requests must live on our own blob domain — same
+// rule we apply to review photos. Stops customers (or scripted clients)
+// from pointing us at javascript:/data:/external URLs.
+function sanitiseReturnPhotos(input: unknown): string[] {
+  if (!Array.isArray(input)) return []
+  const allowedHost = (() => {
+    const base = process.env.BLOB_BASE_URL
+    if (!base) return null
+    try { return new URL(base).hostname.toLowerCase() } catch { return null }
+  })()
+  return input
+    .filter((u): u is string => typeof u === 'string')
+    .map((u) => u.trim())
+    .filter((u) => {
+      try {
+        const parsed = new URL(u)
+        if (parsed.protocol !== 'https:') return false
+        if (allowedHost && parsed.hostname.toLowerCase() !== allowedHost) return false
+        return true
+      } catch {
+        return false
+      }
+    })
+    .slice(0, 6)
+}
 
 // 5-digit Math.random() collision space was 100K — a year of orders would
 // have measurable collisions, and an attacker could simply guess IDs.
@@ -67,6 +99,18 @@ function toApi(row: Row) {
     holdReason: row.holdReason || undefined,
     invoiceUrl: row.invoiceUrl || undefined,
     customerNote: row.customerNote || undefined,
+    // Return / refund metadata — exposed so the account page can render
+    // the right "in progress" / "approved" / "declined" / "refunded" UI.
+    returnRequestedAt: row.returnRequestedAt || undefined,
+    returnReason: row.returnReason || undefined,
+    returnComment: row.returnComment || undefined,
+    returnPhotos: safeJson(row.returnPhotos) || [],
+    returnDeclineReason: row.returnDeclineReason || undefined,
+    refundedAt: row.refundedAt || undefined,
+    refundAmount: row.refundAmount ?? undefined,
+    razorpayPaymentId: row.razorpayPaymentId || undefined,
+    razorpayRefundId: row.razorpayRefundId || undefined,
+    refundFailureReason: row.refundFailureReason || undefined,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }
@@ -141,8 +185,10 @@ async function createNewOrder(
       })
     }
 
-    // Shipping (free above ₹2999 = 299900 paise)
-    const shippingAmount = subtotal >= 299900 ? 0 : 9900 // ₹99
+    // Shipping is admin-configurable via /admin/settings. computeShippingAmount
+    // applies the free-threshold and the effective (possibly discounted) charge.
+    const shippingCfg = await getShippingConfig()
+    const shippingAmount = computeShippingAmount(subtotal, shippingCfg)
     const totalAmount = subtotal + shippingAmount
     const displayTotal = totalAmount / 100
 
@@ -477,13 +523,28 @@ async function requestReturn(
       )
     }
 
-    const body = (await request.json()) as { reason?: string }
-    if (!body.reason) return errorResponse('Return reason is required', 400, origin)
+    const body = (await request.json()) as {
+      reason?: ReturnReasonCode
+      comment?: string
+      photos?: string[]
+    }
+    if (!body.reason || !isValidReturnReason(body.reason)) {
+      return errorResponse('A valid return reason is required', 400, origin)
+    }
+    const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 1000) : ''
+    // For "other", require some explanation so admin has context to act on.
+    if (body.reason === 'other' && !comment) {
+      return errorResponse('Please tell us a bit about the issue when choosing "Other"', 400, origin)
+    }
+    const photos = sanitiseReturnPhotos(body.photos)
 
     const now = new Date().toISOString()
     await mergeOrder(user.userId, orderId, {
       status: 'RETURN_REQUESTED',
       returnRequestedAt: now,
+      returnReason: body.reason,
+      returnComment: comment,
+      returnPhotos: JSON.stringify(photos),
       updatedAt: now,
     })
 
@@ -495,11 +556,18 @@ async function requestReturn(
       channel: 'status',
       by: user.userId,
       byRole: 'customer',
-      note: body.reason,
+      // Human-readable timeline entry combines the structured code + free text.
+      note: comment ? `${body.reason}: ${comment}` : body.reason,
+      meta: JSON.stringify({ reason: body.reason, comment, photos }),
       createdAt: now,
     })
 
-    return jsonResponse({ ok: true, status: 'RETURN_REQUESTED' }, 200, {}, origin)
+    return jsonResponse(
+      { ok: true, status: 'RETURN_REQUESTED', reason: body.reason },
+      200,
+      {},
+      origin,
+    )
   } catch (err) {
     context.error('requestReturn failed', err)
     return errorResponse('Failed to request return', 500, origin)

@@ -23,9 +23,16 @@
 
 import { createHmac, timingSafeEqual } from 'crypto'
 
-const KEY_ID = process.env.RAZORPAY_KEY_ID
-const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET
-const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET
+// Trim on read. Azure Portal often preserves a trailing \r / space from
+// pasted values (especially when the source is Excel or the Razorpay
+// dashboard's copy button). A whitespace-padded secret base64-encodes
+// to a different string than the one Razorpay holds on file, which
+// Razorpay surfaces as HTTP 401 "Authentication failed" — visually
+// identical to a wrong/revoked key. Normalising here removes that
+// whole class of misconfiguration.
+const KEY_ID = process.env.RAZORPAY_KEY_ID?.trim() || undefined
+const KEY_SECRET = process.env.RAZORPAY_KEY_SECRET?.trim() || undefined
+const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET?.trim() || undefined
 
 export function isRazorpayConfigured(): boolean {
   return Boolean(KEY_ID && KEY_SECRET)
@@ -93,6 +100,78 @@ export async function createRazorpayOrder(input: CreateOrderInput): Promise<Razo
   }
 
   return (await res.json()) as RazorpayOrder
+}
+
+export interface RazorpayRefund {
+  id: string             // 'rfnd_...'
+  payment_id: string     // the parent payment
+  amount: number         // paise
+  currency: string
+  status: 'pending' | 'processed' | 'failed'
+  created_at: number
+  speed_processed?: string
+  notes?: Record<string, string>
+}
+
+export interface CreateRefundInput {
+  paymentId: string
+  amountPaise?: number              // omit for full refund
+  notes?: Record<string, string>
+  speed?: 'normal' | 'optimum'      // 'normal' = 5-7 days, 'optimum' = instant where possible
+}
+
+/**
+ * Issue a refund against a captured payment.
+ *
+ * https://razorpay.com/docs/api/refunds/#create-refund
+ *
+ * Razorpay charges a small fee per refund and may take 5-7 working days
+ * to credit back to the customer's card / 1-2 days for UPI / netbanking.
+ * Speed = 'optimum' attempts instant refund where the issuer allows it.
+ */
+export async function createRefund(input: CreateRefundInput): Promise<RazorpayRefund> {
+  if (!KEY_ID || !KEY_SECRET) {
+    throw new Error('[razorpay] RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET not configured')
+  }
+  if (!input.paymentId) {
+    throw new Error('[razorpay] paymentId is required')
+  }
+  if (input.amountPaise != null) {
+    if (!Number.isInteger(input.amountPaise) || input.amountPaise <= 0) {
+      throw new Error('[razorpay] amountPaise must be a positive integer')
+    }
+  }
+
+  const basicAuth = Buffer.from(`${KEY_ID}:${KEY_SECRET}`).toString('base64')
+  const body: Record<string, unknown> = {}
+  if (input.amountPaise != null) body.amount = input.amountPaise
+  if (input.notes) body.notes = input.notes
+  if (input.speed) body.speed = input.speed
+
+  const res = await fetch(
+    `https://api.razorpay.com/v1/payments/${encodeURIComponent(input.paymentId)}/refund`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    },
+  )
+
+  if (!res.ok) {
+    let detail = ''
+    try {
+      const data = (await res.json()) as { error?: { description?: string; code?: string } }
+      detail = data.error?.description || data.error?.code || JSON.stringify(data)
+    } catch {
+      detail = await res.text()
+    }
+    throw new Error(`[razorpay] refund failed (${res.status}): ${detail}`)
+  }
+
+  return (await res.json()) as RazorpayRefund
 }
 
 /**

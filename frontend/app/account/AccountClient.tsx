@@ -7,7 +7,7 @@ import {
   Package, MapPin, LogOut, Heart, ChevronRight,
   Pencil, Trash2, Plus, Check,
 } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 
@@ -32,6 +32,39 @@ interface OrderSummary {
   displayTotal: number
   customerName: string
   createdAt: string
+  // Return / refund metadata exposed by toApi() on the backend.
+  returnRequestedAt?: string
+  returnReason?: string
+  returnComment?: string
+  returnPhotos?: string[]
+  returnDeclineReason?: string
+  refundedAt?: string
+  refundAmount?: number
+  razorpayPaymentId?: string
+  razorpayRefundId?: string
+  updatedAt?: string
+}
+
+const RETURN_REASON_OPTIONS: { code: string; label: string }[] = [
+  { code: 'damaged',          label: 'Item arrived damaged' },
+  { code: 'wrong_item',       label: 'Wrong item delivered' },
+  { code: 'not_as_described', label: 'Item is not as described / shown' },
+  { code: 'size_issue',       label: 'Size or fit issue' },
+  { code: 'quality_issue',    label: 'Quality is not what I expected' },
+  { code: 'changed_mind',     label: 'I changed my mind' },
+  { code: 'other',            label: 'Other reason' },
+]
+const RETURN_REASON_LABEL: Record<string, string> =
+  Object.fromEntries(RETURN_REASON_OPTIONS.map((o) => [o.code, o.label]))
+
+// Window the customer can request a return in, mirrored from the
+// backend's canCustomerReturn() (services/orderState.ts).
+const RETURN_WINDOW_DAYS = 7
+function withinReturnWindow(updatedAt?: string): boolean {
+  if (!updatedAt) return false
+  const t = new Date(updatedAt).getTime()
+  if (Number.isNaN(t)) return false
+  return (Date.now() - t) / (1000 * 60 * 60 * 24) <= RETURN_WINDOW_DAYS
 }
 
 type Tab = 'orders' | 'addresses' | 'profile'
@@ -118,7 +151,7 @@ export default function AccountClient() {
             <li className="hidden lg:block">
               <button
                 onClick={async () => { await logout(); router.replace('/') }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-terracotta rounded-lg hover:bg-terracotta/10"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-50"
               >
                 <LogOut className="w-4 h-4" aria-hidden /> Sign out
               </button>
@@ -136,7 +169,7 @@ export default function AccountClient() {
           <div className="lg:hidden pt-3">
             <button
               onClick={async () => { await logout(); router.replace('/') }}
-              className="w-full text-sm text-terracotta inline-flex items-center justify-center gap-2 h-11 rounded-full border border-terracotta/30 hover:bg-terracotta/5"
+              className="w-full text-sm font-medium text-rose-700 inline-flex items-center justify-center gap-2 h-11 rounded-full border border-rose-300 bg-white/60 hover:bg-rose-50"
             >
               <LogOut className="w-4 h-4" aria-hidden /> Sign out
             </button>
@@ -164,7 +197,7 @@ function SideTab({
         aria-current={active ? 'page' : undefined}
         className={`whitespace-nowrap flex items-center gap-3 px-4 lg:px-3 py-2.5 text-sm rounded-full lg:rounded-lg transition-colors ${
           active
-            ? 'bg-terracotta text-white lg:bg-cream-deep lg:text-ink font-medium'
+            ? 'bg-lavender text-white lg:bg-cream-deep lg:text-ink font-medium'
             : 'bg-cream-deep/60 text-ink-soft hover:text-ink lg:bg-transparent'
         }`}
       >
@@ -175,17 +208,47 @@ function SideTab({
   )
 }
 
+// Shown when a tab's API call returns 401 — the JWT in localStorage
+// outlived its server-side validity. Clear local auth and prompt re-login.
+function SessionExpiredCard() {
+  const logout = useUserAuth((s) => s.logout)
+  const router = useRouter()
+  return (
+    <div className="card p-8 text-center">
+      <h2 className="font-serif text-2xl text-ink mb-2">Your session expired</h2>
+      <p className="text-sm text-ink-soft mb-5">
+        For your security, please sign in again to see your orders and addresses.
+      </p>
+      <button
+        onClick={async () => {
+          await logout()
+          router.replace('/login?next=' + encodeURIComponent('/account'))
+        }}
+        className="btn-dark"
+      >
+        Sign in again
+      </button>
+    </div>
+  )
+}
+
 // ─── Orders tab ──────────────────────────────────────────────
 
 function OrdersTab() {
   const [orders, setOrders] = useState<OrderSummary[] | null>(null)
   const [error, setError] = useState('')
+  const [expired, setExpired] = useState(false)
 
   useEffect(() => {
     apiFetch<{ orders: OrderSummary[] }>('/my-orders')
       .then((r) => setOrders(r.orders))
-      .catch((e) => setError(e instanceof Error ? e.message : 'Could not load orders'))
+      .catch((e) => {
+        if (e instanceof ApiError && e.status === 401) setExpired(true)
+        else setError(e instanceof Error ? e.message : 'Could not load orders')
+      })
   }, [])
+
+  if (expired) return <SessionExpiredCard />
 
   if (error) {
     return <div className="card p-6 text-sm text-red-600 bg-red-50 border-red-200">{error}</div>
@@ -209,25 +272,238 @@ function OrdersTab() {
   }
 
   return (
-    <ul className="space-y-3">
-      {orders.map((o) => (
-        <li key={o.id} className="card p-5 hover:shadow-sm transition-shadow">
-          <div className="flex items-start justify-between gap-3 flex-wrap">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-ink-mute">Order</p>
-              <p className="font-serif text-lg text-ink tabular-nums">{o.id}</p>
-              <p className="text-xs text-ink-mute mt-1">
-                {new Date(o.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </p>
-            </div>
-            <div className="text-right">
-              <StatusPill status={o.status} paymentStatus={o.paymentStatus} />
-              <p className="font-serif text-lg font-semibold text-ink mt-1 tabular-nums">{formatINR(o.displayTotal)}</p>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="space-y-3">
+        {orders.map((o) => (
+          <OrderCard
+            key={o.id}
+            order={o}
+            onChanged={(next) => {
+              setOrders((prev) => (prev || []).map((x) => (x.id === next.id ? { ...x, ...next } : x)))
+            }}
+          />
+        ))}
+      </ul>
+    </>
+  )
+}
+
+function OrderCard({
+  order,
+  onChanged,
+}: {
+  order: OrderSummary
+  onChanged: (next: Partial<OrderSummary> & { id: string }) => void
+}) {
+  const [showReturn, setShowReturn] = useState(false)
+  const canReturn =
+    order.status === 'DELIVERED' &&
+    !order.returnRequestedAt &&
+    withinReturnWindow(order.updatedAt || order.createdAt)
+
+  return (
+    <li className="card p-5 hover:shadow-sm transition-shadow">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-xs uppercase tracking-wider text-ink-mute">Order</p>
+          <p className="font-serif text-lg text-ink tabular-nums">{order.id}</p>
+          <p className="text-xs text-ink-mute mt-1">
+            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </p>
+        </div>
+        <div className="text-right">
+          <StatusPill status={order.status} paymentStatus={order.paymentStatus} />
+          <p className="font-serif text-lg font-semibold text-ink mt-1 tabular-nums">{formatINR(order.displayTotal)}</p>
+        </div>
+      </div>
+
+      {/* Return / refund context strip — shown only when applicable */}
+      {order.status === 'RETURN_REQUESTED' && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-medium mb-1">Return request submitted</p>
+          {order.returnReason && (
+            <p>Reason: <strong>{RETURN_REASON_LABEL[order.returnReason] || order.returnReason}</strong></p>
+          )}
+          {order.returnComment && <p className="mt-1 text-amber-800">&ldquo;{order.returnComment}&rdquo;</p>}
+          <p className="text-xs mt-2">We&apos;re reviewing your request. We&apos;ll be in touch within 1–2 working days.</p>
+        </div>
+      )}
+      {order.returnDeclineReason && order.status === 'DELIVERED' && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p className="font-medium mb-1">Return request was declined</p>
+          <p>{order.returnDeclineReason}</p>
+          <p className="text-xs mt-2">If you have questions, please <Link href="/contact" className="underline">contact us</Link>.</p>
+        </div>
+      )}
+      {order.status === 'RETURNED' && (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          Return received. Refund is being processed and will reach you in 5–7 working days.
+        </div>
+      )}
+      {order.status === 'REFUNDED' && (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <p className="font-medium">Refunded</p>
+          <p className="tabular-nums">
+            {order.refundAmount != null
+              ? `${formatINR(order.refundAmount / 100)} refunded`
+              : 'Refund processed'}
+            {order.refundedAt
+              ? ` on ${new Date(order.refundedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
+              : ''}
+            .
+          </p>
+        </div>
+      )}
+
+      {/* Customer action: Request return — shown only when within window */}
+      {canReturn && (
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={() => setShowReturn(true)}
+            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+          >
+            Request a return
+          </button>
+        </div>
+      )}
+
+      {showReturn && (
+        <ReturnRequestModal
+          orderId={order.id}
+          onClose={() => setShowReturn(false)}
+          onSubmitted={(updates) => {
+            onChanged({ id: order.id, ...updates })
+            setShowReturn(false)
+          }}
+        />
+      )}
+    </li>
+  )
+}
+
+function ReturnRequestModal({
+  orderId,
+  onClose,
+  onSubmitted,
+}: {
+  orderId: string
+  onClose: () => void
+  onSubmitted: (updates: Partial<OrderSummary>) => void
+}) {
+  const [reason, setReason] = useState<string>('damaged')
+  const [comment, setComment] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function submit() {
+    setErr('')
+    if (!reason) { setErr('Please pick a reason.'); return }
+    if (reason === 'other' && !comment.trim()) {
+      setErr('Please tell us a bit about the issue.')
+      return
+    }
+    setBusy(true)
+    try {
+      await apiFetch<{ ok: true; status: string; reason: string }>(`/orders/${orderId}/return`, {
+        method: 'POST',
+        body: {
+          reason,
+          comment: comment.trim() || undefined,
+          photos: [], // photo upload not wired into this modal yet
+        },
+      })
+      onSubmitted({
+        status: 'RETURN_REQUESTED',
+        returnReason: reason,
+        returnComment: comment.trim() || undefined,
+        returnRequestedAt: new Date().toISOString(),
+      })
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not submit the return request.')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="return-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm px-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="return-modal-title" className="font-serif text-2xl text-ink mb-1">Request a return</h2>
+        <p className="text-sm text-ink-soft mb-5">
+          Order <span className="font-medium tabular-nums">{orderId}</span>
+        </p>
+
+        <label className="block text-xs uppercase tracking-wider text-ink-mute mb-2">
+          Reason for return
+        </label>
+        <div className="space-y-2 mb-4">
+          {RETURN_REASON_OPTIONS.map((o) => (
+            <label
+              key={o.code}
+              className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                reason === o.code
+                  ? 'border-terracotta/60 bg-cream-deep/60'
+                  : 'border-ink/10 hover:border-ink/20'
+              }`}
+            >
+              <input
+                type="radio"
+                name="return-reason"
+                value={o.code}
+                checked={reason === o.code}
+                onChange={() => setReason(o.code)}
+                className="mt-1 accent-terracotta"
+              />
+              <span className="text-sm text-ink">{o.label}</span>
+            </label>
+          ))}
+        </div>
+
+        <label className="block text-xs uppercase tracking-wider text-ink-mute mb-1.5">
+          Comment {reason === 'other' && <span className="text-red-500">*</span>}
+        </label>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          maxLength={1000}
+          rows={4}
+          placeholder="Add any details that help us understand the issue."
+          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
+        />
+        <p className="text-xs text-ink-mute mt-1">{comment.length}/1000</p>
+
+        {err && (
+          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 px-3 py-2">{err}</div>
+        )}
+
+        <div className="flex justify-end gap-2 mt-6">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={busy}
+            className="btn-dark text-sm h-10 px-5 disabled:opacity-60"
+          >
+            {busy ? 'Submitting…' : 'Submit return request'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -252,6 +528,7 @@ function StatusPill({ status, paymentStatus }: { status: string; paymentStatus: 
 function AddressesTab() {
   const [addresses, setAddresses] = useState<SavedAddress[] | null>(null)
   const [error, setError] = useState('')
+  const [expired, setExpired] = useState(false)
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<AddressForm>(emptyAddress())
@@ -266,7 +543,8 @@ function AddressesTab() {
       const r = await apiFetch<{ addresses: SavedAddress[] }>('/addresses')
       setAddresses(r.addresses)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load addresses')
+      if (e instanceof ApiError && e.status === 401) setExpired(true)
+      else setError(e instanceof Error ? e.message : 'Could not load addresses')
     }
   }
 
@@ -333,6 +611,8 @@ function AddressesTab() {
     setError('')
   }
 
+  if (expired) return <SessionExpiredCard />
+
   if (addresses === null) {
     return <div className="card p-8 text-center text-ink-mute animate-pulse">Loading addresses…</div>
   }
@@ -382,7 +662,7 @@ function AddressesTab() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 -mt-1">
-                  <button onClick={() => startEdit(a)} aria-label="Edit address" className="p-2 text-ink-mute hover:text-terracotta">
+                  <button onClick={() => startEdit(a)} aria-label="Edit address" className="p-2 text-ink-mute hover:text-lavender">
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleDelete(a.id)} aria-label="Remove address" className="p-2 text-ink-mute hover:text-red-600">

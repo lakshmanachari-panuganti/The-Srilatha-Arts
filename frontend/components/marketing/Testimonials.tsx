@@ -29,19 +29,15 @@ const reviews = [
 
 export default function Testimonials() {
   return (
-    <section className="relative px-5 lg:px-8 py-20 lg:py-32 max-w-6xl mx-auto">
-      {/* Subtle ambient glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px]
-                       rounded-full bg-lavender/8 blur-[100px]" aria-hidden />
+    <section className="relative px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
+      {/* No ambient glow orb — visual restraint per audit §1.6. The hero
+          slideshow is the page's single moment of "atmospheric" decoration. */}
 
       <div className="relative z-10">
-        <div className="mb-12 lg:mb-16 max-w-2xl">
-          <p className="eyebrow mb-4">
-            <span className="section-no text-lavender-pastel">005</span>
-            Real customer reviews
-          </p>
+        <div className="mb-8 sm:mb-12 lg:mb-16 max-w-2xl">
+          <p className="eyebrow mb-4">Real customer reviews</p>
           <h2 className="display text-4xl lg:text-6xl">
-            What our <em className="italic gold-text">buyers</em> say.
+            What our <em className="italic">buyers</em> say.
           </h2>
         </div>
 

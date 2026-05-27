@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare } from 'lucide-react'
+import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare, ShieldCheck } from 'lucide-react'
 import { CATEGORY_BY_SLUG } from '@/data/categories'
 import { formatINR, discountPct } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
@@ -153,7 +153,7 @@ export default function ProductDetailClient() {
         <div className="lg:sticky lg:top-28 lg:self-start">
           <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep">
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5]">
-              {(p.images.length > 0 ? p.images : ['/images/logo.png']).map((src, i) => (
+              {(p.images.length > 0 ? p.images : ['/Logos/logo.jpeg']).map((src, i) => (
                 <div key={i} className="relative shrink-0 w-full snap-center">
                   <Image
                     src={src}
@@ -223,13 +223,32 @@ export default function ProductDetailClient() {
             <Pill label={`Ships in ${p.timeToMake}`} />
           </div>
 
-          <p className="text-ink/85 leading-relaxed mb-7 text-base lg:text-lg">{p.description}</p>
-
-          <div className="card-cream p-6 mb-8 space-y-3">
-            <Feature icon={Hand} label="Handmade — every piece is one of a kind" />
-            <Feature icon={Sparkles} label={`Made in ${p.timeToMake}`} />
-            <Feature icon={Truck} label="Free shipping above ₹2,999 across India" />
+          {/*
+            Trust strip — moved above the description so the buyer sees the
+            three reassurances at the exact moment of price decision (audit
+            §3). Four signals: handmade by Srilatha (provenance), ships in N
+            (lead-time honesty), free shipping (cost surprise removed),
+            7-day returns (return-anxiety removed). These are the four
+            objections a first-time visitor surfaces while looking at a
+            handcrafted piece they have never held.
+          */}
+          <div className="card-cream p-4 sm:p-5 mb-7 grid grid-cols-2 gap-3 sm:gap-4">
+            <Feature icon={Hand} label="Handmade by Srilatha" />
+            <Feature icon={Sparkles} label={`Ships in ${p.timeToMake}`} />
+            <Feature icon={Truck} label="Free shipping above ₹2,999" />
+            <Feature icon={ShieldCheck} label="7-day easy returns" />
           </div>
+
+          {/* Low-stock urgency cue — honest, since handcrafted is genuinely
+              limited. Only fires when stock is positive but ≤ 2. */}
+          {p.inStock && p.stockQty > 0 && p.stockQty <= 2 && (
+            <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-terracotta-deep bg-terracotta/15 px-3 py-2 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-terracotta-deep animate-pulse" aria-hidden />
+              Only {p.stockQty} left — each piece is unique
+            </p>
+          )}
+
+          <p className="text-ink/85 leading-relaxed mb-7 text-base lg:text-lg">{p.description}</p>
 
           <details className="border-t border-ink/10 py-5 group">
             <summary className="cursor-pointer flex items-center justify-between text-ink font-medium font-serif text-lg">

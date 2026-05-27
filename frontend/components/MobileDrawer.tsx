@@ -7,6 +7,7 @@ import { X, MessageCircle, Instagram } from 'lucide-react'
 import { useUI } from '@/stores/ui'
 import { useUserAuth } from '@/stores/userAuth'
 import { CATEGORIES } from '@/data/categories'
+import { SOCIAL, INSTAGRAM_HANDLE, whatsappLink } from '@/lib/site-config'
 
 const primaryLinks = [
   { href: '/shop', label: 'Shop' },
@@ -63,7 +64,7 @@ export default function MobileDrawer() {
                 aria-label="Srilatha Art - home"
                 className="flex items-center gap-2"
               >
-                <Image src="/images/logo.png" alt="" width={40} height={40} className="w-10 h-10" />
+                <Image src="/Logos/logo.jpeg" alt="" width={40} height={40} className="w-10 h-10" />
                 <span className="font-serif text-lg leading-none text-ivory">
                   <span className="gold-text">Srilatha</span> Art
                 </span>
@@ -186,7 +187,7 @@ export default function MobileDrawer() {
                  style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
             >
               <a
-                href="https://wa.me/919999999999"
+                href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-dark w-full justify-center"
@@ -195,13 +196,13 @@ export default function MobileDrawer() {
                 WhatsApp us
               </a>
               <a
-                href="https://instagram.com"
+                href={SOCIAL.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-flex items-center gap-2 text-sm text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
               >
                 <Instagram className="w-4 h-4" aria-hidden />
-                @thesrilathaarts
+                {INSTAGRAM_HANDLE}
               </a>
             </div>
           </motion.aside>

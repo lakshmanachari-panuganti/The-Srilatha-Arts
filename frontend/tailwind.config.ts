@@ -48,7 +48,6 @@ const config: Config = {
       fontFamily: {
         serif: ['var(--font-playfair)', 'Playfair Display', 'serif'],
         sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
-        hand: ['var(--font-caveat)', 'Caveat', 'cursive'],
       },
       fontSize: {
         xs: ['11px', { lineHeight: '1.5' }],

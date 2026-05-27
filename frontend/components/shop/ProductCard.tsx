@@ -65,29 +65,60 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             className="object-contain p-6 sm:p-8 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
           />
 
-          {/* Badges - top left */}
+          {/*
+            Badges — top-left. Capped at 2 visible to avoid a sticker pile
+            covering the upper-left quadrant of the image. Priority order:
+            Sold Out > discount % > Best Seller > New (the most important
+            commercial signal wins).
+          */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-            {product.isNewArrival && (
-              <span className="sticker">New</span>
-            )}
-            {product.isBestSeller && (
-              <span className="sticker" style={{ background: 'linear-gradient(135deg, #8A74C9, #5E4B8B)' }}>
-                Best Seller
-              </span>
-            )}
-            {pct !== null && (
-              <span className="sticker" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7, #E879F9)', color: '#ffffff' }}>
-                −{pct}%
-              </span>
-            )}
-            {!product.inStock && (
-              <span className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: '#A49BB8' }}>
-                Sold Out
-              </span>
-            )}
+            {/*
+              Sticker priority: Sold Out > Low stock > discount > Best Seller > New.
+              Capped at 2 visible. Low-stock cue is honest urgency — handcrafted
+              inventory is genuinely limited, so "Only N left" is truthful (audit §3).
+            */}
+            {(() => {
+              const badges: React.ReactNode[] = []
+              if (!product.inStock) {
+                badges.push(
+                  <span key="oos" className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: '#A49BB8' }}>
+                    Sold Out
+                  </span>,
+                )
+              }
+              if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
+                badges.push(
+                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #F59E0B, #FDE68A)', color: '#2E1065' }}>
+                    Only {product.stockQty} left
+                  </span>,
+                )
+              }
+              if (badges.length < 2 && pct !== null) {
+                badges.push(
+                  <span key="disc" className="sticker" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7, #E879F9)', color: '#ffffff' }}>
+                    −{pct}%
+                  </span>,
+                )
+              }
+              if (badges.length < 2 && product.isBestSeller) {
+                badges.push(
+                  <span key="best" className="sticker" style={{ background: 'linear-gradient(135deg, #8A74C9, #5E4B8B)' }}>
+                    Best Seller
+                  </span>,
+                )
+              }
+              if (badges.length < 2 && product.isNewArrival) {
+                badges.push(<span key="new" className="sticker">New</span>)
+              }
+              return badges
+            })()}
           </div>
 
-          {/* Wishlist */}
+          {/*
+            Wishlist heart — moved to a high-contrast pale chip so it pops
+            against the lavender-gradient card. Previous version used a
+            plum-purple chip that visually disappeared into the card.
+          */}
           <button
             type="button"
             onClick={onWish}
@@ -98,18 +129,27 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        hover:text-lavender-pastel active:scale-90 transition-all duration-500"
             style={{
               borderRadius: '24px',
-              background: 'rgba(76,29,149,0.75)',
+              background: 'rgba(255,255,255,0.92)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(167,139,250,0.30)',
+              boxShadow: '0 2px 10px rgba(75,63,114,0.10)',
             }}
           >
             <Heart
-              className={cn('w-4 h-4 transition-colors duration-500', inWishlist && 'fill-lavender-pastel text-lavender-pastel')}
+              className={cn(
+                'w-4 h-4 transition-colors duration-500',
+                inWishlist ? 'fill-lavender-pastel text-lavender-pastel' : 'text-ivory-soft',
+              )}
               aria-hidden
             />
           </button>
 
-          {/* Quick-add */}
+          {/*
+            Quick-add. Previously hidden until :hover, which on touch devices
+            meant the button was effectively invisible. Always-visible on
+            every viewport so a customer can add from the grid without
+            committing to a PDP. Hover still nudges it visually on desktop.
+          */}
           <button
             type="button"
             onClick={onAdd}
@@ -117,8 +157,8 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             aria-label={`Add ${product.title} to cart`}
             className="absolute bottom-3 right-3 w-11 h-11
                        flex items-center justify-center text-plum
-                       opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
-                       sm:opacity-100 sm:translate-y-0
+                       opacity-100 lg:opacity-90 lg:group-hover:opacity-100
+                       lg:scale-95 lg:group-hover:scale-100
                        active:scale-90 transition-all duration-500
                        disabled:opacity-40 disabled:pointer-events-none"
             style={{
@@ -135,7 +175,15 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           <p className="text-[10px] uppercase tracking-[0.22em] text-ivory-mute mb-1.5">
             {product.category.replace('-', ' ')}
           </p>
-          <h3 className="font-serif text-lg sm:text-xl leading-snug text-ivory
+          {/*
+            Mobile uses Montserrat at 15px — Playfair at this size on a card
+            reads decoratively where it should read functionally. From the
+            sm breakpoint up, where the card is larger and the title gets
+            real estate, the Playfair serif comes back. Audit §2.5.
+          */}
+          <h3 className="font-sans text-[15px] tracking-tight
+                         sm:font-serif sm:text-xl sm:tracking-normal
+                         leading-snug text-ivory
                          line-clamp-2 group-hover:text-lavender-pastel transition-colors duration-500">
             {product.title}
           </h3>

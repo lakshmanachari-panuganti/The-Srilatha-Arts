@@ -16,9 +16,9 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait',
     categories: ['shopping', 'lifestyle', 'art'],
     icons: [
-      { src: '/images/logo.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/images/logo.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: '/images/logo.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/Logos/logo.jpeg', sizes: '192x192', type: 'image/jpeg', purpose: 'any' },
+      { src: '/Logos/logo.jpeg', sizes: '512x512', type: 'image/jpeg', purpose: 'any' },
+      { src: '/Logos/logo.jpeg', sizes: '512x512', type: 'image/jpeg', purpose: 'maskable' },
     ],
   }
 }

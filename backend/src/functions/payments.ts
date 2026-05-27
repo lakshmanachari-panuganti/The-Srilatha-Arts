@@ -36,6 +36,7 @@ import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { canTransition } from '../services/orderState'
 import { enqueueNotification } from '../services/queue'
+import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
 import type { OrderItemSnapshot, OrderStatus } from '../types'
 
 function generateOrderId(): string {
@@ -111,8 +112,10 @@ async function createPaymentOrder(
       })
     }
 
-    // Shipping (free above ₹2999 = 299900 paise)
-    const shippingAmount = subtotal >= 299900 ? 0 : 9900
+    // Shipping is admin-configurable via /admin/settings. computeShippingAmount
+    // applies the free-threshold and the effective (possibly discounted) charge.
+    const shippingCfg = await getShippingConfig()
+    const shippingAmount = computeShippingAmount(subtotal, shippingCfg)
     const totalAmount = subtotal + shippingAmount
     const displayTotal = totalAmount / 100
 
@@ -136,7 +139,18 @@ async function createPaymentOrder(
       })
     } catch (err) {
       context.error('createPaymentOrder: razorpay order creation failed', err)
-      return errorResponse('Could not initiate payment. Please try again.', 502, origin)
+      // The thrown message from createRazorpayOrder follows the format:
+      //   "[razorpay] order create failed (<status>): <description>"
+      // Surface the description to the caller so the failure is diagnosable
+      // from the browser (wrong keys, KYC, min-amount, etc.) instead of a
+      // generic "try again" that hides the actual cause.
+      const raw = err instanceof Error ? err.message : ''
+      const match = raw.match(/\[razorpay\] order create failed \((\d+)\): ([\s\S]+)$/)
+      const detail = match ? `${match[2].trim()} (upstream ${match[1]})` : ''
+      const message = detail
+        ? `Payment could not be started: ${detail}`
+        : 'Could not initiate payment. Please try again.'
+      return errorResponse(message, 502, origin)
     }
 
     const orderRow: Row = {
@@ -380,6 +394,10 @@ async function razorpayWebhook(
     return { status: 400, body: 'Bad signature' }
   }
 
+  // Razorpay envelope shape varies by event family. Payment events expose
+  // payload.payment.entity; refund events expose both payload.refund.entity
+  // AND payload.payment.entity (so we can still find our order via the
+  // parent payment's order_id).
   let payload: {
     event?: string
     payload?: {
@@ -394,6 +412,17 @@ async function razorpayWebhook(
           contact?: string
         }
       }
+      refund?: {
+        entity?: {
+          id?: string
+          payment_id?: string
+          amount?: number
+          currency?: string
+          status?: string
+          speed_processed?: string
+          notes?: Record<string, string>
+        }
+      }
     }
   }
   try {
@@ -403,34 +432,56 @@ async function razorpayWebhook(
   }
 
   const event = payload.event
-  const entity = payload.payload?.payment?.entity
-  if (!event || !entity) {
-    return { status: 200, body: 'ignored' }
+  const paymentEntity = payload.payload?.payment?.entity
+  const refundEntity = payload.payload?.refund?.entity
+  if (!event) {
+    return { status: 200, body: 'ignored — no event' }
   }
 
-  const razorpayOrderId = entity.order_id
-  const razorpayPaymentId = entity.id
-  if (!razorpayOrderId || !razorpayPaymentId) {
-    return { status: 200, body: 'ignored — no order_id' }
+  const razorpayOrderId = paymentEntity?.order_id
+  const razorpayPaymentId = paymentEntity?.id || refundEntity?.payment_id
+
+  // We need either an order_id (payment events) or a payment_id (refund
+  // events) to locate our internal order. Anything else we can't act on.
+  if (!razorpayOrderId && !razorpayPaymentId) {
+    return { status: 200, body: 'ignored — no order/payment id' }
   }
 
-  // Lookup our internal order by razorpayOrderId. Today: full table scan.
+  // Lookup our internal order. Today: full table scan.
   // TODO: add an ordersByRazorpayId secondary index when volume grows.
   const orders = await getAllOrders()
-  const order = orders.find((o) => o.razorpayOrderId === razorpayOrderId)
+  const order = orders.find((o) =>
+    (razorpayOrderId && o.razorpayOrderId === razorpayOrderId) ||
+    (razorpayPaymentId && o.razorpayPaymentId === razorpayPaymentId),
+  )
   if (!order) {
-    context.warn(`razorpayWebhook: no internal order matched razorpayOrderId=${razorpayOrderId}`)
+    context.warn(`razorpayWebhook: no internal order matched (event=${event}, orderId=${razorpayOrderId}, paymentId=${razorpayPaymentId})`)
     return { status: 200, body: 'ignored — unknown order' }
   }
 
-  // Idempotency: if we already captured this payment id, no-op.
-  if (order.paymentStatus === 'CAPTURED' && order.razorpayPaymentId === razorpayPaymentId) {
+  // Payment idempotency: if we already captured this payment id and the
+  // incoming event is a payment.captured, no-op.
+  if (
+    event === 'payment.captured' &&
+    order.paymentStatus === 'CAPTURED' &&
+    order.razorpayPaymentId === razorpayPaymentId
+  ) {
     return { status: 200, body: 'ok — already captured' }
+  }
+  // Refund idempotency: if we already stamped this exact refund id, no-op.
+  if (
+    (event === 'refund.processed' || event === 'refund.failed') &&
+    refundEntity?.id &&
+    order.razorpayRefundId === refundEntity.id &&
+    order.status === 'REFUNDED'
+  ) {
+    return { status: 200, body: 'ok — refund already recorded' }
   }
 
   const now = new Date().toISOString()
 
-  if (event === 'payment.captured') {
+  if (event === 'payment.captured' && paymentEntity) {
+    const entity = paymentEntity
     const fromStatus = order.status as OrderStatus
     const toStatus: OrderStatus = canTransition(fromStatus, 'CONFIRMED') ? 'CONFIRMED' : fromStatus
 
@@ -476,7 +527,7 @@ async function razorpayWebhook(
     return { status: 200, body: 'ok' }
   }
 
-  if (event === 'payment.failed') {
+  if (event === 'payment.failed' && paymentEntity) {
     await mergeOrder(order.partitionKey, order.rowKey, {
       paymentStatus: 'FAILED',
       razorpayPaymentId,
@@ -497,8 +548,116 @@ async function razorpayWebhook(
     return { status: 200, body: 'ok' }
   }
 
-  // Other events (refunded, etc.) — accept and log; refund handling lives
-  // in the admin REFUNDED transition flow today.
+  // ── Refund events ────────────────────────────────────────────
+  // refund.processed = money is back on customer's card/UPI.
+  // refund.failed    = Razorpay couldn't process the refund.
+  //
+  // For BOTH events we keep the order's REFUNDED state intact if it was
+  // already set by the admin's REFUNDED transition (which initiated the
+  // refund). The webhook's job is to stamp the timestamp + refund id and
+  // flip the paymentStatus to REFUNDED definitively.
+
+  if (event === 'refund.processed' && refundEntity) {
+    const fromStatus = order.status as OrderStatus
+    const toStatus: OrderStatus = canTransition(fromStatus, 'REFUNDED') ? 'REFUNDED' : fromStatus
+
+    await mergeOrder(order.partitionKey, order.rowKey, {
+      paymentStatus: 'REFUNDED',
+      razorpayRefundId: refundEntity.id || order.razorpayRefundId,
+      refundAmount: refundEntity.amount ?? order.refundAmount,
+      refundedAt: order.refundedAt || now,
+      status: toStatus,
+      // Clear any prior failure note now that the refund completed.
+      refundFailureReason: '',
+      updatedAt: now,
+    })
+
+    await appendOrderEvent({
+      partitionKey: order.rowKey,
+      rowKey: `${now}_refund_processed`,
+      fromStatus,
+      toStatus,
+      channel: 'status',
+      by: 'razorpay-webhook',
+      byRole: 'system',
+      note: `Refund processed (₹${((refundEntity.amount ?? 0) / 100).toFixed(2)})`,
+      meta: JSON.stringify({
+        razorpayRefundId: refundEntity.id,
+        razorpayPaymentId,
+        amountPaise: refundEntity.amount,
+        speed: refundEntity.speed_processed,
+      }),
+      createdAt: now,
+    })
+
+    if (toStatus !== fromStatus) {
+      try {
+        await deleteOrderByStatus(fromStatus, `${order.createdAt}_${order.rowKey}`)
+        await upsertOrderByStatus({
+          partitionKey: toStatus,
+          rowKey: `${order.createdAt}_${order.rowKey}`,
+          orderId: order.rowKey,
+          userEmail: order.partitionKey,
+          customerName: order.customerName,
+          displayTotal: order.displayTotal,
+          paymentStatus: 'REFUNDED',
+          createdAt: order.createdAt,
+          updatedAt: now,
+        })
+      } catch (indexErr) {
+        context.warn('razorpayWebhook(refund.processed): ordersByStatus index update failed', indexErr)
+      }
+    }
+
+    if (order.customerEmail) {
+      try {
+        await enqueueNotification({
+          userEmail: order.customerEmail,
+          channel: 'email',
+          templateKey: 'refund_processed',
+          vars: {
+            customerName: order.customerName,
+            orderId: order.rowKey,
+            amount: ((refundEntity.amount ?? 0) / 100).toFixed(2),
+          },
+        })
+      } catch (notifyErr) {
+        context.warn('razorpayWebhook(refund.processed): notification enqueue failed (non-fatal)', notifyErr)
+      }
+    }
+
+    return { status: 200, body: 'ok — refund processed' }
+  }
+
+  if (event === 'refund.failed' && refundEntity) {
+    const failureNote = `Razorpay refund failed (refund=${refundEntity.id || 'unknown'})`
+
+    await mergeOrder(order.partitionKey, order.rowKey, {
+      refundFailureReason: failureNote,
+      updatedAt: now,
+    })
+
+    await appendOrderEvent({
+      partitionKey: order.rowKey,
+      rowKey: `${now}_refund_failed`,
+      channel: 'internal',
+      by: 'razorpay-webhook',
+      byRole: 'system',
+      note: failureNote,
+      meta: JSON.stringify({
+        razorpayRefundId: refundEntity.id,
+        razorpayPaymentId,
+        amountPaise: refundEntity.amount,
+      }),
+      createdAt: now,
+    })
+
+    return { status: 200, body: 'ok — refund failure recorded' }
+  }
+
+  // Anything else (refund.created, payment.authorized, settlement.*, etc.)
+  // — accept and log. Razorpay only retries non-2xx responses, so we want
+  // to return 200 here even though we don't act on the payload.
   return { status: 200, body: `ok — ignored event ${event}` }
 }
 

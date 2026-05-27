@@ -45,7 +45,7 @@ export default function CustomOrderPage() {
       <section className="mb-12">
         <h2 className="font-serif text-2xl lg:text-3xl text-ivory mb-5">What to share with us</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Info icon={Palette} title="Style & colours" body="Resin, Dot Mandala, Lippan, Pichwai or Kolam — and your colour preferences." />
+          <Info icon={Palette} title="Style & colours" body="Resin, Dot Mandala, Lippan, Kolam or Wedding Decoratives — and your colour preferences." />
           <Info icon={Ruler} title="Size" body="The size in inches or where you plan to hang it (a photo of the wall helps a lot)." />
           <Info icon={Clock} title="Deadline" body="Tell us if you need it by a specific date so we can plan around it." />
         </div>

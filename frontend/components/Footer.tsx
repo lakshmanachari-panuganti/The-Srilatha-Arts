@@ -2,8 +2,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2 } from 'lucide-react'
+import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { SOCIAL, STUDIO_EMAIL, PHONE_DISPLAY, PHONE_TEL, whatsappLink, emailLink } from '@/lib/site-config'
+import PinterestIcon from '@/components/icons/PinterestIcon'
 
 const columns = [
   {
@@ -13,8 +15,8 @@ const columns = [
       { href: '/shop/resin', label: 'Resin Art' },
       { href: '/shop/dot-mandala', label: 'Dot Mandala' },
       { href: '/shop/lippan', label: 'Lippan Art' },
-      { href: '/shop/pichwai', label: 'Pichwai Art' },
       { href: '/shop/kolam', label: 'Kolam Art' },
+      { href: '/shop/wedding', label: 'Wedding Decoratives' },
     ],
   },
   {
@@ -59,10 +61,17 @@ export default function Footer() {
           {newsletterSubmitted ? (
             <div
               role="status"
-              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender-pastel"
+              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender-pastel text-center"
             >
-              <CheckCircle2 className="w-4 h-4" aria-hidden />
-              Thank you — we&apos;ll be in touch.
+              <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
+              {/*
+                Truthful copy. Until the newsletter backend is wired, we
+                shouldn't pretend the email was actually saved — that would
+                hurt trust the first time a subscriber notices nothing
+                ever arrives. We keep the form (the studio wants to see
+                interest) but the wording promises only what we can deliver.
+              */}
+              Thanks — we&apos;ll send a note when the studio newsletter launches.
             </div>
           ) : (
             <form
@@ -114,22 +123,25 @@ export default function Footer() {
         <div className="lg:grid lg:grid-cols-5 lg:gap-10 lg:items-start">
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
-              <Image src="/images/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
+              <Image src="/Logos/logo.jpeg" alt="" width={48} height={48} className="w-12 h-12" />
               <span className="font-serif text-xl text-ivory">
                 <span className="gold-text">Srilatha Art</span>
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Handmade Indian art from Hyderabad - Resin, Dot Mandala, Lippan, Pichwai and Kolam styles.
+              Handmade Indian art from Hyderabad — Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives.
             </p>
             <div className="flex items-center gap-2 mt-5">
-              <SocialLink href="https://instagram.com" label="Instagram">
+              <SocialLink href={SOCIAL.instagram} label="Instagram">
                 <Instagram className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href="https://facebook.com" label="Facebook">
+              <SocialLink href={SOCIAL.pinterest} label="Pinterest">
+                <PinterestIcon className="w-4 h-4" />
+              </SocialLink>
+              <SocialLink href={SOCIAL.facebook} label="Facebook">
                 <Facebook className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href="https://youtube.com" label="YouTube">
+              <SocialLink href={SOCIAL.youtube} label="YouTube">
                 <Youtube className="w-4 h-4" aria-hidden />
               </SocialLink>
             </div>
@@ -148,21 +160,56 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
-            <Image src="/images/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
+            <Image src="/Logos/logo.jpeg" alt="" width={36} height={36} className="w-9 h-9" />
             <span className="font-serif text-lg text-ivory">
               <span className="gold-text">Srilatha</span> Art
             </span>
           </Link>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <SocialLink href="https://instagram.com" label="Instagram">
+            <SocialLink href={SOCIAL.instagram} label="Instagram">
               <Instagram className="w-4 h-4" aria-hidden />
             </SocialLink>
-            <SocialLink href="https://facebook.com" label="Facebook">
+            <SocialLink href={SOCIAL.pinterest} label="Pinterest">
+              <PinterestIcon className="w-4 h-4" />
+            </SocialLink>
+            <SocialLink href={SOCIAL.facebook} label="Facebook">
               <Facebook className="w-4 h-4" aria-hidden />
             </SocialLink>
-            <SocialLink href="https://youtube.com" label="YouTube">
+            <SocialLink href={SOCIAL.youtube} label="YouTube">
               <Youtube className="w-4 h-4" aria-hidden />
             </SocialLink>
+          </div>
+
+          {/* Contact strip — WhatsApp + Email + Phone, all tap-to-action on
+              mobile. Prioritised per audit §7: WhatsApp and Instagram are
+              the two most-used contact channels for a handcrafted Indian
+              brand, so they sit at the top of the visual hierarchy. */}
+          <div className="mt-6 space-y-2 text-sm">
+            <a
+              href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+            >
+              <MessageCircle className="w-4 h-4" aria-hidden />
+              WhatsApp · {PHONE_DISPLAY}
+            </a>
+            <br />
+            <a
+              href={emailLink()}
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+            >
+              <Mail className="w-4 h-4" aria-hidden />
+              {STUDIO_EMAIL}
+            </a>
+            <br />
+            <a
+              href={`tel:${PHONE_TEL}`}
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+            >
+              <Phone className="w-4 h-4" aria-hidden />
+              {PHONE_DISPLAY}
+            </a>
           </div>
         </div>
 
@@ -170,7 +217,7 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p>© {new Date().getFullYear()} Srilatha Art. Made by hand in Hyderabad.</p>
-          <p className="font-hand text-lg text-lavender-pastel">Handmade with care</p>
+          <p className="font-serif italic text-base text-lavender-pastel">Handmade with care</p>
         </div>
       </div>
     </footer>
