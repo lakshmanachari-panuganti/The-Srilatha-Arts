@@ -22,7 +22,11 @@
       "Bash(git log *)",
       "Bash(git update-index *)",
       "Bash(grep -oE \"'[A-Za-z0-9+/]{16,}=*'\")",
-      "Bash(grep -oE \"\\(SecretValue|WebhookSecret\\)[^']*'[A-Za-z0-9+/=!@#\\\\$%^&*]{8,}'\")"
+      "Bash(grep -oE \"\\(SecretValue|WebhookSecret\\)[^']*'[A-Za-z0-9+/=!@#\\\\$%^&*]{8,}'\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\repos\\\\The-Srilatha-Arts\" -Force)",
+      "Bash(Select-Object -Property Name, PSIsContainer)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\repos\\\\The-Srilatha-Arts\" | Select-Object Name, @{Name=\"IsDir\"; Expression={$_.PSIsContainer}})",
+      "Bash(git commit -m ' *)"
     ]
   },
   "tools": {
