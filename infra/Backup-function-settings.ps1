@@ -32,7 +32,7 @@
 
     ./infra/Backup-function-settings.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
-        -KeyVaultName    kv-thesrilathaarts-bkp
+        -KeyVaultName    kv-thesrilathaarts-dev
 
 .NOTES
     Requires:
@@ -60,6 +60,16 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # ------------------------------------------------------------
+# Validate Key Vault name early (Azure enforces 3-24 chars, [a-zA-Z0-9-])
+# ------------------------------------------------------------
+if ($KeyVaultName.Length -lt 3 -or $KeyVaultName.Length -gt 24) {
+    throw "KeyVaultName '$KeyVaultName' is $($KeyVaultName.Length) characters. Azure requires 3–24."
+}
+if ($KeyVaultName -notmatch '^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$') {
+    throw "KeyVaultName '$KeyVaultName' contains invalid characters. Only letters, digits, and hyphens are allowed, and it must start with a letter."
+}
+
+# ------------------------------------------------------------
 # Verify active Az session
 # ------------------------------------------------------------
 Disconnect-AzAccount
@@ -79,17 +89,22 @@ Write-Host "Az Context   : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -For
 Write-Host ""
 
 # ------------------------------------------------------------
-# Get Function App
+# Get Function App resource group + location
+# Use Get-AzResource instead of Get-AzFunctionApp to avoid a bug in
+# Az.Functions 4.x where a subscription-wide scan throws on null app-setting
+# keys in unrelated apps.
 # ------------------------------------------------------------
-$functionApp = Get-AzFunctionApp |
-    Where-Object { $_.Name -eq $FunctionAppName }
+$faResource = Get-AzResource `
+    -ResourceType "Microsoft.Web/sites" `
+    -Name $FunctionAppName `
+    -ErrorAction SilentlyContinue
 
-if (-not $functionApp) {
+if (-not $faResource) {
     throw "Function App '$FunctionAppName' not found."
 }
 
-$resourceGroupName = $functionApp.ResourceGroup
-$location = $functionApp.Location
+$resourceGroupName = $faResource.ResourceGroupName
+$location = $faResource.Location
 
 Write-Host "Resource Group : $resourceGroupName"
 Write-Host "Location       : $location"
@@ -122,13 +137,24 @@ if (-not $keyVault) {
 }
 
 # ------------------------------------------------------------
-# Get ALL Function App settings
+# Get ALL Function App settings via ARM REST API
+# (Avoids a bug in Az.Functions 4.x where Get-AzFunctionAppSetting
+# throws on null app-setting keys during internal runtime inspection)
 # ------------------------------------------------------------
-$appSettings = Get-AzWebAppApplicationSetting `
-    -ResourceGroupName $resourceGroupName `
-    -Name              $FunctionAppName
+$subId   = (Get-AzContext).Subscription.Id
+$apiPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
+           "/providers/Microsoft.Web/sites/$FunctionAppName" +
+           "/config/appsettings/list?api-version=2022-03-01"
 
-$total = $appSettings.Properties.Count
+$response = Invoke-AzRestMethod -Method POST -Path $apiPath -Payload '{}'
+
+if ($response.StatusCode -ne 200) {
+    throw "Failed to read app settings (HTTP $($response.StatusCode)): $($response.Content)"
+}
+
+$settingsProperties = ($response.Content | ConvertFrom-Json).properties.PSObject.Properties
+
+$total = @($settingsProperties).Count
 
 Write-Host "Settings found: $total"
 Write-Host ""
@@ -138,13 +164,35 @@ Write-Host ""
 # ------------------------------------------------------------
 $backed = 0
 
-foreach ($setting in $appSettings.Properties.GetEnumerator()) {
+$skipped = 0
 
-    $originalKey = $setting.Key
-    $value = $setting.Value
+foreach ($setting in $settingsProperties) {
 
-    # Key Vault secret names allow [A-Za-z0-9-] only; replace everything else
-    $secretName = $originalKey -replace '[^A-Za-z0-9-]', '-'
+    $originalKey = $setting.Name
+    $value       = $setting.Value
+
+    # Key Vault secrets cannot hold empty strings
+    if ([string]::IsNullOrEmpty($value)) {
+        Write-Host "  SKIP (empty) : $originalKey" -ForegroundColor DarkGray
+        $skipped++
+        continue
+    }
+
+    # Key Vault secret names allow [A-Za-z0-9-] only and must start with a letter.
+    # Encode each problematic char with a unique multi-char token so that
+    # FOO_BAR, FOO-BAR, FOO.BAR, and FOO:BAR all produce different KV names
+    # and the mapping is visually reversible (OriginalKey tag is the real source
+    # of truth on restore, but readable names help when browsing the vault):
+    #   _  →  --   (underscore  → double hyphen)
+    #   .  →  -D-  (dot         → hyphen D hyphen)
+    #   :  →  -C-  (colon       → hyphen C hyphen)
+    # Any other invalid char falls back to a single hyphen.
+    # If the result starts with a digit (KV requires a letter start), prefix x-.
+    $secretName = $originalKey -replace '_', '--'
+    $secretName = $secretName  -replace '\.', '-D-'
+    $secretName = $secretName  -replace ':',  '-C-'
+    $secretName = $secretName  -replace '[^A-Za-z0-9-]', '-'
+    if ($secretName -match '^\d') { $secretName = "x-$secretName" }
 
     Write-Host "  $originalKey -> $secretName"
 
@@ -165,6 +213,6 @@ foreach ($setting in $appSettings.Properties.GetEnumerator()) {
 
 Write-Host ""
 Write-Host "==============================================="
-Write-Host "Backup completed: $backed / $total settings stored." -ForegroundColor Green
+Write-Host "Backup completed: $backed stored, $skipped skipped (empty value)." -ForegroundColor Green
 Write-Host "Backup date key : $backupDate"
 Write-Host "==============================================="
