@@ -15,12 +15,12 @@ export default function CustomOrderCTA() {
         <div className="absolute inset-0 glass-strong" />
 
         <div className="relative z-10">
-          <span className="inline-flex items-center gap-2 text-[11px] tracking-[0.32em] uppercase text-lavender-pastel mb-5">
+          <span className="eyebrow text-lavender mb-5">
             <Sparkles className="w-3.5 h-3.5" aria-hidden />
             Custom orders
             <Sparkles className="w-3.5 h-3.5" aria-hidden />
           </span>
-          <h2 className="font-serif text-4xl sm:text-5xl lg:text-7xl leading-[1.02] text-ivory mb-4">
+          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-4">
             Want something custom?
             <br />
             <em className="italic gold-text">We&apos;ll make it for you.</em>

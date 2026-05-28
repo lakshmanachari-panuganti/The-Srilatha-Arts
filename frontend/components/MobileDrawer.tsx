@@ -65,7 +65,7 @@ export default function MobileDrawer() {
                 className="flex items-center gap-2"
               >
                 <Image src="/Logos/logo.jpeg" alt="" width={40} height={40} className="w-10 h-10" />
-                <span className="font-serif text-lg leading-none text-ivory">
+                <span className="font-serif text-lg leading-none text-plum">
                   <span className="gold-text">Srilatha</span> Art
                 </span>
               </Link>
@@ -73,7 +73,7 @@ export default function MobileDrawer() {
                 {authUser ? (
                   <button
                     onClick={() => { logout(); setOpen(false) }}
-                    className="text-xs text-ivory-mute hover:text-lavender-pastel transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
+                    className="text-xs text-plum-warm hover:text-lavender-soft transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
                   >
                     Sign out
                   </button>
@@ -81,7 +81,7 @@ export default function MobileDrawer() {
                   <Link
                     href="/login"
                     onClick={() => setOpen(false)}
-                    className="text-xs text-ivory-mute hover:text-lavender-pastel transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
+                    className="text-xs text-plum-warm hover:text-lavender-soft transition-colors duration-300 border border-white/10 rounded-full px-3 py-1"
                   >
                     Sign in
                   </Link>
@@ -90,7 +90,7 @@ export default function MobileDrawer() {
                   onClick={() => setOpen(false)}
                   aria-label="Close menu"
                   className="min-h-11 min-w-11 flex items-center justify-center
-                             text-ivory-mute hover:text-ivory transition-colors duration-500"
+                             text-plum-warm hover:text-plum transition-colors duration-500"
                 >
                   <X className="w-5 h-5" aria-hidden />
                 </button>
@@ -104,7 +104,7 @@ export default function MobileDrawer() {
                     <Link
                       href={l.href}
                       onClick={() => setOpen(false)}
-                      className="block py-3 font-serif text-3xl text-ivory hover:text-lavender-pastel transition-colors duration-500"
+                      className="block py-3 font-serif text-3xl text-plum hover:text-lavender-soft transition-colors duration-500"
                     >
                       {l.label}
                     </Link>
@@ -112,14 +112,14 @@ export default function MobileDrawer() {
                 ))}
               </ul>
 
-              <p className="eyebrow text-lavender-pastel mb-3">Shop by style</p>
+              <p className="eyebrow text-lavender-soft mb-3">Shop by style</p>
               <ul className="space-y-1 mb-10">
                 {CATEGORIES.map((c) => (
                   <li key={c.slug}>
                     <Link
                       href={`/shop/${c.slug}`}
                       onClick={() => setOpen(false)}
-                      className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                      className="block py-2 text-base text-plum-warm hover:text-lavender-soft transition-colors duration-500"
                     >
                       {c.title}
                     </Link>
@@ -127,7 +127,7 @@ export default function MobileDrawer() {
                 ))}
               </ul>
 
-              <p className="eyebrow text-lavender-pastel mb-3">Account</p>
+              <p className="eyebrow text-lavender-soft mb-3">Account</p>
               <ul className="space-y-1">
                 {authUser ? (
                   <>
@@ -135,7 +135,7 @@ export default function MobileDrawer() {
                       <Link
                         href="/account"
                         onClick={() => setOpen(false)}
-                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                        className="block py-2 text-base text-plum-warm hover:text-lavender-soft transition-colors duration-500"
                       >
                         My Account ({authUser.name.split(' ')[0]})
                       </Link>
@@ -144,7 +144,7 @@ export default function MobileDrawer() {
                       <Link
                         href="/account/wishlist"
                         onClick={() => setOpen(false)}
-                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                        className="block py-2 text-base text-plum-warm hover:text-lavender-soft transition-colors duration-500"
                       >
                         Wishlist
                       </Link>
@@ -152,7 +152,7 @@ export default function MobileDrawer() {
                     <li>
                       <button
                         onClick={() => { logout(); setOpen(false) }}
-                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500 text-left w-full"
+                        className="block py-2 text-base text-plum-warm hover:text-lavender-soft transition-colors duration-500 text-left w-full"
                       >
                         Sign out
                       </button>
@@ -164,7 +164,7 @@ export default function MobileDrawer() {
                       <Link
                         href="/login"
                         onClick={() => setOpen(false)}
-                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                        className="block py-2 text-base text-plum-warm hover:text-lavender-soft transition-colors duration-500"
                       >
                         Sign in
                       </Link>
@@ -173,7 +173,7 @@ export default function MobileDrawer() {
                       <Link
                         href="/account/wishlist"
                         onClick={() => setOpen(false)}
-                        className="block py-2 text-base text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                        className="block py-2 text-base text-plum-warm hover:text-lavender-soft transition-colors duration-500"
                       >
                         Wishlist
                       </Link>
@@ -199,7 +199,7 @@ export default function MobileDrawer() {
                 href={SOCIAL.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-2 text-sm text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+                className="mt-3 inline-flex items-center gap-2 text-sm text-plum-warm hover:text-lavender-soft transition-colors duration-500"
               >
                 <Instagram className="w-4 h-4" aria-hidden />
                 {INSTAGRAM_HANDLE}

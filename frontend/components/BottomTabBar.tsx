@@ -67,7 +67,7 @@ export default function BottomTabBar() {
                   // Active label is full-alpha lavender-pastel; inactive is
                   // full-alpha lavender-light. Previous `/85` on inactive
                   // labels was hard to read against the deep-purple bar.
-                  active ? 'text-lavender-pastel' : 'text-lavender-light',
+                  active ? 'text-lavender-pastel' : 'text-plum-warm',
                 )}
                 style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
               >

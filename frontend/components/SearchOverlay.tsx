@@ -76,7 +76,7 @@ export default function SearchOverlay() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search for art, styles, gift ideas…"
-                className="flex-1 bg-transparent outline-none text-ivory placeholder:text-ivory-mute py-2 text-lg font-serif"
+                className="flex-1 bg-transparent outline-none text-plum placeholder:text-plum-warm py-2 text-lg font-serif"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}
                 onFocus={(e) => e.target.style.borderBottomColor = 'rgba(200,182,255,0.5)'}
                 onBlur={(e) => e.target.style.borderBottomColor = 'rgba(255,255,255,0.15)'}
@@ -85,7 +85,7 @@ export default function SearchOverlay() {
                 onClick={() => setOpen(false)}
                 aria-label="Close search"
                 className="min-h-11 min-w-11 -mr-2 flex items-center justify-center
-                           text-ivory-mute hover:text-ivory transition-colors duration-500"
+                           text-plum-warm hover:text-plum transition-colors duration-500"
               >
                 <X className="w-5 h-5" aria-hidden />
               </button>
@@ -93,7 +93,7 @@ export default function SearchOverlay() {
 
             {q.trim() === '' ? (
               <div>
-                <p className="eyebrow mb-3">Popular searches</p>
+                <p className="eyebrow text-lavender-soft mb-3">Popular searches</p>
                 <div className="flex flex-wrap gap-2">
                   {popular.map((p) => (
                     <button key={p} onClick={() => setQ(p)} className="chip">
@@ -103,7 +103,7 @@ export default function SearchOverlay() {
                 </div>
               </div>
             ) : results.length === 0 ? (
-              <p className="text-ivory-mute py-10 text-center font-serif text-lg italic">
+              <p className="text-plum-warm py-10 text-center font-serif text-lg italic">
                 Nothing found. Try a different word.
               </p>
             ) : (
@@ -131,12 +131,12 @@ export default function SearchOverlay() {
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-ivory font-serif text-base truncate">{p.title}</p>
-                        <p className="text-xs text-ivory-mute capitalize">
+                        <p className="text-plum font-serif text-base truncate">{p.title}</p>
+                        <p className="text-xs text-plum-warm capitalize">
                           {p.category.replace('-', ' ')} · {formatINR(p.price)}
                         </p>
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-ivory-mute" aria-hidden />
+                      <ArrowUpRight className="w-4 h-4 text-plum-warm" aria-hidden />
                     </Link>
                   </li>
                 ))}

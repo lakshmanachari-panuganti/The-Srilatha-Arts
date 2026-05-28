@@ -223,12 +223,12 @@ export default function HeroSlideshow() {
                   aria-hidden={!isActive}
                 >
                   <p
-                    className="text-[11px] sm:text-[12px] uppercase font-semibold text-lavender-pastel mb-2"
+                    className="text-11 sm:text-[12px] uppercase font-semibold text-lavender-pastel mb-2"
                     style={{ letterSpacing: '0.22em' }}
                   >
                     {slide.eyebrow}
                   </p>
-                  <p className="font-serif text-xl sm:text-2xl lg:text-3xl text-ivory leading-snug max-w-md lg:max-w-xl mb-4 sm:mb-5">
+                  <p className="font-serif text-xl sm:text-2xl lg:text-3xl text-plum leading-snug max-w-md lg:max-w-xl mb-4 sm:mb-5">
                     {slide.tagline}
                   </p>
                   <Link

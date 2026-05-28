@@ -36,9 +36,9 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ''
 type Tab = 'signin' | 'signup'
 
 const inputCls =
-  'w-full border border-[#d4c9bb] rounded-lg px-4 py-3 text-sm text-[#2c1810] placeholder:text-[#b8a99a] focus:outline-none focus:ring-2 focus:ring-[#c9a96e]/40 focus:border-[#c9a96e] font-[var(--font-montserrat)]'
+  'w-full border border-glass-border rounded-lg px-4 py-3 text-sm text-ivory placeholder:text-ivory-mute focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender font-sans'
 const labelCls =
-  'block text-xs font-medium text-[#5c4a3a] mb-1 font-[var(--font-montserrat)] uppercase tracking-wider'
+  'block text-xs font-medium text-ivory-soft mb-1 font-sans uppercase tracking-wider'
 
 function EyeToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) {
   return (
@@ -47,7 +47,7 @@ function EyeToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) 
       onClick={onToggle}
       tabIndex={-1}
       aria-label="Toggle password visibility"
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b8a99a] hover:text-[#8b7355] text-base leading-none select-none"
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-ivory-mute hover:text-ivory-soft text-base leading-none select-none"
     >
       {show ? '🙈' : '👁️'}
     </button>
@@ -57,11 +57,11 @@ function EyeToggle({ show, onToggle }: { show: boolean; onToggle: () => void }) 
 function Divider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-px bg-[#e8e0d5]" />
-      <span className="text-xs text-[#b8a99a] font-[var(--font-montserrat)] tracking-wider uppercase">
+      <div className="flex-1 h-px bg-glass-border" />
+      <span className="text-xs text-ivory-mute font-sans tracking-wider uppercase">
         {label}
       </span>
-      <div className="flex-1 h-px bg-[#e8e0d5]" />
+      <div className="flex-1 h-px bg-glass-border" />
     </div>
   )
 }
@@ -193,34 +193,30 @@ export default function LoginClient() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#faf9f7] flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
 
         {/* Brand header */}
         <div className="mb-8 text-center">
-          <p className="font-[var(--font-montserrat)] text-xs uppercase tracking-[0.2em] text-[#8b7355] mb-2">
-            Welcome
-          </p>
-          <h1 className="font-[var(--font-playfair)] text-3xl font-semibold text-[#2c1810]">
-            Srilatha Art
-          </h1>
-          <p className="mt-2 text-sm text-[#8b7355] font-[var(--font-montserrat)]">
+          <p className="eyebrow justify-center mb-2">Welcome</p>
+          <h1 className="font-serif text-3xl font-semibold text-ivory">Srilatha Art</h1>
+          <p className="mt-2 text-sm text-ivory-soft font-sans">
             Sign in to your account or create a new one
           </p>
         </div>
 
         {/* Card */}
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-[#e8e0d5] overflow-hidden">
+        <div className="w-full max-w-sm card overflow-hidden">
 
           {/* Tabs */}
-          <div className="flex border-b border-[#e8e0d5]">
+          <div className="flex border-b border-glass-border">
             {(['signin', 'signup'] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => switchTab(t)}
-                className={`flex-1 py-3.5 text-sm font-[var(--font-montserrat)] font-medium transition-colors ${
+                className={`flex-1 py-3.5 text-sm font-sans font-medium transition-colors ${
                   tab === t
-                    ? 'text-[#2c1810] border-b-2 border-[#c9a96e] -mb-px bg-white'
-                    : 'text-[#b8a99a] hover:text-[#8b7355] bg-[#faf9f7]'
+                    ? 'text-ivory border-b-2 border-lavender -mb-px bg-transparent'
+                    : 'text-ivory-mute hover:text-ivory-soft bg-transparent'
                 }`}
               >
                 {t === 'signin' ? 'Sign in' : 'Create account'}
@@ -288,17 +284,17 @@ export default function LoginClient() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-[#c9a96e] hover:bg-[#b8965a] disabled:opacity-60 text-white font-[var(--font-montserrat)] font-semibold text-sm tracking-wide py-3 rounded-lg transition-colors"
+                    className="btn-dark w-full disabled:opacity-60"
                   >
                     {isLoading ? <Spinner label="Signing in…" /> : 'Sign in'}
                   </button>
                 </form>
 
-                <p className="text-xs text-center text-[#b8a99a] font-[var(--font-montserrat)]">
+                <p className="text-xs text-center text-ivory-mute font-sans">
                   Don&apos;t have an account?{' '}
                   <button
                     onClick={() => switchTab('signup')}
-                    className="text-[#c9a96e] hover:text-[#b8965a] font-medium underline"
+                    className="text-lavender hover:text-lavender-soft font-medium underline"
                   >
                     Create one
                   </button>
@@ -384,7 +380,7 @@ export default function LoginClient() {
                 <div>
                   <label htmlFor="su-phone" className={labelCls}>
                     Mobile number{' '}
-                    <span className="text-[#b8a99a] font-normal normal-case">(optional)</span>
+                    <span className="text-ivory-mute font-normal normal-case">(optional)</span>
                   </label>
                   <input
                     id="su-phone"
@@ -406,7 +402,7 @@ export default function LoginClient() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-[#c9a96e] hover:bg-[#b8965a] disabled:opacity-60 text-white font-[var(--font-montserrat)] font-semibold text-sm tracking-wide py-3 rounded-lg transition-colors"
+                  className="btn-dark w-full disabled:opacity-60"
                 >
                   {isLoading ? <Spinner label="Creating account…" /> : 'Create account'}
                 </button>
@@ -420,12 +416,12 @@ export default function LoginClient() {
                   </>
                 )}
 
-                <p className="text-xs text-center text-[#b8a99a] font-[var(--font-montserrat)]">
+                <p className="text-xs text-center text-ivory-mute font-sans">
                   Already have an account?{' '}
                   <button
                     type="button"
                     onClick={() => switchTab('signin')}
-                    className="text-[#c9a96e] hover:text-[#b8965a] font-medium underline"
+                    className="text-lavender hover:text-lavender-soft font-medium underline"
                   >
                     Sign in
                   </button>
@@ -433,11 +429,11 @@ export default function LoginClient() {
               </form>
             )}
 
-            <p className="mt-6 text-xs text-center text-[#b8a99a] font-[var(--font-montserrat)] leading-relaxed">
+            <p className="mt-6 text-xs text-center text-ivory-mute font-sans leading-relaxed">
               By signing in you agree to our{' '}
-              <a href="/terms" className="underline hover:text-[#8b7355]">Terms</a>{' '}
+              <a href="/terms" className="underline hover:text-ivory-soft">Terms</a>{' '}
               and{' '}
-              <a href="/privacy-policy" className="underline hover:text-[#8b7355]">Privacy policy</a>.
+              <a href="/privacy-policy" className="underline hover:text-ivory-soft">Privacy policy</a>.
             </p>
           </div>
         </div>
@@ -451,15 +447,15 @@ export default function LoginClient() {
           aria-modal="true"
           aria-labelledby="modal-title"
         >
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+          <div className="w-full max-w-md card p-8">
             <div className="mb-6 text-center">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#fdf6ec] flex items-center justify-center text-2xl">
+              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-lavender-light flex items-center justify-center text-2xl">
                 👋
               </div>
-              <h2 id="modal-title" className="font-[var(--font-playfair)] text-2xl font-semibold text-[#2c1810]">
+              <h2 id="modal-title" className="font-serif text-2xl font-semibold text-ivory">
                 One last step
               </h2>
-              <p className="mt-1 text-sm text-[#8b7355] font-[var(--font-montserrat)]">
+              <p className="mt-1 text-sm text-ivory-soft font-sans">
                 Tell us your name so we can address you properly.
               </p>
             </div>
@@ -484,7 +480,7 @@ export default function LoginClient() {
               <div>
                 <label htmlFor="modal-phone" className={labelCls}>
                   Mobile number{' '}
-                  <span className="text-[#b8a99a] font-normal normal-case">(optional)</span>
+                  <span className="text-ivory-mute font-normal normal-case">(optional)</span>
                 </label>
                 <input
                   id="modal-phone"
@@ -505,7 +501,7 @@ export default function LoginClient() {
               <button
                 type="submit"
                 disabled={modalBusy}
-                className="w-full bg-[#c9a96e] hover:bg-[#b8965a] disabled:opacity-60 text-white font-[var(--font-montserrat)] font-semibold text-sm tracking-wide py-3 rounded-lg transition-colors mt-2"
+                className="btn-dark w-full disabled:opacity-60 mt-2"
               >
                 {modalBusy ? <Spinner label="Saving…" /> : 'Continue to my account'}
               </button>
@@ -513,7 +509,7 @@ export default function LoginClient() {
               <button
                 type="button"
                 onClick={() => { setShowModal(false); router.replace(nextPath) }}
-                className="w-full text-xs text-[#b8a99a] hover:text-[#8b7355] py-1 font-[var(--font-montserrat)]"
+                className="w-full text-xs text-ivory-mute hover:text-ivory-soft py-1 font-sans"
               >
                 Skip for now
               </button>

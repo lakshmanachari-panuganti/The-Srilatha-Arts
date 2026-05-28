@@ -9,6 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ── Navigation dark surfaces ──────────────────────────────
+        'nav-surface': 'rgba(76,29,149,0.92)',   // BottomTabBar / StickyCartBar bg
+        'nav-surface-heavy': 'rgba(76,29,149,0.97)', // SearchOverlay bg
         // ── Surfaces (Vibrant Lavender) ──────────────────────────
         plum: '#EDE9FE',                 // violet-100 — visible lavender page bg
         'plum-light': '#DDD6FE',         // violet-200 — richer lavender
@@ -50,6 +53,8 @@ const config: Config = {
         sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
       },
       fontSize: {
+        '10': ['0.625rem', { lineHeight: '1.5' }],   // 10px — label caps, tab bar text
+        '11': ['0.6875rem', { lineHeight: '1.5' }],  // 11px — eyebrow / sticker (alias text-xs)
         xs: ['11px', { lineHeight: '1.5' }],
         sm: ['13px', { lineHeight: '1.55' }],
         base: ['15px', { lineHeight: '1.65' }],
