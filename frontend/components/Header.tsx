@@ -71,22 +71,21 @@ export default function Header() {
             <Link
               href="/"
               aria-label="Srilatha Art - home"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2.5"
             >
               <Image
                 src="/Logos/logo.png"
                 alt="Srilatha Art"
-                width={56}
-                height={56}
+                width={64}
+                height={64}
                 priority
                 className={cn(
-                  'w-10 h-10 lg:w-14 lg:h-14 object-contain transition-all duration-500',
+                  'w-11 h-11 lg:w-16 lg:h-16 object-contain transition-all duration-500',
                   'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              {/* Brand name — mobile only, hidden on desktop */}
-              <span className="lg:hidden font-serif font-semibold text-sm tracking-widest uppercase text-ivory">
+              <span className="font-serif font-semibold tracking-widest uppercase text-ivory text-sm lg:text-base">
                 Srilatha Art
               </span>
             </Link>
