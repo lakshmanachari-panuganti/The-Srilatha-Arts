@@ -46,18 +46,18 @@ export const metadata: Metadata = {
     description:
       'Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives — made one piece at a time.',
     images: [
-      { url: '/Logos/logo.jpeg', width: 1200, height: 630, alt: 'Srilatha Art' },
+      { url: '/Logos/logo.png', width: 1200, height: 630, alt: 'Srilatha Art' },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Srilatha Art',
     description: 'Handcrafted with Heart & Soul',
-    images: ['/Logos/logo.jpeg'],
+    images: ['/Logos/logo.png'],
   },
   icons: {
-    icon: '/Logos/logo.jpeg',
-    apple: '/Logos/logo.jpeg',
+    icon: '/Logos/logo.png',
+    apple: '/Logos/logo.png',
   },
   manifest: '/manifest.webmanifest',
 }

@@ -91,7 +91,7 @@ export default function Header() {
             className="absolute left-1/2 -translate-x-1/2 flex items-center"
           >
             <Image
-              src="/Logos/logo.jpeg"
+              src="/Logos/logo.png"
               alt="Srilatha Art"
               width={56}
               height={56}

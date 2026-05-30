@@ -64,7 +64,7 @@ export default function MobileDrawer() {
                 aria-label="Srilatha Art - home"
                 className="flex items-center gap-2"
               >
-                <Image src="/Logos/logo.jpeg" alt="" width={40} height={40} className="w-10 h-10" />
+                <Image src="/Logos/logo.png" alt="" width={40} height={40} className="w-10 h-10" />
                 <span className="font-serif text-lg leading-none text-plum">
                   <span className="gold-text">Srilatha</span> Art
                 </span>

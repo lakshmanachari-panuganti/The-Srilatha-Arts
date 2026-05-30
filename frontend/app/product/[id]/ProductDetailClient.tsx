@@ -153,7 +153,7 @@ export default function ProductDetailClient() {
         <div className="lg:sticky lg:top-28 lg:self-start">
           <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep">
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5]">
-              {(p.images.length > 0 ? p.images : ['/Logos/logo.jpeg']).map((src, i) => (
+              {(p.images.length > 0 ? p.images : ['/Logos/logo.png']).map((src, i) => (
                 <div key={i} className="relative shrink-0 w-full snap-center">
                   <Image
                     src={src}
