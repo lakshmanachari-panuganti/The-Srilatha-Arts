@@ -58,8 +58,8 @@ export default function Header() {
           )}
           style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
         >
-          {/* Left: hamburger (mobile) + minimal nav (desktop) */}
-          <div className="flex items-center gap-1">
+          {/* Left: hamburger (mobile) + logo (desktop) */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
@@ -68,7 +68,50 @@ export default function Header() {
             >
               <Menu className="w-5 h-5" aria-hidden />
             </button>
-            <nav className="hidden lg:flex items-center gap-8 text-sm">
+            {/* Logo — desktop left slot */}
+            <Link
+              href="/"
+              aria-label="Srilatha Art - home"
+              className="hidden lg:flex items-center"
+            >
+              <Image
+                src="/Logos/logo.png"
+                alt="Srilatha Art"
+                width={56}
+                height={56}
+                priority
+                className={cn(
+                  'w-14 h-14 object-contain transition-all duration-500',
+                  'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
+                  scrolled ? 'opacity-100' : 'opacity-95',
+                )}
+              />
+            </Link>
+          </div>
+
+          {/* Logo — mobile only, absolutely centered */}
+          <Link
+            href="/"
+            aria-label="Srilatha Art - home"
+            className="lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center"
+          >
+            <Image
+              src="/Logos/logo.png"
+              alt="Srilatha Art"
+              width={48}
+              height={48}
+              priority
+              className={cn(
+                'w-12 h-12 object-contain transition-all duration-500',
+                'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
+                scrolled ? 'opacity-100' : 'opacity-95',
+              )}
+            />
+          </Link>
+
+          {/* Right: nav (desktop) + search + account + cart */}
+          <div className="flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-8 text-sm mr-2">
               <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Shop
               </Link>
@@ -82,30 +125,6 @@ export default function Header() {
                 Contact
               </Link>
             </nav>
-          </div>
-
-          {/* Center: large round logo monogram */}
-          <Link
-            href="/"
-            aria-label="Srilatha Art - home"
-            className="absolute left-1/2 -translate-x-1/2 flex items-center"
-          >
-            <Image
-              src="/Logos/logo.png"
-              alt="Srilatha Art"
-              width={56}
-              height={56}
-              priority
-              className={cn(
-                'w-12 h-12 lg:w-14 lg:h-14 object-contain transition-all duration-500',
-                'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
-                scrolled ? 'opacity-100' : 'opacity-95',
-              )}
-            />
-          </Link>
-
-          {/* Right: search + account + cart */}
-          <div className="flex items-center gap-1">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
