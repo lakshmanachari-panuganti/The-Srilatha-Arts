@@ -68,16 +68,16 @@ export default function Header() {
               <Image
                 src="/Logos/logo.png"
                 alt="Srilatha Art"
-                width={96}
-                height={96}
+                width={112}
+                height={112}
                 priority
                 className={cn(
-                  'w-12 h-12 lg:w-24 lg:h-24 object-contain transition-all duration-500',
+                  'w-14 h-14 lg:w-28 lg:h-28 object-contain transition-all duration-500',
                   'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              <span className="font-serif font-semibold tracking-widest uppercase text-ivory text-sm lg:text-xl">
+              <span className="font-serif font-semibold tracking-widest uppercase text-ivory text-base lg:text-2xl">
                 Srilatha Art
               </span>
             </Link>
@@ -159,7 +159,7 @@ export default function Header() {
       </header>
 
       {/* Spacer so content doesn't slide under the fixed header */}
-      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+7rem)]" />
+      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+7.5rem)]" />
 
       <MobileDrawer />
       <SearchOverlay />
