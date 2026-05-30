@@ -58,7 +58,7 @@ export default function Header() {
           )}
           style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
         >
-          {/* Left: hamburger (mobile) + logo (desktop) */}
+          {/* Left: hamburger + logo + brand name (mobile) | logo only (desktop) */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setDrawerOpen(true)}
@@ -68,11 +68,10 @@ export default function Header() {
             >
               <Menu className="w-5 h-5" aria-hidden />
             </button>
-            {/* Logo — desktop left slot */}
             <Link
               href="/"
               aria-label="Srilatha Art - home"
-              className="hidden lg:flex items-center"
+              className="flex items-center gap-2"
             >
               <Image
                 src="/Logos/logo.png"
@@ -81,33 +80,17 @@ export default function Header() {
                 height={56}
                 priority
                 className={cn(
-                  'w-14 h-14 object-contain transition-all duration-500',
+                  'w-10 h-10 lg:w-14 lg:h-14 object-contain transition-all duration-500',
                   'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
+              {/* Brand name — mobile only, hidden on desktop */}
+              <span className="lg:hidden font-serif font-semibold text-sm tracking-widest uppercase text-ivory">
+                Srilatha Art
+              </span>
             </Link>
           </div>
-
-          {/* Logo — mobile only, absolutely centered */}
-          <Link
-            href="/"
-            aria-label="Srilatha Art - home"
-            className="lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center"
-          >
-            <Image
-              src="/Logos/logo.png"
-              alt="Srilatha Art"
-              width={48}
-              height={48}
-              priority
-              className={cn(
-                'w-12 h-12 object-contain transition-all duration-500',
-                'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
-                scrolled ? 'opacity-100' : 'opacity-95',
-              )}
-            />
-          </Link>
 
           {/* Right: nav (desktop) + search + account + cart */}
           <div className="flex items-center gap-1">
