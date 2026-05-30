@@ -128,7 +128,7 @@ export default function Header() {
             <Link
               href="/cart"
               aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
-              className="relative min-h-11 min-w-11 -mr-2 flex items-center justify-center
+              className="relative min-h-11 min-w-11 flex items-center justify-center
                          text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
               <ShoppingBag className="w-5 h-5" aria-hidden />
@@ -145,6 +145,15 @@ export default function Header() {
                 </span>
               )}
             </Link>
+            {/* Hamburger — mobile only, rightmost */}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+              className="lg:hidden min-h-11 min-w-11 -mr-2 flex items-center justify-center
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
+            >
+              <Menu className="w-5 h-5" aria-hidden />
+            </button>
           </div>
         </div>
       </header>
