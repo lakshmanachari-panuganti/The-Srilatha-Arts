@@ -58,16 +58,8 @@ export default function Header() {
           )}
           style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
         >
-          {/* Left: hamburger + logo + brand name (mobile) | logo only (desktop) */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Open menu"
-              className="lg:hidden min-h-11 min-w-11 -ml-2 flex items-center justify-center
-                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
-            >
-              <Menu className="w-5 h-5" aria-hidden />
-            </button>
+          {/* Left: logo + brand name (all viewports) */}
+          <div className="flex items-center">
             <Link
               href="/"
               aria-label="Srilatha Art - home"
@@ -91,7 +83,7 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Right: nav (desktop) + search + account + cart */}
+          {/* Right: nav (desktop) + search + account + cart + hamburger (mobile) */}
           <div className="flex items-center gap-1">
             <nav className="hidden lg:flex items-center gap-8 text-sm mr-2">
               <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
