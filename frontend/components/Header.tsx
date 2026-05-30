@@ -50,7 +50,7 @@ export default function Header() {
       >
         <div
           className={cn(
-            'mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-20',
+            'mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-24',
             'transition-all duration-500',
             scrolled
               ? 'glass-strong'
@@ -76,16 +76,16 @@ export default function Header() {
               <Image
                 src="/Logos/logo.png"
                 alt="Srilatha Art"
-                width={64}
-                height={64}
+                width={80}
+                height={80}
                 priority
                 className={cn(
-                  'w-11 h-11 lg:w-16 lg:h-16 object-contain transition-all duration-500',
+                  'w-11 h-11 lg:w-20 lg:h-20 object-contain transition-all duration-500',
                   'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              <span className="font-serif font-semibold tracking-widest uppercase text-ivory text-sm lg:text-base">
+              <span className="font-serif font-semibold tracking-widest uppercase text-ivory text-sm lg:text-lg">
                 Srilatha Art
               </span>
             </Link>
@@ -158,7 +158,7 @@ export default function Header() {
       </header>
 
       {/* Spacer so content doesn't slide under the fixed header */}
-      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+5rem)]" />
+      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+6rem)]" />
 
       <MobileDrawer />
       <SearchOverlay />
