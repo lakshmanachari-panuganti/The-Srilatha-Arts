@@ -69,21 +69,31 @@ $ErrorActionPreference = 'Stop'
 $AppSlug = "thesrilathaarts"
 $envMap = @{
     "dev" = @{
-        ResourceGroup = "rg-$AppSlug-dev"
-        FunctionApp   = "func-$AppSlug-dev"
-        FrontendUrl   = "https://delightful-mushroom-062e18100.7.azurestaticapps.net"
-        WebhookUrl    = "https://func-$AppSlug-dev.azurewebsites.net/api/razorpay/webhook"
-        RazorpayMode  = "TEST mode (rzp_test_... keys)"
+        ResourceGroup   = "rg-$AppSlug-dev"
+        FunctionAppName = "func-$AppSlug-dev"
+        FrontendUrl     = "https://delightful-mushroom-062e18100.7.azurestaticapps.net"
+        WebhookUrl      = "https://func-$AppSlug-dev.azurewebsites.net/api/razorpay/webhook"
+        RazorpayMode    = "TEST mode (rzp_test_... keys)"
+        KeyVaultName    = "kv-$AppSlug-dev"
     }
     "prd" = @{
-        ResourceGroup = "rg-$AppSlug-prd"
-        FunctionApp   = "func-$AppSlug-prd"
-        FrontendUrl   = "https://www.srilatha.art"
-        WebhookUrl    = "https://www.srilatha.art/api/razorpay/webhook"
-        RazorpayMode  = "LIVE mode (rzp_live_... keys)"
+        ResourceGroup   = "rg-$AppSlug-prd"
+        FunctionAppName = "func-$AppSlug-prd"
+        FrontendUrl     = "https://www.srilatha.art"
+        WebhookUrl      = "https://www.srilatha.art/api/razorpay/webhook"
+        RazorpayMode    = "LIVE mode (rzp_live_... keys)"
+        KeyVaultName    = "kv-$AppSlug-dev"
     }
 }
 $envCfg = $envMap[$Environment]
+try {
+    & "$PSScriptRoot\Backup-function-settings.ps1" `
+        -KeyVaultName $envCfg.KeyVaultName `
+        -FunctionAppName $envCfg.FunctionAppName
+    Write-Host "Function app setting backed up successfully"
+} catch {
+    throw "Unable to back up function app settings for '$($envCfg.FunctionAppName)'. Error: $($_.Exception.Message)"
+}
 
 Write-Host ''
 Write-Host "Target environment : $Environment" -ForegroundColor Cyan
@@ -103,7 +113,7 @@ Write-Host ''
 
 # ─── Confirm the target Function App exists ────────────────────────────────
 Import-Module Az.Functions -ErrorAction Stop -WarningAction SilentlyContinue
-$fn = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp -ErrorAction SilentlyContinue
+$fn = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionAppName -ErrorAction SilentlyContinue
 if (-not $fn) {
     throw "Function App '$($envCfg.FunctionApp)' not found in '$($envCfg.ResourceGroup)'."
 }
@@ -138,7 +148,7 @@ if ($existing) {
 Write-Host "Updating $($envCfg.FunctionApp) RAZORPAY_WEBHOOK_SECRET ..." -ForegroundColor Yellow
 Update-AzFunctionAppSetting `
     -ResourceGroupName $envCfg.ResourceGroup `
-    -Name $envCfg.FunctionApp `
+    -Name $envCfg.FunctionAppName `
     -AppSetting @{ 'RAZORPAY_WEBHOOK_SECRET' = $WebhookSecret } `
     -Force -ErrorAction Stop | Out-Null
 
