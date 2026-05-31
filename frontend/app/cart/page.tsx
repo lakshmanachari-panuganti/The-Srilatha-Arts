@@ -198,7 +198,16 @@ export default function CartPage() {
                     </button>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-ink tabular-nums">
+                    {/* Strikethrough "was" price stacks above the current
+                        line total when the piece is on sale. Mirrors the
+                        product-card treatment so a customer sees the same
+                        savings signal end-to-end. */}
+                    {item.compareAtPrice && item.compareAtPrice > item.price && (
+                      <p className="text-xs text-ink-mute line-through tabular-nums leading-none">
+                        {formatINR(item.compareAtPrice * item.quantity)}
+                      </p>
+                    )}
+                    <p className="font-semibold text-ink tabular-nums mt-0.5">
                       {formatINR(item.price * item.quantity)}
                     </p>
                     <button

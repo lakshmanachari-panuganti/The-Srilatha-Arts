@@ -36,6 +36,15 @@ async function enrich(rows: Row[]): Promise<unknown[]> {
   return Promise.all(
     rows.map(async (row) => {
       const product = await getProductById(row.rowKey as string)
+      // `price` is the current (potentially discounted) display price the
+      // customer actually pays. `compareAtPrice` is the original/strike-
+      // through price for sale messaging — only set when the product is
+      // genuinely on sale. The cart UI renders both side-by-side, same
+      // treatment as the product card.
+      const compareAtPrice =
+        typeof product?.compareAtPrice === 'number' && product.compareAtPrice > 0
+          ? product.compareAtPrice
+          : undefined
       return {
         productId: row.rowKey,
         quantity: Number(row.quantity ?? 1),
@@ -45,6 +54,7 @@ async function enrich(rows: Row[]): Promise<unknown[]> {
         category: product?.partitionKey ?? '',
         image: product?.imageUrl ?? '',
         price: product?.displayPrice ?? product?.price ?? 0,
+        compareAtPrice,
         size: product?.size ?? '',
         inStock: product?.inStock !== false,
       }

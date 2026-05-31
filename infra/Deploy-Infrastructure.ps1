@@ -149,7 +149,8 @@ $tableNames = @(
     'orderEvents', 'ordersByStatus',
     'coupons', 'couponRedemptions',
     'announcements',
-    'wishlist', 'reviews', 'customOrders',
+    'wishlist', 'cart', 'reviews', 'customOrders',
+    'newsletterSubscribers',
     'addresses', 'notifications',
     'staff', 'auditLog', 'rateLimits'
 )

@@ -29,6 +29,8 @@ interface ServerWishlistItem {
   category: string
   image: string
   price: number
+  /** Strikethrough "was" price — undefined when not on sale. */
+  compareAtPrice?: number
   inStock: boolean
   addedAt: string
 }
@@ -59,6 +61,7 @@ export const useWishlist = create<WishlistState>()(
           slug: product.slug,
           title: product.title,
           price: product.price,
+          compareAtPrice: product.compareAtPrice,
           image: product.images[0],
           category: product.category,
           addedAt: new Date().toISOString(),
@@ -101,6 +104,7 @@ export const useWishlist = create<WishlistState>()(
               title: it.title,
               image: it.image,
               price: it.price,
+              compareAtPrice: it.compareAtPrice,
               category: (it.category || '') as CategorySlug,
               addedAt: it.addedAt,
             }))

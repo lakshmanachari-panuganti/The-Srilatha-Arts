@@ -30,6 +30,7 @@ interface ServerCartItem {
   category: string
   image: string
   price: number
+  compareAtPrice?: number
   size: string
   inStock: boolean
 }
@@ -38,8 +39,15 @@ let _hydrateInFlight: Promise<void> | null = null
 
 function silenceAuthErrors(err: unknown) {
   if (err instanceof ApiError && err.status === 401) return
-  // Anything else is a real failure; we don't surface cart-sync errors
-  // since the optimistic local update already gave the user feedback.
+  // Anything else (5xx, 404, network) is a real failure. We deliberately
+  // don't surface it as a toast — the optimistic local update already
+  // gave the user feedback — but log it so devs can see when sync is
+  // silently broken (e.g. a table missing in Azure). Visible in DevTools
+  // console, no impact on production users.
+  if (typeof console !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.warn('[cart] background sync failed', err)
+  }
 }
 
 export const useCart = create<CartState>()(
@@ -71,6 +79,7 @@ export const useCart = create<CartState>()(
                 title: product.title,
                 category: product.category,
                 price: product.price,
+                compareAtPrice: product.compareAtPrice,
                 image: product.images[0],
                 size: product.size,
                 quantity: qty,
@@ -136,6 +145,7 @@ export const useCart = create<CartState>()(
               title: it.title,
               category: (it.category || '') as CategorySlug,
               price: it.price,
+              compareAtPrice: it.compareAtPrice,
               image: it.image,
               size: it.size || '',
               quantity: it.quantity,

@@ -51,7 +51,18 @@ export default function WishlistPage() {
               </div>
               <div className="pt-4 px-1">
                 <h3 className="font-serif text-base text-ink line-clamp-2">{item.title}</h3>
-                <p className="text-sm font-semibold text-ink mt-1.5 tabular-nums">{formatINR(item.price)}</p>
+                {/* Price row mirrors the product card: bold current price
+                    + strikethrough "was" when the piece is on sale. */}
+                <div className="flex items-baseline gap-2 mt-1.5">
+                  <span className="text-sm font-semibold text-ink tabular-nums">
+                    {formatINR(item.price)}
+                  </span>
+                  {item.compareAtPrice && item.compareAtPrice > item.price && (
+                    <span className="text-xs text-ink-mute line-through tabular-nums">
+                      {formatINR(item.compareAtPrice)}
+                    </span>
+                  )}
+                </div>
               </div>
             </Link>
             <button

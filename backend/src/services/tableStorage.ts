@@ -12,6 +12,31 @@ function getTableClient(tableName: string): TableClient {
   )
 }
 
+// Per-process cache of "we've already verified this table exists" so we
+// only pay the createTable() round-trip once per cold start, per table.
+// Self-healing: lets new tables (added in code) be reached without
+// re-running the infra script. Race-safe — concurrent first calls both
+// race for createTable(), TableAlreadyExists is benign.
+const _tableEnsured = new Set<string>()
+async function ensureTable(tableName: string): Promise<TableClient> {
+  const client = getTableClient(tableName)
+  if (_tableEnsured.has(tableName)) return client
+  try {
+    await client.createTable()
+  } catch (e: any) {
+    // Azure returns either `TableAlreadyExists` or a 409 — both mean
+    // someone else got there first, which is exactly what we want.
+    const code = e?.code || e?.details?.errorCode || ''
+    if (code !== 'TableAlreadyExists' && e?.statusCode !== 409) {
+      // Anything else (permissions, network) — let the caller see it
+      // rather than silently masking a configuration problem.
+      throw e
+    }
+  }
+  _tableEnsured.add(tableName)
+  return client
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Row = Record<string, any>
 
@@ -101,7 +126,7 @@ export async function addNewsletterSubscriber(
   email: string,
   source: string = 'footer',
 ): Promise<void> {
-  const client = getTableClient('newsletterSubscribers')
+  const client = await ensureTable('newsletterSubscribers')
   const now = new Date().toISOString()
   await client.upsertEntity(
     {
@@ -393,11 +418,12 @@ export async function createCouponRedemption(redemption: Row): Promise<void> {
 // ─── WISHLIST ────────────────────────────────────────────────
 
 export async function getWishlist(userEmail: string): Promise<Row[]> {
+  await ensureTable('wishlist')
   return listAll('wishlist', odata`PartitionKey eq ${userEmail}`)
 }
 
 export async function addToWishlist(userEmail: string, productId: string): Promise<void> {
-  const client = getTableClient('wishlist')
+  const client = await ensureTable('wishlist')
   await client.upsertEntity(
     {
       partitionKey: userEmail,
@@ -409,7 +435,7 @@ export async function addToWishlist(userEmail: string, productId: string): Promi
 }
 
 export async function removeFromWishlist(userEmail: string, productId: string): Promise<void> {
-  const client = getTableClient('wishlist')
+  const client = await ensureTable('wishlist')
   try {
     await client.deleteEntity(userEmail, productId)
   } catch (error: any) {
@@ -425,6 +451,9 @@ export async function removeFromWishlist(userEmail: string, productId: string): 
 // (title, image, price) without needing a separate /products fetch.
 
 export async function getCart(userEmail: string): Promise<Row[]> {
+  // Self-heal: ensures the `cart` table exists. If a deploy lands the new
+  // code before the infra script has been re-run, this still works.
+  await ensureTable('cart')
   return listAll('cart', odata`PartitionKey eq ${userEmail}`)
 }
 
@@ -433,7 +462,7 @@ export async function upsertCartItem(
   productId: string,
   quantity: number,
 ): Promise<void> {
-  const client = getTableClient('cart')
+  const client = await ensureTable('cart')
   await client.upsertEntity(
     {
       partitionKey: userEmail,
@@ -446,7 +475,7 @@ export async function upsertCartItem(
 }
 
 export async function removeCartItem(userEmail: string, productId: string): Promise<void> {
-  const client = getTableClient('cart')
+  const client = await ensureTable('cart')
   try {
     await client.deleteEntity(userEmail, productId)
   } catch (error: any) {
@@ -455,7 +484,7 @@ export async function removeCartItem(userEmail: string, productId: string): Prom
 }
 
 export async function clearCart(userEmail: string): Promise<void> {
-  const client = getTableClient('cart')
+  const client = await ensureTable('cart')
   const rows = await listAll('cart', odata`PartitionKey eq ${userEmail}`)
   await Promise.all(
     rows.map((r) =>
