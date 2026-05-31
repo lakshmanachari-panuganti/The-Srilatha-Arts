@@ -43,22 +43,32 @@ const config: Config = {
         'glass-hover': 'rgba(221,214,254,0.90)',
         'overlay-soft': 'rgba(124,58,237,0.08)',
         'overlay-deep': 'rgba(46,16,101,0.35)',
-        // ── Legacy aliases ────────────────────────────────────────
+        // ── Legacy aliases (lavender-aliased back-compat tokens) ──
+        // These names predate the cream→lavender pivot; their *values*
+        // were remapped to lavender equivalents so existing call sites
+        // keep working. ink-* mirrors ivory-* for the same hierarchy
+        // (see ivory comments above).
         cream: '#F5F3FF',
         'cream-deep': '#DDD6FE',
         paper: 'rgba(237,233,254,0.70)',
-        ink: '#2E1065',
-        'ink-soft': '#4C1D95',
-        'ink-mute': '#6D28D9',
+        ink: '#2A1056',                  // mirrors `ivory`
+        'ink-soft': '#3D2F55',            // mirrors `ivory-soft`
+        'ink-mute': '#7B6F8A',            // mirrors `ivory-mute`
         'primary-dark': '#7C3AED',
         'primary-burnt': '#A78BFA',
-        terracotta: '#FDE68A',           // amber-200 — warm gold accent
-        'terracotta-deep': '#F59E0B',    // amber-500 — vivid gold
+        // Gold tokens — used for the `.gold-text` gradient + accent
+        // numerals + review stars. Suited for LARGE text (≥18px) only;
+        // small body text in gold fails contrast on the light lavender
+        // page. Use `text-lavender` for actionable links instead.
         gold: '#D4AF37',
         'gold-light': '#F3D27A',
         'gold-deep': '#B8962E',
-        clay: '#FDE68A',
-        sage: '#A7F3D0',
+        // NOTE: `terracotta`, `terracotta-deep`, `clay`, `sage` tokens
+        // were removed on 2026-05-31. They were leftover from an earlier
+        // craft-palette concept and had been remapped to amber-200
+        // (#FDE68A — a pale yellow) which became unreadable text on the
+        // light-lavender page. All call sites have been migrated to
+        // `lavender` / `lavender-pastel` / `rose-700` per intent.
       },
       fontFamily: {
         // Three-font system, each with a clear role:

@@ -216,7 +216,7 @@ export default function AdminCustomOrdersPage() {
                   <span className="text-xs text-ink-mute">{formatDate(order.createdAt)}</span>
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : order.id)}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta hover:text-plum transition-colors"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-lavender hover:text-lavender-pastel transition-colors"
                   >
                     {isExpanded ? (
                       <>

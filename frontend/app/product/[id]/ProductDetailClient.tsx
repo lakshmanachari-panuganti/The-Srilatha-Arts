@@ -38,7 +38,7 @@ function Pill({ label }: { label: string }) {
 function Feature({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
   return (
     <div className="flex items-center gap-3 text-sm text-ink/85">
-      <span className="w-9 h-9 rounded-full bg-paper text-terracotta flex items-center justify-center shrink-0">
+      <span className="w-9 h-9 rounded-full bg-paper text-lavender flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4" aria-hidden />
       </span>
       {label}
@@ -137,7 +137,7 @@ export default function ProductDetailClient() {
       <div className="max-w-6xl mx-auto px-5 pt-20 text-center">
         <h1 className="font-serif text-3xl text-ink mb-4">Product not found</h1>
         <p className="text-ink-soft mb-8">This product may have been removed or the link is incorrect.</p>
-        <Link href="/shop" className="inline-flex h-11 px-6 items-center rounded-full bg-terracotta text-white text-sm font-medium hover:bg-terracotta/90 transition-colors">
+        <Link href="/shop" className="inline-flex h-11 px-6 items-center rounded-full bg-lavender text-white text-sm font-medium hover:bg-lavender/90 transition-colors">
           Browse the shop
         </Link>
       </div>
@@ -173,7 +173,7 @@ export default function ProductDetailClient() {
         <div className="px-5 lg:px-0 pt-8 lg:pt-0 pb-32 lg:pb-12">
           <Link
             href={`/shop/${category?.slug}`}
-            className="inline-flex items-center gap-1 text-xs text-ink-mute hover:text-terracotta transition-colors mb-4"
+            className="inline-flex items-center gap-1 text-xs text-ink-mute hover:text-lavender transition-colors mb-4"
           >
             <ChevronLeft className="w-3.5 h-3.5" aria-hidden />
             {category?.title}
@@ -208,7 +208,7 @@ export default function ProductDetailClient() {
               <>
                 <span className="text-ink-mute line-through tabular-nums">{formatINR(p.compareAtPrice)}</span>
                 {pct !== null && (
-                  <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-terracotta px-2 py-1 rounded-full">
+                  <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-lavender px-2 py-1 rounded-full">
                     Save {pct}%
                   </span>
                 )}
@@ -242,8 +242,8 @@ export default function ProductDetailClient() {
           {/* Low-stock urgency cue — honest, since handcrafted is genuinely
               limited. Only fires when stock is positive but ≤ 2. */}
           {p.inStock && p.stockQty > 0 && p.stockQty <= 2 && (
-            <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-terracotta-deep bg-terracotta/15 px-3 py-2 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-terracotta-deep animate-pulse" aria-hidden />
+            <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-lavender bg-lavender/10 px-3 py-2 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-lavender animate-pulse" aria-hidden />
               Only {p.stockQty} left — each piece is unique
             </p>
           )}
@@ -266,7 +266,7 @@ export default function ProductDetailClient() {
             <p className="text-ink-soft text-sm leading-relaxed mt-3">
               We ship from Hyderabad. Most orders reach you in 5–7 working days. You can return
               unused items within 7 days of delivery.{' '}
-              <Link href="/shipping-and-returns" className="text-terracotta hover:underline">
+              <Link href="/shipping-and-returns" className="text-lavender hover:underline">
                 Read the full policy
               </Link>
               .
@@ -350,7 +350,7 @@ export default function ProductDetailClient() {
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="A short title for your review"
-                className="w-full h-10 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+                className="w-full h-10 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
               />
             </div>
             <div className="mb-4">
@@ -360,7 +360,7 @@ export default function ProductDetailClient() {
                 onChange={(e) => setFormBody(e.target.value)}
                 rows={4}
                 placeholder="Tell us what you liked or didn’t…"
-                className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
               />
             </div>
             {formError && <p className="text-xs text-red-600 mb-3">{formError}</p>}
@@ -368,7 +368,7 @@ export default function ProductDetailClient() {
               <button
                 onClick={submitReview}
                 disabled={formLoading || !formBody.trim()}
-                className="h-10 px-6 rounded-full bg-terracotta text-white text-sm font-medium disabled:opacity-50 hover:bg-terracotta/90 transition-colors"
+                className="h-10 px-6 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors"
               >
                 {formLoading ? 'Submitting…' : 'Submit review'}
               </button>
@@ -394,7 +394,7 @@ export default function ProductDetailClient() {
             <Star className="w-8 h-8 text-ink/15 mx-auto mb-3" aria-hidden />
             <p className="text-sm">No reviews yet. Be the first to leave one!</p>
             {!user && (
-              <Link href="/login" className="mt-3 inline-block text-sm text-terracotta hover:underline">
+              <Link href="/login" className="mt-3 inline-block text-sm text-lavender hover:underline">
                 Sign in to leave a review
               </Link>
             )}

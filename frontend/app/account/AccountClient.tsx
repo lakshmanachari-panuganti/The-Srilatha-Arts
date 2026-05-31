@@ -450,7 +450,7 @@ function ReturnRequestModal({
               key={o.code}
               className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                 reason === o.code
-                  ? 'border-terracotta/60 bg-cream-deep/60'
+                  ? 'border-lavender/60 bg-cream-deep/60'
                   : 'border-ink/10 hover:border-ink/20'
               }`}
             >
@@ -460,7 +460,7 @@ function ReturnRequestModal({
                 value={o.code}
                 checked={reason === o.code}
                 onChange={() => setReason(o.code)}
-                className="mt-1 accent-terracotta"
+                className="mt-1 accent-lavender"
               />
               <span className="text-sm text-ink">{o.label}</span>
             </label>
@@ -476,7 +476,7 @@ function ReturnRequestModal({
           maxLength={1000}
           rows={4}
           placeholder="Add any details that help us understand the issue."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
+          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{comment.length}/1000</p>
 
@@ -701,7 +701,7 @@ function AddressesTab() {
               type="checkbox"
               checked={form.isDefault}
               onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
-              className="accent-terracotta"
+              className="accent-lavender"
             />
             Set as default address
           </label>
@@ -750,7 +750,7 @@ function AField(props: {
         onChange={(e) => props.onChange(e.target.value)}
         inputMode={props.inputMode}
         maxLength={props.maxLength}
-        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
       />
     </div>
   )

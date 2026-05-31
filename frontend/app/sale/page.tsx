@@ -18,7 +18,7 @@ export default function SalePage() {
         </h1>
         <p className="text-ink-soft text-sm mt-3">
           Use the code{' '}
-          <span className="font-mono bg-paper border border-ink/15 px-2 py-0.5 rounded text-terracotta">
+          <span className="font-mono bg-paper border border-ink/15 px-2 py-0.5 rounded text-lavender">
             SRILATHA30
           </span>{' '}
           at checkout to get an extra 30% off Resin pieces.

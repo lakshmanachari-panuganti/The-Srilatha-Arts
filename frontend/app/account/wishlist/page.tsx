@@ -12,7 +12,7 @@ export default function WishlistPage() {
   if (items.length === 0) {
     return (
       <main className="min-h-svh max-w-2xl mx-auto px-5 py-20 lg:py-28 text-center">
-        <Heart className="w-12 h-12 text-terracotta/60 mx-auto mb-4" aria-hidden />
+        <Heart className="w-12 h-12 text-lavender-pastel/60 mx-auto mb-4" aria-hidden />
         <p className="eyebrow justify-center mb-3">Wishlist</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
           Your <em className="italic">wishlist</em> is empty

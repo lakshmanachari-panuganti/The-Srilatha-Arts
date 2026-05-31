@@ -549,7 +549,7 @@ export default function CheckoutClient() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/account" className="btn-dark">View my orders <ArrowRight className="w-4 h-4" aria-hidden /></Link>
-          <Link href="/shop" className="text-sm text-ink-soft hover:text-terracotta self-center">Continue shopping</Link>
+          <Link href="/shop" className="text-sm text-ink-soft hover:text-lavender self-center">Continue shopping</Link>
         </div>
       </main>
     )
@@ -594,7 +594,7 @@ export default function CheckoutClient() {
                 return (
                   <li
                     key={a.id}
-                    className={`rounded-2xl border transition-colors ${checked ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                    className={`rounded-2xl border transition-colors ${checked ? 'border-lavender/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
                       }`}
                   >
                     {isEditing ? (
@@ -629,7 +629,7 @@ export default function CheckoutClient() {
                           value={a.id}
                           checked={checked}
                           onChange={() => setSelectedId(a.id)}
-                          className="mt-1 accent-terracotta"
+                          className="mt-1 accent-lavender"
                           aria-label={`Use the ${a.label} address`}
                         />
                         <div className="flex-1 min-w-0">
@@ -655,7 +655,7 @@ export default function CheckoutClient() {
                             type="button"
                             onClick={(e) => { e.preventDefault(); startEdit(a) }}
                             aria-label="Edit address"
-                            className="p-2 text-ink-mute hover:text-terracotta"
+                            className="p-2 text-ink-mute hover:text-lavender"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
@@ -676,7 +676,7 @@ export default function CheckoutClient() {
 
               {/* "Use a new address" radio */}
               <li
-                className={`rounded-2xl border transition-colors ${usingNew ? 'border-terracotta/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                className={`rounded-2xl border transition-colors ${usingNew ? 'border-lavender/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
                   }`}
               >
                 <label className="flex items-start gap-3 p-4 cursor-pointer">
@@ -686,7 +686,7 @@ export default function CheckoutClient() {
                     value={NEW_ADDRESS_ID}
                     checked={usingNew}
                     onChange={() => setSelectedId(NEW_ADDRESS_ID)}
-                    className="mt-1 accent-terracotta"
+                    className="mt-1 accent-lavender"
                   />
                   <div className="flex items-center gap-2 text-ink">
                     <Plus className="w-4 h-4" aria-hidden />
@@ -731,7 +731,7 @@ export default function CheckoutClient() {
                 type="checkbox"
                 checked={saveNewAddress}
                 onChange={(e) => setSaveNewAddress(e.target.checked)}
-                className="accent-terracotta"
+                className="accent-lavender"
               />
               Save this address to my account
             </label>
@@ -843,7 +843,7 @@ function Field(props: {
         placeholder={props.placeholder}
         inputMode={props.inputMode}
         maxLength={props.maxLength}
-        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
       />
     </div>
   )

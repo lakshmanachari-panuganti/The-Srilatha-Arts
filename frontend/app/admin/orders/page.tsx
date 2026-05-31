@@ -208,7 +208,7 @@ export default function AdminOrdersPage() {
                       <td className="px-6 py-4 text-right">
                         <Link
                           href={`/admin/orders/detail?id=${order.id}`}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta hover:text-plum transition-colors"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-lavender hover:text-lavender-pastel transition-colors"
                         >
                           <Eye className="w-4 h-4" />
                           View Details

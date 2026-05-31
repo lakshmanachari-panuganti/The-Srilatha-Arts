@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
 
         <div className="card-cream p-8 md:p-10 shadow-xl shadow-ink/5">
           <div className="flex items-center gap-3 text-ink mb-6">
-            <Lock className="w-5 h-5 text-terracotta" />
+            <Lock className="w-5 h-5 text-lavender" />
             <h1 className="font-serif text-2xl">Secure Login</h1>
           </div>
 

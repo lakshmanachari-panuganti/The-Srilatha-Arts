@@ -130,7 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-terracotta rounded-lg hover:bg-terracotta/10 w-full transition-colors mt-4"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-700/10 w-full transition-colors mt-4"
             >
               <LogOut className="w-4 h-4" />
               Sign out
@@ -179,7 +179,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-terracotta rounded-lg hover:bg-terracotta/10 w-full transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-700/10 w-full transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Sign out

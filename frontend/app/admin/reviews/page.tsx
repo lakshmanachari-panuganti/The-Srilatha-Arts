@@ -122,7 +122,7 @@ export default function AdminReviewsPage() {
           <p className="text-ink-soft text-sm">
             Moderate customer reviews.
             {pendingCount > 0 && (
-              <span className="ml-1 text-terracotta font-medium">
+              <span className="ml-1 text-lavender font-medium">
                 {pendingCount} awaiting moderation.
               </span>
             )}
@@ -271,7 +271,7 @@ export default function AdminReviewsPage() {
                 {!review.adminReply && !isReplying && (
                   <button
                     onClick={() => setReplyingTo(review.id)}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-terracotta hover:text-plum transition-colors"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-lavender hover:text-lavender-pastel transition-colors"
                   >
                     <MessageSquare className="w-4 h-4" />
                     Reply

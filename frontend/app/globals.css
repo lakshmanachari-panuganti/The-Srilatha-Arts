@@ -191,10 +191,6 @@
     font-weight: 600;
   }
 
-  .terracotta-text {
-    @apply text-lavender-pastel;
-  }
-
   /* Editorial eyebrow — small caps, wide tracking. Used on light
      page backgrounds by default; on dark surfaces (Hero gradient,
      Footer, MobileDrawer) override the colour inline with

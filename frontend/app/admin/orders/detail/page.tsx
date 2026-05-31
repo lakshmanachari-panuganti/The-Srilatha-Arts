@@ -667,7 +667,7 @@ function DeclineReturnModal({
           maxLength={500}
           rows={4}
           placeholder="Explain why this return is being declined (e.g., outside the 7-day window, signs of use)."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
+          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{value.length}/500</p>
         <div className="flex justify-end gap-2 mt-5">
@@ -709,7 +709,7 @@ function IssueRefundModal({
           step={1}
           value={Number.isFinite(value) ? value : 0}
           onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-          className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink tabular-nums focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+          className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink tabular-nums focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
         />
         <p className="text-xs text-ink-mute mt-1">Max ₹{orderTotal} (the order total). Partial refunds are allowed.</p>
         <div className="flex justify-end gap-2 mt-5">
