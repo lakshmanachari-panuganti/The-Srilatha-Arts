@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Square_Peg, Cormorant_Garamond, DM_Sans } from 'next/font/google'
+import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
@@ -18,7 +18,7 @@ import Providers from '@/components/Providers'
 //   DM Sans — `font-sans`. Body, UI, prices, buttons. Variable weight,
 //     proper hinting at small sizes.
 //
-//   Square Peg — `font-brand`. Reserved for the "Srilatha Art"
+//   Pramukh Rounded — `font-brand`. Reserved for the "Srilatha Art"
 //     wordmark only. Don't use it elsewhere.
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -32,13 +32,6 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-dm-sans',
-  display: 'swap',
-})
-
-const squarePeg = Square_Peg({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-square-peg',
   display: 'swap',
 })
 
@@ -104,8 +97,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en-IN"
-      className={`${cormorant.variable} ${dmSans.variable} ${squarePeg.variable}`}
+      className={`${cormorant.variable} ${dmSans.variable}`}
     >
+      <head>
+        <link href="https://api.fontshare.com/v2/css?f[]=pramukh-rounded@800&display=swap" rel="stylesheet" />
+      </head>
       <body>
         <a
           href="#main"

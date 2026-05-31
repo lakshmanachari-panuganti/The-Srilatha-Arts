@@ -81,7 +81,7 @@ const config: Config = {
         // see the Typography comment block there for the loader config.
         sans:  ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-cormorant)', 'Georgia', 'serif'],
-        brand: ['var(--font-square-peg)', 'Square Peg', 'cursive'],
+        brand: ['"Pramukh Rounded"', 'sans-serif'],
       },
       fontSize: {
         '10': ['0.625rem', { lineHeight: '1.5' }],   // 10px — label caps, tab bar text
