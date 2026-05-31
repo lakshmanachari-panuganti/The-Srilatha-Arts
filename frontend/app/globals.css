@@ -2,34 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Aldo';
-  /* Self-hosted from /public/fonts. WOFF2 first (every browser back to
-     Chrome 36 / Firefox 39 / Safari 12); TTF as a final fallback for
-     very old engines. font-display: swap renders fallback immediately
-     and swaps to Aldo when ready — keeps mobile users on slow networks
-     from staring at invisible text. */
-  src: url('/fonts/aldo.woff2') format('woff2'),
-       url('/fonts/aldo.ttf')   format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ─────────────────────────────────────────────────────────────
    Typography system
 
-   Two typefaces, single role each:
+   Three typefaces, each with a single role:
 
-     Aldo       — loaded via @font-face above. Used EVERYWHERE
-                  (body, UI, headings, prices, buttons). Both the
-                  `font-sans` and `font-serif` Tailwind tokens map
-                  to it so existing utility classes keep working.
+     DM Sans            — `font-sans`. Body, UI, prices, buttons,
+                          nav, eyebrows. Variable weight (400/500/
+                          600/700) so font-medium/semibold/bold are
+                          real weights, not faux-bold synthesis.
 
-     Square Peg — loaded in app/layout.tsx as next/font/google and
-                  exposed as --font-square-peg. Used ONLY for the
-                  "Srilatha Art" wordmark via the `font-brand`
-                  Tailwind token. Do not use it for anything else.
+     Cormorant Garamond — `font-serif`. Display headlines, italic
+                          accent words, editorial pull-quotes. High-
+                          contrast classical capitals that hold up
+                          under the heavy uppercase usage sitewide.
+
+     Square Peg         — `font-brand`. Reserved exclusively for the
+                          "Srilatha Art" wordmark. Do not use it
+                          elsewhere.
+
+   All three are loaded via next/font/google in app/layout.tsx and
+   exposed as CSS variables (--font-dm-sans, --font-cormorant,
+   --font-square-peg). next/font self-hosts at build time, generates
+   fallback metrics to prevent CLS, and inlines the font CSS.
 
    Feature settings (kerning + common ligatures) stay on the html
    element below. Tabular figures still get opted-in on a per-
@@ -76,10 +71,10 @@
        any platform — small body type is the main beneficiary. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* ss01: Montserrat's alternate single-storey 'a' — a touch softer
-       and reads better at small sizes. cv11/zero: not present on most
-       fallback fonts, harmless. */
-    font-feature-settings: 'kern', 'liga', 'calt', 'ss01';
+    /* Kerning + common ligatures + contextual alternates. DM Sans
+       supports all three out of the box and renders better with them
+       on for body copy. */
+    font-feature-settings: 'kern', 'liga', 'calt';
     /* Inherit-friendly default; consumers can override on individual
        lines where they need lining figures (rare). */
     font-variant-numeric: lining-nums;
@@ -101,10 +96,11 @@
     mix-blend-mode: overlay;
   }
 
-  /* Default heading style — picks up Playfair, balanced wrapping,
-     comfortable tracking. Components that need a different size or
-     weight set their own Tailwind classes, which still win because
-     atomics live in the utilities layer below this base layer. */
+  /* Default heading style — picks up Cormorant Garamond via
+     font-serif, balanced wrapping, comfortable tracking. Components
+     that need a different size or weight set their own Tailwind
+     classes, which still win because atomics live in the utilities
+     layer below this base layer. */
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif font-medium text-ivory;
     letter-spacing: -0.01em;
@@ -119,9 +115,9 @@
     text-wrap: pretty;
   }
 
-  /* <strong> defaults to 700 across browsers — that's heavy paired
-     with Playfair body. 600 (semibold) sits better against our serif
-     headings and Montserrat 400 body. */
+  /* <strong> defaults to 700 across browsers — 600 (semibold) reads
+     more comfortably against DM Sans 400 body without going heavy.
+     Cormorant headings handle 700 fine but body emphasis stays light. */
   strong, b {
     font-weight: 600;
   }
@@ -183,7 +179,8 @@
 
   /* Gradient gold treatment for accent words inside headlines.
      Pairs with `<em>` since our headlines often italicise the gold
-     word — Playfair's italic is more elegant for these. */
+     word — Cormorant Garamond's italic is editorial and high-
+     contrast, which suits the gold treatment. */
   .gold-text {
     background: linear-gradient(135deg, #D4AF37 0%, #F3D27A 40%, #B8962E 100%);
     -webkit-background-clip: text;
@@ -223,10 +220,10 @@
     letter-spacing: 0.32em;
   }
 
-  /* Display headline — Playfair, tight optical tracking, balanced
-     wrapping. Consumers add size classes (`text-4xl lg:text-7xl`,
-     etc.) on top; this base just gets the family / weight / colour
-     / tracking right. */
+  /* Display headline — Cormorant Garamond, tight optical tracking,
+     balanced wrapping. Consumers add size classes (`text-4xl
+     lg:text-7xl`, etc.) on top; this base just gets the family /
+     weight / colour / tracking right. */
   .display {
     @apply font-serif font-semibold text-ivory;
     line-height: 1.15;

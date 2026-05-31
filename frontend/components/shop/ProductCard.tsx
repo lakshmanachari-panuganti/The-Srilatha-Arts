@@ -176,10 +176,10 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             {product.category.replace('-', ' ')}
           </p>
           {/*
-            Mobile uses Montserrat at 15px — Playfair at this size on a card
+            Mobile uses DM Sans at 15px — Cormorant at this size on a card
             reads decoratively where it should read functionally. From the
             sm breakpoint up, where the card is larger and the title gets
-            real estate, the Playfair serif comes back. Audit §2.5.
+            real estate, the Cormorant serif comes back. Audit §2.5.
           */}
           <h3 className="font-sans text-[15px] tracking-tight
                          sm:font-serif sm:text-xl sm:tracking-normal

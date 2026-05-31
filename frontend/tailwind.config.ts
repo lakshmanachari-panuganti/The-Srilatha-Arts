@@ -49,12 +49,23 @@ const config: Config = {
         sage: '#A7F3D0',
       },
       fontFamily: {
-        // Aldo is the single primary typeface across the whole site.
-        // Both `sans` and `serif` resolve to it so existing usages
-        // (font-serif / font-sans) keep working without a per-file refactor.
-        // `brand` is reserved exclusively for the "Srilatha Art" wordmark.
-        sans:  ['Aldo', 'Georgia', 'serif'],
-        serif: ['Aldo', 'Georgia', 'serif'],
+        // Three-font system, each with a clear role:
+        //
+        //   sans  → DM Sans (body, UI, buttons, prices, nav, eyebrows).
+        //           Variable weight, proper small-size rendering.
+        //   serif → Cormorant Garamond (display headlines, italic accent
+        //           words, editorial pull-quotes). High-contrast capitals
+        //           that hold up under the uppercase headlines used
+        //           sitewide. Replaced the prior single-weight Aldo,
+        //           which faux-bolded under font-semibold/bold and read
+        //           stiff under uppercase.
+        //   brand → Square Peg, reserved exclusively for the "Srilatha
+        //           Art" wordmark. Do not use it elsewhere.
+        //
+        // CSS variables come from next/font/google in app/layout.tsx —
+        // see the Typography comment block there for the loader config.
+        sans:  ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-cormorant)', 'Georgia', 'serif'],
         brand: ['var(--font-square-peg)', 'Square Peg', 'cursive'],
       },
       fontSize: {
