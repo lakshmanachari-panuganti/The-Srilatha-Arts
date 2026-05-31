@@ -138,7 +138,7 @@ export default function Header() {
                              text-[10px] font-bold leading-[18px] text-center text-plum"
                   style={{
                     borderRadius: '24px',
-                    background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
+                    background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
                   }}
                 >
                   {count > 99 ? '99+' : count}

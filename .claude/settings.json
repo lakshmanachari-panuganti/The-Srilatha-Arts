@@ -36,7 +36,19 @@
       "PowerShell(node --version 2>&1)",
       "PowerShell(npm --version 2>&1)",
       "Read(//c/repos/The-Srilatha-Arts/frontend/node_modules/**)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('name:', d.get\\('name'\\)\\); print\\('scripts:', list\\(d.get\\('scripts',{}\\).keys\\(\\)\\)\\)\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('name:', d.get\\('name'\\)\\); print\\('scripts:', list\\(d.get\\('scripts',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(curl -sSL -o frontend/public/fonts/aldo.ttf \"https://evanniederwerfer.com/assets/aldo.ttf\")",
+      "Bash(pip install *)",
+      "Bash(python -c \"from fontTools.ttLib import TTFont; print\\('fonttools OK'\\)\")",
+      "PowerShell(if \\(Test-Path \"$env:USERPROFILE\\\\.claude\\\\skills\"\\) { Get-ChildItem \"$env:USERPROFILE\\\\.claude\\\\skills\" -Name } else { \"no user skills dir\" }; \"---\"; if \\(Test-Path \"$env:USERPROFILE\\\\.claude\\\\plugins\"\\) { Get-ChildItem \"$env:USERPROFILE\\\\.claude\\\\plugins\" -Recurse -Directory -Depth 3 | Select-Object -ExpandProperty FullName } else { \"no plugins dir\" })",
+      "Read(//c/Users/E092721/.claude/**)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/frontend-design/skills/frontend-design/SKILL.md\" -o /tmp/frontend-design-SKILL.md)",
+      "Read(//tmp/**)",
+      "Bash(gh api *)",
+      "PowerShell(gh api repos/anthropics/claude-code/contents/plugins/frontend-design/skills/frontend-design 2>&1)",
+      "PowerShell($u = \"https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/frontend-design/skills/frontend-design/SKILL.md\"; $out = \"$env:TEMP\\\\frontend-design-SKILL.md\"; try { Invoke-WebRequest -Uri $u -OutFile $out -UseBasicParsing -ErrorAction Stop; \"Saved $\\(\\(Get-Item $out\\).Length\\) bytes to $out\" } catch { \"ERROR: $_\" })",
+      "PowerShell($root = \"https://api.github.com/repos/anthropics/claude-code/contents/plugins/frontend-design/skills/frontend-design\"; $r = Invoke-RestMethod -Uri $root -UseBasicParsing; $r | ForEach-Object { \"$\\($_.type\\)`t$\\($_.path\\)\" })",
+      "PowerShell($dst = \"$env:USERPROFILE\\\\.claude\\\\skills\\\\frontend-design\"; New-Item -ItemType Directory -Force -Path $dst | Out-Null; Copy-Item \"$env:TEMP\\\\frontend-design-SKILL.md\" \"$dst\\\\SKILL.md\" -Force; \"Installed to $dst\\\\SKILL.md \\($\\(\\(Get-Item \"$dst\\\\SKILL.md\"\\).Length\\) bytes\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\E092721\\AppData\\Local\\Temp"

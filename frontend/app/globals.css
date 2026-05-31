@@ -177,20 +177,6 @@
 @layer components {
   /* ───────────── Typography ───────────── */
 
-  /* Gradient gold treatment for accent words inside headlines.
-     Pairs with `<em>` since our headlines often italicise the gold
-     word — Cormorant Garamond's italic is editorial and high-
-     contrast, which suits the gold treatment. */
-  .gold-text {
-    background: linear-gradient(135deg, #D4AF37 0%, #F3D27A 40%, #B8962E 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    /* Slight extra weight stops the gradient from looking thin on
-       smaller breakpoints. */
-    font-weight: 600;
-  }
-
   /* Editorial eyebrow — small caps, wide tracking. Used on light
      page backgrounds by default; on dark surfaces (Hero gradient,
      Footer, MobileDrawer) override the colour inline with

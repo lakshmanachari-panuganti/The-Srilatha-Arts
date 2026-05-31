@@ -56,13 +56,6 @@ const config: Config = {
         'ink-mute': '#7B6F8A',            // mirrors `ivory-mute`
         'primary-dark': '#7C3AED',
         'primary-burnt': '#A78BFA',
-        // Gold tokens — used for the `.gold-text` gradient + accent
-        // numerals + review stars. Suited for LARGE text (≥18px) only;
-        // small body text in gold fails contrast on the light lavender
-        // page. Use `text-lavender` for actionable links instead.
-        gold: '#D4AF37',
-        'gold-light': '#F3D27A',
-        'gold-deep': '#B8962E',
         // NOTE: `terracotta`, `terracotta-deep`, `clay`, `sage` tokens
         // were removed on 2026-05-31. They were leftover from an earlier
         // craft-palette concept and had been remapped to amber-200

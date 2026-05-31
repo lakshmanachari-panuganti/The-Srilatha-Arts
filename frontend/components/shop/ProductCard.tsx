@@ -88,7 +88,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               }
               if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
                 badges.push(
-                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #F59E0B, #FDE68A)', color: '#2E1065' }}>
+                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #E879F9, #A78BFA)', color: '#ffffff' }}>
                     Only {product.stockQty} left
                   </span>,
                 )
@@ -131,7 +131,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               borderRadius: '24px',
               background: 'rgba(255,255,255,0.92)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(167,139,250,0.30)',
+              border: '1px solid rgba(167,139,250,0.40)',
               boxShadow: '0 2px 10px rgba(75,63,114,0.10)',
             }}
           >
@@ -163,7 +163,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        disabled:opacity-40 disabled:pointer-events-none"
             style={{
               borderRadius: '24px',
-              background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
+              background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
               boxShadow: '0 4px 16px rgba(138,116,201,0.3)',
             }}
           >
