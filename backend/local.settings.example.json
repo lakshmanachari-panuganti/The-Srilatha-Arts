@@ -20,7 +20,11 @@
     "USER_UPLOAD_CONTAINER": "user-uploads",
     "RAZORPAY_KEY_ID": "rzp_test_xxxxxxxxxxxxxx",
     "RAZORPAY_KEY_SECRET": "your-razorpay-key-secret",
-    "RAZORPAY_WEBHOOK_SECRET": "the-secret-you-pasted-into-razorpay-dashboard-webhooks"
+    "RAZORPAY_WEBHOOK_SECRET": "the-secret-you-pasted-into-razorpay-dashboard-webhooks",
+    "AZURE_OPENAI_ENDPOINT": "https://<resource-name>.openai.azure.com",
+    "AZURE_OPENAI_API_KEY": "your-azure-openai-api-key",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-4o",
+    "AZURE_OPENAI_API_VERSION": "2024-08-01-preview"
   },
   "Host": {
     "CORS": "http://localhost:3000",
