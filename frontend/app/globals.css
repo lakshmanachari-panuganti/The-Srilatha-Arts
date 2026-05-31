@@ -4,7 +4,13 @@
 
 @font-face {
   font-family: 'Aldo';
-  src: url('https://evanniederwerfer.com/assets/aldo.ttf') format('truetype');
+  /* Self-hosted from /public/fonts. WOFF2 first (every browser back to
+     Chrome 36 / Firefox 39 / Safari 12); TTF as a final fallback for
+     very old engines. font-display: swap renders fallback immediately
+     and swaps to Aldo when ready — keeps mobile users on slow networks
+     from staring at invisible text. */
+  src: url('/fonts/aldo.woff2') format('woff2'),
+       url('/fonts/aldo.ttf')   format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;

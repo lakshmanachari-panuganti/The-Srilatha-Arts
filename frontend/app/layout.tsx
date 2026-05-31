@@ -72,6 +72,21 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${squarePeg.variable}`}>
+      <head>
+        {/* Preload self-hosted Aldo so the body text doesn't flash in
+            Georgia on first paint. next/font handles the preload for
+            Square Peg automatically. crossOrigin="anonymous" is required
+            even for same-origin font preloads — without it the preload
+            and the actual @font-face fetch are considered different
+            requests and the cache is missed. */}
+        <link
+          rel="preload"
+          href="/fonts/aldo.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body>
         <a
           href="#main"
