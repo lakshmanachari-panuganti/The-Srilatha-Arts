@@ -66,7 +66,7 @@ export default function CustomOrderCTA() {
                 >
                   <div>
                     <div className="flex items-center justify-between mb-6">
-                      <span className="text-4xl font-brand text-lavender-pastel leading-none">
+                      <span className="text-4xl text-lavender-pastel leading-none">
                         {s.step}
                       </span>
                       <span className="w-10 h-10 rounded-full bg-lavender-light border border-glass-border flex items-center justify-center text-lavender">

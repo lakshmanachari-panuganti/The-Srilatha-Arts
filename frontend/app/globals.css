@@ -13,25 +13,22 @@
 /* ─────────────────────────────────────────────────────────────
    Typography system
 
-   The fonts themselves (Playfair Display, Montserrat, Caveat)
-   are loaded once in app/layout.tsx and exposed as CSS vars:
-     --font-playfair  → display / headings / serif accents
-     --font-montserrat → body / UI / forms
-     --font-caveat    → handwritten footer / decorative tagline
+   Two typefaces, single role each:
 
-   The roles below standardise:
-     - weight  (serif: 500/600 for headings, 400 for serif body)
-                (sans:  400 body, 500/600 UI, 700 reserved for
-                 short emphatic strings like prices or stickers)
-     - tracking (negative for large display, neutral for body,
-                 positive only for small all-caps eyebrows)
-     - color    (deep-purple ramp ivory / ivory-soft / ivory-mute
-                 on the page background; explicit lavender or
-                 white on dark sections — set inline there)
-     - feature-settings (kerning + common ligatures everywhere;
-                 contextual alternates for Montserrat ss01;
-                 tabular figures on prices via the .tabular-nums
-                 utility or in components that print money)
+     Aldo       — loaded via @font-face above. Used EVERYWHERE
+                  (body, UI, headings, prices, buttons). Both the
+                  `font-sans` and `font-serif` Tailwind tokens map
+                  to it so existing utility classes keep working.
+
+     Square Peg — loaded in app/layout.tsx as next/font/google and
+                  exposed as --font-square-peg. Used ONLY for the
+                  "Srilatha Art" wordmark via the `font-brand`
+                  Tailwind token. Do not use it for anything else.
+
+   Feature settings (kerning + common ligatures) stay on the html
+   element below. Tabular figures still get opted-in on a per-
+   component basis via the .tabular-nums utility for prices /
+   totals / line-up grids.
    ───────────────────────────────────────────────────────────── */
 
 @layer base {

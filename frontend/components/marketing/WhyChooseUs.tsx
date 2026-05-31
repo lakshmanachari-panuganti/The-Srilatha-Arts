@@ -139,7 +139,7 @@ export default function WhyChooseUs() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-3xl font-brand text-lavender-pastel/60 leading-none">
+                    <span className="text-3xl text-lavender-pastel/60 leading-none">
                       {step.step}
                     </span>
                     <span className="w-8 h-8 rounded-full bg-lavender-light border border-glass-border flex items-center justify-center text-lavender">

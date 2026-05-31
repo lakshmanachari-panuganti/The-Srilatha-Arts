@@ -49,12 +49,13 @@ const config: Config = {
         sage: '#A7F3D0',
       },
       fontFamily: {
-        // Square Peg — playful hand-lettered script for all display headings and section titles
-        serif: ['var(--font-square-peg)', 'Square Peg', 'cursive'],
-        // Aldo — strong geometric font for all body text, UI, nav, buttons
-        sans: ['Aldo', 'system-ui', 'sans-serif'],
-        // brand — same Aldo for the logo wordmark
-        brand: ['Aldo', 'system-ui', 'sans-serif'],
+        // Aldo is the single primary typeface across the whole site.
+        // Both `sans` and `serif` resolve to it so existing usages
+        // (font-serif / font-sans) keep working without a per-file refactor.
+        // `brand` is reserved exclusively for the "Srilatha Art" wordmark.
+        sans:  ['Aldo', 'Georgia', 'serif'],
+        serif: ['Aldo', 'Georgia', 'serif'],
+        brand: ['var(--font-square-peg)', 'Square Peg', 'cursive'],
       },
       fontSize: {
         '10': ['0.625rem', { lineHeight: '1.5' }],   // 10px — label caps, tab bar text
