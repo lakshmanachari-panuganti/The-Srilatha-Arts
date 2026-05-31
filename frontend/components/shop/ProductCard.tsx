@@ -172,7 +172,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
         </div>
 
         <div className="pt-4 px-1">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-ivory-mute mb-1.5">
+          <p className="text-10 uppercase tracking-[0.22em] text-ivory-mute mb-1.5">
             {product.category.replace('-', ' ')}
           </p>
           {/*

@@ -437,6 +437,14 @@
   /* Balanced and pretty wrapping helpers for ad-hoc use. */
   .text-balance { text-wrap: balance; }
   .text-pretty { text-wrap: pretty; }
+
+  /* Semantic on-dark text helpers — use on elements inside dark nav
+     surfaces (MobileDrawer, BottomTabBar, StickyCartBar, SearchOverlay)
+     instead of repeating the equivalent dark-text tokens which would be
+     invisible against a deep-purple background. */
+  .text-on-dark { @apply text-plum; }
+  .text-on-dark-muted { @apply text-plum-warm; }
+  .text-on-dark-accent { @apply text-lavender-soft; }
 }
 
 @media (prefers-reduced-motion: reduce) {

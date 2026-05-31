@@ -39,8 +39,8 @@ export default function StickyCartBar({ product }: { product: Product }) {
       }}
     >
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-        <div className="hidden sm:block text-ivory">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-ivory-mute">Total</p>
+        <div className="hidden sm:block text-plum">
+          <p className="text-11 uppercase tracking-[0.22em] text-plum-warm">Total</p>
           <p className="font-serif text-xl font-semibold leading-none tabular-nums">{formatINR(product.price * qty)}</p>
         </div>
 
@@ -50,13 +50,13 @@ export default function StickyCartBar({ product }: { product: Product }) {
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             aria-label="Decrease quantity"
-            className="w-11 h-11 flex items-center justify-center text-ivory-mute hover:text-ivory
+            className="w-11 h-11 flex items-center justify-center text-plum-warm hover:text-plum
                        disabled:opacity-40 transition-colors duration-500"
             disabled={qty <= 1}
           >
             <Minus className="w-4 h-4" aria-hidden />
           </button>
-          <span className="min-w-8 text-center text-ivory font-medium" aria-live="polite">
+          <span className="min-w-8 text-center text-plum font-medium" aria-live="polite">
             {qty}
           </span>
           <button

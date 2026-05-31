@@ -50,7 +50,7 @@ export default function Header() {
       >
         <div
           className={cn(
-            'mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-20',
+            'mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-28',
             'transition-all duration-500',
             scrolled
               ? 'glass-strong'
@@ -58,17 +58,34 @@ export default function Header() {
           )}
           style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
         >
-          {/* Left: hamburger (mobile) + minimal nav (desktop) */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Open menu"
-              className="lg:hidden min-h-11 min-w-11 -ml-2 flex items-center justify-center
-                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
+          {/* Left: logo + brand name (all viewports) */}
+          <div className="flex items-center">
+            <Link
+              href="/"
+              aria-label="Srilatha Art - home"
+              className="flex items-center gap-2.5"
             >
-              <Menu className="w-5 h-5" aria-hidden />
-            </button>
-            <nav className="hidden lg:flex items-center gap-8 text-sm">
+              <Image
+                src="/Logos/logo.png"
+                alt="Srilatha Art"
+                width={96}
+                height={96}
+                priority
+                className={cn(
+                  'w-12 h-12 lg:w-24 lg:h-24 object-contain transition-all duration-500',
+                  'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
+                  scrolled ? 'opacity-100' : 'opacity-95',
+                )}
+              />
+              <span className="font-serif font-semibold tracking-widest uppercase text-ivory text-sm lg:text-xl">
+                Srilatha Art
+              </span>
+            </Link>
+          </div>
+
+          {/* Right: nav (desktop) + search + account + cart + hamburger (mobile) */}
+          <div className="flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-8 text-sm mr-2">
               <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Shop
               </Link>
@@ -82,30 +99,6 @@ export default function Header() {
                 Contact
               </Link>
             </nav>
-          </div>
-
-          {/* Center: large round logo monogram */}
-          <Link
-            href="/"
-            aria-label="Srilatha Art - home"
-            className="absolute left-1/2 -translate-x-1/2 flex items-center"
-          >
-            <Image
-              src="/Logos/logo.jpeg"
-              alt="Srilatha Art"
-              width={56}
-              height={56}
-              priority
-              className={cn(
-                'w-12 h-12 lg:w-14 lg:h-14 object-contain transition-all duration-500',
-                'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
-                scrolled ? 'opacity-100' : 'opacity-95',
-              )}
-            />
-          </Link>
-
-          {/* Right: search + account + cart */}
-          <div className="flex items-center gap-1">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
@@ -135,7 +128,7 @@ export default function Header() {
             <Link
               href="/cart"
               aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
-              className="relative min-h-11 min-w-11 -mr-2 flex items-center justify-center
+              className="relative min-h-11 min-w-11 flex items-center justify-center
                          text-ivory hover:text-lavender-pastel transition-colors duration-500"
             >
               <ShoppingBag className="w-5 h-5" aria-hidden />
@@ -152,12 +145,21 @@ export default function Header() {
                 </span>
               )}
             </Link>
+            {/* Hamburger — mobile only, rightmost */}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+              className="lg:hidden min-h-11 min-w-11 -mr-2 flex items-center justify-center
+                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
+            >
+              <Menu className="w-5 h-5" aria-hidden />
+            </button>
           </div>
         </div>
       </header>
 
       {/* Spacer so content doesn't slide under the fixed header */}
-      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+5rem)]" />
+      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+7rem)]" />
 
       <MobileDrawer />
       <SearchOverlay />

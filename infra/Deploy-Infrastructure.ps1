@@ -114,7 +114,7 @@ $config = @{
         StorageAccount = "st$($AppSlug)dev"      # 20 chars, lowercase
         FunctionApp    = "func-$AppSlug-dev"
         StaticWebApp   = "swa-$AppSlug-dev"   # reserved name only
-        KeyVault       = @("kv-$AppSlug-dev", "kv-$AppSlug-backup-dev")    # 22 chars
+        KeyVault       = "kv-$AppSlug-dev"        # 22 chars; app + backup secrets
         AppInsights    = "appi-$AppSlug-dev"
         CorsOrigins    = @(
             'http://localhost:3000',
@@ -130,7 +130,7 @@ $config = @{
         StorageAccount = "st$($AppSlug)prd"
         FunctionApp    = "func-$AppSlug-prd"
         StaticWebApp   = "swa-$AppSlug-prd"
-        KeyVault       = @("kv-$AppSlug-prd", "kv-$AppSlug-backup-prd")
+        KeyVault       = "kv-$AppSlug-prd"        # 22 chars; app + backup secrets
         AppInsights    = "appi-$AppSlug-prd"
         CorsOrigins    = @(
             'https://www.srilatha.art',
@@ -416,19 +416,17 @@ if ($functionApp) {
     Write-Success "Function App created        : $($envCfg.FunctionApp)"
 }
 
-# ── 2.5  Key Vault (RBAC mode is the modern default) ─────────────
-$keyVault = $envCfg.KeyVault | ForEach-Object {
-    Get-AzKeyVault -ResourceGroupName $envCfg.ResourceGroup -VaultName $_ -ErrorAction SilentlyContinue
-}
+# ── 2.5  Key Vault (RBAC auth mode, single vault for app + backups) ─
+$keyVault = Get-AzKeyVault -ResourceGroupName $envCfg.ResourceGroup -VaultName $envCfg.KeyVault -ErrorAction SilentlyContinue
 if ($keyVault) {
     Write-Success "Key Vault exists            : $($envCfg.KeyVault)"
 } else {
     Write-Info "Creating Key Vault          : $($envCfg.KeyVault)"
     $keyVault = New-AzKeyVault `
+        -Name              $envCfg.KeyVault `
         -ResourceGroupName $envCfg.ResourceGroup `
-        -VaultName $envCfg.KeyVault `
-        -Location $envCfg.Location `
-        -Sku Standard
+        -Location          $envCfg.Location `
+        -Sku               Standard
     Write-Success "Key Vault created           : $($envCfg.KeyVault)"
 }
 

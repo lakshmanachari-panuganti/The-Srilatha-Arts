@@ -85,16 +85,21 @@ Write-Host "Az Context   : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -For
 Write-Host ""
 
 # ------------------------------------------------------------
-# Get Function App
+# Get Function App resource group
+# Use Get-AzResource instead of Get-AzFunctionApp to avoid a bug in
+# Az.Functions 4.x where a subscription-wide scan throws on null app-setting
+# keys in unrelated apps.
 # ------------------------------------------------------------
-$functionApp = Get-AzFunctionApp |
-    Where-Object { $_.Name -eq $FunctionAppName }
+$faResource = Get-AzResource `
+    -ResourceType "Microsoft.Web/sites" `
+    -Name $FunctionAppName `
+    -ErrorAction SilentlyContinue
 
-if (-not $functionApp) {
+if (-not $faResource) {
     throw "Function App '$FunctionAppName' not found."
 }
 
-$resourceGroupName = $functionApp.ResourceGroup
+$resourceGroupName = $faResource.ResourceGroupName
 
 Write-Host "Resource Group : $resourceGroupName"
 Write-Host ""
@@ -190,11 +195,15 @@ foreach ($secret in $selectedSecrets) {
         -Version    $secret.Version `
         -AsPlainText
 
-    # Use the stored OriginalKey tag; fall back to reversing '-' to '_'
+    # Use the stored OriginalKey tag (canonical); fall back to reversing the
+    # encoding applied by Backup-function-settings.ps1 for tag-less secrets.
     if ($secret.Tags -and $secret.Tags.ContainsKey("OriginalKey")) {
         $originalKey = $secret.Tags["OriginalKey"]
     } else {
-        $originalKey = $secretName.Replace("-", "_")
+        $originalKey = $secretName -replace '^x-', ''   # strip digit-start prefix
+        $originalKey = $originalKey -replace '-C-', ':'
+        $originalKey = $originalKey -replace '-D-', '.'
+        $originalKey = $originalKey -replace '--',  '_'
     }
 
     $appSettings[$originalKey] = $value
@@ -207,18 +216,28 @@ if ($appSettings.Count -eq 0) {
 # ------------------------------------------------------------
 # Diff preview — keys only, values are never printed
 # ------------------------------------------------------------
-$currentRaw = Get-AzWebAppApplicationSetting `
-    -ResourceGroupName $resourceGroupName `
-    -Name              $FunctionAppName
+$subId   = (Get-AzContext).Subscription.Id
+$apiPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
+           "/providers/Microsoft.Web/sites/$FunctionAppName" +
+           "/config/appsettings/list?api-version=2022-03-01"
+
+$currentResponse = Invoke-AzRestMethod -Method POST -Path $apiPath -Payload '{}'
+
+if ($currentResponse.StatusCode -ne 200) {
+    throw "Failed to read current app settings (HTTP $($currentResponse.StatusCode)): $($currentResponse.Content)"
+}
+
+$currentObj = ($currentResponse.Content | ConvertFrom-Json).properties
 
 $adds    = [System.Collections.Generic.List[string]]::new()
 $changes = [System.Collections.Generic.List[string]]::new()
 $same    = [System.Collections.Generic.List[string]]::new()
 
 foreach ($key in ($appSettings.Keys | Sort-Object)) {
-    if (-not $currentRaw.Properties.ContainsKey($key)) {
+    $cur = $currentObj.PSObject.Properties[$key]
+    if ($null -eq $cur) {
         $adds.Add($key)
-    } elseif ($currentRaw.Properties[$key] -ne $appSettings[$key]) {
+    } elseif ($cur.Value -ne $appSettings[$key]) {
         $changes.Add($key)
     } else {
         $same.Add($key)
@@ -226,7 +245,7 @@ foreach ($key in ($appSettings.Keys | Sort-Object)) {
 }
 
 $notInBackup = @(
-    $currentRaw.Properties.Keys |
+    $currentObj.PSObject.Properties.Name |
         Where-Object { -not $appSettings.ContainsKey($_) } |
         Sort-Object
 )
@@ -260,16 +279,28 @@ if ($confirm -notmatch '^[Yy]$') {
 }
 
 # ------------------------------------------------------------
-# Apply settings
+# Apply settings via ARM REST API
+# (Avoids the Az.Functions 4.x GetRuntimeName bug on the response path)
+# PUT replaces the full set, so merge backup into current first.
 # ------------------------------------------------------------
 Write-Host ""
 Write-Host "Updating Function App settings..."
 
-Update-AzFunctionAppSetting `
-    -Name              $FunctionAppName `
-    -ResourceGroupName $resourceGroupName `
-    -AppSetting        $appSettings `
-    -Force | Out-Null
+$mergedSettings = @{}
+$currentObj.PSObject.Properties | ForEach-Object { $mergedSettings[$_.Name] = $_.Value }
+foreach ($key in $appSettings.Keys) { $mergedSettings[$key] = $appSettings[$key] }
+
+$putBody = @{ properties = $mergedSettings } | ConvertTo-Json -Depth 3 -Compress
+
+$putPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
+           "/providers/Microsoft.Web/sites/$FunctionAppName" +
+           "/config/appsettings?api-version=2022-03-01"
+
+$putResponse = Invoke-AzRestMethod -Method PUT -Path $putPath -Payload $putBody
+
+if ($putResponse.StatusCode -notin @(200, 201)) {
+    throw "Failed to update app settings (HTTP $($putResponse.StatusCode)): $($putResponse.Content)"
+}
 
 Write-Host ""
 Write-Host "==============================================="

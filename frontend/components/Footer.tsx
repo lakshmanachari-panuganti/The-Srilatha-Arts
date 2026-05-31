@@ -51,7 +51,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}
         <div className="text-center max-w-xl mx-auto mb-14 lg:mb-20">
-          <p className="eyebrow text-lavender-pastel justify-center mb-4">Stay in touch</p>
+          <p className="eyebrow justify-center mb-4">Stay in touch</p>
           <h3 className="display text-3xl lg:text-4xl mb-3">
             Updates from the <em className="italic gold-text">studio</em>
           </h3>
@@ -61,7 +61,7 @@ export default function Footer() {
           {newsletterSubmitted ? (
             <div
               role="status"
-              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender-pastel text-center"
+              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender text-center"
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
               {/*
@@ -123,7 +123,7 @@ export default function Footer() {
         <div className="lg:grid lg:grid-cols-5 lg:gap-10 lg:items-start">
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
-              <Image src="/Logos/logo.jpeg" alt="" width={48} height={48} className="w-12 h-12" />
+              <Image src="/Logos/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
               <span className="font-serif text-xl text-ivory">
                 <span className="gold-text">Srilatha Art</span>
               </span>
@@ -160,7 +160,7 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
-            <Image src="/Logos/logo.jpeg" alt="" width={36} height={36} className="w-9 h-9" />
+            <Image src="/Logos/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
             <span className="font-serif text-lg text-ivory">
               <span className="gold-text">Srilatha</span> Art
             </span>
@@ -217,7 +217,7 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <p>© {new Date().getFullYear()} Srilatha Art. Made by hand in Hyderabad.</p>
-          <p className="font-serif italic text-base text-lavender-pastel">Handmade with care</p>
+          <p className="font-serif italic text-base text-lavender">Handmade with care</p>
         </div>
       </div>
     </footer>
