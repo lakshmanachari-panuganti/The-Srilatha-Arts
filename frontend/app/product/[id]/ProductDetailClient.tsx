@@ -11,6 +11,7 @@ import { apiFetch } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import StickyCartBar from '@/components/shop/StickyCartBar'
 import ProductCard from '@/components/shop/ProductCard'
+import PhotoUploader from '@/components/PhotoUploader'
 import type { Product } from '@/types'
 
 function ProductSkeleton() {
@@ -38,7 +39,7 @@ function Pill({ label }: { label: string }) {
 function Feature({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
   return (
     <div className="flex items-center gap-3 text-sm text-ink/85">
-      <span className="w-9 h-9 rounded-full bg-paper text-terracotta flex items-center justify-center shrink-0">
+      <span className="w-9 h-9 rounded-full bg-paper text-lavender flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4" aria-hidden />
       </span>
       {label}
@@ -66,6 +67,7 @@ export default function ProductDetailClient() {
   const [formRating, setFormRating] = useState(5)
   const [formTitle, setFormTitle] = useState('')
   const [formBody, setFormBody] = useState('')
+  const [formPhotos, setFormPhotos] = useState<string[]>([])
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
   const [formSuccess, setFormSuccess] = useState(false)
@@ -103,9 +105,29 @@ export default function ProductDetailClient() {
     staleTime: 2 * 60_000,
   })
 
+  // Eligibility pre-flight. Only fires when the user is logged in — the
+  // anonymous-state CTA ("Sign in to review") doesn't need a network
+  // round-trip. The backend mirrors POST /api/reviews' own checks
+  // (verified delivered purchase + one-per-user-product), so the form
+  // is only ever shown when the submit will actually succeed.
+  type EligibilityReason =
+    | 'not-authenticated'
+    | 'no-delivered-order'
+    | 'already-reviewed'
+  const { data: eligibility } = useQuery({
+    queryKey: ['review-eligibility', id, user?.email],
+    queryFn: () =>
+      apiFetch<{ eligible: boolean; reason?: EligibilityReason }>(
+        `/reviews/eligibility?productId=${encodeURIComponent(id!)}`,
+      ),
+    enabled: !!id && id !== '__shell__' && !!user,
+    staleTime: 60_000,
+  })
+
   const related = (relatedData?.products ?? []).filter((r) => r.id !== p?.id).slice(0, 4)
   const reviews = reviewsData?.reviews ?? []
   const avgRating = reviewsData?.averageRating ?? 0
+  const canReview = !!user && eligibility?.eligible === true
 
   const submitReview = async () => {
     if (!formBody.trim()) return
@@ -114,13 +136,20 @@ export default function ProductDetailClient() {
     try {
       await apiFetch('/reviews', {
         method: 'POST',
-        body: { productId: id, rating: formRating, title: formTitle.trim() || undefined, body: formBody.trim() },
+        body: {
+          productId: id,
+          rating: formRating,
+          title: formTitle.trim() || undefined,
+          body: formBody.trim(),
+          photos: formPhotos,
+        },
       })
       setFormSuccess(true)
       setShowForm(false)
       setFormTitle('')
       setFormBody('')
       setFormRating(5)
+      setFormPhotos([])
       queryClient.invalidateQueries({ queryKey: ['reviews', id] })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Could not submit review. Please try again.'
@@ -137,7 +166,7 @@ export default function ProductDetailClient() {
       <div className="max-w-6xl mx-auto px-5 pt-20 text-center">
         <h1 className="font-serif text-3xl text-ink mb-4">Product not found</h1>
         <p className="text-ink-soft mb-8">This product may have been removed or the link is incorrect.</p>
-        <Link href="/shop" className="inline-flex h-11 px-6 items-center rounded-full bg-terracotta text-white text-sm font-medium hover:bg-terracotta/90 transition-colors">
+        <Link href="/shop" className="inline-flex h-11 px-6 items-center rounded-full bg-lavender text-white text-sm font-medium hover:bg-lavender/90 transition-colors">
           Browse the shop
         </Link>
       </div>
@@ -173,7 +202,7 @@ export default function ProductDetailClient() {
         <div className="px-5 lg:px-0 pt-8 lg:pt-0 pb-32 lg:pb-12">
           <Link
             href={`/shop/${category?.slug}`}
-            className="inline-flex items-center gap-1 text-xs text-ink-mute hover:text-terracotta transition-colors mb-4"
+            className="inline-flex items-center gap-1 text-xs text-ink-mute hover:text-lavender transition-colors mb-4"
           >
             <ChevronLeft className="w-3.5 h-3.5" aria-hidden />
             {category?.title}
@@ -208,7 +237,7 @@ export default function ProductDetailClient() {
               <>
                 <span className="text-ink-mute line-through tabular-nums">{formatINR(p.compareAtPrice)}</span>
                 {pct !== null && (
-                  <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-terracotta px-2 py-1 rounded-full">
+                  <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-lavender px-2 py-1 rounded-full">
                     Save {pct}%
                   </span>
                 )}
@@ -235,15 +264,15 @@ export default function ProductDetailClient() {
           <div className="card-cream p-4 sm:p-5 mb-7 grid grid-cols-2 gap-3 sm:gap-4">
             <Feature icon={Hand} label="Handmade by Srilatha" />
             <Feature icon={Sparkles} label={`Ships in ${p.timeToMake}`} />
-            <Feature icon={Truck} label="Free shipping above ₹2,999" />
+            <Feature icon={Truck} label="Free shipping above ₹999" />
             <Feature icon={ShieldCheck} label="7-day easy returns" />
           </div>
 
           {/* Low-stock urgency cue — honest, since handcrafted is genuinely
               limited. Only fires when stock is positive but ≤ 2. */}
           {p.inStock && p.stockQty > 0 && p.stockQty <= 2 && (
-            <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-terracotta-deep bg-terracotta/15 px-3 py-2 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-terracotta-deep animate-pulse" aria-hidden />
+            <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-lavender bg-lavender/10 px-3 py-2 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-lavender animate-pulse" aria-hidden />
               Only {p.stockQty} left — each piece is unique
             </p>
           )}
@@ -266,7 +295,7 @@ export default function ProductDetailClient() {
             <p className="text-ink-soft text-sm leading-relaxed mt-3">
               We ship from Hyderabad. Most orders reach you in 5–7 working days. You can return
               unused items within 7 days of delivery.{' '}
-              <Link href="/shipping-and-returns" className="text-terracotta hover:underline">
+              <Link href="/shipping-and-returns" className="text-lavender hover:underline">
                 Read the full policy
               </Link>
               .
@@ -316,7 +345,7 @@ export default function ProductDetailClient() {
               </div>
             )}
           </div>
-          {user && !showForm && !formSuccess && (
+          {canReview && !showForm && !formSuccess && (
             <button
               onClick={() => setShowForm(true)}
               className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
@@ -326,6 +355,25 @@ export default function ProductDetailClient() {
             </button>
           )}
         </div>
+
+        {/* Contextual eligibility messaging — explains WHY the user
+            can't write a review instead of letting them fill the form
+            and hit a 401/403 on submit. */}
+        {!showForm && !formSuccess && user && eligibility?.eligible === false && (
+          <p className="text-sm text-ink-mute mb-6">
+            {eligibility.reason === 'already-reviewed'
+              ? 'Thanks — you’ve already shared a review for this piece.'
+              : eligibility.reason === 'no-delivered-order'
+                ? 'Only customers who’ve received this piece can leave a review.'
+                : null}
+          </p>
+        )}
+        {!showForm && !formSuccess && !user && reviews.length > 0 && (
+          <p className="text-sm text-ink-mute mb-6">
+            <Link href="/login" className="text-lavender hover:underline">Sign in</Link>{' '}
+            to leave a review on a piece you’ve received.
+          </p>
+        )}
 
         {/* Review submission form */}
         {showForm && (
@@ -350,7 +398,7 @@ export default function ProductDetailClient() {
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="A short title for your review"
-                className="w-full h-10 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+                className="w-full h-10 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
               />
             </div>
             <div className="mb-4">
@@ -360,7 +408,16 @@ export default function ProductDetailClient() {
                 onChange={(e) => setFormBody(e.target.value)}
                 rows={4}
                 placeholder="Tell us what you liked or didn’t…"
-                className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+              />
+            </div>
+            <div className="mb-4">
+              <PhotoUploader
+                value={formPhotos}
+                onChange={setFormPhotos}
+                max={6}
+                label="Photos (optional)"
+                hint="Show off the piece in your space — up to 6 photos, 5 MB each."
               />
             </div>
             {formError && <p className="text-xs text-red-600 mb-3">{formError}</p>}
@@ -368,7 +425,7 @@ export default function ProductDetailClient() {
               <button
                 onClick={submitReview}
                 disabled={formLoading || !formBody.trim()}
-                className="h-10 px-6 rounded-full bg-terracotta text-white text-sm font-medium disabled:opacity-50 hover:bg-terracotta/90 transition-colors"
+                className="h-10 px-6 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors"
               >
                 {formLoading ? 'Submitting…' : 'Submit review'}
               </button>
@@ -394,7 +451,7 @@ export default function ProductDetailClient() {
             <Star className="w-8 h-8 text-ink/15 mx-auto mb-3" aria-hidden />
             <p className="text-sm">No reviews yet. Be the first to leave one!</p>
             {!user && (
-              <Link href="/login" className="mt-3 inline-block text-sm text-terracotta hover:underline">
+              <Link href="/login" className="mt-3 inline-block text-sm text-lavender hover:underline">
                 Sign in to leave a review
               </Link>
             )}

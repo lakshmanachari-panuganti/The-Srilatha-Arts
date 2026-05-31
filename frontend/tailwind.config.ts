@@ -21,52 +21,83 @@ const config: Config = {
         'lavender-pastel': '#E879F9',    // fuchsia-400 — vivid magenta accent
         'lavender-light': '#F5F3FF',     // violet-50  — lightest surface
         'lavender-faint': '#EDE9FE',     // violet-100 — faint lavender
-        // ── Text (Deep Purple) ───────────────────────────────────
-        ivory: '#2E1065',                // violet-950 — deep purple primary text
-        'ivory-soft': '#4C1D95',         // violet-900 — secondary text
-        'ivory-mute': '#6D28D9',         // violet-700 — muted text
+        // ── Text (calibrated hierarchy — warm violet undertone) ──
+        // Names kept for back-compat (token rename would ripple ~200
+        // call sites). Values rebalanced so the hierarchy is correct:
+        // headline > body > muted, in both contrast and saturation.
+        // Prior values had `ivory-mute` (#6D28D9, violet-700) MORE
+        // saturated than the body tone above it — a brand-coloured
+        // "muted" reads as purple, not as muted. Fixed below.
+        ivory: '#2A1056',                // primary text — deep violet, still
+                                          // rich enough to read editorial on
+                                          // light-lavender bg
+        'ivory-soft': '#3D2F55',         // body text — warm desaturated plum,
+                                          // calm enough to read as TEXT
+                                          // rather than as "purple"
+        'ivory-mute': '#7B6F8A',         // muted captions / meta — properly
+                                          // muted warm grey-violet, lighter
+                                          // and less saturated than body
         // ── Glass & Overlay (Lavender Mode) ──────────────────────
         'glass-surface': 'rgba(237,233,254,0.70)',
         'glass-border': 'rgba(167,139,250,0.40)',
         'glass-hover': 'rgba(221,214,254,0.90)',
         'overlay-soft': 'rgba(124,58,237,0.08)',
         'overlay-deep': 'rgba(46,16,101,0.35)',
-        // ── Legacy aliases ────────────────────────────────────────
+        // ── Legacy aliases (lavender-aliased back-compat tokens) ──
+        // These names predate the cream→lavender pivot; their *values*
+        // were remapped to lavender equivalents so existing call sites
+        // keep working. ink-* mirrors ivory-* for the same hierarchy
+        // (see ivory comments above).
         cream: '#F5F3FF',
         'cream-deep': '#DDD6FE',
         paper: 'rgba(237,233,254,0.70)',
-        ink: '#2E1065',
-        'ink-soft': '#4C1D95',
-        'ink-mute': '#6D28D9',
+        ink: '#2A1056',                  // mirrors `ivory`
+        'ink-soft': '#3D2F55',            // mirrors `ivory-soft`
+        'ink-mute': '#7B6F8A',            // mirrors `ivory-mute`
         'primary-dark': '#7C3AED',
         'primary-burnt': '#A78BFA',
-        terracotta: '#FDE68A',           // amber-200 — warm gold accent
-        'terracotta-deep': '#F59E0B',    // amber-500 — vivid gold
-        gold: '#D4AF37',
-        'gold-light': '#F3D27A',
-        'gold-deep': '#B8962E',
-        clay: '#FDE68A',
-        sage: '#A7F3D0',
+        // NOTE: `terracotta`, `terracotta-deep`, `clay`, `sage` tokens
+        // were removed on 2026-05-31. They were leftover from an earlier
+        // craft-palette concept and had been remapped to amber-200
+        // (#FDE68A — a pale yellow) which became unreadable text on the
+        // light-lavender page. All call sites have been migrated to
+        // `lavender` / `lavender-pastel` / `rose-700` per intent.
       },
       fontFamily: {
-        serif: ['var(--font-playfair)', 'Playfair Display', 'serif'],
-        sans: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
+        // Three-font system, each with a clear role:
+        //
+        //   sans  → DM Sans (body, UI, buttons, prices, nav, eyebrows).
+        //           Variable weight, proper small-size rendering.
+        //   serif → Cormorant Garamond (display headlines, italic accent
+        //           words, editorial pull-quotes). High-contrast capitals
+        //           that hold up under the uppercase headlines used
+        //           sitewide. Replaced the prior single-weight Aldo,
+        //           which faux-bolded under font-semibold/bold and read
+        //           stiff under uppercase.
+        //   brand → Square Peg, reserved exclusively for the "Srilatha
+        //           Art" wordmark. Do not use it elsewhere.
+        //
+        // CSS variables come from next/font/google in app/layout.tsx —
+        // see the Typography comment block there for the loader config.
+        sans:  ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-cormorant)', 'Georgia', 'serif'],
+        brand: ['var(--font-square-peg)', 'Square Peg', 'cursive'],
       },
       fontSize: {
         '10': ['0.625rem', { lineHeight: '1.5' }],   // 10px — label caps, tab bar text
-        '11': ['0.6875rem', { lineHeight: '1.5' }],  // 11px — eyebrow / sticker (alias text-xs)
-        xs: ['11px', { lineHeight: '1.5' }],
-        sm: ['13px', { lineHeight: '1.55' }],
-        base: ['15px', { lineHeight: '1.65' }],
-        lg: ['17px', { lineHeight: '1.6' }],
-        xl: ['20px', { lineHeight: '1.4' }],
-        '2xl': ['26px', { lineHeight: '1.25' }],
-        '3xl': ['34px', { lineHeight: '1.15' }],
-        '4xl': ['44px', { lineHeight: '1.05' }],
-        '5xl': ['56px', { lineHeight: '1.02' }],
-        '6xl': ['72px', { lineHeight: '1' }],
-        '7xl': ['88px', { lineHeight: '0.98' }],
-        '8xl': ['112px', { lineHeight: '0.96' }],
+        '11': ['0.6875rem', { lineHeight: '1.5' }],  // 11px — eyebrow / sticker
+        xs: ['14px', { lineHeight: '1.5' }],
+        sm: ['14px', { lineHeight: '1.5' }],
+        base: ['16px', { lineHeight: '1.65' }],
+        lg: ['18px', { lineHeight: '1.6' }],
+        xl: ['18px', { lineHeight: '1.2' }],
+        '2xl': ['20px', { lineHeight: '1.2' }],
+        '3xl': ['24px', { lineHeight: '1.2' }],
+        '4xl': ['32px', { lineHeight: '1.15' }],
+        '5xl': ['40px', { lineHeight: '1.12' }],
+        '6xl': ['56px', { lineHeight: '1.1' }],
+        '7xl': ['64px', { lineHeight: '1.1' }],
+        '8xl': ['88px', { lineHeight: '1.05' }],
       },
       letterSpacing: {
         'editor': '0.32em',

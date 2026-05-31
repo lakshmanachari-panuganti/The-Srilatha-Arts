@@ -5,6 +5,8 @@ import MarqueeBanner from '@/components/MarqueeBanner'
 import Header from '@/components/Header'
 import BottomTabBar from '@/components/BottomTabBar'
 import Footer from '@/components/Footer'
+import FloatingWhatsApp from '@/components/FloatingWhatsApp'
+import Toaster from '@/components/Toaster'
 import { apiFetch } from '@/lib/api'
 import { ANNOUNCEMENTS } from '@/data/announcements'
 import type { Announcement } from '@/types'
@@ -22,6 +24,9 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const showChrome = !isAdmin && !isAuth
   const showTabs = !isAdmin && !isAuth && !isCheckout
   const showFooter = !isAdmin && !isAuth && !isCheckout
+  // Floating WhatsApp: same gating as footer — anywhere the user is shopping
+  // or browsing. Hidden in checkout (don't interrupt payment), admin, auth.
+  const showWhatsApp = showFooter
 
   const { data: apiData } = useQuery({
     queryKey: ['announcements'],
@@ -45,6 +50,11 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       </main>
       {showFooter && <Footer />}
       {showTabs && <BottomTabBar />}
+      {showWhatsApp && <FloatingWhatsApp />}
+      {/* Toaster lives outside the route boundary so a toast announced just
+          before a navigation (e.g. "Redirecting to login…") keeps rendering
+          on the next page. Cheap when there are no active toasts. */}
+      <Toaster />
     </>
   )
 }

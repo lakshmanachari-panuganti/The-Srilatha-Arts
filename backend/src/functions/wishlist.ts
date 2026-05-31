@@ -33,16 +33,21 @@ async function wishlistHandler(
   try {
     if (request.method === 'GET') {
       const items = await getWishlist(user.userId)
-      // Enrich with product data
+      // Enrich with product data. Shape mirrors the frontend's WishlistItem
+      // type so the store can swap server data in without re-fetching each
+      // product detail. `slug` + `category` are needed for /product/{slug}
+      // links and category labels on the wishlist page.
       const enriched = await Promise.all(
         items.map(async (item) => {
           const product = await getProductById(item.rowKey)
           return {
             productId: item.rowKey,
             addedAt: item.addedAt,
-            title: product?.title,
-            imageUrl: product?.imageUrl,
-            displayPrice: product?.displayPrice,
+            title: product?.title ?? '',
+            slug: product?.slug || item.rowKey,
+            category: product?.partitionKey ?? '',
+            image: product?.imageUrl ?? '',
+            price: product?.displayPrice ?? product?.price ?? 0,
             inStock: product?.inStock !== false,
           }
         }),

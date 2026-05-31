@@ -36,8 +36,11 @@ const customOrdersTableClient = (() => {
   )
 })()
 
-// Art forms supported by the business (used for validation).
-const VALID_ART_FORMS = ['resin', 'dot-mandala', 'lippan', 'pichwai', 'kolam', 'other']
+// Art forms supported by the business (used for validation). Must stay
+// in sync with the frontend select on /custom-order. `wedding` was added
+// on 2026-05-31 — the brand sells wedding decoratives, and routing those
+// inquiries through "other" lost the categorisation.
+const VALID_ART_FORMS = ['resin', 'dot-mandala', 'lippan', 'pichwai', 'kolam', 'wedding', 'other']
 
 function getClientIp(request: HttpRequest): string {
   return (

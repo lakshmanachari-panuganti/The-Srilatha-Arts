@@ -30,13 +30,17 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="display text-4xl sm:text-5xl lg:text-7xl mb-5 lg:mb-7"
+          className="display text-5xl sm:text-6xl lg:text-8xl uppercase mb-6"
         >
-          Handmade Indian
+          Premium Handcrafted
           <br />
-          art for your{' '}
-          <span className="relative italic font-serif">
-            <span className="gold-text">home</span>
+          Art for Your{' '}
+          {/* Italic accent stays in the same family as the headline
+              (Cormorant Garamond) so the word reads as part of the
+              same sentence, not a system swap. Gold gradient
+              treatment via .gold-text is the editorial highlight. */}
+          <span className="relative italic font-serif font-medium gold-text">
+            Home
             <svg
               viewBox="0 0 200 12"
               preserveAspectRatio="none"
@@ -59,10 +63,9 @@ export default function Hero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.3 }}
-          className="text-ivory-soft text-base lg:text-lg max-w-reader mx-auto mb-8 lg:mb-10 leading-relaxed"
+          className="text-ivory-soft text-lg lg:text-2xl max-w-3xl mx-auto mb-8 lg:mb-12 leading-relaxed font-normal"
         >
-          Beautiful handcrafted art in five styles — Resin, Dot Mandala, Lippan, Kolam and
-          Wedding Decoratives. Each piece is made by hand, one at a time, in our Hyderabad studio.
+          Specializing in handcrafted Resin Art, traditional Lippan Art, and elegant Home & Wedding Decor. Hand-painted, hand-poured, and shockproof-shipped from Hyderabad to elevate your space.
         </motion.p>
 
         {/*
@@ -79,8 +82,8 @@ export default function Hero() {
           transition={{ duration: 1, delay: 0.45 }}
           className="flex flex-col items-center gap-3 mb-12"
         >
-          <Link href="/shop" className="btn-dark w-full sm:w-auto sm:min-w-[18rem] justify-center">
-            Shop all art
+          <Link href="/shop" className="btn-dark w-full sm:w-auto sm:min-w-[18rem] justify-center uppercase tracking-wide font-semibold text-sm">
+            Explore Collections
             <ArrowRight className="w-4 h-4" aria-hidden />
           </Link>
           <Link
@@ -110,7 +113,7 @@ export default function Hero() {
         >
           <span>Painting since 2020</span>
           <span className="hidden sm:inline w-1 h-1 rounded-full bg-lavender-soft/40" aria-hidden />
-          <span>Free shipping above ₹2,999</span>
+          <span>Free shipping above ₹999</span>
           <span className="hidden sm:inline w-1 h-1 rounded-full bg-lavender-soft/40" aria-hidden />
           <span>7-day easy returns</span>
         </motion.div>

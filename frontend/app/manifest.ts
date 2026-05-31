@@ -7,8 +7,8 @@ export const dynamic = 'force-static'
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Srilatha Art',
-    short_name: 'TSA',
-    description: 'Where Tradition Meets Creativity - handcrafted art from Hyderabad.',
+    short_name: 'Srilatha Art',
+    description: 'Resin Art, Lippan Art, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.',
     start_url: '/',
     display: 'standalone',
     background_color: '#FAF6EE',

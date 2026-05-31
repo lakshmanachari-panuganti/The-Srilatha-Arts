@@ -3,91 +3,133 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
-import { CATEGORIES } from '@/data/categories'
 import { fadeUp, stagger } from '@/lib/motion'
+
+const styleEntries = [
+  {
+    slug: 'resin',
+    title: 'Resin Art',
+    tagline: 'Ocean waves, preserved florals, and high-gloss crystalline resin finishes.',
+    href: '/shop/resin',
+    image: '/category/resin/1d122ae3b1de18057f325bb4eb346151.jpg',
+    badge: '01 / Resin',
+  },
+  {
+    slug: 'lippan',
+    title: 'Lippan Art',
+    tagline: 'Hand-shaped mud clay panels with traditional Kutch mirror inlay work.',
+    href: '/shop/lippan',
+    image: '/category/lippan/1edb12e7ed96b46b7a4e9f79c1a85167.jpg',
+    badge: '02 / Lippan',
+  },
+  {
+    slug: 'dot-mandala',
+    title: 'Dot Mandala',
+    tagline: 'Thousands of hand-painted dots placed one by one — each mandala unique.',
+    href: '/shop/dot-mandala',
+    image: '/category/dot-mandala/29edd2b99f56d8048df6aea5ef22895b.jpg',
+    badge: '03 / Mandala',
+  },
+  {
+    slug: 'wedding',
+    title: 'Wedding Decor',
+    tagline: 'Lippan coconut decor, preserved garlands and personalised wedding keepsakes.',
+    href: '/shop/wedding',
+    image: '/category/wedding/8e19fc3c91b74b3260878d9b672b44f5.jpg',
+    badge: '04 / Wedding',
+  },
+  {
+    slug: 'kolam',
+    title: 'Kolam Art',
+    tagline: 'Geometric South Indian rangoli symmetry, made permanent and wall-ready.',
+    href: '/shop/kolam',
+    image: '/category/kolam/4a9b492ed49541bed2ab9620566352b1.jpg',
+    badge: '05 / Kolam',
+  },
+  {
+    slug: 'gifts',
+    title: 'Gift Items',
+    tagline: 'Resin coasters, Lippan frames and art sets — beautifully packaged to gift.',
+    href: '/shop',
+    image: '/category/lippan/1edb12e7ed96b46b7a4e9f79c1a85167.jpg',
+    badge: '06 / Gifts',
+  },
+] as const
 
 export default function ShopByArtForm() {
   return (
-    <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
+    <section className="px-5 lg:px-8 py-16 sm:py-24 lg:py-32 max-w-7xl mx-auto">
       {/* Section header */}
-      <div className="mb-10 sm:mb-12 lg:mb-20 max-w-2xl">
-        <p className="eyebrow mb-4">Shop by art style</p>
-        <h2 className="display text-4xl lg:text-6xl mb-4">
-          Five handmade
-          <br />
-          art <em className="font-serif italic">styles</em>.
+      <div className="mb-12 sm:mb-16 lg:mb-24 max-w-3xl">
+        <p className="eyebrow mb-4 text-lavender">Handcrafted Art</p>
+        <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
+          Explore Our <em className="italic text-lavender-pastel">Collections</em>
         </h2>
-        <p className="text-ivory-soft text-base lg:text-lg leading-relaxed">
-          From calming dot patterns to bright mirror work, each style has its own look and feel.
-          Pick the one you love.
+        <p className="text-ivory-soft text-lg lg:text-xl leading-relaxed font-normal">
+          From shimmering traditional mud-mirror art to sleek, glass-like resin work.
+          Browse our curated collections or commission a custom statement piece designed for your space.
         </p>
       </div>
 
-      {/* Editorial grid */}
+      {/* 6-Card Responsive Grid */}
       <motion.ul
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, margin: '-80px' }}
+        viewport={{ once: true, margin: '-40px' }}
         variants={stagger}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-8 sm:gap-y-14 lg:gap-x-10 lg:gap-y-24"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10"
       >
-        {CATEGORIES.map((c, i) => (
+        {styleEntries.map((item, i) => (
           <motion.li
-            key={c.slug}
+            key={item.slug}
             variants={fadeUp}
-            className={
-              // Stagger sm:second-col items down for asymmetric magazine feel
-              i % 2 === 1 ? 'sm:mt-16 lg:mt-24' : ''
-            }
+            className="flex"
           >
             <Link
-              href={`/shop/${c.slug}`}
-              className="group block"
+              href={item.href}
+              className="group relative flex flex-col justify-between w-full card p-5 sm:p-6
+                         bg-white/80 border border-glass-border hover:border-lavender-pastel/40
+                         transition-all duration-500 hover:shadow-lavender-glow-lg"
             >
-              <div className="relative aspect-[4/5] overflow-hidden mb-5
-                              bg-gradient-to-b from-plum-warm/80 to-plum/60
-                              border border-glass-border
-                              transition-all duration-700 group-hover:border-lavender-pastel/20
-                              group-hover:shadow-lavender-glow"
-                   style={{ borderRadius: '24px' }}
-              >
-                <Image
-                  src={c.heroImage}
-                  alt=""
-                  fill
-                  sizes="(min-width: 768px) 50vw, 100vw"
-                  priority={i < 2}
-                  className="object-contain p-8 sm:p-10 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
-                />
-                {/* Soft gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-plum/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                {/* Small floating badge */}
-                <div className="absolute top-4 left-4">
-                  <span className="sticker -rotate-2">
-                    <span className="opacity-70 mr-2">{String(i + 1).padStart(2, '0')}</span>
-                    {c.title.split(' ')[0]}
-                  </span>
+              <div>
+                {/* Image Frame */}
+                <div className="relative aspect-[4/3] overflow-hidden mb-6 bg-plum-light/20 rounded-2xl border border-glass-border">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    priority={i < 3}
+                    className="object-contain p-4 transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
+                  />
+                  {/* Glass floating badge */}
+                  <div className="absolute top-3 left-3">
+                    <span className="sticker text-[10px] tracking-widest font-semibold uppercase">
+                      {item.badge}
+                    </span>
+                  </div>
                 </div>
+
+                <h3 className="font-serif text-2xl lg:text-3xl text-ivory leading-tight mb-2
+                               group-hover:text-lavender-pastel transition-colors duration-300">
+                  {item.title}
+                </h3>
+                <p className="text-ivory-soft/80 text-sm lg:text-base leading-relaxed mb-6 font-normal">
+                  {item.tagline}
+                </p>
               </div>
 
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <h3 className="font-serif text-2xl lg:text-3xl text-ivory leading-tight mb-2
-                                 group-hover:text-lavender-pastel transition-colors duration-500">
-                    {c.title}
-                  </h3>
-                  <p className="text-ivory-mute text-sm lg:text-base leading-relaxed line-clamp-2">
-                    {c.tagline}
-                  </p>
-                </div>
+              <div className="flex items-center justify-between mt-auto pt-4 border-t border-glass-border/30">
+                <span className="text-xs font-semibold tracking-wider uppercase text-lavender group-hover:text-lavender-pastel transition-colors duration-300">
+                  {item.slug === 'gifts' ? 'Browse Gift Ideas' : 'View Collection'}
+                </span>
                 <span
                   aria-hidden
-                  className="shrink-0 w-10 h-10 rounded-full
-                             border border-glass-border
+                  className="shrink-0 w-8 h-8 rounded-full border border-glass-border
                              group-hover:border-lavender-pastel/40 group-hover:bg-lavender-soft/20 group-hover:text-lavender-pastel
-                             flex items-center justify-center transition-all duration-500 text-ivory-mute"
+                             flex items-center justify-center transition-all duration-300 text-ivory-mute"
                 >
-                  <ArrowUpRight className="w-4 h-4" />
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 </span>
               </div>
             </Link>

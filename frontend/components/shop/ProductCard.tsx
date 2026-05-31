@@ -6,6 +6,7 @@ import type { Product } from '@/types'
 import { formatINR, discountPct } from '@/lib/format'
 import { useWishlist } from '@/stores/wishlist'
 import { useAddToCart } from '@/hooks/useAddToCart'
+import { useToggleWishlist } from '@/hooks/useToggleWishlist'
 import { useHaptic } from '@/hooks/useHaptic'
 import { cn } from '@/lib/cn'
 
@@ -17,7 +18,7 @@ interface Props {
 
 export default function ProductCard({ product, variant = 'grid', priority = false }: Props) {
   const { addToCart } = useAddToCart()
-  const toggleWishlist = useWishlist((s) => s.toggle)
+  const { toggleWishlist } = useToggleWishlist()
   const inWishlist = useWishlist((s) => s.has(product.id))
   const haptic = useHaptic()
 
@@ -32,8 +33,9 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
 
   const onWish = (e: React.MouseEvent) => {
     e.preventDefault()
-    toggleWishlist(product)
-    haptic(10)
+    // Same auth gate as add-to-cart: anonymous users get a toast +
+    // redirect to login, and the add is replayed after sign-in.
+    if (toggleWishlist(product)) haptic(10)
   }
 
   return (
@@ -88,7 +90,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               }
               if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
                 badges.push(
-                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #F59E0B, #FDE68A)', color: '#2E1065' }}>
+                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #E879F9, #A78BFA)', color: '#ffffff' }}>
                     Only {product.stockQty} left
                   </span>,
                 )
@@ -131,7 +133,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               borderRadius: '24px',
               background: 'rgba(255,255,255,0.92)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(167,139,250,0.30)',
+              border: '1px solid rgba(167,139,250,0.40)',
               boxShadow: '0 2px 10px rgba(75,63,114,0.10)',
             }}
           >
@@ -163,7 +165,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        disabled:opacity-40 disabled:pointer-events-none"
             style={{
               borderRadius: '24px',
-              background: 'linear-gradient(135deg, #C8B6FF, #8A74C9)',
+              background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
               boxShadow: '0 4px 16px rgba(138,116,201,0.3)',
             }}
           >
@@ -176,10 +178,10 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             {product.category.replace('-', ' ')}
           </p>
           {/*
-            Mobile uses Montserrat at 15px — Playfair at this size on a card
+            Mobile uses DM Sans at 15px — Cormorant at this size on a card
             reads decoratively where it should read functionally. From the
             sm breakpoint up, where the card is larger and the title gets
-            real estate, the Playfair serif comes back. Audit §2.5.
+            real estate, the Cormorant serif comes back. Audit §2.5.
           */}
           <h3 className="font-sans text-[15px] tracking-tight
                          sm:font-serif sm:text-xl sm:tracking-normal

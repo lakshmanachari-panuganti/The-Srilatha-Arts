@@ -78,6 +78,44 @@ export async function getBestSellers(): Promise<Row[]> {
   return (await getAllProducts()).filter((p) => p.isBestSeller === true)
 }
 
+// On-sale = compareAtPrice is set and strictly greater than the display
+// price. Same rule the frontend uses to compute `isOnSale` in the API
+// adapter (functions/products.ts toApi). Lives here so listing routes
+// don't have to ship the full catalog to the browser for client-side
+// filtering on a growing catalog.
+export async function getOnSaleProducts(): Promise<Row[]> {
+  return (await getAllProducts()).filter((p) => {
+    const cmp = typeof p.compareAtPrice === 'number' ? p.compareAtPrice : 0
+    const price = typeof p.displayPrice === 'number' ? p.displayPrice : (p.price ?? 0)
+    return cmp > 0 && cmp > price
+  })
+}
+
+// ─── NEWSLETTER ──────────────────────────────────────────────
+
+// Newsletter subscriber row. PK is a fixed bucket ('subscribers'); RK is
+// the lowercased email so resubmits are naturally idempotent (upsertEntity
+// will just refresh the row instead of creating duplicates). Status starts
+// at 'pending' so a future double-opt-in flow can flip it to 'confirmed'.
+export async function addNewsletterSubscriber(
+  email: string,
+  source: string = 'footer',
+): Promise<void> {
+  const client = getTableClient('newsletterSubscribers')
+  const now = new Date().toISOString()
+  await client.upsertEntity(
+    {
+      partitionKey: 'subscribers',
+      rowKey: email.toLowerCase(),
+      email: email.toLowerCase(),
+      source,
+      status: 'pending',
+      createdAt: now,
+    } as any,
+    'Merge', // merge so a re-subscribe doesn't wipe future status changes
+  )
+}
+
 export async function upsertProduct(product: Row): Promise<void> {
   const client = getTableClient('products')
   await client.upsertEntity(product as any, 'Replace')
@@ -377,6 +415,55 @@ export async function removeFromWishlist(userEmail: string, productId: string): 
   } catch (error: any) {
     if (error.statusCode !== 404) throw error
   }
+}
+
+// ─── CART ────────────────────────────────────────────────────
+// Per-user cart persistence, same shape as wishlist (PK=userEmail,
+// RK=productId, with `quantity` and `addedAt` payload). Listing and
+// mutation helpers are intentionally tiny — the route handler does the
+// product enrichment so the client sees a self-contained item row
+// (title, image, price) without needing a separate /products fetch.
+
+export async function getCart(userEmail: string): Promise<Row[]> {
+  return listAll('cart', odata`PartitionKey eq ${userEmail}`)
+}
+
+export async function upsertCartItem(
+  userEmail: string,
+  productId: string,
+  quantity: number,
+): Promise<void> {
+  const client = getTableClient('cart')
+  await client.upsertEntity(
+    {
+      partitionKey: userEmail,
+      rowKey: productId,
+      quantity: Math.max(1, Math.floor(quantity)),
+      addedAt: new Date().toISOString(),
+    } as any,
+    'Replace',
+  )
+}
+
+export async function removeCartItem(userEmail: string, productId: string): Promise<void> {
+  const client = getTableClient('cart')
+  try {
+    await client.deleteEntity(userEmail, productId)
+  } catch (error: any) {
+    if (error.statusCode !== 404) throw error
+  }
+}
+
+export async function clearCart(userEmail: string): Promise<void> {
+  const client = getTableClient('cart')
+  const rows = await listAll('cart', odata`PartitionKey eq ${userEmail}`)
+  await Promise.all(
+    rows.map((r) =>
+      client.deleteEntity(userEmail, r.rowKey as string).catch((e: { statusCode?: number }) => {
+        if (e.statusCode !== 404) throw e
+      }),
+    ),
+  )
 }
 
 export async function isInWishlist(userEmail: string, productId: string): Promise<boolean> {

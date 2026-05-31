@@ -129,7 +129,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <main className="min-h-svh max-w-2xl mx-auto px-5 py-20 lg:py-28 text-center">
-        <ShoppingBag className="w-12 h-12 text-terracotta/60 mx-auto mb-4" aria-hidden />
+        <ShoppingBag className="w-12 h-12 text-lavender-pastel/60 mx-auto mb-4" aria-hidden />
         <p className="eyebrow justify-center mb-3">Your cart</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
           Your cart is <em className="italic">empty</em>
@@ -203,7 +203,7 @@ export default function CartPage() {
                     </p>
                     <button
                       onClick={() => remove(item.productId)}
-                      className="text-xs text-ink-mute hover:text-terracotta inline-flex items-center gap-1 mt-1"
+                      className="text-xs text-ink-mute hover:text-lavender inline-flex items-center gap-1 mt-1"
                     >
                       <Trash2 className="w-3 h-3" aria-hidden />
                       Remove
@@ -225,7 +225,7 @@ export default function CartPage() {
               Add <strong>{formatINR(toFreeShip)}</strong> more to get free shipping.
               <div className="h-1 rounded-full bg-ink/10 mt-2 overflow-hidden">
                 <div
-                  className="h-full bg-terracotta transition-all"
+                  className="h-full bg-lavender transition-all"
                   style={{
                     width: `${Math.min(100, (subtotal / freeThresholdRs) * 100)}%`,
                   }}
@@ -301,13 +301,13 @@ export default function CartPage() {
                       onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
                       onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
                       placeholder="Coupon code"
-                      className="w-full pl-8 pr-3 h-10 rounded-full border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+                      className="w-full pl-8 pr-3 h-10 rounded-full border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
                     />
                   </div>
                   <button
                     onClick={applyCoupon}
                     disabled={couponLoading || !couponInput.trim()}
-                    className="h-10 px-4 rounded-full bg-terracotta text-white text-sm font-medium disabled:opacity-50 hover:bg-terracotta/90 transition-colors whitespace-nowrap"
+                    className="h-10 px-4 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors whitespace-nowrap"
                   >
                     {couponLoading ? '…' : 'Apply'}
                   </button>
@@ -337,7 +337,7 @@ export default function CartPage() {
           </button>
           <Link
             href="/shop"
-            className="block text-center text-sm text-ink-mute hover:text-terracotta mt-3"
+            className="block text-center text-sm text-ink-mute hover:text-lavender mt-3"
           >
             Continue shopping
           </Link>

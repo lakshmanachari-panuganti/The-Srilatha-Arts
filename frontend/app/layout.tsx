@@ -1,20 +1,44 @@
 import type { Metadata, Viewport } from 'next'
-import { Playfair_Display, Montserrat } from 'next/font/google'
+import { Square_Peg, Cormorant_Garamond, DM_Sans } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
 
-const playfair = Playfair_Display({
+// ── Typography system ──────────────────────────────────────────────
+// Three Google fonts, each with a clear role. next/font self-hosts at
+// build time, generates fallback metrics to prevent layout shift, and
+// inlines the CSS — no runtime CDN hit, no FOUT beyond the swap.
+//
+//   Cormorant Garamond — `font-serif`. Display + headlines. Variable
+//     weight range with elegant high-contrast capitals (the previous
+//     Aldo face was a single-weight script that produced faux-bold
+//     under font-semibold/bold and looked stiff under uppercase, which
+//     this site uses heavily for h1/h2 + buttons + nav + eyebrows).
+//
+//   DM Sans — `font-sans`. Body, UI, prices, buttons. Variable weight,
+//     proper hinting at small sizes.
+//
+//   Square Peg — `font-brand`. Reserved for the "Srilatha Art"
+//     wordmark only. Don't use it elsewhere.
+const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-playfair',
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
   display: 'swap',
 })
 
-const montserrat = Montserrat({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-montserrat',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+})
+
+const squarePeg = Square_Peg({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-square-peg',
   display: 'swap',
 })
 
@@ -25,13 +49,18 @@ export const metadata: Metadata = {
     template: '%s · Srilatha Art',
   },
   description:
-    'Handmade Indian art — Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives. Free shipping across India on orders above ₹2,999.',
+    'Resin Art, Lippan Art, Kolam, Wedding Decor and Gift Items — all made by hand in Hyderabad. Free shipping across India on orders above ₹999.',
   keywords: [
-    'Dot Mandala',
     'Resin Art',
     'Lippan Art',
+    'Dot Mandala',
     'Kolam Art',
-    'Wedding Decoratives',
+    'Wedding Decor',
+    'Lippan Home Decor',
+    'Resin Home Decor',
+    'Handmade Gifts',
+    'Resin Gift Items',
+    'Lippan Gift Items',
     'Handmade Indian art',
     'Indian folk art',
     'Hyderabad artist',
@@ -73,7 +102,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${playfair.variable} ${montserrat.variable}`}>
+    <html
+      lang="en-IN"
+      className={`${cormorant.variable} ${dmSans.variable} ${squarePeg.variable}`}
+    >
       <body>
         <a
           href="#main"

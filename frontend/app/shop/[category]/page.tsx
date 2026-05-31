@@ -33,7 +33,7 @@ export default async function ShopCategoryPage({ params }: Props) {
       <CategoryChips />
       <header className="px-5 lg:px-8 pt-12 lg:pt-20 pb-8 lg:pb-14 max-w-6xl mx-auto">
         <p className="eyebrow mb-4">
-          <span className="section-no text-terracotta">
+          <span className="section-no text-lavender">
             {String(cat.ordinal).padStart(3, '0')}
           </span>
           Shop by style
@@ -46,7 +46,7 @@ export default async function ShopCategoryPage({ params }: Props) {
           {cat.origin}
         </p>
         <p className="text-ink-mute text-sm">
-          <Link href="/the-craft" className="text-terracotta hover:underline">
+          <Link href="/the-craft" className="text-lavender hover:underline">
             See how it&apos;s made
           </Link>
         </p>

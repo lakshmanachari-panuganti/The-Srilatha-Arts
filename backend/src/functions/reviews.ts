@@ -5,6 +5,7 @@
  *   GET  /api/reviews/product/{id}     — moderated reviews for a product
  *
  * Customer:
+ *   GET  /api/reviews/eligibility?productId=...  — can I review this?
  *   POST /api/reviews                  — submit review (gated: must have DELIVERED order)
  *
  * Admin:
@@ -83,6 +84,66 @@ async function productReviews(
   } catch (err) {
     context.error('productReviews failed', err)
     return errorResponse('Failed to load reviews', 500, origin)
+  }
+}
+
+// ─── GET /api/reviews/eligibility?productId=... ─────────────
+//
+// Lightweight pre-flight so the PDP can hide or contextualise the
+// "Write a review" CTA instead of letting a user fill out a form and
+// hit 401 / 403 on submit. The eligibility rules mirror submitReview()
+// below: caller must be authenticated, must have a DELIVERED order
+// containing the product, and must not have already reviewed it.
+
+async function reviewEligibility(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const user = requireUser(request)
+  if (!user) {
+    // 200 + eligible:false on purpose — anonymous visitors shouldn't get
+    // a console-noisy 401; the PDP just renders the "sign in to review"
+    // CTA. Reason is informational.
+    return jsonResponse(
+      { eligible: false, reason: 'not-authenticated' as const },
+      200,
+      {},
+      origin,
+    )
+  }
+
+  const productId = request.query.get('productId')
+  if (!productId) return errorResponse('productId is required', 400, origin)
+
+  try {
+    // Look for a DELIVERED order containing this product.
+    const orders = await getOrdersByUser(user.userId)
+    let purchased = false
+    for (const o of orders) {
+      if (o.status !== 'DELIVERED') continue
+      const items = safeJson(o.items)
+      if (!Array.isArray(items)) continue
+      if (items.some((i: { productId: string }) => i.productId === productId)) {
+        purchased = true
+        break
+      }
+    }
+    if (!purchased) {
+      return jsonResponse({ eligible: false, reason: 'no-delivered-order' as const }, 200, {}, origin)
+    }
+
+    const existing = await getReviewByUser(productId, user.userId)
+    if (existing) {
+      return jsonResponse({ eligible: false, reason: 'already-reviewed' as const }, 200, {}, origin)
+    }
+
+    return jsonResponse({ eligible: true }, 200, {}, origin)
+  } catch (err) {
+    context.error('reviewEligibility failed', err)
+    return errorResponse('Failed to check eligibility', 500, origin)
   }
 }
 
@@ -291,6 +352,13 @@ app.http('submitReview', {
   route: 'api/reviews',
   authLevel: 'anonymous',
   handler: submitReview,
+})
+
+app.http('reviewEligibility', {
+  methods: ['GET', 'OPTIONS'],
+  route: 'api/reviews/eligibility',
+  authLevel: 'anonymous',
+  handler: reviewEligibility,
 })
 
 app.http('adminReviews', {

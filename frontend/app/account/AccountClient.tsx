@@ -10,6 +10,7 @@ import {
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
+import PhotoUploader from '@/components/PhotoUploader'
 
 interface SavedAddress {
   id: string
@@ -303,19 +304,27 @@ function OrderCard({
 
   return (
     <li className="card p-5 hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-ink-mute">Order</p>
-          <p className="font-serif text-lg text-ink tabular-nums">{order.id}</p>
-          <p className="text-xs text-ink-mute mt-1">
-            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
+      <Link
+        href={`/account/orders/${order.id}`}
+        className="block -m-5 p-5 group"
+        aria-label={`View details for order ${order.id}`}
+      >
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-ink-mute">Order</p>
+            <p className="font-serif text-lg text-ink tabular-nums group-hover:text-lavender transition-colors">
+              {order.id}
+            </p>
+            <p className="text-xs text-ink-mute mt-1">
+              {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </p>
+          </div>
+          <div className="text-right">
+            <StatusPill status={order.status} paymentStatus={order.paymentStatus} />
+            <p className="font-serif text-lg font-semibold text-ink mt-1 tabular-nums">{formatINR(order.displayTotal)}</p>
+          </div>
         </div>
-        <div className="text-right">
-          <StatusPill status={order.status} paymentStatus={order.paymentStatus} />
-          <p className="font-serif text-lg font-semibold text-ink mt-1 tabular-nums">{formatINR(order.displayTotal)}</p>
-        </div>
-      </div>
+      </Link>
 
       {/* Return / refund context strip — shown only when applicable */}
       {order.status === 'RETURN_REQUESTED' && (
@@ -392,6 +401,7 @@ function ReturnRequestModal({
 }) {
   const [reason, setReason] = useState<string>('damaged')
   const [comment, setComment] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
 
@@ -409,13 +419,14 @@ function ReturnRequestModal({
         body: {
           reason,
           comment: comment.trim() || undefined,
-          photos: [], // photo upload not wired into this modal yet
+          photos,
         },
       })
       onSubmitted({
         status: 'RETURN_REQUESTED',
         returnReason: reason,
         returnComment: comment.trim() || undefined,
+        returnPhotos: photos,
         returnRequestedAt: new Date().toISOString(),
       })
     } catch (e) {
@@ -450,7 +461,7 @@ function ReturnRequestModal({
               key={o.code}
               className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                 reason === o.code
-                  ? 'border-terracotta/60 bg-cream-deep/60'
+                  ? 'border-lavender/60 bg-cream-deep/60'
                   : 'border-ink/10 hover:border-ink/20'
               }`}
             >
@@ -460,7 +471,7 @@ function ReturnRequestModal({
                 value={o.code}
                 checked={reason === o.code}
                 onChange={() => setReason(o.code)}
-                className="mt-1 accent-terracotta"
+                className="mt-1 accent-lavender"
               />
               <span className="text-sm text-ink">{o.label}</span>
             </label>
@@ -476,9 +487,19 @@ function ReturnRequestModal({
           maxLength={1000}
           rows={4}
           placeholder="Add any details that help us understand the issue."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50 resize-none"
+          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{comment.length}/1000</p>
+
+        <div className="mt-4">
+          <PhotoUploader
+            value={photos}
+            onChange={setPhotos}
+            max={6}
+            label="Photos of the issue (optional)"
+            hint="Adding photos helps us resolve damage / wrong-item claims faster."
+          />
+        </div>
 
         {err && (
           <div className="mt-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 px-3 py-2">{err}</div>
@@ -701,7 +722,7 @@ function AddressesTab() {
               type="checkbox"
               checked={form.isDefault}
               onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
-              className="accent-terracotta"
+              className="accent-lavender"
             />
             Set as default address
           </label>
@@ -750,7 +771,7 @@ function AField(props: {
         onChange={(e) => props.onChange(e.target.value)}
         inputMode={props.inputMode}
         maxLength={props.maxLength}
-        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-terracotta/30 focus:border-terracotta/50"
+        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
       />
     </div>
   )

@@ -466,46 +466,13 @@ async function adminAddNote(
   }
 }
 
-// ─── GET /api/admin/orders/{id}/events ───────────────────────
-
-async function adminGetEvents(
-  request: HttpRequest,
-  context: InvocationContext,
-): Promise<HttpResponseInit> {
-  const origin = request.headers.get('origin')
-  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
-
-  const admin = requireAdmin(request)
-  if (!admin) return errorResponse('Unauthorized', 401, origin)
-
-  const orderId = request.params.id
-  if (!orderId) return errorResponse('Missing order id', 400, origin)
-
-  try {
-    const events = await getOrderEvents(orderId, true)
-    return jsonResponse(
-      {
-        events: events.map((e) => ({
-          id: e.rowKey,
-          fromStatus: e.fromStatus || undefined,
-          toStatus: e.toStatus || undefined,
-          channel: e.channel,
-          by: e.by,
-          byRole: e.byRole,
-          note: e.note || undefined,
-          meta: safeJson(e.meta) || undefined,
-          createdAt: e.createdAt,
-        })),
-      },
-      200,
-      {},
-      origin,
-    )
-  } catch (err) {
-    context.error('adminGetEvents failed', err)
-    return errorResponse('Failed to load events', 500, origin)
-  }
-}
+// NOTE: a standalone `GET /api/admin/orders/{id}/events` previously lived
+// here. It returned exactly the same events array that adminGetOrder
+// already embeds in its response, so every admin caller used the
+// embedded copy and the standalone route was dead. Removed on 2026-05-31
+// to prevent drift (two places returning events meant a future change
+// could leave them shaped differently). If a future feature needs events
+// without the rest of the order, restore from git history.
 
 // ─── PATCH /api/admin/orders/bulk-status ─────────────────────
 
@@ -714,13 +681,6 @@ app.http('adminAddNote', {
   route: 'api/admin/orders/{id}/notes',
   authLevel: 'anonymous',
   handler: adminAddNote,
-})
-
-app.http('adminGetEvents', {
-  methods: ['GET', 'OPTIONS'],
-  route: 'api/admin/orders/{id}/events',
-  authLevel: 'anonymous',
-  handler: adminGetEvents,
 })
 
 app.http('adminBulkStatus', {

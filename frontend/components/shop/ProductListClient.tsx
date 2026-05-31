@@ -35,10 +35,9 @@ export default function ProductListClient({ filter = 'all', category, showCount 
       if (category) path += `?category=${encodeURIComponent(category)}`
       else if (filter === 'new') path += '?newArrivals=true'
       else if (filter === 'best') path += '?bestSellers=true'
+      else if (filter === 'sale') path += '?onSale=true'
       const res = await apiFetch<{ products: Product[] }>(path)
-      let items = res.products || []
-      if (filter === 'sale') items = items.filter((p) => p.isOnSale)
-      return items
+      return res.products || []
     },
     staleTime: 60_000,
   })

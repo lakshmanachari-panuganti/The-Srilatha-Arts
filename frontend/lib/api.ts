@@ -1,11 +1,29 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api'
 
-// Auth token injected by the admin/user auth stores at login.
-// Avoids prop-drilling a token into every apiFetch call site.
-let _authToken: string | null = null
-export function setApiAuthToken(token: string | null) {
-  _authToken = token
+// Auth tokens injected by the admin/user auth stores at login or on
+// rehydration. Two separate slots — customer and admin — because both
+// stores persist independently and rehydrate asynchronously on every
+// page load. With a single shared slot, whichever store rehydrated
+// last would win and the admin DELETE/PATCH requests would 401 because
+// the customer token's `role: 'customer'` fails adminGuard.
+//
+// scope='user' is the default so existing callsites (setApiAuthToken(t))
+// keep the previous behaviour.
+type AuthScope = 'user' | 'admin'
+let _userAuthToken: string | null = null
+let _adminAuthToken: string | null = null
+export function setApiAuthToken(token: string | null, scope: AuthScope = 'user') {
+  if (scope === 'admin') _adminAuthToken = token
+  else _userAuthToken = token
+}
+
+// Pick which token to attach based on the request path. Anything under
+// /admin/* or /auth/admin/* needs the admin JWT; everything else uses
+// the customer JWT.
+function tokenForPath(path: string): string | null {
+  const isAdminCall = path.startsWith('/admin/') || path.startsWith('/auth/admin/')
+  return isAdminCall ? _adminAuthToken : _userAuthToken
 }
 
 // CSRF — double-submit cookie pattern.
@@ -80,8 +98,8 @@ export function getApiBase(): string {
   return API_BASE
 }
 
-export function getAuthToken(): string | null {
-  return _authToken
+export function getAuthToken(scope: AuthScope = 'user'): string | null {
+  return scope === 'admin' ? _adminAuthToken : _userAuthToken
 }
 
 export interface ApiOptions extends Omit<RequestInit, 'body'> {
@@ -116,12 +134,14 @@ export async function apiFetch<T>(path: string, opts: ApiOptions = {}): Promise<
     if (token) csrfHeader['X-CSRF-Token'] = token
   }
 
+  const authToken = tokenForPath(path)
+
   const response = await fetch(url.toString(), {
     method,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(_authToken ? { Authorization: `Bearer ${_authToken}` } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...csrfHeader,
       ...headers,
     },

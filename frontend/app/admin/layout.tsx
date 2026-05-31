@@ -78,8 +78,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-plum flex flex-col lg:flex-row">
       {/* Mobile Header */}
       <header className="lg:hidden bg-plum-light border-b border-ink/5 p-4 flex items-center justify-between sticky top-0 z-30">
-        <Link href="/" className="font-serif text-xl text-ink tracking-wide">
-          Srilatha<em className="italic gold-text ml-1.5">Art</em>
+        <Link href="/" className="font-brand text-3xl text-ink tracking-[0.04em]">
+          Srilatha<em className="not-italic gold-text ml-1.5">Art</em>
         </Link>
         <button
           className="p-2 -mr-2 text-ink-soft"
@@ -130,7 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-terracotta rounded-lg hover:bg-terracotta/10 w-full transition-colors mt-4"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-700/10 w-full transition-colors mt-4"
             >
               <LogOut className="w-4 h-4" />
               Sign out
@@ -142,8 +142,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar (Desktop) */}
       <aside className="hidden lg:flex w-64 bg-plum-light border-r border-ink/5 flex-col fixed inset-y-0 left-0 z-20">
         <div className="p-6 border-b border-ink/5">
-          <Link href="/" className="font-serif text-2xl text-ink tracking-wide">
-            Srilatha<em className="italic gold-text ml-1.5">Art</em>
+          <Link href="/" className="font-brand text-4xl text-ink tracking-[0.04em]">
+            Srilatha<em className="not-italic gold-text ml-1.5">Art</em>
           </Link>
           <p className="text-xs text-ink-mute mt-1 uppercase tracking-wider font-semibold">Admin Workspace</p>
         </div>
@@ -179,7 +179,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-terracotta rounded-lg hover:bg-terracotta/10 w-full transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-700/10 w-full transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Sign out

@@ -7,6 +7,9 @@ import { ArrowLeft, Upload, Plus, X, Loader2, AlertCircle } from 'lucide-react'
 import { CATEGORIES } from '@/data/categories'
 import { apiFetch, ApiError, getCsrfToken, getApiBase } from '@/lib/api'
 import { useAdminAuth } from '@/stores/adminAuth'
+import AiGenerateProductContent, {
+  type AiProductContent,
+} from '@/components/admin/AiGenerateProductContent'
 
 interface ImageEntry {
   preview: string
@@ -41,6 +44,18 @@ export default function AdminNewProductPage() {
   const [category, setCategory] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  // Five fields the AI-generate flow is allowed to populate. Kept as
+  // controlled state so the AI handler can call setAiFields(...) and the
+  // form re-renders. Everything else on the form stays uncontrolled.
+  const [aiFields, setAiFields] = useState<AiProductContent>({
+    title: '',
+    shortDescription: '',
+    description: '',
+    material: '',
+    careInstructions: '',
+  })
+  const updateAiField = <K extends keyof AiProductContent>(key: K, value: string) =>
+    setAiFields((s) => ({ ...s, [key]: value }))
   const categoryRef = useRef(category)
   categoryRef.current = category
   const tokenRef = useRef(token)
@@ -202,10 +217,26 @@ export default function AdminNewProductPage() {
 
           {/* Basic Info */}
           <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-5">
-            <h2 className="font-serif text-lg text-ink">Basic Information</h2>
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <h2 className="font-serif text-lg text-ink">Basic Information</h2>
+              {/* AI generate — analyses the first uploaded image and fills
+                  Title, Short Description, Description, Material, Care
+                  Instructions. Does not touch any other field. */}
+              <AiGenerateProductContent
+                imageUrl={images[0]?.url ?? null}
+                current={aiFields}
+                onGenerated={(c) => setAiFields(c)}
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1.5">Title</label>
-              <input type="text" name="title" required placeholder="e.g. Aurora Dot Mandala - 12&quot; Round" className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent" />
+              <input
+                type="text" name="title" required
+                value={aiFields.title}
+                onChange={(e) => updateAiField('title', e.target.value)}
+                placeholder="e.g. Aurora Dot Mandala - 12&quot; Round"
+                className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
+              />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -224,11 +255,23 @@ export default function AdminNewProductPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1.5">Description</label>
-              <textarea name="description" rows={4} placeholder="Describe the artwork, materials, and story..." className="w-full px-4 py-3 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender resize-none" />
+              <textarea
+                name="description" rows={4}
+                value={aiFields.description}
+                onChange={(e) => updateAiField('description', e.target.value)}
+                placeholder="Describe the artwork, materials, and story..."
+                className="w-full px-4 py-3 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender resize-none"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1.5">Short Description</label>
-              <input type="text" name="shortDescription" placeholder="One-line summary for cards" className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent" />
+              <input
+                type="text" name="shortDescription"
+                value={aiFields.shortDescription}
+                onChange={(e) => updateAiField('shortDescription', e.target.value)}
+                placeholder="One-line summary for cards"
+                className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
+              />
             </div>
           </div>
 
@@ -261,7 +304,13 @@ export default function AdminNewProductPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-1.5">Material</label>
-                <input type="text" name="material" placeholder="MDF · acrylic · resin" className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender" />
+                <input
+                  type="text" name="material"
+                  value={aiFields.material}
+                  onChange={(e) => updateAiField('material', e.target.value)}
+                  placeholder="MDF · acrylic · resin"
+                  className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-1.5">Time to Make</label>
@@ -270,7 +319,13 @@ export default function AdminNewProductPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1.5">Care Instructions</label>
-              <textarea name="careInstructions" rows={2} placeholder="How to care for the artwork..." className="w-full px-4 py-3 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender resize-none" />
+              <textarea
+                name="careInstructions" rows={2}
+                value={aiFields.careInstructions}
+                onChange={(e) => updateAiField('careInstructions', e.target.value)}
+                placeholder="How to care for the artwork..."
+                className="w-full px-4 py-3 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender resize-none"
+              />
             </div>
           </div>
 

@@ -6,6 +6,7 @@ import {
   getFeaturedProducts,
   getNewArrivals,
   getBestSellers,
+  getOnSaleProducts,
   Row,
 } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
@@ -60,12 +61,14 @@ export async function getProducts(
     const featured = request.query.get('featured')
     const newArrivals = request.query.get('newArrivals')
     const bestSellers = request.query.get('bestSellers')
+    const onSale = request.query.get('onSale')
 
     let rows: Row[]
     if (category) rows = await getProductsByCategory(category)
     else if (featured === 'true') rows = await getFeaturedProducts()
     else if (newArrivals === 'true') rows = await getNewArrivals()
     else if (bestSellers === 'true') rows = await getBestSellers()
+    else if (onSale === 'true') rows = await getOnSaleProducts()
     else rows = await getAllProducts()
 
     return jsonResponse({ products: rows.map(toApi) }, 200, {}, origin)

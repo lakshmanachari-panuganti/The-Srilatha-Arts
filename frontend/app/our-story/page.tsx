@@ -15,8 +15,8 @@ export default function OurStoryPage() {
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-6">
         A studio in <em className="italic gold-text">Hyderabad</em>
       </h1>
-      <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-6">
-        Hi! We are a small team that makes handmade rlegant art. Everything you see on this site
+      <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-6 font-normal">
+        Hi! We are a small team that makes handmade elegant art. Everything you see on this site
         is made by us in our studio in Hyderabad.
       </p>
 

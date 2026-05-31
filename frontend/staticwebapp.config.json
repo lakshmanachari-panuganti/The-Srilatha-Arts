@@ -3,6 +3,10 @@
     {
       "route": "/product/*",
       "rewrite": "/product/__shell__/index.html"
+    },
+    {
+      "route": "/account/orders/*",
+      "rewrite": "/account/orders/__shell__/index.html"
     }
   ],
   "navigationFallback": {

@@ -5,25 +5,31 @@
 /* ─────────────────────────────────────────────────────────────
    Typography system
 
-   The fonts themselves (Playfair Display, Montserrat, Caveat)
-   are loaded once in app/layout.tsx and exposed as CSS vars:
-     --font-playfair  → display / headings / serif accents
-     --font-montserrat → body / UI / forms
-     --font-caveat    → handwritten footer / decorative tagline
+   Three typefaces, each with a single role:
 
-   The roles below standardise:
-     - weight  (serif: 500/600 for headings, 400 for serif body)
-                (sans:  400 body, 500/600 UI, 700 reserved for
-                 short emphatic strings like prices or stickers)
-     - tracking (negative for large display, neutral for body,
-                 positive only for small all-caps eyebrows)
-     - color    (deep-purple ramp ivory / ivory-soft / ivory-mute
-                 on the page background; explicit lavender or
-                 white on dark sections — set inline there)
-     - feature-settings (kerning + common ligatures everywhere;
-                 contextual alternates for Montserrat ss01;
-                 tabular figures on prices via the .tabular-nums
-                 utility or in components that print money)
+     DM Sans            — `font-sans`. Body, UI, prices, buttons,
+                          nav, eyebrows. Variable weight (400/500/
+                          600/700) so font-medium/semibold/bold are
+                          real weights, not faux-bold synthesis.
+
+     Cormorant Garamond — `font-serif`. Display headlines, italic
+                          accent words, editorial pull-quotes. High-
+                          contrast classical capitals that hold up
+                          under the heavy uppercase usage sitewide.
+
+     Square Peg         — `font-brand`. Reserved exclusively for the
+                          "Srilatha Art" wordmark. Do not use it
+                          elsewhere.
+
+   All three are loaded via next/font/google in app/layout.tsx and
+   exposed as CSS variables (--font-dm-sans, --font-cormorant,
+   --font-square-peg). next/font self-hosts at build time, generates
+   fallback metrics to prevent CLS, and inlines the font CSS.
+
+   Feature settings (kerning + common ligatures) stay on the html
+   element below. Tabular figures still get opted-in on a per-
+   component basis via the .tabular-nums utility for prices /
+   totals / line-up grids.
    ───────────────────────────────────────────────────────────── */
 
 @layer base {
@@ -32,7 +38,7 @@
     --color-lavender: #7C3AED;
     --color-lavender-soft: #A78BFA;
     --color-lavender-pastel: #E879F9;
-    --color-ivory: #2E1065;
+    --color-ivory: #2A1056;
     --banner-h: 0px;
     --header-h: 64px;
     --tab-h: 68px;
@@ -65,10 +71,10 @@
        any platform — small body type is the main beneficiary. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* ss01: Montserrat's alternate single-storey 'a' — a touch softer
-       and reads better at small sizes. cv11/zero: not present on most
-       fallback fonts, harmless. */
-    font-feature-settings: 'kern', 'liga', 'calt', 'ss01';
+    /* Kerning + common ligatures + contextual alternates. DM Sans
+       supports all three out of the box and renders better with them
+       on for body copy. */
+    font-feature-settings: 'kern', 'liga', 'calt';
     /* Inherit-friendly default; consumers can override on individual
        lines where they need lining figures (rare). */
     font-variant-numeric: lining-nums;
@@ -90,10 +96,11 @@
     mix-blend-mode: overlay;
   }
 
-  /* Default heading style — picks up Playfair, balanced wrapping,
-     comfortable tracking. Components that need a different size or
-     weight set their own Tailwind classes, which still win because
-     atomics live in the utilities layer below this base layer. */
+  /* Default heading style — picks up Cormorant Garamond via
+     font-serif, balanced wrapping, comfortable tracking. Components
+     that need a different size or weight set their own Tailwind
+     classes, which still win because atomics live in the utilities
+     layer below this base layer. */
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif font-medium text-ivory;
     letter-spacing: -0.01em;
@@ -108,9 +115,9 @@
     text-wrap: pretty;
   }
 
-  /* <strong> defaults to 700 across browsers — that's heavy paired
-     with Playfair body. 600 (semibold) sits better against our serif
-     headings and Montserrat 400 body. */
+  /* <strong> defaults to 700 across browsers — 600 (semibold) reads
+     more comfortably against DM Sans 400 body without going heavy.
+     Cormorant headings handle 700 fine but body emphasis stays light. */
   strong, b {
     font-weight: 600;
   }
@@ -170,23 +177,6 @@
 @layer components {
   /* ───────────── Typography ───────────── */
 
-  /* Gradient gold treatment for accent words inside headlines.
-     Pairs with `<em>` since our headlines often italicise the gold
-     word — Playfair's italic is more elegant for these. */
-  .gold-text {
-    background: linear-gradient(135deg, #D4AF37 0%, #F3D27A 40%, #B8962E 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    /* Slight extra weight stops the gradient from looking thin on
-       smaller breakpoints. */
-    font-weight: 600;
-  }
-
-  .terracotta-text {
-    @apply text-lavender-pastel;
-  }
-
   /* Editorial eyebrow — small caps, wide tracking. Used on light
      page backgrounds by default; on dark surfaces (Hero gradient,
      Footer, MobileDrawer) override the colour inline with
@@ -212,14 +202,20 @@
     letter-spacing: 0.32em;
   }
 
-  /* Display headline — Playfair, tight optical tracking, balanced
-     wrapping. Consumers add size classes (`text-4xl lg:text-7xl`,
-     etc.) on top; this base just gets the family / weight / colour
-     / tracking right. */
+  /* Display headline — Cormorant Garamond at medium weight with
+     slightly open tracking. The site sets nearly every h1/h2 in
+     UPPERCASE; Cormorant's high-contrast classical capitals want
+     air around them (Roman tradition), so the tracking is gently
+     positive (+0.02em) instead of tight. Weight 500 reads more
+     refined than 600 at display sizes — at 56–88px the extra
+     stroke weight of semibold pushes too hard.
+     Consumers add size classes (`text-4xl lg:text-7xl`, etc.)
+     on top; this base just gets the family / weight / colour /
+     tracking right. */
   .display {
-    @apply font-serif font-semibold text-ivory;
-    line-height: 1.02;
-    letter-spacing: -0.02em;
+    @apply font-serif font-medium text-ivory;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
     text-wrap: balance;
   }
 

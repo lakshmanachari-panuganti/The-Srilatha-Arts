@@ -38,7 +38,7 @@ export const useAdminAuth = create<AdminAuthState>()(
             },
           )
           set({ user: res.user, token: res.token, isLoading: false, error: null })
-          setApiAuthToken(res.token)
+          setApiAuthToken(res.token, 'admin')
           return true
         } catch (err) {
           let message: string
@@ -67,7 +67,7 @@ export const useAdminAuth = create<AdminAuthState>()(
 
       logout: () => {
         set({ user: null, token: null, error: null })
-        setApiAuthToken(null)
+        setApiAuthToken(null, 'admin')
         // Clear the httpOnly tsa_token cookie server-side.
         // Fire-and-forget: the UI is already cleared; if this fails the cookie
         // expires naturally after 24 h and the next API call returns 401.
@@ -82,8 +82,10 @@ export const useAdminAuth = create<AdminAuthState>()(
       name: 'tsa-admin-auth',
       partialize: (state) => ({ user: state.user, token: state.token }),
       onRehydrateStorage: () => (state) => {
-        // Restore the token into apiFetch after a page refresh.
-        if (state?.token) setApiAuthToken(state.token)
+        // Restore the token into apiFetch after a page refresh. Scope to
+        // the admin slot so a concurrent userAuth rehydration cannot
+        // overwrite it (and vice versa).
+        if (state?.token) setApiAuthToken(state.token, 'admin')
       },
     },
   ),

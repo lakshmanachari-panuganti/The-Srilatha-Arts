@@ -3,6 +3,40 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUserAuth } from '@/stores/userAuth'
+import { useCart } from '@/stores/cart'
+import { useWishlist } from '@/stores/wishlist'
+import { useToast } from '@/stores/toast'
+import { consumePendingIntent, peekPendingIntent, type PendingIntent } from '@/lib/pendingIntent'
+
+/**
+ * Replays a queued "add to cart / wishlist" intent after a successful
+ * sign-in. The cart/wishlist stores' auth-aware sync handles the server
+ * write on the new auth token. Called from every login entry point
+ * (Google credential callback, email/password, registration).
+ */
+function replayPendingIntent(): PendingIntent | null {
+  const intent = consumePendingIntent()
+  if (!intent) return null
+  if (intent.type === 'cart') {
+    useCart.getState().add(intent.product, intent.qty ?? 1)
+    useToast.getState().show({
+      message: `Added "${intent.product.title}" to your cart.`,
+      kind: 'success',
+    })
+  } else if (intent.type === 'wishlist') {
+    // Only add if it isn't already there; the post-login server hydrate
+    // might race and pull the same item from the wishlist endpoint, in
+    // which case toggling would REMOVE it.
+    if (!useWishlist.getState().has(intent.product.id)) {
+      useWishlist.getState().toggle(intent.product)
+    }
+    useToast.getState().show({
+      message: `Saved "${intent.product.title}" to your wishlist.`,
+      kind: 'success',
+    })
+  }
+  return intent
+}
 
 // ── Google Identity Services type stubs ───────────────────────
 declare global {
@@ -104,6 +138,14 @@ export default function LoginClient() {
 
   const nextPath = searchParams.get('next') || '/account'
 
+  // Snapshot any queued intent (peek-only) so we can render a contextual
+  // banner above the form: "Sign in to add <product> to your cart". The
+  // actual consume + replay happens inside the post-auth handlers below.
+  const [queuedIntent, setQueuedIntent] = useState<PendingIntent | null>(null)
+  useEffect(() => {
+    setQueuedIntent(peekPendingIntent())
+  }, [])
+
   useEffect(() => {
     if (user) router.replace(nextPath)
   }, [user, router, nextPath])
@@ -149,6 +191,7 @@ export default function LoginClient() {
       setModal({ name: stored?.name ?? '', phone: '' })
       setShowModal(true)
     } else {
+      replayPendingIntent()
       router.replace(nextPath)
     }
   }
@@ -159,7 +202,10 @@ export default function LoginClient() {
     clearError()
     if (!si.email.trim() || !si.password) { setSiError('Please enter your email and password.'); return }
     const ok = await loginWithEmail(si.email.trim(), si.password)
-    if (ok) router.replace(nextPath)
+    if (ok) {
+      replayPendingIntent()
+      router.replace(nextPath)
+    }
     else setSiError(useUserAuth.getState().error || 'Login failed. Please try again.')
   }
 
@@ -172,7 +218,10 @@ export default function LoginClient() {
     if (su.password.length < 8) return setSuError('Password must be at least 8 characters.')
     if (su.password !== su.confirm) return setSuError('Passwords do not match.')
     const ok = await register(su.name.trim(), su.email.trim(), su.password, su.phone.trim())
-    if (ok) router.replace(nextPath)
+    if (ok) {
+      replayPendingIntent()
+      router.replace(nextPath)
+    }
     else setSuError(useUserAuth.getState().error || 'Registration failed. Please try again.')
   }
 
@@ -183,7 +232,10 @@ export default function LoginClient() {
     setModalBusy(true)
     const ok = await completeProfile(modal.name.trim(), modal.phone.trim())
     setModalBusy(false)
-    if (ok) router.replace(nextPath)
+    if (ok) {
+      replayPendingIntent()
+      router.replace(nextPath)
+    }
     else setModalError(useUserAuth.getState().error || 'Failed to save profile. Please try again.')
   }
 
@@ -198,11 +250,25 @@ export default function LoginClient() {
         {/* Brand header */}
         <div className="mb-8 text-center">
           <p className="eyebrow justify-center mb-2">Welcome</p>
-          <h1 className="font-serif text-3xl font-semibold text-ivory">Srilatha Art</h1>
+          <h1 className="font-brand text-5xl text-ivory tracking-[0.04em]">Srilatha Art</h1>
           <p className="mt-2 text-sm text-ivory-soft font-sans">
             Sign in to your account or create a new one
           </p>
         </div>
+
+        {/* Pending-intent banner — tells the user WHY they're on the
+            login page and what we'll do once they sign in. Cleared by
+            consumePendingIntent() inside the post-auth handlers. */}
+        {queuedIntent && (
+          <div className="w-full max-w-sm mb-4 rounded-xl border border-lavender/40 bg-lavender-pastel/15 px-4 py-3 text-sm text-ivory">
+            <p className="font-medium">Sign in to continue</p>
+            <p className="text-ivory-soft mt-0.5">
+              We&apos;ll add{' '}
+              <span className="font-medium text-ivory">&ldquo;{queuedIntent.product.title}&rdquo;</span>{' '}
+              to your {queuedIntent.type === 'cart' ? 'cart' : 'wishlist'} automatically.
+            </p>
+          </div>
+        )}
 
         {/* Card */}
         <div className="w-full max-w-sm card overflow-hidden">

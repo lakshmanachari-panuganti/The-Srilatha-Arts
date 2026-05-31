@@ -13,7 +13,7 @@ import type { Announcement } from '@/types'
 export const ANNOUNCEMENTS: Announcement[] = [
   {
     id: 'free-ship',
-    message: 'Free shipping on orders above ₹2,999 · Pan-India delivery',
+    message: 'Free shipping on orders above ₹999 · Pan-India delivery',
     href: '/shop',
     priority: 1,
     theme: 'gold',
