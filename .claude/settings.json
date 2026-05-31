@@ -48,7 +48,10 @@
       "PowerShell(gh api repos/anthropics/claude-code/contents/plugins/frontend-design/skills/frontend-design 2>&1)",
       "PowerShell($u = \"https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/frontend-design/skills/frontend-design/SKILL.md\"; $out = \"$env:TEMP\\\\frontend-design-SKILL.md\"; try { Invoke-WebRequest -Uri $u -OutFile $out -UseBasicParsing -ErrorAction Stop; \"Saved $\\(\\(Get-Item $out\\).Length\\) bytes to $out\" } catch { \"ERROR: $_\" })",
       "PowerShell($root = \"https://api.github.com/repos/anthropics/claude-code/contents/plugins/frontend-design/skills/frontend-design\"; $r = Invoke-RestMethod -Uri $root -UseBasicParsing; $r | ForEach-Object { \"$\\($_.type\\)`t$\\($_.path\\)\" })",
-      "PowerShell($dst = \"$env:USERPROFILE\\\\.claude\\\\skills\\\\frontend-design\"; New-Item -ItemType Directory -Force -Path $dst | Out-Null; Copy-Item \"$env:TEMP\\\\frontend-design-SKILL.md\" \"$dst\\\\SKILL.md\" -Force; \"Installed to $dst\\\\SKILL.md \\($\\(\\(Get-Item \"$dst\\\\SKILL.md\"\\).Length\\) bytes\\)\")"
+      "PowerShell($dst = \"$env:USERPROFILE\\\\.claude\\\\skills\\\\frontend-design\"; New-Item -ItemType Directory -Force -Path $dst | Out-Null; Copy-Item \"$env:TEMP\\\\frontend-design-SKILL.md\" \"$dst\\\\SKILL.md\" -Force; \"Installed to $dst\\\\SKILL.md \\($\\(\\(Get-Item \"$dst\\\\SKILL.md\"\\).Length\\) bytes\\)\")",
+      "Bash(npx jest *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(npx --no-install tsc --noEmit)"
     ],
     "additionalDirectories": [
       "C:\\Users\\E092721\\AppData\\Local\\Temp"
