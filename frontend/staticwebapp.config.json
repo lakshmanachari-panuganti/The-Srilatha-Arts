@@ -23,7 +23,7 @@
       "/_next/*",
       "/images/*",
       "/icons/*",
-      "*.{css,js,json,svg,png,jpg,jpeg,webp,avif,ico,woff,woff2,ttf,webmanifest,xml,txt,mp4}"
+      "/*.{css,js,json,svg,png,jpg,jpeg,webp,avif,ico,woff,woff2,ttf,webmanifest,xml,txt,mp4}"
     ]
   },
   "globalHeaders": {
