@@ -303,19 +303,27 @@ function OrderCard({
 
   return (
     <li className="card p-5 hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-ink-mute">Order</p>
-          <p className="font-serif text-lg text-ink tabular-nums">{order.id}</p>
-          <p className="text-xs text-ink-mute mt-1">
-            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
+      <Link
+        href={`/account/orders/${order.id}`}
+        className="block -m-5 p-5 group"
+        aria-label={`View details for order ${order.id}`}
+      >
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-ink-mute">Order</p>
+            <p className="font-serif text-lg text-ink tabular-nums group-hover:text-lavender transition-colors">
+              {order.id}
+            </p>
+            <p className="text-xs text-ink-mute mt-1">
+              {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </p>
+          </div>
+          <div className="text-right">
+            <StatusPill status={order.status} paymentStatus={order.paymentStatus} />
+            <p className="font-serif text-lg font-semibold text-ink mt-1 tabular-nums">{formatINR(order.displayTotal)}</p>
+          </div>
         </div>
-        <div className="text-right">
-          <StatusPill status={order.status} paymentStatus={order.paymentStatus} />
-          <p className="font-serif text-lg font-semibold text-ink mt-1 tabular-nums">{formatINR(order.displayTotal)}</p>
-        </div>
-      </div>
+      </Link>
 
       {/* Return / refund context strip — shown only when applicable */}
       {order.status === 'RETURN_REQUESTED' && (
