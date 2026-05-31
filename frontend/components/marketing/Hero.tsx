@@ -30,12 +30,16 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="display text-5xl sm:text-6xl lg:text-8xl tracking-tight uppercase mb-6"
+          className="display text-5xl sm:text-6xl lg:text-8xl uppercase mb-6"
         >
           Premium Handcrafted
           <br />
           Art for Your{' '}
-          <span className="relative italic font-sans text-lavender-pastel">
+          {/* Italic accent stays in the same family as the headline
+              (Cormorant Garamond) so the word reads as part of the
+              same sentence, not a system swap. Gold gradient
+              treatment via .gold-text is the editorial highlight. */}
+          <span className="relative italic font-serif font-medium gold-text">
             Home
             <svg
               viewBox="0 0 200 12"

@@ -38,7 +38,7 @@
     --color-lavender: #7C3AED;
     --color-lavender-soft: #A78BFA;
     --color-lavender-pastel: #E879F9;
-    --color-ivory: #2E1065;
+    --color-ivory: #2A1056;
     --banner-h: 0px;
     --header-h: 64px;
     --tab-h: 68px;
@@ -220,14 +220,20 @@
     letter-spacing: 0.32em;
   }
 
-  /* Display headline — Cormorant Garamond, tight optical tracking,
-     balanced wrapping. Consumers add size classes (`text-4xl
-     lg:text-7xl`, etc.) on top; this base just gets the family /
-     weight / colour / tracking right. */
+  /* Display headline — Cormorant Garamond at medium weight with
+     slightly open tracking. The site sets nearly every h1/h2 in
+     UPPERCASE; Cormorant's high-contrast classical capitals want
+     air around them (Roman tradition), so the tracking is gently
+     positive (+0.02em) instead of tight. Weight 500 reads more
+     refined than 600 at display sizes — at 56–88px the extra
+     stroke weight of semibold pushes too hard.
+     Consumers add size classes (`text-4xl lg:text-7xl`, etc.)
+     on top; this base just gets the family / weight / colour /
+     tracking right. */
   .display {
-    @apply font-serif font-semibold text-ivory;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
+    @apply font-serif font-medium text-ivory;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
     text-wrap: balance;
   }
 

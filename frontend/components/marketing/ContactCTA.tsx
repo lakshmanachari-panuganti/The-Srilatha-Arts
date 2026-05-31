@@ -16,7 +16,7 @@ export default function ContactCTA() {
             Get In Touch
             <Sparkles className="w-3.5 h-3.5" aria-hidden />
           </span>
-          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase tracking-tight text-white">
+          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase text-white">
             Let&apos;s Craft Something <br />
             <em className="italic text-lavender-soft">Beautiful Together</em>
           </h2>

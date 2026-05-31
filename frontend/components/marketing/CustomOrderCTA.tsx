@@ -38,7 +38,7 @@ export default function CustomOrderCTA() {
             Bespoke Commission
             <Sparkles className="w-3.5 h-3.5" aria-hidden />
           </span>
-          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase tracking-tight">
+          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
             Tailored Just For You.
             <br />
             <em className="italic text-lavender-pastel">Request a Custom Design</em>

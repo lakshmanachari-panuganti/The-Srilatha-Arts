@@ -60,7 +60,7 @@ export default function WhyChooseUs() {
         {/* Left Side: Why Choose Us */}
         <div className="lg:col-span-5 lg:sticky lg:top-36">
           <span className="eyebrow text-lavender mb-4">Our Quality Promise</span>
-          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase tracking-tight">
+          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
             Why Choose <br />
             <em className="italic text-lavender-pastel">Srilatha Art</em>
           </h2>
@@ -126,7 +126,7 @@ export default function WhyChooseUs() {
       <div className="border-t border-glass-border/30 pt-16 sm:pt-24 lg:pt-32">
         <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-24">
           <span className="eyebrow text-lavender justify-center mb-4">Behind the Scenes</span>
-          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase tracking-tight">
+          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
             The Handmade <em className="italic text-lavender-pastel">Process</em>
           </h2>
           <p className="text-ivory-soft text-lg lg:text-xl leading-relaxed font-normal">

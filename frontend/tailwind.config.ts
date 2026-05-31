@@ -21,10 +21,22 @@ const config: Config = {
         'lavender-pastel': '#E879F9',    // fuchsia-400 — vivid magenta accent
         'lavender-light': '#F5F3FF',     // violet-50  — lightest surface
         'lavender-faint': '#EDE9FE',     // violet-100 — faint lavender
-        // ── Text (Deep Purple) ───────────────────────────────────
-        ivory: '#2E1065',                // violet-950 — deep purple primary text
-        'ivory-soft': '#4C1D95',         // violet-900 — secondary text
-        'ivory-mute': '#6D28D9',         // violet-700 — muted text
+        // ── Text (calibrated hierarchy — warm violet undertone) ──
+        // Names kept for back-compat (token rename would ripple ~200
+        // call sites). Values rebalanced so the hierarchy is correct:
+        // headline > body > muted, in both contrast and saturation.
+        // Prior values had `ivory-mute` (#6D28D9, violet-700) MORE
+        // saturated than the body tone above it — a brand-coloured
+        // "muted" reads as purple, not as muted. Fixed below.
+        ivory: '#2A1056',                // primary text — deep violet, still
+                                          // rich enough to read editorial on
+                                          // light-lavender bg
+        'ivory-soft': '#3D2F55',         // body text — warm desaturated plum,
+                                          // calm enough to read as TEXT
+                                          // rather than as "purple"
+        'ivory-mute': '#7B6F8A',         // muted captions / meta — properly
+                                          // muted warm grey-violet, lighter
+                                          // and less saturated than body
         // ── Glass & Overlay (Lavender Mode) ──────────────────────
         'glass-surface': 'rgba(237,233,254,0.70)',
         'glass-border': 'rgba(167,139,250,0.40)',

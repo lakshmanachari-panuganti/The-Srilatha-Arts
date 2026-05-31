@@ -77,7 +77,7 @@ export default function Header() {
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              <span className="font-brand font-bold tracking-[0.06em] text-ivory text-3xl lg:text-5xl">
+              <span className="font-brand tracking-[0.06em] text-ivory text-3xl lg:text-5xl">
                 Srilatha Art
               </span>
             </Link>

@@ -62,7 +62,7 @@ export default function ShopByArtForm() {
       {/* Section header */}
       <div className="mb-12 sm:mb-16 lg:mb-24 max-w-3xl">
         <p className="eyebrow mb-4 text-lavender">Handcrafted Art</p>
-        <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase tracking-tight">
+        <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
           Explore Our <em className="italic text-lavender-pastel">Collections</em>
         </h2>
         <p className="text-ivory-soft text-lg lg:text-xl leading-relaxed font-normal">
