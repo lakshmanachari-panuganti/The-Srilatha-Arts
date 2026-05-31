@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { MessageCircle } from 'lucide-react'
 import { whatsappLink } from '@/lib/site-config'
 
@@ -25,6 +26,13 @@ export default function FloatingWhatsApp() {
     return () => clearTimeout(t)
   }, [])
 
+  // PDP and cart show a sticky CTA bar (StickyCartBar, h-~16 on mobile) above
+  // the BottomTabBar. Without lifting the FAB, it sits on top of the Buy-now
+  // button. Route check is cheap and avoids a global layout context.
+  const pathname = usePathname() || '/'
+  const hasStickyCartBar =
+    pathname.startsWith('/product/') || pathname === '/cart'
+
   return (
     <a
       href={whatsappLink("Hi Srilatha Art, I'd like to ask about a piece I saw on the site.")}
@@ -35,9 +43,13 @@ export default function FloatingWhatsApp() {
         'fixed z-40 flex items-center justify-center',
         'h-14 w-14 lg:h-16 lg:w-16',
         'right-4 lg:right-6',
-        // On mobile, lift above the 4-rem-tall BottomTabBar + safe-area.
-        // On desktop the tab bar is hidden, so a normal bottom inset is fine.
-        'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-8',
+        // Mobile bottom offset:
+        //   - default: BottomTabBar (h-16) + safe-area + breathing room
+        //   - PDP / cart: also clear the StickyCartBar (~h-16) sitting above it
+        // Desktop: tab bar is hidden, normal bottom inset.
+        hasStickyCartBar
+          ? 'bottom-[calc(9rem+env(safe-area-inset-bottom))] lg:bottom-8'
+          : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-8',
         'rounded-full text-white',
         'transition-all duration-500',
         visible ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none',
