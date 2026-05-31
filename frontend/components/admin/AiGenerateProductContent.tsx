@@ -15,6 +15,78 @@ export interface AiProductContent {
   careInstructions: string
 }
 
+// Stable error codes returned by the backend in the JSON body alongside
+// HTTP status. Keep in sync with AiErrorCode in
+// backend/src/services/aiContentGenerator.ts — each new code MUST get a
+// message below.
+type AiErrorCode =
+  | 'MISSING_CONFIG'
+  | 'AUTH_ERROR'
+  | 'DEPLOYMENT_NOT_FOUND'
+  | 'RATE_LIMIT'
+  | 'SERVICE_UNAVAILABLE'
+  | 'TIMEOUT'
+  | 'IMAGE_PROCESSING_ERROR'
+  | 'INVALID_RESPONSE'
+  | 'CONTENT_VALIDATION_FAILED'
+  | 'NETWORK_ERROR'
+  | 'INVALID_INPUT'
+  | 'INTERNAL_ERROR'
+
+// Two-line messages: the first line states the problem, the second tells
+// the admin what to do. Copy is locked in by spec — do not paraphrase.
+const ERROR_MESSAGES: Record<AiErrorCode, string> = {
+  MISSING_CONFIG:
+    'AI content generation is not configured.\n\nPlease configure Azure OpenAI settings in the application environment variables and try again.',
+  AUTH_ERROR:
+    'AI content generation failed due to an authentication error.\n\nPlease verify the Azure OpenAI API key and deployment configuration.',
+  DEPLOYMENT_NOT_FOUND:
+    'Configured AI deployment was not found.\n\nPlease verify the Azure OpenAI deployment name configured for this application.',
+  RATE_LIMIT:
+    'AI request limit has been reached.\n\nPlease wait a few moments and try again.',
+  SERVICE_UNAVAILABLE:
+    'Azure OpenAI service is temporarily unavailable.\n\nPlease try again later.',
+  TIMEOUT:
+    'The AI service did not respond within the expected time.\n\nPlease try again.',
+  IMAGE_PROCESSING_ERROR:
+    'The uploaded image could not be processed.\n\nPlease upload a clear and valid image.',
+  INVALID_RESPONSE:
+    'The AI service returned an invalid response format.\n\nPlease generate the content again.',
+  CONTENT_VALIDATION_FAILED:
+    'The generated content did not meet minimum quality requirements.\n\nRequired fields were missing or incomplete.',
+  NETWORK_ERROR:
+    'Unable to connect to the AI service.\n\nPlease check network connectivity and try again.',
+  INVALID_INPUT:
+    'The uploaded image could not be processed.\n\nPlease upload a clear and valid image.',
+  INTERNAL_ERROR:
+    'An internal application error occurred while generating AI content.\n\nPlease contact the system administrator if the issue persists.',
+}
+
+function messageForError(err: unknown): string {
+  // Prefer the structured `code` from the backend body. Falls back to
+  // status-based heuristics for older deploys that pre-date the typed
+  // contract, and finally to a generic message.
+  if (err instanceof ApiError) {
+    const body = err.body as { code?: AiErrorCode } | null | undefined
+    if (body?.code && body.code in ERROR_MESSAGES) {
+      return ERROR_MESSAGES[body.code]
+    }
+    // No typed code from server — fall back on the HTTP status the
+    // server returned (matches what the typed mapping would have done).
+    if (err.status === 401) return ERROR_MESSAGES.AUTH_ERROR
+    if (err.status === 404) return ERROR_MESSAGES.DEPLOYMENT_NOT_FOUND
+    if (err.status === 429) return ERROR_MESSAGES.RATE_LIMIT
+    if (err.status === 503) return ERROR_MESSAGES.SERVICE_UNAVAILABLE
+    if (err.status === 504) return ERROR_MESSAGES.TIMEOUT
+  }
+  // TypeError from fetch usually means the browser couldn't reach the
+  // backend at all (offline, DNS, CORS pre-flight blocked).
+  if (err instanceof TypeError && /fetch|network/i.test(err.message)) {
+    return ERROR_MESSAGES.NETWORK_ERROR
+  }
+  return ERROR_MESSAGES.INTERNAL_ERROR
+}
+
 interface Props {
   /** First uploaded image URL — the source the AI analyses. Disable
    *  state is driven from whether this is set. */
@@ -60,19 +132,8 @@ export default function AiGenerateProductContent({ imageUrl, current, onGenerate
       setStatus('success')
       setMessage('Product details generated successfully.')
     } catch (err) {
-      let msg = 'Unable to generate product details. Please try again.'
-      if (err instanceof ApiError) {
-        if (err.status === 503) msg = 'AI generation is not configured on the server.'
-        else if (err.status === 504) msg = 'AI generation timed out. Please try again.'
-        else if (err.body && typeof err.body === 'object' && 'error' in err.body) {
-          const apiMsg = String((err.body as { error: unknown }).error)
-          if (apiMsg) msg = apiMsg
-        }
-      } else if (err instanceof Error && err.message) {
-        msg = err.message
-      }
       setStatus('error')
-      setMessage(msg)
+      setMessage(messageForError(err))
     }
   }
 
@@ -148,9 +209,17 @@ export default function AiGenerateProductContent({ imageUrl, current, onGenerate
         <p role="status" className="text-xs text-emerald-700">{message}</p>
       )}
       {status === 'error' && message && (
-        <p role="alert" className="text-xs text-rose-700 max-w-sm text-right">
+        // The mapped messages are two paragraphs separated by a blank
+        // line ("problem.\n\nnext step."); render each line on its own
+        // row so the second line reads as actionable guidance, not a
+        // run-on sentence. Whitespace-pre-line preserves the breaks
+        // without us having to split the string here.
+        <div
+          role="alert"
+          className="text-xs text-rose-700 max-w-sm text-right whitespace-pre-line leading-snug rounded-lg border border-rose-200 bg-rose-50 px-3 py-2"
+        >
           {message}
-        </p>
+        </div>
       )}
     </div>
   )

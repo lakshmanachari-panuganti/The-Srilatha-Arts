@@ -1,26 +1,20 @@
 /**
  * Azure OpenAI GPT-4o Vision — product content generation.
  *
- * Reads an artwork image URL (already on our public product-images blob
- * container, written there by /api/admin/upload) and asks GPT-4o Vision
- * to produce SEO-friendly e-commerce copy for it.
+ * Returns SEO-friendly e-commerce copy for a product image. The single
+ * function below talks to Azure OpenAI via raw fetch (no SDK — the
+ * single chat-completions call doesn't justify the extra package weight
+ * in the Functions zip).
  *
- * Returns a strict JSON shape that the admin product form maps 1:1 onto
- * the title / shortDescription / description / material / careInstructions
- * fields. No other fields are touched (price / category / stock /
- * featured flags are deliberately out of scope — those are business
- * decisions, not AI's call).
+ * Errors are surfaced as a typed AiContentError carrying:
+ *   - `code`: one of AiErrorCode — used to pick a precise user message
+ *     on the client AND to drive the structured server log.
+ *   - `status`: the HTTP status the route handler should return.
+ *   - `azureStatus`: Azure's own status (when applicable) — log-only.
+ *   - `details`: short technical detail string — log-only, never shown.
  *
- * Implementation notes:
- *   - Talks to Azure OpenAI via raw fetch instead of pulling in the
- *     `openai` SDK. The single chat-completions call is small enough that
- *     the SDK's ergonomics aren't worth the extra package weight inside
- *     the Functions zip.
- *   - response_format: { type: "json_object" } gates the model to valid
- *     JSON. We still validate before returning so a corrupt response
- *     surfaces as a 502, not as bad data on the product row.
- *   - 30 s hard timeout via AbortController — GPT-4o Vision typically
- *     responds in 4–10 s; anything beyond 30 s is a stalled request.
+ * The handler logs the full set; the client only ever sees the code +
+ * a fixed user-facing message.
  */
 
 export interface AiProductContent {
@@ -31,13 +25,43 @@ export interface AiProductContent {
   careInstructions: string
 }
 
-export class AiContentError extends Error {
-  /** HTTP status to surface to the client. */
+/**
+ * Discriminated error codes. The frontend maps each one to a specific
+ * user-facing string (see AiGenerateProductContent.tsx). Add new codes
+ * in BOTH places when introducing new failure modes.
+ */
+export type AiErrorCode =
+  | 'MISSING_CONFIG'             // env vars not set
+  | 'AUTH_ERROR'                 // Azure 401 — bad/expired API key
+  | 'DEPLOYMENT_NOT_FOUND'       // Azure 404 — deployment name wrong
+  | 'RATE_LIMIT'                 // Azure 429
+  | 'SERVICE_UNAVAILABLE'        // Azure 5xx
+  | 'TIMEOUT'                    // our AbortController fired
+  | 'IMAGE_PROCESSING_ERROR'     // Azure couldn't fetch/decode image
+  | 'INVALID_RESPONSE'           // JSON parse failed / unexpected shape
+  | 'CONTENT_VALIDATION_FAILED'  // parsed OK but required field empty
+  | 'NETWORK_ERROR'              // fetch() rejected without HTTP response
+  | 'INVALID_INPUT'              // imageUrl missing / malformed
+  | 'INTERNAL_ERROR'             // catch-all
+
+interface AiContentErrorOpts {
   status: number
-  constructor(message: string, status = 502) {
-    super(message)
-    this.status = status
+  azureStatus?: number
+  details?: string
+}
+
+export class AiContentError extends Error {
+  code: AiErrorCode
+  status: number
+  azureStatus?: number
+  details?: string
+  constructor(code: AiErrorCode, opts: AiContentErrorOpts) {
+    super(code)
     this.name = 'AiContentError'
+    this.code = code
+    this.status = opts.status
+    this.azureStatus = opts.azureStatus
+    this.details = opts.details
   }
 }
 
@@ -64,26 +88,36 @@ const PROMPT = [
   '- Return JSON only — no markdown fences, no commentary, no leading or trailing prose.',
 ].join('\n')
 
-export async function generateProductContent(imageUrl: string): Promise<AiProductContent> {
+export interface GenerateResult {
+  content: AiProductContent
+  /** Pass-through info for structured logging. */
+  deploymentName: string
+}
+
+export async function generateProductContent(imageUrl: string): Promise<GenerateResult> {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT
   const apiKey = process.env.AZURE_OPENAI_API_KEY
   const deployment = process.env.AZURE_OPENAI_DEPLOYMENT_NAME
   const apiVersion = process.env.AZURE_OPENAI_API_VERSION || '2024-08-01-preview'
 
   if (!endpoint || !apiKey || !deployment) {
-    throw new AiContentError(
-      'AI content generation is not configured on the server. Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY and AZURE_OPENAI_DEPLOYMENT_NAME.',
-      503,
-    )
+    const missing = [
+      !endpoint && 'AZURE_OPENAI_ENDPOINT',
+      !apiKey && 'AZURE_OPENAI_API_KEY',
+      !deployment && 'AZURE_OPENAI_DEPLOYMENT_NAME',
+    ].filter(Boolean).join(', ')
+    throw new AiContentError('MISSING_CONFIG', {
+      status: 503,
+      details: `Missing env vars: ${missing}`,
+    })
   }
   if (!imageUrl || !/^https?:\/\//.test(imageUrl)) {
-    throw new AiContentError('A valid image URL is required.', 400)
+    throw new AiContentError('INVALID_INPUT', {
+      status: 400,
+      details: 'imageUrl missing or not an http(s) URL',
+    })
   }
 
-  // Normalise the endpoint: accept both
-  //   https://acct.openai.azure.com
-  //   https://acct.openai.azure.com/
-  // and build the chat completions URL deterministically.
   const base = endpoint.replace(/\/+$/, '')
   const url = `${base}/openai/deployments/${encodeURIComponent(deployment)}/chat/completions?api-version=${encodeURIComponent(apiVersion)}`
 
@@ -116,38 +150,97 @@ export async function generateProductContent(imageUrl: string): Promise<AiProduc
     })
   } catch (err) {
     if ((err as { name?: string })?.name === 'AbortError') {
-      throw new AiContentError('AI generation timed out. Please try again.', 504)
+      throw new AiContentError('TIMEOUT', { status: 504, details: '30s AbortController' })
     }
-    throw new AiContentError('Could not reach the AI service.', 502)
+    throw new AiContentError('NETWORK_ERROR', {
+      status: 502,
+      details: err instanceof Error ? err.message : 'fetch rejected',
+    })
   } finally {
     clearTimeout(timeout)
   }
 
   if (!response.ok) {
-    const text = await response.text().catch(() => '')
-    // Surface Azure's status (4xx / 5xx) so the route handler can log it,
-    // but always return a generic message to the client.
-    throw new AiContentError(
-      `Azure OpenAI returned ${response.status}: ${text.slice(0, 500)}`,
-      response.status >= 500 ? 502 : 400,
-    )
+    const azureStatus = response.status
+    const rawBody = await response.text().catch(() => '')
+    const bodyLower = rawBody.toLowerCase()
+    const detail = `Azure ${azureStatus}: ${rawBody.slice(0, 500)}`
+
+    // 401 — bad/expired API key. Azure returns 401 even when the
+    // deployment is wrong + the key is wrong, but key issues are
+    // overwhelmingly more common; the deployment-not-found case is
+    // matched by 404 below.
+    if (azureStatus === 401) {
+      throw new AiContentError('AUTH_ERROR', { status: 401, azureStatus, details: detail })
+    }
+    // 404 — deployment name typo or wrong API version (Azure uses
+    // DeploymentNotFound in the error body for the former).
+    if (azureStatus === 404 || bodyLower.includes('deploymentnotfound') || bodyLower.includes('deployment not found')) {
+      throw new AiContentError('DEPLOYMENT_NOT_FOUND', { status: 404, azureStatus, details: detail })
+    }
+    // 429 — rate limit / quota exhausted.
+    if (azureStatus === 429) {
+      throw new AiContentError('RATE_LIMIT', { status: 429, azureStatus, details: detail })
+    }
+    // 5xx — Azure service hiccup.
+    if (azureStatus >= 500) {
+      throw new AiContentError('SERVICE_UNAVAILABLE', { status: 503, azureStatus, details: detail })
+    }
+    // 400 with image-related complaint — Azure couldn't fetch / decode
+    // the image at the URL we passed. Recognisable patterns:
+    //   "Could not download image"
+    //   "image_url"
+    //   "content_filter"   (vision-content moderation)
+    //   "invalid_image"
+    //   "unable to process image"
+    if (
+      azureStatus === 400 &&
+      (bodyLower.includes('image') ||
+        bodyLower.includes('download') ||
+        bodyLower.includes('content_filter') ||
+        bodyLower.includes('format'))
+    ) {
+      throw new AiContentError('IMAGE_PROCESSING_ERROR', {
+        status: 400,
+        azureStatus,
+        details: detail,
+      })
+    }
+    // Any other 4xx — bucket as internal so the user sees the catch-all
+    // and we surface the real reason in logs.
+    throw new AiContentError('INTERNAL_ERROR', {
+      status: 502,
+      azureStatus,
+      details: detail,
+    })
   }
 
-  const payload = (await response.json()) as {
-    choices?: { message?: { content?: string } }[]
+  // Successful HTTP — now validate the body shape.
+  let payload: { choices?: { message?: { content?: string } }[] }
+  try {
+    payload = (await response.json()) as typeof payload
+  } catch (err) {
+    throw new AiContentError('INVALID_RESPONSE', {
+      status: 502,
+      details: err instanceof Error ? err.message : 'json parse failed',
+    })
   }
+
   const raw = payload?.choices?.[0]?.message?.content
   if (typeof raw !== 'string' || !raw.trim()) {
-    throw new AiContentError('AI service returned an empty response.', 502)
+    throw new AiContentError('CONTENT_VALIDATION_FAILED', {
+      status: 502,
+      details: 'choices[0].message.content empty or non-string',
+    })
   }
 
-  return parseAndValidate(raw)
+  const content = parseAndValidate(raw)
+  return { content, deploymentName: deployment }
 }
 
 function parseAndValidate(raw: string): AiProductContent {
-  // The model is configured with response_format json_object so this
-  // should be pure JSON, but defend against the occasional ```json fence
-  // some deployments still emit.
+  // Defend against the occasional ```json fence even though we asked
+  // for json_object response_format.
   const stripped = raw
     .trim()
     .replace(/^```(?:json)?/i, '')
@@ -158,10 +251,16 @@ function parseAndValidate(raw: string): AiProductContent {
   try {
     obj = JSON.parse(stripped)
   } catch {
-    throw new AiContentError('AI response was not valid JSON.', 502)
+    throw new AiContentError('INVALID_RESPONSE', {
+      status: 502,
+      details: 'model output was not valid JSON',
+    })
   }
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
-    throw new AiContentError('AI response had unexpected shape.', 502)
+    throw new AiContentError('INVALID_RESPONSE', {
+      status: 502,
+      details: 'model output was not a JSON object',
+    })
   }
 
   const o = obj as Record<string, unknown>
@@ -178,13 +277,20 @@ function parseAndValidate(raw: string): AiProductContent {
     careInstructions: get('careInstructions').slice(0, 1000),
   }
 
-  // Title is the only field we hard-require — the others can reasonably
-  // be empty for some images (e.g. minimalist piece with no obvious
-  // material). A blank title means the model effectively returned
-  // nothing useful and we should fail loudly instead of pasting "" into
-  // a form.
-  if (!content.title) {
-    throw new AiContentError('AI response was missing a title.', 502)
+  // Quality floor: title is mandatory. shortDescription + description
+  // are also required since they're the visible product copy. material
+  // and careInstructions can reasonably be inferred-empty for some
+  // pieces, so we don't reject those.
+  if (!content.title || !content.shortDescription || !content.description) {
+    const missing = [
+      !content.title && 'title',
+      !content.shortDescription && 'shortDescription',
+      !content.description && 'description',
+    ].filter(Boolean).join(', ')
+    throw new AiContentError('CONTENT_VALIDATION_FAILED', {
+      status: 502,
+      details: `required fields empty after parse: ${missing}`,
+    })
   }
   return content
 }
