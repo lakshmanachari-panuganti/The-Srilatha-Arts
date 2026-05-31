@@ -40,7 +40,7 @@ function EditProduct() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const id = searchParams.get('id')
-  const { token } = useAdminAuth()
+  const { token, logout } = useAdminAuth()
   const tokenRef = useRef(token)
   tokenRef.current = token
   const [product, setProduct] = useState<Product | null | undefined>(undefined)
@@ -48,6 +48,9 @@ function EditProduct() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitErrorStatus, setSubmitErrorStatus] = useState<number | null>(null)
+
+  const sessionExpired = submitErrorStatus === 401 || submitError === 'Unauthorized'
 
   useEffect(() => {
     if (id) {
@@ -160,7 +163,9 @@ function EditProduct() {
       router.push('/admin/products')
     } catch (err) {
       let message = 'Failed to update product'
+      let status: number | null = null
       if (err instanceof ApiError) {
+        status = err.status
         message =
           err.body && typeof err.body === 'object' && 'error' in err.body
             ? String((err.body as { error: unknown }).error)
@@ -169,6 +174,7 @@ function EditProduct() {
         message = err.message
       }
       setSubmitError(message)
+      setSubmitErrorStatus(status)
     } finally {
       setIsSubmitting(false)
     }
@@ -182,7 +188,9 @@ function EditProduct() {
       router.push('/admin/products')
     } catch (err) {
       let message = 'Failed to delete product'
+      let status: number | null = null
       if (err instanceof ApiError) {
+        status = err.status
         message =
           err.body && typeof err.body === 'object' && 'error' in err.body
             ? String((err.body as { error: unknown }).error)
@@ -191,8 +199,14 @@ function EditProduct() {
         message = err.message
       }
       setSubmitError(message)
+      setSubmitErrorStatus(status)
       setIsDeleting(false)
     }
+  }
+
+  const handleReLogin = () => {
+    logout()
+    router.replace('/admin/login?next=' + encodeURIComponent(`/admin/products/edit?id=${id || ''}`))
   }
 
   return (
@@ -361,10 +375,28 @@ function EditProduct() {
                 On Sale
               </label>
             </div>
-            {submitError && (
+            {submitError && !sessionExpired && (
               <div className="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
                 <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>{submitError}</span>
+              </div>
+            )}
+            {sessionExpired && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm">
+                <div className="flex items-start gap-2 text-red-700 mb-2">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span className="font-medium">Your admin session expired</span>
+                </div>
+                <p className="text-red-700/90 text-xs mb-3 pl-6">
+                  Sign in again to save your changes. We&apos;ll bring you back to this page.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleReLogin}
+                  className="w-full h-9 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Sign in again
+                </button>
               </div>
             )}
             <button

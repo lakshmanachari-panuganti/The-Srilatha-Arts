@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { useAdminAuth } from '@/stores/adminAuth'
@@ -9,13 +9,19 @@ export default function AdminLoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { login, isLoading, error, clearError } = useAdminAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     const success = await login(username, password)
     if (success) {
-      router.replace('/admin')
+      // Only honour `next` if it points inside /admin — never accept an
+      // arbitrary URL (open-redirect class). The leading-slash check rules
+      // out protocol-relative URLs like //evil.com.
+      const next = searchParams.get('next') || ''
+      const safe = next.startsWith('/admin') && !next.startsWith('//')
+      router.replace(safe ? next : '/admin')
     }
   }
 
