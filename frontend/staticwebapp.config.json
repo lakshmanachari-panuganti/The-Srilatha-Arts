@@ -5,6 +5,14 @@
       "rewrite": "/product/__shell__/index.html"
     },
     {
+      "route": "/account/orders/*/invoice",
+      "rewrite": "/account/orders/__shell__/invoice/index.html"
+    },
+    {
+      "route": "/account/orders/*/invoice/",
+      "rewrite": "/account/orders/__shell__/invoice/index.html"
+    },
+    {
       "route": "/account/orders/*",
       "rewrite": "/account/orders/__shell__/index.html"
     }
