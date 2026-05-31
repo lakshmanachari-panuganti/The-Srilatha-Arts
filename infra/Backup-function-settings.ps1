@@ -1,51 +1,47 @@
 <#
 .SYNOPSIS
-    Backs up all Function App application settings to Azure Key Vault.
+    Backs up all Function App settings to Azure Key Vault.
 
 .DESCRIPTION
     Reads every app setting from the target Function App and stores each one
-    as a Key Vault secret with version tags (BackupDate, OriginalKey, SourceApp).
-    Key Vault automatically creates a new version on each write, so every run
-    produces a snapshot that can be restored independently via
-    Restore-function-settings.ps1.
+    as a Key Vault secret. Each run creates a new secret version automatically,
+    so you can restore from any point in time using Restore-function-settings.ps1.
 
-    Key Vault secret names allow only [A-Za-z0-9-]. Any other character in the
-    original setting name (underscores, dots, colons, etc.) is replaced with '-'.
-    The exact original key is preserved in the OriginalKey tag and is used by
-    Restore-function-settings.ps1 to write back the correct name.
+    Since Function App setting names only use letters, digits, and underscores,
+    the only character that needs to be swapped is underscore ( _ -> - ) because
+    Key Vault secret names only allow letters, digits, and hyphens.
+    The original setting name is always saved in the OriginalKey tag, which is
+    what the restore script uses — so the name encoding is just for readability.
 
-    Settings whose value is a Key Vault reference (@Microsoft.KeyVault(...)) are
-    stored as the literal reference string, not the resolved secret value. On
-    restore the reference lands back on the Function App unchanged, which is the
-    correct behaviour.
+    Settings that are already Key Vault references (@Microsoft.KeyVault(...))
+    are stored as-is. On restore they go back to the Function App unchanged,
+    which is exactly what you want.
 
 .PARAMETER FunctionAppName
     Name of the Azure Function App to back up.
 
 .PARAMETER KeyVaultName
-    Name of the Key Vault to write secrets into. Created in the same resource
-    group and region as the Function App if it does not already exist.
+    Name of the Key Vault to write secrets into.
+    If it doesn't exist yet, it will be created in the same resource group
+    and region as the Function App.
 
 .EXAMPLE
-    # Connect first (if not already connected)
-    . ./docs/Azure-Connectivity.ps1
-
     ./infra/Backup-function-settings.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
         -KeyVaultName    kv-thesrilathaarts-dev
 
 .NOTES
-    Requires:
+    Requirements:
       - PowerShell 7+
-      - Az.Accounts, Az.Functions, Az.Websites, Az.KeyVault modules
-      - An active Az session for a principal with:
+      - Az.Accounts, Az.Resources, Az.KeyVault modules
+      - The following environment variables must be set before running:
+          MY_APPREG_CLIENT_ID
+          MY_APPREG_CLIENT_SECRET
+          MY_APPREG_TENANT_ID
+      - The service principal must have:
           Contributor on the Function App's resource group
-          Key Vault Secrets Officer on the target Key Vault
-        Run docs/Azure-Connectivity.ps1 for SP-based login.
-
-    Each run writes a new version of every secret — the number of versions
-    accumulates over time. Use the Azure portal or az keyvault secret list to
-    prune old versions if needed.
+          Key Vault Secrets Officer on the target Key Vault (if using RBAC),
+          OR a Key Vault Access Policy granting Set/Get on secrets
 #>
 
 [CmdletBinding()]
@@ -59,24 +55,39 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# ------------------------------------------------------------
-# Validate Key Vault name early (Azure enforces 3-24 chars, [a-zA-Z0-9-])
-# ------------------------------------------------------------
-if ($KeyVaultName.Length -lt 3 -or $KeyVaultName.Length -gt 24) {
-    throw "KeyVaultName '$KeyVaultName' is $($KeyVaultName.Length) characters. Azure requires 3–24."
-}
-if ($KeyVaultName -notmatch '^[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]$') {
-    throw "KeyVaultName '$KeyVaultName' contains invalid characters. Only letters, digits, and hyphens are allowed, and it must start with a letter."
+# -------------------------------------------------------
+# 1. Validate required environment variables up front
+#    so we fail clearly instead of with a cryptic auth error
+# -------------------------------------------------------
+foreach ($envVar in @('MY_APPREG_CLIENT_ID', 'MY_APPREG_CLIENT_SECRET', 'MY_APPREG_TENANT_ID')) {
+    if ([string]::IsNullOrEmpty((Get-Item "env:$envVar" -ErrorAction SilentlyContinue).Value)) {
+        throw "Required environment variable '$envVar' is not set."
+    }
 }
 
-# ------------------------------------------------------------
-# Verify active Az session
-# ------------------------------------------------------------
-Disconnect-AzAccount
+# -------------------------------------------------------
+# 2. Validate Key Vault name
+#    Azure requires: 3-24 chars, letters/digits/hyphens, must start with a letter
+# -------------------------------------------------------
+if ($KeyVaultName.Length -lt 3 -or $KeyVaultName.Length -gt 24) {
+    throw "KeyVaultName '$KeyVaultName' is $($KeyVaultName.Length) characters. Azure requires between 3 and 24."
+}
+if ($KeyVaultName -notmatch '^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$') {
+    throw "KeyVaultName '$KeyVaultName' is invalid. It must start with a letter, end with a letter or digit, and contain only letters, digits, and hyphens."
+}
+
+# -------------------------------------------------------
+# 3. Sign in using the service principal
+# -------------------------------------------------------
 $securePassword = ConvertTo-SecureString $env:MY_APPREG_CLIENT_SECRET -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential ($env:MY_APPREG_CLIENT_ID, $securePassword)
-$con = Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential $credential
-$ctx = $con.context
+
+Connect-AzAccount `
+    -ServicePrincipal `
+    -Tenant    $env:MY_APPREG_TENANT_ID `
+    -Credential $credential | Out-Null
+
+$ctx = Get-AzContext
 $backupDate = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fff")
 
 Write-Host "==============================================="
@@ -85,23 +96,31 @@ Write-Host "==============================================="
 Write-Host "Function App : $FunctionAppName"
 Write-Host "Key Vault    : $KeyVaultName"
 Write-Host "Backup Date  : $backupDate"
-Write-Host "Az Context   : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -ForegroundColor DarkGray
+Write-Host "Signed in as : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -ForegroundColor DarkGray
 Write-Host ""
 
-# ------------------------------------------------------------
-# Get Function App resource group + location
-# Use Get-AzResource instead of Get-AzFunctionApp to avoid a bug in
-# Az.Functions 4.x where a subscription-wide scan throws on null app-setting
-# keys in unrelated apps.
-# ------------------------------------------------------------
-$faResource = Get-AzResource `
-    -ResourceType "Microsoft.Web/sites" `
-    -Name $FunctionAppName `
-    -ErrorAction SilentlyContinue
+# -------------------------------------------------------
+# 4. Find the Function App and get its resource group + location
+#    Using Get-AzResource avoids a bug in Az.Functions 4.x where
+#    Get-AzFunctionApp throws on null setting keys in unrelated apps
+# -------------------------------------------------------
+# @() forces the result into an array so .Count always works,
+# even when only one item is returned (PowerShell won't wrap a single object automatically)
+$faResources = @(Get-AzResource `
+        -ResourceType "Microsoft.Web/sites" `
+        -Name         $FunctionAppName `
+        -ErrorAction  SilentlyContinue)
 
-if (-not $faResource) {
-    throw "Function App '$FunctionAppName' not found."
+if ($faResources.Count -eq 0) {
+    throw "Function App '$FunctionAppName' not found in subscription '$($ctx.Subscription.Name)'."
 }
+
+# Warn if more than one result came back (same name in multiple resource groups)
+if ($faResources.Count -gt 1) {
+    Write-Warning "Multiple Function Apps named '$FunctionAppName' found. Using the first one in resource group '$($faResources[0].ResourceGroupName)'."
+}
+
+$faResource = $faResources[0]
 
 $resourceGroupName = $faResource.ResourceGroupName
 $location = $faResource.Location
@@ -110,91 +129,85 @@ Write-Host "Resource Group : $resourceGroupName"
 Write-Host "Location       : $location"
 Write-Host ""
 
-# ------------------------------------------------------------
-# Create Key Vault if it does not exist
-# ------------------------------------------------------------
-$keyVault = Get-AzKeyVault `
-    -VaultName $KeyVaultName `
-    -ErrorAction SilentlyContinue
+# -------------------------------------------------------
+# 5. Create the Key Vault if it doesn't exist yet
+#    EnableRbacAuthorization = true so that role assignments
+#    (Key Vault Secrets Officer) work correctly.
+#    If your org uses Access Policies instead of RBAC, remove
+#    that flag and add a Set-AzKeyVaultAccessPolicy call here.
+# -------------------------------------------------------
+$keyVault = Get-AzKeyVault -VaultName $KeyVaultName -ErrorAction SilentlyContinue
 
 if (-not $keyVault) {
-
-    Write-Host "Key Vault does not exist — creating: $KeyVaultName" -ForegroundColor Yellow
+    Write-Host "Key Vault '$KeyVaultName' not found — creating it now..." -ForegroundColor Yellow
 
     $keyVault = New-AzKeyVault `
-        -Name              $KeyVaultName `
-        -ResourceGroupName $resourceGroupName `
-        -Location          $location `
-        -Sku               Standard
+        -Name                  $KeyVaultName `
+        -ResourceGroupName     $resourceGroupName `
+        -Location              $location `
+        -Sku                   Standard `
+        -EnableRbacAuthorization
 
     Write-Host "Key Vault created." -ForegroundColor Green
     Write-Host ""
-
 } else {
-
-    Write-Host "Key Vault exists." -ForegroundColor DarkGray
+    Write-Host "Key Vault found." -ForegroundColor DarkGray
     Write-Host ""
 }
 
-# ------------------------------------------------------------
-# Get ALL Function App settings via ARM REST API
-# (Avoids a bug in Az.Functions 4.x where Get-AzFunctionAppSetting
-# throws on null app-setting keys during internal runtime inspection)
-# ------------------------------------------------------------
-$subId   = (Get-AzContext).Subscription.Id
+# -------------------------------------------------------
+# 6. Read all Function App settings via ARM REST API
+#    (Using the REST call directly avoids the Az.Functions 4.x bug)
+# -------------------------------------------------------
+$subId = $ctx.Subscription.Id
 $apiPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
-           "/providers/Microsoft.Web/sites/$FunctionAppName" +
-           "/config/appsettings/list?api-version=2022-03-01"
+"/providers/Microsoft.Web/sites/$FunctionAppName" +
+"/config/appsettings/list?api-version=2022-03-01"
 
 $response = Invoke-AzRestMethod -Method POST -Path $apiPath -Payload '{}'
 
 if ($response.StatusCode -ne 200) {
-    throw "Failed to read app settings (HTTP $($response.StatusCode)): $($response.Content)"
+    throw "Could not read app settings (HTTP $($response.StatusCode)): $($response.Content)"
 }
 
 $settingsProperties = ($response.Content | ConvertFrom-Json).properties.PSObject.Properties
 
-$total = @($settingsProperties).Count
+if (-not $settingsProperties) {
+    Write-Host "No settings found on Function App '$FunctionAppName'. Nothing to back up." -ForegroundColor Yellow
+    exit 0
+}
 
+$total = @($settingsProperties).Count
 Write-Host "Settings found: $total"
 Write-Host ""
 
-# ------------------------------------------------------------
-# Back up each setting as a new Key Vault secret version
-# ------------------------------------------------------------
+# -------------------------------------------------------
+# 7. Save each setting as a Key Vault secret
+# -------------------------------------------------------
 $backed = 0
-
 $skipped = 0
 
 foreach ($setting in $settingsProperties) {
 
     $originalKey = $setting.Name
-    $value       = $setting.Value
+    $value = $setting.Value
 
-    # Key Vault secrets cannot hold empty strings
+    # Key Vault cannot store empty strings — skip them
     if ([string]::IsNullOrEmpty($value)) {
-        Write-Host "  SKIP (empty) : $originalKey" -ForegroundColor DarkGray
+        Write-Host "  SKIP (empty value) : $originalKey" -ForegroundColor DarkGray
         $skipped++
         continue
     }
 
-    # Key Vault secret names allow [A-Za-z0-9-] only and must start with a letter.
-    # Encode each problematic char with a unique multi-char token so that
-    # FOO_BAR, FOO-BAR, FOO.BAR, and FOO:BAR all produce different KV names
-    # and the mapping is visually reversible (OriginalKey tag is the real source
-    # of truth on restore, but readable names help when browsing the vault):
-    #   _  →  --   (underscore  → double hyphen)
-    #   .  →  -D-  (dot         → hyphen D hyphen)
-    #   :  →  -C-  (colon       → hyphen C hyphen)
-    # Any other invalid char falls back to a single hyphen.
-    # If the result starts with a digit (KV requires a letter start), prefix x-.
-    $secretName = $originalKey -replace '_', '--'
-    $secretName = $secretName  -replace '\.', '-D-'
-    $secretName = $secretName  -replace ':',  '-C-'
-    $secretName = $secretName  -replace '[^A-Za-z0-9-]', '-'
-    if ($secretName -match '^\d') { $secretName = "x-$secretName" }
+    # Build a valid KV secret name:
+    #   - Replace underscore with hyphen (the only invalid char in app setting names)
+    #   - Prefix with "x-" if the name starts with a digit (KV requires a letter start)
+    $secretName = $originalKey -replace '_', '-'
+    if ($secretName -match '^\d') {
+        $secretName = "x-$secretName"
+    }
 
-    Write-Host "  $originalKey -> $secretName"
+    Write-Host "  Backing up : $originalKey  ->  $secretName"
 
     $secureValue = ConvertTo-SecureString -String $value -AsPlainText -Force
 
@@ -206,13 +219,19 @@ foreach ($setting in $settingsProperties) {
         OriginalKey = $originalKey
         BackupDate  = $backupDate
         SourceApp   = $FunctionAppName
-    } -ErrorAction Stop | Out-Null
+    } `
+        -ErrorAction Stop | Out-Null
 
     $backed++
 }
 
+# -------------------------------------------------------
+# 8. Done
+# -------------------------------------------------------
 Write-Host ""
 Write-Host "==============================================="
-Write-Host "Backup completed: $backed stored, $skipped skipped (empty value)." -ForegroundColor Green
-Write-Host "Backup date key : $backupDate"
+Write-Host "Backup complete!" -ForegroundColor Green
+Write-Host "  Stored  : $backed"
+Write-Host "  Skipped : $skipped  (empty values)"
+Write-Host "  Date key: $backupDate"
 Write-Host "==============================================="

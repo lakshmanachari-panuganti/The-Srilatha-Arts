@@ -1,57 +1,55 @@
 <#
 .SYNOPSIS
-    Restores Function App application settings from an Azure Key Vault backup.
+    Restores Function App settings from an Azure Key Vault backup.
 
 .DESCRIPTION
-    Reads secrets written by Backup-function-settings.ps1, then writes the
-    selected backup version's settings back to the Function App.
+    Reads secrets written by Backup-function-settings.ps1 and restores them
+    to the target Function App. For each setting in the backup:
+      - If the key already exists in the live app  → it is overwritten
+      - If the key does not exist in the live app  → it is created
+    Keys that exist in the live app but are NOT in the selected backup are
+    left completely untouched.
 
-    Restore behaviour:
-      - Uses Update-AzFunctionAppSetting, which MERGES with existing settings.
-        Settings present in the live app but absent in the selected backup are
-        left unchanged. The diff preview (printed before any change is applied)
-        shows exactly what will be added or changed.
-      - Triggers a Function App restart — any in-flight requests may be dropped
-        depending on the host's graceful-shutdown configuration.
-      - Does not modify the Key Vault — read-only against the vault.
+    A diff preview is shown before anything is changed, and you must confirm
+    before the script touches the Function App.
 
 .PARAMETER FunctionAppName
-    Name of the Azure Function App to restore settings to.
+    Name of the Azure Function App to restore settings into.
 
 .PARAMETER KeyVaultName
-    Name of the Key Vault that holds the backup (written by
-    Backup-function-settings.ps1).
+    Name of the Key Vault that holds the backup secrets
+    (the one used when running Backup-function-settings.ps1).
 
 .PARAMETER BackupDate
     Optional. The exact backup-date string to restore, e.g.
-    "2026-05-27T12:34:56.789". If omitted, the script lists all available
-    dates and prompts interactively.
+    "2026-05-31T23:02:08.266". If omitted, the script shows a menu
+    of all available backup dates and asks you to pick one.
 
 .EXAMPLE
-    # Connect first (if not already connected)
-    . ./docs/Azure-Connectivity.ps1
-
     # Interactive — pick a backup from the menu
     ./infra/Restore-function-settings.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
-        -KeyVaultName    kv-thesrilathaarts-bkp
+        -KeyVaultName    kv-thesrilathaarts-dev
 
 .EXAMPLE
-    # Non-interactive — specify backup date directly
+    # Non-interactive — pass the backup date directly
     ./infra/Restore-function-settings.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
-        -KeyVaultName    kv-thesrilathaarts-bkp `
-        -BackupDate      "2026-05-27T12:34:56.789"
+        -KeyVaultName    kv-thesrilathaarts-dev `
+        -BackupDate      "2026-05-31T23:02:08.266"
 
 .NOTES
-    Requires:
+    Requirements:
       - PowerShell 7+
-      - Az.Accounts, Az.Functions, Az.Websites, Az.KeyVault 4.0+ modules
-        (4.0+ is required for -AsPlainText on Get-AzKeyVaultSecret)
-      - An active Az session for a principal with:
+      - Az.Accounts, Az.Resources, Az.KeyVault (4.0+) modules
+        (4.0+ is needed for -AsPlainText on Get-AzKeyVaultSecret)
+      - The following environment variables must be set before running:
+          MY_APPREG_CLIENT_ID
+          MY_APPREG_CLIENT_SECRET
+          MY_APPREG_TENANT_ID
+      - The service principal must have:
           Contributor on the Function App's resource group
           Key Vault Secrets User (or higher) on the Key Vault
-        Run docs/Azure-Connectivity.ps1 for SP-based login.
 #>
 
 [CmdletBinding()]
@@ -68,241 +66,298 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# ------------------------------------------------------------
-# Verify active Az session
-# ------------------------------------------------------------
-Disconnect-AzAccount
+# -------------------------------------------------------
+# 1. Validate required environment variables up front
+# -------------------------------------------------------
+foreach ($envVar in @('MY_APPREG_CLIENT_ID', 'MY_APPREG_CLIENT_SECRET', 'MY_APPREG_TENANT_ID')) {
+    if ([string]::IsNullOrEmpty((Get-Item "env:$envVar" -ErrorAction SilentlyContinue).Value)) {
+        throw "Required environment variable '$envVar' is not set."
+    }
+}
+
+# -------------------------------------------------------
+# 2. Sign in using the service principal
+# -------------------------------------------------------
 $securePassword = ConvertTo-SecureString $env:MY_APPREG_CLIENT_SECRET -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential ($env:MY_APPREG_CLIENT_ID, $securePassword)
-$con = Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential $credential
-$ctx = $con.context
+
+Connect-AzAccount `
+    -ServicePrincipal `
+    -Tenant     $env:MY_APPREG_TENANT_ID `
+    -Credential $credential | Out-Null
+
+$ctx = Get-AzContext
+
 Write-Host "==============================================="
 Write-Host "Function App Settings Restore"
 Write-Host "==============================================="
 Write-Host "Function App : $FunctionAppName"
 Write-Host "Key Vault    : $KeyVaultName"
-Write-Host "Az Context   : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -ForegroundColor DarkGray
+Write-Host "Signed in as : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -ForegroundColor DarkGray
 Write-Host ""
 
-# ------------------------------------------------------------
-# Get Function App resource group
-# Use Get-AzResource instead of Get-AzFunctionApp to avoid a bug in
-# Az.Functions 4.x where a subscription-wide scan throws on null app-setting
-# keys in unrelated apps.
-# ------------------------------------------------------------
-$faResource = Get-AzResource `
-    -ResourceType "Microsoft.Web/sites" `
-    -Name $FunctionAppName `
-    -ErrorAction SilentlyContinue
+# -------------------------------------------------------
+# 3. Find the Function App
+#    @() forces the result into an array so .Count always works,
+#    even when only one item comes back
+# -------------------------------------------------------
+$faResources = @(Get-AzResource `
+        -ResourceType "Microsoft.Web/sites" `
+        -Name         $FunctionAppName `
+        -ErrorAction  SilentlyContinue)
 
-if (-not $faResource) {
-    throw "Function App '$FunctionAppName' not found."
+if ($faResources.Count -eq 0) {
+    throw "Function App '$FunctionAppName' not found in subscription '$($ctx.Subscription.Name)'."
 }
 
+if ($faResources.Count -gt 1) {
+    Write-Warning "Multiple Function Apps named '$FunctionAppName' found. Using the first one in resource group '$($faResources[0].ResourceGroupName)'."
+}
+
+$faResource = $faResources[0]
 $resourceGroupName = $faResource.ResourceGroupName
 
 Write-Host "Resource Group : $resourceGroupName"
 Write-Host ""
 
-# ------------------------------------------------------------
-# Get ALL secret versions from Key Vault
-# -IncludeVersions requires -Name, so we iterate per secret name.
-# ------------------------------------------------------------
-Write-Host "Reading secret versions from Key Vault..." -ForegroundColor DarkGray
-
-$secretList = Get-AzKeyVaultSecret -VaultName $KeyVaultName
-if (-not $secretList) {
-    throw "No secrets found in Key Vault '$KeyVaultName'."
+# -------------------------------------------------------
+# 4. Make sure the Key Vault exists
+# -------------------------------------------------------
+$keyVault = Get-AzKeyVault -VaultName $KeyVaultName -ErrorAction SilentlyContinue
+if (-not $keyVault) {
+    throw "Key Vault '$KeyVaultName' not found. Make sure Backup-function-settings.ps1 has been run first."
 }
 
-$allSecrets = $secretList | ForEach-Object {
-    Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $_.Name -IncludeVersions
+# -------------------------------------------------------
+# 5. Read all secret versions from the Key Vault
+#    We list every secret name first, then pull all versions
+#    for each one so we can find every available backup date
+# -------------------------------------------------------
+Write-Host "Reading backup secrets from Key Vault..." -ForegroundColor DarkGray
+
+$secretNames = @(Get-AzKeyVaultSecret -VaultName $KeyVaultName | Select-Object -ExpandProperty Name)
+
+if ($secretNames.Count -eq 0) {
+    throw "No secrets found in Key Vault '$KeyVaultName'. Has Backup-function-settings.ps1 been run against this vault?"
 }
 
-# ------------------------------------------------------------
-# Build sorted list of available backup dates from version tags
-# ------------------------------------------------------------
+# Pull all versions for every secret in one pass
+$allVersions = $secretNames | ForEach-Object {
+    Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $_ -IncludeVersions
+}
+
+# -------------------------------------------------------
+# 6. Build the list of available backup dates from the tags
+# -------------------------------------------------------
 $backupDates = @(
-    $allSecrets |
+    $allVersions |
         Where-Object { $_.Tags -and $_.Tags.ContainsKey("BackupDate") } |
         ForEach-Object { $_.Tags["BackupDate"] } |
         Sort-Object -Unique
 )
 
 if ($backupDates.Count -eq 0) {
-    throw "No backup versions found in Key Vault '$KeyVaultName'. Did Backup-function-settings.ps1 run against this vault?"
+    throw "No tagged backup versions found. The secrets in '$KeyVaultName' may not have been created by Backup-function-settings.ps1."
 }
 
-# ------------------------------------------------------------
-# Resolve target backup date (parameter or interactive menu)
-# ------------------------------------------------------------
+# -------------------------------------------------------
+# 7. Resolve which backup date to restore
+#    Either the caller passed -BackupDate, or we show a menu
+# -------------------------------------------------------
 if ($BackupDate) {
 
     if ($backupDates -notcontains $BackupDate) {
         Write-Host "Available backup dates:"
         $backupDates | ForEach-Object { Write-Host "  $_" }
         Write-Host ""
-        throw "BackupDate '$BackupDate' not found in Key Vault."
+        throw "BackupDate '$BackupDate' was not found in Key Vault '$KeyVaultName'."
     }
-    $selectedBackupDate = $BackupDate
+
+    $selectedDate = $BackupDate
 
 } else {
 
-    Write-Host "Available Backup Versions:"
+    Write-Host "Available backup versions:"
     Write-Host ""
     for ($i = 0; $i -lt $backupDates.Count; $i++) {
-        Write-Host "  [$($i + 1)] $($backupDates[$i])"
+        Write-Host "  [$($i + 1)]  $($backupDates[$i])"
     }
     Write-Host ""
 
-    $selection = Read-Host "Select backup version number"
+    $selection = Read-Host "Enter the number of the backup to restore"
 
-    if (
-        -not ($selection -match '^\d+$') -or
-        [int]$selection -lt 1 -or
-        [int]$selection -gt $backupDates.Count
-    ) {
-        throw "Invalid selection '$selection'."
+    if ($selection -notmatch '^\d+$' -or [int]$selection -lt 1 -or [int]$selection -gt $backupDates.Count) {
+        throw "Invalid selection '$selection'. Please enter a number between 1 and $($backupDates.Count)."
     }
 
-    $selectedBackupDate = $backupDates[[int]$selection - 1]
+    $selectedDate = $backupDates[[int]$selection - 1]
 }
 
 Write-Host ""
-Write-Host "Selected Backup Date: $selectedBackupDate"
+Write-Host "Selected backup : $selectedDate"
 Write-Host ""
 
-# ------------------------------------------------------------
-# Build app settings dictionary from the selected backup
-# ------------------------------------------------------------
-$appSettings = @{}
+# -------------------------------------------------------
+# 8. Build the settings dictionary from the selected backup
+#    The OriginalKey tag is always the source of truth for
+#    the real setting name — the KV secret name is just for storage
+# -------------------------------------------------------
+$backupSettings = @{}
 
-$selectedSecrets = $allSecrets |
-    Where-Object {
-        $_.Tags -and
-        $_.Tags.ContainsKey("BackupDate") -and
-        $_.Tags["BackupDate"] -eq $selectedBackupDate
-    }
+$selectedVersions = $allVersions | Where-Object {
+    $_.Tags -and
+    $_.Tags.ContainsKey("BackupDate") -and
+    $_.Tags["BackupDate"] -eq $selectedDate
+}
 
-foreach ($secret in $selectedSecrets) {
+foreach ($version in $selectedVersions) {
 
-    $secretName = $secret.Name
-
-    # Retrieve plaintext for this specific version (-AsPlainText requires Az.KeyVault 4.0+)
+    # Get the plaintext value for this exact secret version
     $value = Get-AzKeyVaultSecret `
         -VaultName  $KeyVaultName `
-        -Name       $secretName `
-        -Version    $secret.Version `
+        -Name       $version.Name `
+        -Version    $version.Version `
         -AsPlainText
 
-    # Use the stored OriginalKey tag (canonical); fall back to reversing the
-    # encoding applied by Backup-function-settings.ps1 for tag-less secrets.
-    if ($secret.Tags -and $secret.Tags.ContainsKey("OriginalKey")) {
-        $originalKey = $secret.Tags["OriginalKey"]
+    # Always use the OriginalKey tag — it holds the exact Function App setting name
+    # (e.g. "AZURE_OPENAI_API_KEY") that was encoded into the KV secret name
+    if ($version.Tags -and $version.Tags.ContainsKey("OriginalKey")) {
+        $originalKey = $version.Tags["OriginalKey"]
     } else {
-        $originalKey = $secretName -replace '^x-', ''   # strip digit-start prefix
-        $originalKey = $originalKey -replace '-C-', ':'
-        $originalKey = $originalKey -replace '-D-', '.'
-        $originalKey = $originalKey -replace '--',  '_'
+        # Safety fallback: reverse the underscore encoding from the backup script
+        # This should never be needed since our backup always writes the tag
+        $originalKey = $version.Name -replace '^x-', '' -replace '-', '_'
+        Write-Warning "Secret '$($version.Name)' has no OriginalKey tag — falling back to name decoding: '$originalKey'"
     }
 
-    $appSettings[$originalKey] = $value
+    $backupSettings[$originalKey] = $value
 }
 
-if ($appSettings.Count -eq 0) {
-    throw "No settings found for backup date '$selectedBackupDate'."
+if ($backupSettings.Count -eq 0) {
+    throw "No settings found for backup date '$selectedDate'. The backup may be empty or corrupted."
 }
 
-# ------------------------------------------------------------
-# Diff preview — keys only, values are never printed
-# ------------------------------------------------------------
-$subId   = (Get-AzContext).Subscription.Id
-$apiPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
-           "/providers/Microsoft.Web/sites/$FunctionAppName" +
-           "/config/appsettings/list?api-version=2022-03-01"
+Write-Host "Settings in this backup : $($backupSettings.Count)"
+Write-Host ""
 
-$currentResponse = Invoke-AzRestMethod -Method POST -Path $apiPath -Payload '{}'
+# -------------------------------------------------------
+# 9. Read the current live Function App settings
+# -------------------------------------------------------
+$subId = $ctx.Subscription.Id
+$getPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
+"/providers/Microsoft.Web/sites/$FunctionAppName" +
+"/config/appsettings/list?api-version=2022-03-01"
 
-if ($currentResponse.StatusCode -ne 200) {
-    throw "Failed to read current app settings (HTTP $($currentResponse.StatusCode)): $($currentResponse.Content)"
+$getResponse = Invoke-AzRestMethod -Method POST -Path $getPath -Payload '{}'
+
+if ($getResponse.StatusCode -ne 200) {
+    throw "Could not read current Function App settings (HTTP $($getResponse.StatusCode)): $($getResponse.Content)"
 }
 
-$currentObj = ($currentResponse.Content | ConvertFrom-Json).properties
+$currentSettings = ($getResponse.Content | ConvertFrom-Json).properties
 
-$adds    = [System.Collections.Generic.List[string]]::new()
-$changes = [System.Collections.Generic.List[string]]::new()
-$same    = [System.Collections.Generic.List[string]]::new()
+# -------------------------------------------------------
+# 10. Decide what to do with each key and print it live
+#     We go through every key in the backup and check the
+#     live app right now — no separate diff pass needed.
+#     CREATED    = key does not exist in the live app yet
+#     OVERWRITE  = key exists but the value is different
+#     SAME       = key exists and value is already identical
+# -------------------------------------------------------
+$toCreate = [System.Collections.Generic.List[string]]::new()
+$toOverwrite = [System.Collections.Generic.List[string]]::new()
+$same = [System.Collections.Generic.List[string]]::new()
 
-foreach ($key in ($appSettings.Keys | Sort-Object)) {
-    $cur = $currentObj.PSObject.Properties[$key]
-    if ($null -eq $cur) {
-        $adds.Add($key)
-    } elseif ($cur.Value -ne $appSettings[$key]) {
-        $changes.Add($key)
+Write-Host "Checking each setting against the live app:"
+Write-Host ""
+
+foreach ($key in ($backupSettings.Keys | Sort-Object)) {
+    $liveEntry = $currentSettings.PSObject.Properties[$key]
+
+    if ($null -eq $liveEntry) {
+        Write-Host "  [CREATE]     $key" -ForegroundColor Green
+        $toCreate.Add($key)
+    } elseif ($liveEntry.Value -ne $backupSettings[$key]) {
+        Write-Host "  [OVERWRITE]  $key" -ForegroundColor Yellow
+        $toOverwrite.Add($key)
     } else {
+        Write-Host "  [SAME]       $key" -ForegroundColor DarkGray
         $same.Add($key)
     }
 }
 
-$notInBackup = @(
-    $currentObj.PSObject.Properties.Name |
-        Where-Object { -not $appSettings.ContainsKey($_) } |
+# Keys in the live app that are not in the backup at all — we never touch these
+$untouched = @(
+    $currentSettings.PSObject.Properties.Name |
+        Where-Object { -not $backupSettings.ContainsKey($_) } |
         Sort-Object
 )
 
-Write-Host "Diff preview (keys only — values are not shown):"
-Write-Host ""
-foreach ($k in $adds)    { Write-Host "  ADD    $k" -ForegroundColor Green }
-foreach ($k in $changes) { Write-Host "  CHANGE $k" -ForegroundColor Yellow }
-foreach ($k in $same)    { Write-Host "  SAME   $k" -ForegroundColor DarkGray }
-
-if ($notInBackup.Count -gt 0) {
+if ($untouched.Count -gt 0) {
     Write-Host ""
-    Write-Host "  $($notInBackup.Count) live setting(s) not present in this backup — will be left unchanged:" -ForegroundColor Cyan
-    foreach ($k in $notInBackup) { Write-Host "    $k" -ForegroundColor DarkGray }
+    foreach ($k in $untouched) {
+        Write-Host "  [NOT IN BACKUP - SKIP]  $k" -ForegroundColor Cyan
+    }
 }
 
 Write-Host ""
 
-if ($adds.Count -eq 0 -and $changes.Count -eq 0) {
-    Write-Host "No changes to apply — live app already matches this backup." -ForegroundColor Green
+# -------------------------------------------------------
+# 11. If nothing needs to change, exit early
+# -------------------------------------------------------
+if ($toCreate.Count -eq 0 -and $toOverwrite.Count -eq 0) {
+    Write-Host "Nothing to do — the live app already matches this backup." -ForegroundColor Green
     exit 0
 }
 
-Write-Host ("Will apply {0} add(s) and {1} change(s). This will restart the Function App." -f $adds.Count, $changes.Count) -ForegroundColor Yellow
+Write-Host "Summary : $($toCreate.Count) to CREATE, $($toOverwrite.Count) to OVERWRITE, $($same.Count) already correct, $($untouched.Count) not in backup." -ForegroundColor Yellow
+Write-Host "Note    : This will restart the Function App." -ForegroundColor Yellow
 Write-Host ""
 
-$confirm = Read-Host "Apply? [y/N]"
+$confirm = Read-Host "Apply changes? [y/N]"
 if ($confirm -notmatch '^[Yy]$') {
-    Write-Host "Aborted." -ForegroundColor Yellow
+    Write-Host "Aborted. No changes were made." -ForegroundColor Yellow
     exit 0
 }
 
-# ------------------------------------------------------------
-# Apply settings via ARM REST API
-# (Avoids the Az.Functions 4.x GetRuntimeName bug on the response path)
-# PUT replaces the full set, so merge backup into current first.
-# ------------------------------------------------------------
+# -------------------------------------------------------
+# 12. Apply all changes in one ARM REST API call
+#     PUT replaces the full settings block, so we merge
+#     the backup on top of the current settings first —
+#     that way keys not in the backup are preserved.
+# -------------------------------------------------------
 Write-Host ""
-Write-Host "Updating Function App settings..."
+Write-Host "Applying changes to Function App..."
 
 $mergedSettings = @{}
-$currentObj.PSObject.Properties | ForEach-Object { $mergedSettings[$_.Name] = $_.Value }
-foreach ($key in $appSettings.Keys) { $mergedSettings[$key] = $appSettings[$key] }
+$currentSettings.PSObject.Properties | ForEach-Object {
+    $mergedSettings[$_.Name] = $_.Value
+}
+foreach ($key in $backupSettings.Keys) {
+    $mergedSettings[$key] = $backupSettings[$key]
+}
 
-$putBody = @{ properties = $mergedSettings } | ConvertTo-Json -Depth 3 -Compress
+$putBody = @{ properties = $mergedSettings } | ConvertTo-Json -Depth 10 -Compress
 
 $putPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
-           "/providers/Microsoft.Web/sites/$FunctionAppName" +
-           "/config/appsettings?api-version=2022-03-01"
+"/providers/Microsoft.Web/sites/$FunctionAppName" +
+"/config/appsettings?api-version=2022-03-01"
 
 $putResponse = Invoke-AzRestMethod -Method PUT -Path $putPath -Payload $putBody
 
 if ($putResponse.StatusCode -notin @(200, 201)) {
-    throw "Failed to update app settings (HTTP $($putResponse.StatusCode)): $($putResponse.Content)"
+    throw "Failed to apply settings (HTTP $($putResponse.StatusCode)): $($putResponse.Content)"
 }
 
+# -------------------------------------------------------
+# 13. Done
+# -------------------------------------------------------
 Write-Host ""
 Write-Host "==============================================="
-Write-Host "Restore completed: $($adds.Count + $changes.Count) setting(s) updated." -ForegroundColor Green
+Write-Host "Restore complete!" -ForegroundColor Green
+Write-Host "  Created    : $($toCreate.Count)"
+Write-Host "  Overwritten: $($toOverwrite.Count)"
+Write-Host "  Same       : $($same.Count)  (untouched)"
+Write-Host "  Not in backup : $($untouched.Count)  (untouched)"
+Write-Host "  Backup     : $selectedDate"
 Write-Host "==============================================="

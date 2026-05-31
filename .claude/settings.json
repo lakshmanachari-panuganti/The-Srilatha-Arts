@@ -60,7 +60,8 @@
       "Bash(git -C c:/repos/The-Srilatha-Arts add frontend/components/MobileDrawer.tsx frontend/components/FloatingWhatsApp.tsx)",
       "Bash(git -C c:/repos/The-Srilatha-Arts commit -F /c/Users/E092721/AppData/Local/Temp/commit-msg.txt)",
       "Bash(git -C c:/repos/The-Srilatha-Arts add frontend/app/product/\\\\[id\\\\]/ProductDetailClient.tsx frontend/app/custom-order/CustomOrderClient.tsx frontend/app/account/AccountClient.tsx frontend/app/account/orders/\\\\[id\\\\]/invoice/ frontend/staticwebapp.config.json)",
-      "Bash(git -C c:/repos/The-Srilatha-Arts commit -F /c/Users/E092721/AppData/Local/Temp/commit-msg-2.txt)"
+      "Bash(git -C c:/repos/The-Srilatha-Arts commit -F /c/Users/E092721/AppData/Local/Temp/commit-msg-2.txt)",
+      "PowerShell($errs = $null; $tokens = $null; [System.Management.Automation.Language.Parser]::ParseFile\\('c:\\\\repos\\\\The-Srilatha-Arts\\\\infra\\\\seed-admin.ps1', [ref]$tokens, [ref]$errs\\) | Out-Null; if \\($errs\\) { $errs | ForEach-Object { \"$\\($_.Extent.StartLineNumber\\):$\\($_.Extent.StartColumnNumber\\)  $\\($_.Message\\)\" } } else { 'PARSE OK' })"
     ],
     "additionalDirectories": [
       "C:\\Users\\E092721\\AppData\\Local\\Temp"
