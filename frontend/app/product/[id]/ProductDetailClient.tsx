@@ -103,9 +103,29 @@ export default function ProductDetailClient() {
     staleTime: 2 * 60_000,
   })
 
+  // Eligibility pre-flight. Only fires when the user is logged in — the
+  // anonymous-state CTA ("Sign in to review") doesn't need a network
+  // round-trip. The backend mirrors POST /api/reviews' own checks
+  // (verified delivered purchase + one-per-user-product), so the form
+  // is only ever shown when the submit will actually succeed.
+  type EligibilityReason =
+    | 'not-authenticated'
+    | 'no-delivered-order'
+    | 'already-reviewed'
+  const { data: eligibility } = useQuery({
+    queryKey: ['review-eligibility', id, user?.email],
+    queryFn: () =>
+      apiFetch<{ eligible: boolean; reason?: EligibilityReason }>(
+        `/reviews/eligibility?productId=${encodeURIComponent(id!)}`,
+      ),
+    enabled: !!id && id !== '__shell__' && !!user,
+    staleTime: 60_000,
+  })
+
   const related = (relatedData?.products ?? []).filter((r) => r.id !== p?.id).slice(0, 4)
   const reviews = reviewsData?.reviews ?? []
   const avgRating = reviewsData?.averageRating ?? 0
+  const canReview = !!user && eligibility?.eligible === true
 
   const submitReview = async () => {
     if (!formBody.trim()) return
@@ -316,7 +336,7 @@ export default function ProductDetailClient() {
               </div>
             )}
           </div>
-          {user && !showForm && !formSuccess && (
+          {canReview && !showForm && !formSuccess && (
             <button
               onClick={() => setShowForm(true)}
               className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
@@ -326,6 +346,25 @@ export default function ProductDetailClient() {
             </button>
           )}
         </div>
+
+        {/* Contextual eligibility messaging — explains WHY the user
+            can't write a review instead of letting them fill the form
+            and hit a 401/403 on submit. */}
+        {!showForm && !formSuccess && user && eligibility?.eligible === false && (
+          <p className="text-sm text-ink-mute mb-6">
+            {eligibility.reason === 'already-reviewed'
+              ? 'Thanks — you’ve already shared a review for this piece.'
+              : eligibility.reason === 'no-delivered-order'
+                ? 'Only customers who’ve received this piece can leave a review.'
+                : null}
+          </p>
+        )}
+        {!showForm && !formSuccess && !user && reviews.length > 0 && (
+          <p className="text-sm text-ink-mute mb-6">
+            <Link href="/login" className="text-lavender hover:underline">Sign in</Link>{' '}
+            to leave a review on a piece you’ve received.
+          </p>
+        )}
 
         {/* Review submission form */}
         {showForm && (
