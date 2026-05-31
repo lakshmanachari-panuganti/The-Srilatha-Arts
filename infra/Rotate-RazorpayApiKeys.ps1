@@ -85,19 +85,31 @@ $ErrorActionPreference = 'Stop'
 $AppSlug = 'thesrilathaarts'
 $envMap = @{
     'dev' = @{
-        ResourceGroup  = "rg-$AppSlug-dev"
-        FunctionApp    = "func-$AppSlug-dev"
-        ExpectedPrefix = 'rzp_test_'
-        RazorpayMode   = 'TEST mode'
+        ResourceGroup   = "rg-$AppSlug-dev"
+        FunctionAppName = "func-$AppSlug-dev"
+        ExpectedPrefix  = 'rzp_test_'
+        RazorpayMode    = 'TEST mode'
+        KeyVaultName    = "kv-$AppSlug-dev"
     }
     'prd' = @{
-        ResourceGroup  = "rg-$AppSlug-prd"
-        FunctionApp    = "func-$AppSlug-prd"
-        ExpectedPrefix = 'rzp_live_'
-        RazorpayMode   = 'LIVE mode'
+        ResourceGroup   = "rg-$AppSlug-prd"
+        FunctionAppName = "func-$AppSlug-prd"
+        ExpectedPrefix  = 'rzp_live_'
+        RazorpayMode    = 'LIVE mode'
+        KeyVaultName    = "kv-$AppSlug-dev"
     }
 }
+
 $envCfg = $envMap[$Environment]
+
+try {
+    & "$PSScriptRoot\Backup-function-settings.ps1" `
+        -KeyVaultName $envCfg.KeyVaultName `
+        -FunctionAppName $envCfg.FunctionAppName
+    Write-Host "Function app setting backed up successfully"
+} catch {
+    throw "Unable to back up function app settings for '$($envCfg.FunctionAppName)'. Error: $($_.Exception.Message)"
+}
 
 Write-Host ''
 Write-Host "Target environment : $Environment" -ForegroundColor Cyan
@@ -134,7 +146,7 @@ Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential
 
 # ─── Confirm the target Function App exists ────────────────────────────────
 Import-Module Az.Functions -ErrorAction Stop -WarningAction SilentlyContinue
-$fn = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp -ErrorAction SilentlyContinue
+$fn = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionAppName -ErrorAction SilentlyContinue
 if (-not $fn) {
     throw "Function App '$($envCfg.FunctionApp)' not found in '$($envCfg.ResourceGroup)'."
 }
@@ -163,7 +175,7 @@ Write-Host ''
 Write-Host "Updating $($envCfg.FunctionApp) RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET ..." -ForegroundColor Yellow
 Update-AzFunctionAppSetting `
     -ResourceGroupName $envCfg.ResourceGroup `
-    -Name $envCfg.FunctionApp `
+    -Name $envCfg.FunctionAppName `
     -AppSetting @{
     'RAZORPAY_KEY_ID'     = $trimmedKeyId
     'RAZORPAY_KEY_SECRET' = $trimmedKeySecret

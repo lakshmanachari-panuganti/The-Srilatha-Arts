@@ -149,7 +149,8 @@ $tableNames = @(
     'orderEvents', 'ordersByStatus',
     'coupons', 'couponRedemptions',
     'announcements',
-    'wishlist', 'reviews', 'customOrders',
+    'wishlist', 'cart', 'reviews', 'customOrders',
+    'newsletterSubscribers',
     'addresses', 'notifications',
     'staff', 'auditLog', 'rateLimits'
 )
@@ -715,6 +716,23 @@ if (-not $miAssignments) {
         Write-Success 'All required RBAC roles are present. Function App is ready to run.'
     }
 }
+
+$spObjectId = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID).Id
+$rgscope = Get-AzResourceGroup -Name $envCfg.ResourceGroup
+try {
+    New-AzRoleAssignment `
+        -ObjectId $spObjectId `
+        -RoleDefinitionName 'Storage Table Data Contributor' `
+        -Scope $rgscope.ResourceId `
+        -ErrorAction Stop
+} catch {
+    if ($_.Exception.Message -match "RoleAssignmentExists|already exists") {
+        Write-Host "Role Assignment 'Storage Table Data Contributor' already exists for the SP." -ForegroundColor Green
+    } else {
+        throw
+    }
+}
+
 
 # ── Final summary ────────────────────────────────────────────────
 $functionUrl = "https://$($envCfg.FunctionApp).azurewebsites.net"

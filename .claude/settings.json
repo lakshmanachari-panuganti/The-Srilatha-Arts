@@ -51,7 +51,17 @@
       "PowerShell($dst = \"$env:USERPROFILE\\\\.claude\\\\skills\\\\frontend-design\"; New-Item -ItemType Directory -Force -Path $dst | Out-Null; Copy-Item \"$env:TEMP\\\\frontend-design-SKILL.md\" \"$dst\\\\SKILL.md\" -Force; \"Installed to $dst\\\\SKILL.md \\($\\(\\(Get-Item \"$dst\\\\SKILL.md\"\\).Length\\) bytes\\)\")",
       "Bash(npx jest *)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "Bash(npx --no-install tsc --noEmit)"
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts log --oneline -20 -- frontend/components/Header.tsx)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts status)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts add frontend/components/Header.tsx)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts commit -m ' *)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts push origin develop)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts add frontend/components/MobileDrawer.tsx frontend/components/FloatingWhatsApp.tsx)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts commit -F /c/Users/E092721/AppData/Local/Temp/commit-msg.txt)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts add frontend/app/product/\\\\[id\\\\]/ProductDetailClient.tsx frontend/app/custom-order/CustomOrderClient.tsx frontend/app/account/AccountClient.tsx frontend/app/account/orders/\\\\[id\\\\]/invoice/ frontend/staticwebapp.config.json)",
+      "Bash(git -C c:/repos/The-Srilatha-Arts commit -F /c/Users/E092721/AppData/Local/Temp/commit-msg-2.txt)",
+      "PowerShell($errs = $null; $tokens = $null; [System.Management.Automation.Language.Parser]::ParseFile\\('c:\\\\repos\\\\The-Srilatha-Arts\\\\infra\\\\seed-admin.ps1', [ref]$tokens, [ref]$errs\\) | Out-Null; if \\($errs\\) { $errs | ForEach-Object { \"$\\($_.Extent.StartLineNumber\\):$\\($_.Extent.StartColumnNumber\\)  $\\($_.Message\\)\" } } else { 'PARSE OK' })"
     ],
     "additionalDirectories": [
       "C:\\Users\\E092721\\AppData\\Local\\Temp"

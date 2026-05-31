@@ -36,10 +36,15 @@ async function wishlistHandler(
       // Enrich with product data. Shape mirrors the frontend's WishlistItem
       // type so the store can swap server data in without re-fetching each
       // product detail. `slug` + `category` are needed for /product/{slug}
-      // links and category labels on the wishlist page.
+      // links and category labels on the wishlist page. `compareAtPrice`
+      // drives the strikethrough "was X" price next to the current price.
       const enriched = await Promise.all(
         items.map(async (item) => {
           const product = await getProductById(item.rowKey)
+          const compareAtPrice =
+            typeof product?.compareAtPrice === 'number' && product.compareAtPrice > 0
+              ? product.compareAtPrice
+              : undefined
           return {
             productId: item.rowKey,
             addedAt: item.addedAt,
@@ -48,6 +53,7 @@ async function wishlistHandler(
             category: product?.partitionKey ?? '',
             image: product?.imageUrl ?? '',
             price: product?.displayPrice ?? product?.price ?? 0,
+            compareAtPrice,
             inStock: product?.inStock !== false,
           }
         }),

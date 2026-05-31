@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { MessageCircle, Mail, ArrowRight, Palette, Ruler, Clock, CheckCircle2 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { MessageCircle, Mail, ArrowRight, Palette, Ruler, Clock, CheckCircle2, X as XIcon } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import PhotoUploader from '@/components/PhotoUploader'
+import type { Product } from '@/types'
 
 // Mirrors VALID_ART_FORMS in backend/src/functions/customOrders.ts.
 // Keep in sync — the backend rejects any value not in this set.
@@ -21,8 +24,21 @@ const ART_FORMS: { value: string; label: string }[] = [
 
 const MAX_PHOTOS = 5
 
+// Map the live category slug → the ART_FORMS value the backend accepts.
+// They line up 1:1 today, but keeping this explicit means a future category
+// rename (e.g. wedding → wedding-decoratives) won't silently fall through.
+const CATEGORY_TO_ART_FORM: Record<string, string> = {
+  resin: 'resin',
+  'dot-mandala': 'dot-mandala',
+  lippan: 'lippan',
+  kolam: 'kolam',
+  wedding: 'wedding',
+}
+
 export default function CustomOrderClient() {
   const user = useUserAuth((s) => s.user)
+  const searchParams = useSearchParams()
+  const sourceId = searchParams?.get('source') || null
 
   const [form, setForm] = useState({
     customerName: user?.name || '',
@@ -38,6 +54,48 @@ export default function CustomOrderClient() {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Source product (when arriving from a PDP "Customise this art" link).
+  // Fetched once, used to seed the form + render the small reference card.
+  // Failure is silent — the form still works without it.
+  const [source, setSource] = useState<Product | null>(null)
+  const [sourceSeeded, setSourceSeeded] = useState(false)
+
+  useEffect(() => {
+    if (!sourceId || sourceSeeded) return
+    let cancelled = false
+    apiFetch<{ product: Product }>(`/products/${sourceId}`)
+      .then((r) => {
+        if (cancelled) return
+        setSource(r.product)
+        setSourceSeeded(true)
+        setForm((s) => ({
+          ...s,
+          artForm: CATEGORY_TO_ART_FORM[r.product.category] || s.artForm,
+          description: s.description.trim()
+            ? s.description
+            : `I'd love a custom version of "${r.product.title}". `,
+        }))
+        const primary = r.product.images?.[0]
+        if (primary) setPhotos((cur) => (cur.length ? cur : [primary]))
+      })
+      .catch(() => {
+        // Silent: the form still works without the reference; the user can
+        // describe what they want in text + upload their own photos.
+        if (!cancelled) setSourceSeeded(true)
+      })
+    return () => { cancelled = true }
+  }, [sourceId, sourceSeeded])
+
+  function clearSource() {
+    setSource(null)
+    // We don't yank the description / photos the user has had a chance to
+    // edit — only remove the photo if it's still the seeded primary.
+    if (source) {
+      const primary = source.images?.[0]
+      if (primary) setPhotos((cur) => cur.filter((p) => p !== primary))
+    }
+  }
 
   const on = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -114,6 +172,46 @@ export default function CustomOrderClient() {
         Have a specific size, colour or theme in mind? Tell us about it and we&apos;ll make a one-of-a-kind
         piece for you. Great for birthdays, anniversaries, housewarmings, or any occasion.
       </p>
+
+      {/* Reference piece — shown when the visitor arrived via the PDP
+          "Customise this art" CTA. Pre-fills artForm + a starter line in
+          description + seeds the primary image as a reference photo. */}
+      {source && (
+        <div className="mb-8 rounded-2xl border border-glass-border bg-plum-light/30 p-4 flex items-center gap-4">
+          <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-plum-light/50 shrink-0">
+            {source.images?.[0] && (
+              <Image
+                src={source.images[0]}
+                alt={source.title}
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs uppercase tracking-wider text-ivory-mute mb-0.5">
+              Customising
+            </p>
+            <p className="font-serif text-base text-ivory truncate">{source.title}</p>
+            <Link
+              href={`/product/${source.id}`}
+              className="text-xs text-lavender-pastel hover:underline"
+            >
+              View original
+            </Link>
+          </div>
+          <button
+            type="button"
+            onClick={clearSource}
+            aria-label="Remove reference piece"
+            className="w-9 h-9 rounded-full text-ivory-mute hover:text-ivory hover:bg-white/[0.06]
+                       flex items-center justify-center transition-colors"
+          >
+            <XIcon className="w-4 h-4" aria-hidden />
+          </button>
+        </div>
+      )}
 
       {/* Quick what-to-share grid — same content as before, kept for context */}
       <section className="mb-10 grid grid-cols-1 sm:grid-cols-3 gap-4">

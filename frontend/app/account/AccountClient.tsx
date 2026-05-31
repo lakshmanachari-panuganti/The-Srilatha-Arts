@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Package, MapPin, LogOut, Heart, ChevronRight,
-  Pencil, Trash2, Plus, Check,
+  Pencil, Trash2, Plus, Check, X as XIcon, FileText,
 } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
@@ -33,6 +33,10 @@ interface OrderSummary {
   displayTotal: number
   customerName: string
   createdAt: string
+  // Cancellation metadata — populated when a customer cancels via the
+  // detail page or the list-page CancelOrderModal. Backend stores the
+  // human reason string verbatim (label + optional comment).
+  cancelReason?: string
   // Return / refund metadata exposed by toApi() on the backend.
   returnRequestedAt?: string
   returnReason?: string
@@ -67,6 +71,26 @@ function withinReturnWindow(updatedAt?: string): boolean {
   if (Number.isNaN(t)) return false
   return (Date.now() - t) / (1000 * 60 * 60 * 24) <= RETURN_WINDOW_DAYS
 }
+
+// Mirror backend canCustomerCancel (services/orderState.ts). Customers can
+// cancel only while the order hasn't physically left the studio.
+const CUSTOMER_CANCELLABLE_STATUSES = new Set(['PLACED', 'CONFIRMED', 'CRAFTING'])
+function canCustomerCancel(status: string): boolean {
+  return CUSTOMER_CANCELLABLE_STATUSES.has(status)
+}
+
+// Reason set mirrored from the order-detail CancelModal so the two
+// cancellation surfaces stay consistent. If the detail-page list changes,
+// update both. The submit format also matches the detail page:
+// the backend gets the human label (+ optional comment) rather than the code,
+// so the stored `cancelReason` reads naturally in admin / audit logs.
+const CANCEL_REASON_OPTIONS: { code: string; label: string }[] = [
+  { code: 'changed_mind',      label: 'I changed my mind' },
+  { code: 'found_better',      label: 'Found a different piece I prefer' },
+  { code: 'delivery_too_long', label: 'Delivery time is too long' },
+  { code: 'duplicate',         label: 'Ordered by mistake / duplicate' },
+  { code: 'other',             label: 'Other reason' },
+]
 
 type Tab = 'orders' | 'addresses' | 'profile'
 
@@ -297,10 +321,12 @@ function OrderCard({
   onChanged: (next: Partial<OrderSummary> & { id: string }) => void
 }) {
   const [showReturn, setShowReturn] = useState(false)
+  const [showCancel, setShowCancel] = useState(false)
   const canReturn =
     order.status === 'DELIVERED' &&
     !order.returnRequestedAt &&
     withinReturnWindow(order.updatedAt || order.createdAt)
+  const canCancel = canCustomerCancel(order.status)
 
   return (
     <li className="card p-5 hover:shadow-sm transition-shadow">
@@ -364,15 +390,54 @@ function OrderCard({
         </div>
       )}
 
-      {/* Customer action: Request return — shown only when within window */}
-      {canReturn && (
+      {/* Cancellation context strip — shown after a successful cancel.
+          Backend stores the full human label (+ optional comment), so we
+          render order.cancelReason verbatim — no code → label map needed. */}
+      {order.status === 'CANCELLED' && (
+        <div className="mt-4 rounded-xl border border-ink/15 bg-cream-deep/60 px-4 py-3 text-sm text-ink-soft">
+          <p className="font-medium text-ink mb-1">Order cancelled</p>
+          {order.cancelReason && (
+            <p>Reason: <strong>{order.cancelReason}</strong></p>
+          )}
+          {order.paymentStatus === 'PAID' && (
+            <p className="text-xs mt-1.5">
+              If your payment was already captured, any refund will be processed within 5–7 working days.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Customer actions: cancel, request return, download invoice.
+          The buttons appear together in one bar so the user has a single
+          place to look. Each renders only when eligible. */}
+      {(canReturn || canCancel) && (
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <InvoiceDownloadButton order={order} />
+          {canCancel && (
+            <button
+              onClick={() => setShowCancel(true)}
+              className="text-sm h-10 px-4 rounded-full border border-rose-300/70 text-rose-700 hover:bg-rose-50 inline-flex items-center gap-2"
+            >
+              <XIcon className="w-4 h-4" aria-hidden />
+              Cancel order
+            </button>
+          )}
+          {canReturn && (
+            <button
+              onClick={() => setShowReturn(true)}
+              className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+            >
+              Request a return
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Invoice row always shown when no other action is eligible — keeps
+          the download discoverable for SHIPPED / DELIVERED / CANCELLED. */}
+      {!canReturn && !canCancel && (
         <div className="mt-4 flex justify-end">
-          <button
-            onClick={() => setShowReturn(true)}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
-          >
-            Request a return
-          </button>
+          <InvoiceDownloadButton order={order} />
         </div>
       )}
 
@@ -386,7 +451,173 @@ function OrderCard({
           }}
         />
       )}
+
+      {showCancel && (
+        <CancelOrderModal
+          orderId={order.id}
+          onClose={() => setShowCancel(false)}
+          onSubmitted={(updates) => {
+            onChanged({ id: order.id, ...updates })
+            setShowCancel(false)
+          }}
+        />
+      )}
     </li>
+  )
+}
+
+// ─── Invoice download button ─────────────────────────────────
+// Opens the printable invoice page in a new tab with auto-print. Browsers
+// offer "Save as PDF" in the print dialog universally — no backend PDF
+// dependency to keep cold-start lean. Hidden for unpaid PLACED orders since
+// there's nothing to bill yet.
+
+function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
+  if (order.paymentStatus !== 'PAID' && order.status === 'PLACED') return null
+  return (
+    <a
+      href={`/account/orders/${order.id}/invoice?auto=print`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+    >
+      <FileText className="w-4 h-4" aria-hidden />
+      Invoice
+    </a>
+  )
+}
+
+// ─── Cancel order modal ──────────────────────────────────────
+// Mirrors ReturnRequestModal shape so the two flows feel identical.
+// Reason picker + optional comment (required for "Other"). Hits the
+// existing backend endpoint POST /api/orders/{id}/cancel.
+
+function CancelOrderModal({
+  orderId,
+  onClose,
+  onSubmitted,
+}: {
+  orderId: string
+  onClose: () => void
+  onSubmitted: (updates: Partial<OrderSummary>) => void
+}) {
+  const [reason, setReason] = useState<string>('changed_mind')
+  const [comment, setComment] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function submit() {
+    setErr('')
+    if (!reason) { setErr('Please pick a reason.'); return }
+    if (reason === 'other' && !comment.trim()) {
+      setErr('Please tell us a bit about why you’re cancelling.')
+      return
+    }
+    setBusy(true)
+    try {
+      // Match the detail-page CancelModal submit format: send the human label
+      // (+ optional comment) so the stored cancelReason reads naturally.
+      const label = CANCEL_REASON_OPTIONS.find((o) => o.code === reason)?.label || reason
+      const reasonPayload = comment.trim() ? `${label}: ${comment.trim()}` : label
+      await apiFetch<{ ok: true; status: string }>(`/orders/${encodeURIComponent(orderId)}/cancel`, {
+        method: 'POST',
+        body: { reason: reasonPayload },
+      })
+      onSubmitted({
+        status: 'CANCELLED',
+        cancelReason: reasonPayload,
+      })
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Could not cancel the order.')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cancel-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm px-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="cancel-modal-title" className="font-serif text-2xl text-ink mb-1">Cancel this order?</h2>
+        <p className="text-sm text-ink-soft mb-5">
+          Order <span className="font-medium tabular-nums">{orderId}</span>
+        </p>
+
+        <p className="text-xs text-ink-mute bg-cream-deep/70 border border-ink/10 rounded-lg px-3 py-2 mb-5">
+          Cancellation is available until we ship the piece. If you’ve already paid, the refund is
+          processed back to the original method within 5–7 working days.
+        </p>
+
+        <label className="block text-xs uppercase tracking-wider text-ink-mute mb-2">
+          Reason for cancelling
+        </label>
+        <div className="space-y-2 mb-4">
+          {CANCEL_REASON_OPTIONS.map((o) => (
+            <label
+              key={o.code}
+              className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                reason === o.code
+                  ? 'border-lavender/60 bg-cream-deep/60'
+                  : 'border-ink/10 hover:border-ink/20'
+              }`}
+            >
+              <input
+                type="radio"
+                name="cancel-reason"
+                value={o.code}
+                checked={reason === o.code}
+                onChange={() => setReason(o.code)}
+                className="mt-1 accent-lavender"
+              />
+              <span className="text-sm text-ink">{o.label}</span>
+            </label>
+          ))}
+        </div>
+
+        <label className="block text-xs uppercase tracking-wider text-ink-mute mb-1.5">
+          Comment {reason === 'other' && <span className="text-red-500">*</span>}
+        </label>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          maxLength={500}
+          rows={3}
+          placeholder="Anything you'd like to tell us (optional)."
+          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+        />
+        <p className="text-xs text-ink-mute mt-1">{comment.length}/500</p>
+
+        {err && (
+          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 px-3 py-2">{err}</div>
+        )}
+
+        <div className="flex justify-end gap-2 mt-6">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
+          >
+            Keep order
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={busy}
+            className="text-sm h-10 px-5 rounded-full bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-60"
+          >
+            {busy ? 'Cancelling…' : 'Cancel order'}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

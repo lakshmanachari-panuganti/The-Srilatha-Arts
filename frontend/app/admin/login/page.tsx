@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { useAdminAuth } from '@/stores/adminAuth'
 
@@ -34,8 +35,18 @@ export default function AdminLoginPage() {
 
       <main className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block font-brand text-5xl text-ink tracking-[0.04em] mb-2">
-            Srilatha<em className="not-italic gold-text ml-1.5">Art</em>
+          <Link href="/" className="inline-flex items-center justify-center gap-3 mb-2">
+            <Image
+              src="/Logos/logo.png"
+              alt="Srilatha Art"
+              width={64}
+              height={64}
+              priority
+              className="w-16 h-16 object-contain drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]"
+            />
+            <span className="font-brand text-5xl text-ink tracking-[0.04em]">
+              Srilatha Art
+            </span>
           </Link>
           <p className="text-sm font-medium tracking-wider uppercase text-ink-mute">Admin Portal</p>
         </div>

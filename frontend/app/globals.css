@@ -17,13 +17,12 @@
                           contrast classical capitals that hold up
                           under the heavy uppercase usage sitewide.
 
-     Square Peg         — `font-brand`. Reserved exclusively for the
+     Pramukh Rounded      — `font-brand`. Reserved exclusively for the
                           "Srilatha Art" wordmark. Do not use it
                           elsewhere.
 
-   All three are loaded via next/font/google in app/layout.tsx and
-   exposed as CSS variables (--font-dm-sans, --font-cormorant,
-   --font-square-peg). next/font self-hosts at build time, generates
+   All three are loaded via next/font/google in app/layout.tsx (and Fontshare for brand) and
+   exposed as CSS variables (--font-dm-sans, --font-cormorant). next/font self-hosts at build time, generates
    fallback metrics to prevent CLS, and inlines the font CSS.
 
    Feature settings (kerning + common ligatures) stay on the html

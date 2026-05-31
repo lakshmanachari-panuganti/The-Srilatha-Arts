@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare, ShieldCheck } from 'lucide-react'
+import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare, ShieldCheck, ArrowRight } from 'lucide-react'
 import { CATEGORY_BY_SLUG } from '@/data/categories'
 import { formatINR, discountPct } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
@@ -278,6 +278,29 @@ export default function ProductDetailClient() {
           )}
 
           <p className="text-ink/85 leading-relaxed mb-7 text-base lg:text-lg">{p.description}</p>
+
+          {/* Customise CTA — opens custom-order with this piece as the brief
+              source. Keeps the existing custom-order form schema unchanged;
+              the form just pre-fills initial state from ?source=<id>. */}
+          <Link
+            href={`/custom-order?source=${encodeURIComponent(p.id)}`}
+            className="card-cream flex items-start gap-4 p-4 sm:p-5 mb-7 group
+                       hover:border-lavender/40 transition-colors"
+          >
+            <span className="w-10 h-10 rounded-full bg-lavender/10 text-lavender shrink-0
+                             flex items-center justify-center group-hover:bg-lavender/15 transition-colors">
+              <Sparkles className="w-5 h-5" aria-hidden />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block font-serif text-lg text-ink mb-0.5">Want a custom version?</span>
+              <span className="block text-sm text-ink-soft leading-relaxed">
+                Different size, palette or theme — we can craft one inspired by this piece.
+              </span>
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-lavender shrink-0 self-center">
+              Customise <ArrowRight className="w-3.5 h-3.5" aria-hidden />
+            </span>
+          </Link>
 
           <details className="border-t border-ink/10 py-5 group">
             <summary className="cursor-pointer flex items-center justify-between text-ink font-medium font-serif text-lg">
