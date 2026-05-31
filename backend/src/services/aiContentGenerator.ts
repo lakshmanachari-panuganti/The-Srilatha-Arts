@@ -118,7 +118,14 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
     })
   }
 
-  const base = endpoint.replace(/\/+$/, '')
+  // Endpoint normalisation. Foundry's UI shows the full endpoint
+  // (`https://x.openai.azure.com/openai/v1/`) — if someone pastes that
+  // wholesale into the env var, we'd build a malformed URL like
+  // `…/openai/v1/openai/deployments/…`. Strip anything after `.azure.com`
+  // so both forms (bare host OR full Foundry URL) work.
+  const base = endpoint
+    .replace(/\/+$/, '')
+    .replace(/(\.azure\.com)\/.*$/i, '$1')
   const url = `${base}/openai/deployments/${encodeURIComponent(deployment)}/chat/completions?api-version=${encodeURIComponent(apiVersion)}`
 
   const controller = new AbortController()
