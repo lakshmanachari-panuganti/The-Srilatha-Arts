@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
 
       <main className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block font-brand text-4xl text-ink tracking-[0.04em] mb-2">
+          <Link href="/" className="inline-block font-brand font-bold text-5xl text-ink tracking-[0.04em] mb-2">
             Srilatha<em className="not-italic gold-text ml-1.5">Art</em>
           </Link>
           <p className="text-sm font-medium tracking-wider uppercase text-ink-mute">Admin Portal</p>

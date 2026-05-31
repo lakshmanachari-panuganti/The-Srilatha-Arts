@@ -65,7 +65,7 @@ export default function MobileDrawer() {
                 className="flex items-center gap-2"
               >
                 <Image src="/Logos/logo.png" alt="" width={40} height={40} className="w-10 h-10" />
-                <span className="font-brand text-2xl leading-none text-plum tracking-[0.06em]">
+                <span className="font-brand font-bold text-3xl leading-none text-plum tracking-[0.06em]">
                   Srilatha Art
                 </span>
               </Link>

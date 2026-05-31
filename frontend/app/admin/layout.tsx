@@ -78,7 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-plum flex flex-col lg:flex-row">
       {/* Mobile Header */}
       <header className="lg:hidden bg-plum-light border-b border-ink/5 p-4 flex items-center justify-between sticky top-0 z-30">
-        <Link href="/" className="font-brand text-2xl text-ink tracking-[0.04em]">
+        <Link href="/" className="font-brand font-bold text-3xl text-ink tracking-[0.04em]">
           Srilatha<em className="not-italic gold-text ml-1.5">Art</em>
         </Link>
         <button
@@ -142,7 +142,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar (Desktop) */}
       <aside className="hidden lg:flex w-64 bg-plum-light border-r border-ink/5 flex-col fixed inset-y-0 left-0 z-20">
         <div className="p-6 border-b border-ink/5">
-          <Link href="/" className="font-brand text-3xl text-ink tracking-[0.04em]">
+          <Link href="/" className="font-brand font-bold text-4xl text-ink tracking-[0.04em]">
             Srilatha<em className="not-italic gold-text ml-1.5">Art</em>
           </Link>
           <p className="text-xs text-ink-mute mt-1 uppercase tracking-wider font-semibold">Admin Workspace</p>

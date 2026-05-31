@@ -198,7 +198,7 @@ export default function LoginClient() {
         {/* Brand header */}
         <div className="mb-8 text-center">
           <p className="eyebrow justify-center mb-2">Welcome</p>
-          <h1 className="font-brand text-4xl text-ivory tracking-[0.04em]">Srilatha Art</h1>
+          <h1 className="font-brand font-bold text-5xl text-ivory tracking-[0.04em]">Srilatha Art</h1>
           <p className="mt-2 text-sm text-ivory-soft font-sans">
             Sign in to your account or create a new one
           </p>

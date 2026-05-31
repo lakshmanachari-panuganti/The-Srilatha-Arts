@@ -124,7 +124,7 @@ export default function Footer() {
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
               <Image src="/Logos/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
-              <span className="font-brand text-2xl text-ivory tracking-[0.06em]">
+              <span className="font-brand font-bold text-3xl text-ivory tracking-[0.06em]">
                 Srilatha Art
               </span>
             </Link>
@@ -161,7 +161,7 @@ export default function Footer() {
         >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
             <Image src="/Logos/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
-            <span className="font-brand text-2xl text-ivory tracking-[0.06em]">
+            <span className="font-brand font-bold text-3xl text-ivory tracking-[0.06em]">
               Srilatha Art
             </span>
           </Link>
