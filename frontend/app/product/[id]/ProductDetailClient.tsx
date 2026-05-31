@@ -235,7 +235,7 @@ export default function ProductDetailClient() {
           <div className="card-cream p-4 sm:p-5 mb-7 grid grid-cols-2 gap-3 sm:gap-4">
             <Feature icon={Hand} label="Handmade by Srilatha" />
             <Feature icon={Sparkles} label={`Ships in ${p.timeToMake}`} />
-            <Feature icon={Truck} label="Free shipping above ₹2,999" />
+            <Feature icon={Truck} label="Free shipping above ₹999" />
             <Feature icon={ShieldCheck} label="7-day easy returns" />
           </div>
 

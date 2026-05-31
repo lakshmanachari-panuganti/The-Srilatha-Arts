@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: 'Is shipping free?',
-    a: 'Shipping is free on orders above ₹2,999. Below that, it\'s a flat ₹99 anywhere in India.',
+    a: 'Shipping is free on orders above ₹999. Below that, it\'s a flat ₹99 anywhere in India.',
   },
   {
     q: 'Can I order a custom piece?',

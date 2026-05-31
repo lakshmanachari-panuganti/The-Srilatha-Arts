@@ -10,9 +10,9 @@ import { CATEGORIES } from '@/data/categories'
 import { SOCIAL, INSTAGRAM_HANDLE, whatsappLink } from '@/lib/site-config'
 
 const primaryLinks = [
-  { href: '/shop', label: 'Shop' },
+  { href: '/shop', label: 'Collections' },
   { href: '/custom-order', label: 'Custom orders' },
-  { href: '/our-story', label: 'About us' },
+  { href: '/our-story', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ] as const
 
@@ -65,8 +65,8 @@ export default function MobileDrawer() {
                 className="flex items-center gap-2"
               >
                 <Image src="/Logos/logo.png" alt="" width={40} height={40} className="w-10 h-10" />
-                <span className="font-serif text-lg leading-none text-plum">
-                  <span className="gold-text">Srilatha</span> Art
+                <span className="font-brand text-2xl leading-none text-plum tracking-[0.06em]">
+                  Srilatha Art
                 </span>
               </Link>
               <div className="flex items-center gap-2">

@@ -77,7 +77,7 @@ export default function Header() {
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              <span className="font-serif font-semibold tracking-widest uppercase text-ivory text-base lg:text-2xl">
+              <span className="font-brand tracking-[0.06em] text-ivory text-xl lg:text-4xl">
                 Srilatha Art
               </span>
             </Link>
@@ -85,15 +85,15 @@ export default function Header() {
 
           {/* Right: nav (desktop) + search + account + cart + hamburger (mobile) */}
           <div className="flex items-center gap-1">
-            <nav className="hidden lg:flex items-center gap-8 text-sm mr-2">
+            <nav className="hidden lg:flex items-center gap-8 text-sm mr-2 font-medium tracking-[0.06em] uppercase">
               <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                Shop
+                Collections
               </Link>
               <Link href="/custom-order" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Custom orders
               </Link>
               <Link href="/our-story" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                About us
+                About
               </Link>
               <Link href="/contact" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Contact

@@ -9,9 +9,9 @@ import PinterestIcon from '@/components/icons/PinterestIcon'
 
 const columns = [
   {
-    title: 'Shop',
+    title: 'Collections',
     links: [
-      { href: '/shop', label: 'All Products' },
+      { href: '/shop', label: 'All Collections' },
       { href: '/shop/resin', label: 'Resin Art' },
       { href: '/shop/dot-mandala', label: 'Dot Mandala' },
       { href: '/shop/lippan', label: 'Lippan Art' },
@@ -124,12 +124,12 @@ export default function Footer() {
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
               <Image src="/Logos/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
-              <span className="font-serif text-xl text-ivory">
-                <span className="gold-text">Srilatha Art</span>
+              <span className="font-brand text-2xl text-ivory tracking-[0.06em]">
+                Srilatha Art
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Handmade Indian art from Hyderabad — Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives.
+              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <SocialLink href={SOCIAL.instagram} label="Instagram">
@@ -161,8 +161,8 @@ export default function Footer() {
         >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
             <Image src="/Logos/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
-            <span className="font-serif text-lg text-ivory">
-              <span className="gold-text">Srilatha</span> Art
+            <span className="font-brand text-2xl text-ivory tracking-[0.06em]">
+              Srilatha Art
             </span>
           </Link>
           <div className="flex items-center justify-center gap-2 mt-2">

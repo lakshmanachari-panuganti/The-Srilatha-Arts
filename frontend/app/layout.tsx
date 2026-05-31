@@ -1,20 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { Playfair_Display, Montserrat } from 'next/font/google'
+import { Oswald } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
 
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-playfair',
-  display: 'swap',
-})
-
-const montserrat = Montserrat({
+const oswald = Oswald({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-montserrat',
+  variable: '--font-oswald',
   display: 'swap',
 })
 
@@ -25,13 +18,18 @@ export const metadata: Metadata = {
     template: '%s · Srilatha Art',
   },
   description:
-    'Handmade Indian art — Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives. Free shipping across India on orders above ₹2,999.',
+    'Resin Art, Lippan Art, Kolam, Wedding Decor and Gift Items — all made by hand in Hyderabad. Free shipping across India on orders above ₹999.',
   keywords: [
-    'Dot Mandala',
     'Resin Art',
     'Lippan Art',
+    'Dot Mandala',
     'Kolam Art',
-    'Wedding Decoratives',
+    'Wedding Decor',
+    'Lippan Home Decor',
+    'Resin Home Decor',
+    'Handmade Gifts',
+    'Resin Gift Items',
+    'Lippan Gift Items',
     'Handmade Indian art',
     'Indian folk art',
     'Hyderabad artist',
@@ -73,7 +71,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${playfair.variable} ${montserrat.variable}`}>
+    <html lang="en-IN" className={`${oswald.variable}`}>
       <body>
         <a
           href="#main"

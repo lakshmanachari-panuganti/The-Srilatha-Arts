@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Aldo';
+  src: url('https://evanniederwerfer.com/assets/aldo.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ─────────────────────────────────────────────────────────────
    Typography system
 
@@ -218,8 +226,8 @@
      / tracking right. */
   .display {
     @apply font-serif font-semibold text-ivory;
-    line-height: 1.02;
-    letter-spacing: -0.02em;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     text-wrap: balance;
   }
 
