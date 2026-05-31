@@ -10,6 +10,7 @@ import {
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
+import PhotoUploader from '@/components/PhotoUploader'
 
 interface SavedAddress {
   id: string
@@ -400,6 +401,7 @@ function ReturnRequestModal({
 }) {
   const [reason, setReason] = useState<string>('damaged')
   const [comment, setComment] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
 
@@ -417,13 +419,14 @@ function ReturnRequestModal({
         body: {
           reason,
           comment: comment.trim() || undefined,
-          photos: [], // photo upload not wired into this modal yet
+          photos,
         },
       })
       onSubmitted({
         status: 'RETURN_REQUESTED',
         returnReason: reason,
         returnComment: comment.trim() || undefined,
+        returnPhotos: photos,
         returnRequestedAt: new Date().toISOString(),
       })
     } catch (e) {
@@ -487,6 +490,16 @@ function ReturnRequestModal({
           className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{comment.length}/1000</p>
+
+        <div className="mt-4">
+          <PhotoUploader
+            value={photos}
+            onChange={setPhotos}
+            max={6}
+            label="Photos of the issue (optional)"
+            hint="Adding photos helps us resolve damage / wrong-item claims faster."
+          />
+        </div>
 
         {err && (
           <div className="mt-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 px-3 py-2">{err}</div>

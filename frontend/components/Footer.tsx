@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { apiFetch, ApiError } from '@/lib/api'
 import { SOCIAL, STUDIO_EMAIL, PHONE_DISPLAY, PHONE_TEL, whatsappLink, emailLink } from '@/lib/site-config'
 import PinterestIcon from '@/components/icons/PinterestIcon'
 
@@ -42,7 +43,12 @@ const columns = [
 
 export default function Footer() {
   const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [newsletterBusy, setNewsletterBusy] = useState(false)
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
+  const [newsletterMessage, setNewsletterMessage] = useState(
+    'Thanks — we’ll send a note when the studio newsletter launches.',
+  )
+  const [newsletterError, setNewsletterError] = useState('')
 
   return (
     <footer className="relative z-10 mt-20"
@@ -64,26 +70,35 @@ export default function Footer() {
               className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender text-center"
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
-              {/*
-                Truthful copy. Until the newsletter backend is wired, we
-                shouldn't pretend the email was actually saved — that would
-                hurt trust the first time a subscriber notices nothing
-                ever arrives. We keep the form (the studio wants to see
-                interest) but the wording promises only what we can deliver.
-              */}
-              Thanks — we&apos;ll send a note when the studio newsletter launches.
+              {newsletterMessage}
             </div>
           ) : (
             <form
               className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault()
-                // Backend wiring not yet available — acknowledge the intent
-                // locally so the user gets feedback instead of a silent
-                // no-op. Wire to /api/newsletter when that endpoint exists.
                 if (!newsletterEmail.trim()) return
-                setNewsletterSubmitted(true)
-                setNewsletterEmail('')
+                setNewsletterError('')
+                setNewsletterBusy(true)
+                try {
+                  const res = await apiFetch<{ ok: true; message: string }>('/newsletter', {
+                    method: 'POST',
+                    body: { email: newsletterEmail.trim(), source: 'footer' },
+                  })
+                  setNewsletterMessage(res.message)
+                  setNewsletterSubmitted(true)
+                  setNewsletterEmail('')
+                } catch (err) {
+                  if (err instanceof ApiError && err.status === 429) {
+                    setNewsletterError('Too many sign-ups from this network. Please try again later.')
+                  } else if (err instanceof ApiError && err.status === 400) {
+                    setNewsletterError('Please enter a valid email address.')
+                  } else {
+                    setNewsletterError(err instanceof Error ? err.message : 'Could not subscribe right now.')
+                  }
+                } finally {
+                  setNewsletterBusy(false)
+                }
               }}
             >
               <div className="relative flex-1">
@@ -112,11 +127,14 @@ export default function Footer() {
                   onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
-              <button type="submit" className="btn-dark whitespace-nowrap">
-                Subscribe
-                <Send className="w-4 h-4" aria-hidden />
+              <button type="submit" disabled={newsletterBusy} className="btn-dark whitespace-nowrap disabled:opacity-50">
+                {newsletterBusy ? 'Subscribing…' : 'Subscribe'}
+                {!newsletterBusy && <Send className="w-4 h-4" aria-hidden />}
               </button>
             </form>
+          )}
+          {newsletterError && (
+            <p className="mt-2 text-xs text-rose-600">{newsletterError}</p>
           )}
         </div>
 

@@ -11,6 +11,7 @@ import { apiFetch } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import StickyCartBar from '@/components/shop/StickyCartBar'
 import ProductCard from '@/components/shop/ProductCard'
+import PhotoUploader from '@/components/PhotoUploader'
 import type { Product } from '@/types'
 
 function ProductSkeleton() {
@@ -66,6 +67,7 @@ export default function ProductDetailClient() {
   const [formRating, setFormRating] = useState(5)
   const [formTitle, setFormTitle] = useState('')
   const [formBody, setFormBody] = useState('')
+  const [formPhotos, setFormPhotos] = useState<string[]>([])
   const [formLoading, setFormLoading] = useState(false)
   const [formError, setFormError] = useState('')
   const [formSuccess, setFormSuccess] = useState(false)
@@ -134,13 +136,20 @@ export default function ProductDetailClient() {
     try {
       await apiFetch('/reviews', {
         method: 'POST',
-        body: { productId: id, rating: formRating, title: formTitle.trim() || undefined, body: formBody.trim() },
+        body: {
+          productId: id,
+          rating: formRating,
+          title: formTitle.trim() || undefined,
+          body: formBody.trim(),
+          photos: formPhotos,
+        },
       })
       setFormSuccess(true)
       setShowForm(false)
       setFormTitle('')
       setFormBody('')
       setFormRating(5)
+      setFormPhotos([])
       queryClient.invalidateQueries({ queryKey: ['reviews', id] })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Could not submit review. Please try again.'
@@ -400,6 +409,15 @@ export default function ProductDetailClient() {
                 rows={4}
                 placeholder="Tell us what you liked or didn’t…"
                 className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+              />
+            </div>
+            <div className="mb-4">
+              <PhotoUploader
+                value={formPhotos}
+                onChange={setFormPhotos}
+                max={6}
+                label="Photos (optional)"
+                hint="Show off the piece in your space — up to 6 photos, 5 MB each."
               />
             </div>
             {formError && <p className="text-xs text-red-600 mb-3">{formError}</p>}

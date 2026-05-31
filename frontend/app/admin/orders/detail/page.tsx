@@ -280,6 +280,11 @@ function OrderDetail() {
                 ))}
               </div>
             )}
+            {/* Add an internal note without changing status. Hits the
+                dedicated POST /api/admin/orders/{id}/notes endpoint
+                (separate from the status-PATCH note, which couples the
+                note to a state transition). */}
+            <AddInternalNote orderId={order.id} onAdded={refresh} />
           </div>
 
           {/* Status update (only when there are valid next states) */}
@@ -737,5 +742,69 @@ export default function AdminOrderDetailPage() {
     <Suspense fallback={<div className="text-sm text-ink-mute"><Loader2 className="w-4 h-4 animate-spin inline" /> Loading…</div>}>
       <OrderDetail />
     </Suspense>
+  )
+}
+
+// Inline note-only form. Posts to the standalone /notes endpoint so
+// admins can leave context (e.g. "called customer, will ship Tue") without
+// fabricating a status transition. The note shows up in the timeline on
+// next refresh.
+function AddInternalNote({ orderId, onAdded }: { orderId: string; onAdded: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-4 text-xs text-lavender hover:text-lavender-pastel font-medium"
+      >
+        + Add internal note
+      </button>
+    )
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-ink/10">
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        rows={2}
+        placeholder="Internal note (visible to admins, recorded in timeline)"
+        className="w-full px-3 py-2 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender resize-none"
+      />
+      {err && <p className="text-xs text-red-600 mt-1">{err}</p>}
+      <div className="flex justify-end gap-2 mt-2">
+        <button
+          onClick={() => { setOpen(false); setNote(''); setErr('') }}
+          className="h-8 px-3 text-xs rounded-md text-ink-soft hover:text-ink"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            if (!note.trim()) { setErr('Note cannot be empty.'); return }
+            setErr(''); setBusy(true)
+            try {
+              await apiFetch(`/admin/orders/${encodeURIComponent(orderId)}/notes`, {
+                method: 'POST',
+                body: { note: note.trim() },
+              })
+              setNote(''); setOpen(false); onAdded()
+            } catch (e) {
+              setErr(e instanceof Error ? e.message : 'Could not add note')
+            } finally {
+              setBusy(false)
+            }
+          }}
+          disabled={busy}
+          className="h-8 px-3 text-xs rounded-md bg-lavender text-white font-medium disabled:opacity-50 hover:bg-lavender/90"
+        >
+          {busy ? 'Adding…' : 'Add note'}
+        </button>
+      </div>
+    </div>
   )
 }

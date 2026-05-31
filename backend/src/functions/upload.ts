@@ -1,9 +1,20 @@
 /**
  * Image Upload Endpoints (§8.4).
  *
- * POST /api/admin/upload          — admin product images (existing)
- * POST /api/upload/customer       — customer issue/custom-order photos
- * POST /api/upload/review         — review photos (post-delivery)
+ * POST /api/admin/upload     — admin product images (writes to the
+ *                              public product-images container).
+ * POST /api/upload/customer  — customer photos (auth required). Used by:
+ *                                - /custom-order reference images
+ *                                - /account return-request evidence
+ *                                - /product/[id] review photos
+ *                              All three flows write to the same
+ *                              user-uploads container; the consumer
+ *                              endpoint (custom-orders, orders/return,
+ *                              reviews) stores the resulting URL on
+ *                              the relevant record. There is no
+ *                              separate /upload/review endpoint —
+ *                              one customer upload route serves all
+ *                              authenticated customer image flows.
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'

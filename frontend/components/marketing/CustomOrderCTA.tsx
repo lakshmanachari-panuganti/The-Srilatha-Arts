@@ -41,7 +41,7 @@ export default function CustomOrderCTA() {
           <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
             Tailored Just For You.
             <br />
-            <em className="italic text-lavender-pastel">Request a Custom Design</em>
+            <em className="italic text-lavender-pastel">Start A Custom Design</em>
           </h2>
           <p className="text-ivory-soft text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto mb-16 font-normal">
             Lippan wedding pieces, Resin home decor trays, or a handmade gift set for someone special.

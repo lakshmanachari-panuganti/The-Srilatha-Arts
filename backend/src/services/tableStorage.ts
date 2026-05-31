@@ -78,6 +78,44 @@ export async function getBestSellers(): Promise<Row[]> {
   return (await getAllProducts()).filter((p) => p.isBestSeller === true)
 }
 
+// On-sale = compareAtPrice is set and strictly greater than the display
+// price. Same rule the frontend uses to compute `isOnSale` in the API
+// adapter (functions/products.ts toApi). Lives here so listing routes
+// don't have to ship the full catalog to the browser for client-side
+// filtering on a growing catalog.
+export async function getOnSaleProducts(): Promise<Row[]> {
+  return (await getAllProducts()).filter((p) => {
+    const cmp = typeof p.compareAtPrice === 'number' ? p.compareAtPrice : 0
+    const price = typeof p.displayPrice === 'number' ? p.displayPrice : (p.price ?? 0)
+    return cmp > 0 && cmp > price
+  })
+}
+
+// ─── NEWSLETTER ──────────────────────────────────────────────
+
+// Newsletter subscriber row. PK is a fixed bucket ('subscribers'); RK is
+// the lowercased email so resubmits are naturally idempotent (upsertEntity
+// will just refresh the row instead of creating duplicates). Status starts
+// at 'pending' so a future double-opt-in flow can flip it to 'confirmed'.
+export async function addNewsletterSubscriber(
+  email: string,
+  source: string = 'footer',
+): Promise<void> {
+  const client = getTableClient('newsletterSubscribers')
+  const now = new Date().toISOString()
+  await client.upsertEntity(
+    {
+      partitionKey: 'subscribers',
+      rowKey: email.toLowerCase(),
+      email: email.toLowerCase(),
+      source,
+      status: 'pending',
+      createdAt: now,
+    } as any,
+    'Merge', // merge so a re-subscribe doesn't wipe future status changes
+  )
+}
+
 export async function upsertProduct(product: Row): Promise<void> {
   const client = getTableClient('products')
   await client.upsertEntity(product as any, 'Replace')

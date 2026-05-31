@@ -11,6 +11,7 @@ import {
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
+import PhotoUploader from '@/components/PhotoUploader'
 
 // Mirrored from the backend toApi() shape in functions/orders.ts. Only the
 // fields used by this page are typed; unknown fields ride along untouched
@@ -734,6 +735,7 @@ function ReturnModal({
 }) {
   const [reason, setReason] = useState<string>('damaged')
   const [comment, setComment] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
 
@@ -747,7 +749,7 @@ function ReturnModal({
     try {
       await apiFetch(`/orders/${encodeURIComponent(orderId)}/return`, {
         method: 'POST',
-        body: { reason, comment: comment.trim() || undefined, photos: [] },
+        body: { reason, comment: comment.trim() || undefined, photos },
       })
       onSubmitted()
     } catch (e) {
@@ -779,7 +781,14 @@ function ReturnModal({
         placeholder="Anything that'll help us understand the issue"
         className="w-full px-3 py-2 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
-      {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
+      <PhotoUploader
+        value={photos}
+        onChange={setPhotos}
+        max={6}
+        label="Photos (optional)"
+        hint="Photos help us resolve damage / wrong-item claims faster."
+      />
+      {err && <p className="text-xs text-red-600 mb-3 mt-3">{err}</p>}
       <div className="flex gap-2 justify-end">
         <button onClick={onClose} className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep">
           Cancel
