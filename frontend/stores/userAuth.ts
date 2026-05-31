@@ -1,6 +1,17 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
+import { useWishlist } from '@/stores/wishlist'
+
+// Side-effect runner — pulls server wishlist after auth state is known so
+// the user sees their cross-device saved pieces immediately. Best-effort:
+// network failures don't block sign-in.
+function syncWishlistAfterAuth() {
+  // Defer to next tick so the auth token is in place before the GET fires.
+  setTimeout(() => {
+    useWishlist.getState().hydrateFromServer().catch(() => {})
+  }, 0)
+}
 
 export interface AuthUser {
   email: string
@@ -54,6 +65,7 @@ export const useUserAuth = create<UserAuthState>()(
             isLoading: false,
             error: null,
           })
+          syncWishlistAfterAuth()
           return { needsProfileSetup: res.needsProfileSetup }
         } catch (err) {
           const message = extractErrorMessage(err)
@@ -71,6 +83,7 @@ export const useUserAuth = create<UserAuthState>()(
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
+          syncWishlistAfterAuth()
           return true
         } catch (err) {
           set({ isLoading: false, error: extractErrorMessage(err) })
@@ -87,6 +100,7 @@ export const useUserAuth = create<UserAuthState>()(
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
+          syncWishlistAfterAuth()
           return true
         } catch (err) {
           set({ isLoading: false, error: extractErrorMessage(err) })
@@ -123,6 +137,9 @@ export const useUserAuth = create<UserAuthState>()(
         }
         setApiAuthToken(null)
         set({ user: null, token: null, needsProfileSetup: false, error: null })
+        // Clear local wishlist so the next user on the same browser
+        // doesn't inherit the previous user's saved items (privacy bug).
+        useWishlist.getState().clear()
       },
 
       clearError: () => set({ error: null }),
@@ -138,6 +155,9 @@ export const useUserAuth = create<UserAuthState>()(
       onRehydrateStorage: () => (state) => {
         if (state?.token) {
           setApiAuthToken(state.token)
+          // After page reload, pull the latest server wishlist for the
+          // restored session so the heart icons reflect cross-device state.
+          syncWishlistAfterAuth()
         }
       },
     },
