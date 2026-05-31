@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Menu, Search, ShoppingBag, User } from 'lucide-react'
+import { Mail, Menu, Phone, Search, ShoppingBag, User } from 'lucide-react'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
 import { useCart, cartCount } from '@/stores/cart'
 import { useUI } from '@/stores/ui'
@@ -11,6 +11,7 @@ import { useUserAuth } from '@/stores/userAuth'
 import MobileDrawer from '@/components/MobileDrawer'
 import SearchOverlay from '@/components/SearchOverlay'
 import { cn } from '@/lib/cn'
+import { PHONE_DISPLAY, PHONE_TEL, STUDIO_EMAIL } from '@/lib/site-config'
 
 // Routes where the header is allowed to hide-on-scroll-down. Home + brand
 // pages tolerate it. PDP, cart, checkout, account need the cart icon + search
@@ -50,7 +51,7 @@ export default function Header() {
       >
         <div
           className={cn(
-            'mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-28',
+            'mx-auto flex items-center justify-between px-4 lg:px-8 h-20 lg:h-28',
             'transition-all duration-500',
             scrolled
               ? 'glass-strong'
@@ -58,12 +59,12 @@ export default function Header() {
           )}
           style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
         >
-          {/* Left: logo + brand name (all viewports) */}
-          <div className="flex items-center">
+          {/* Left: logo + brand name (all viewports) — branding-first focal point */}
+          <div className="flex items-center min-w-0">
             <Link
               href="/"
               aria-label="Srilatha Art - home"
-              className="flex items-center gap-2.5"
+              className="flex items-center gap-2.5 min-w-0"
             >
               <Image
                 src="/Logos/logo.png"
@@ -72,19 +73,20 @@ export default function Header() {
                 height={112}
                 priority
                 className={cn(
-                  'w-14 h-14 lg:w-28 lg:h-28 object-contain transition-all duration-500',
+                  'w-[68px] h-[68px] lg:w-28 lg:h-28 object-contain transition-all duration-500 shrink-0',
                   'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              <span className="font-brand tracking-[0.06em] text-ivory text-3xl lg:text-5xl">
+              <span className="font-brand tracking-[0.06em] text-ivory text-[2.25rem] leading-none lg:text-5xl lg:leading-normal">
                 Srilatha Art
               </span>
             </Link>
           </div>
 
-          {/* Right: nav (desktop) + search + account + cart + hamburger (mobile) */}
-          <div className="flex items-center gap-1">
+          {/* Right: on mobile, icons row stacked above contact links; on desktop, single row */}
+          <div className="flex flex-col items-end gap-1 lg:flex-row lg:items-center lg:gap-1">
+            <div className="flex items-center gap-1">
             <nav className="hidden lg:flex items-center gap-8 text-sm mr-2 font-medium tracking-[0.06em] uppercase">
               <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
                 Collections
@@ -154,12 +156,33 @@ export default function Header() {
             >
               <Menu className="w-5 h-5" aria-hidden />
             </button>
+            </div>
+
+            {/* Contact links — mobile only, below the icons row */}
+            <div className="flex flex-col items-end gap-0.5 text-[11px] leading-tight lg:hidden">
+              <a
+                href={`mailto:${STUDIO_EMAIL}`}
+                aria-label={`Email ${STUDIO_EMAIL}`}
+                className="flex items-center gap-1.5 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+              >
+                <Mail className="w-3 h-3 text-lavender" aria-hidden />
+                <span>{STUDIO_EMAIL}</span>
+              </a>
+              <a
+                href={`tel:${PHONE_TEL}`}
+                aria-label={`Call ${PHONE_DISPLAY}`}
+                className="flex items-center gap-1.5 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+              >
+                <Phone className="w-3 h-3 text-lavender" aria-hidden />
+                <span>{PHONE_DISPLAY}</span>
+              </a>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Spacer so content doesn't slide under the fixed header */}
-      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+7.5rem)]" />
+      <div aria-hidden className="h-[calc(var(--banner-h)+5rem)] lg:h-[calc(var(--banner-h)+7.5rem)]" />
 
       <MobileDrawer />
       <SearchOverlay />
