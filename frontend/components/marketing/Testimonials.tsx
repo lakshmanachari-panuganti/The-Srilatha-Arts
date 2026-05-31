@@ -75,19 +75,24 @@ function ReviewCard({
 }) {
   return (
     <article className="card w-[80vw] sm:w-96 lg:w-auto shrink-0 snap-start p-7 lg:p-8 flex flex-col">
-      <Quote className="w-7 h-7 text-lavender-soft/60 mb-4" aria-hidden />
-      <p className="font-serif text-lg lg:text-xl text-ivory leading-relaxed mb-5 flex-1">
-        &ldquo;{quote}&rdquo;
-      </p>
-      <div className="flex items-center gap-1 mb-3" aria-label={`Rated ${rating} out of 5`}>
+      {/* Gold stars first — the rating is the strongest credibility signal,
+          so it leads the card. Gold (vs the prior lavender-pastel) reads
+          as "premium review" instead of "decorative element". */}
+      <div className="flex items-center gap-1 mb-4" aria-label={`Rated ${rating} out of 5`}>
         {Array.from({ length: rating }).map((_, i) => (
-          <Star key={i} className="w-3.5 h-3.5 fill-lavender-pastel text-lavender-pastel" aria-hidden />
+          <Star key={i} className="w-4 h-4 fill-gold text-gold" aria-hidden />
         ))}
       </div>
-      <div className="pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-        <p className="text-sm text-ivory font-medium">{name}</p>
-        <p className="text-xs text-ivory-mute mt-0.5">
-          {location} · {art}
+      <Quote className="w-6 h-6 text-gold/70 mb-3" aria-hidden />
+      <p className="font-serif text-lg lg:text-xl text-ivory leading-relaxed mb-6 flex-1">
+        &ldquo;{quote}&rdquo;
+      </p>
+      <div className="pt-4 border-t border-lavender-soft/25">
+        <p className="text-sm text-ivory font-semibold tracking-wide">{name}</p>
+        <p className="text-xs text-ivory-mute mt-0.5 flex items-center gap-1.5">
+          <span>{location}</span>
+          <span className="w-1 h-1 rounded-full bg-gold/60" aria-hidden />
+          <span>{art}</span>
         </p>
       </div>
     </article>

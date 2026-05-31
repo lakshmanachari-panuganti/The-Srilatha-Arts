@@ -48,25 +48,43 @@ export default function CustomOrderCTA() {
             Share your idea and we will guide you through every step of the handmade process.
           </p>
 
-          {/* 3-Step Process Flow Grid */}
+          {/* 3-Step Process Flow — horizontal editorial timeline on desktop,
+              vertical stack on mobile. A faint gold rule connects the steps
+              behind the cards so the eye reads the sequence even before
+              numbering registers. */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-20px' }}
             variants={stagger}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mb-16"
+            className="relative grid grid-cols-1 md:grid-cols-3 gap-8 text-left mb-16"
           >
+            {/* Desktop-only connecting rule. Sits behind the cards (z-0).
+                Gold gradient fades at both ends so the rule reads as a
+                drawn pen-stroke rather than a hard divider. The 1/6 →
+                5/6 inset keeps the line within the card row width. */}
+            <div
+              aria-hidden
+              className="hidden md:block absolute top-12 left-[16.6%] right-[16.6%] h-px z-0"
+              style={{
+                background:
+                  'linear-gradient(to right, transparent, rgba(201,168,76,0.55) 20%, rgba(201,168,76,0.55) 80%, transparent)',
+              }}
+            />
             {steps.map((s) => {
               const Icon = s.icon
               return (
                 <motion.div
                   key={s.step}
                   variants={fadeUp}
-                  className="relative p-6 sm:p-8 card bg-white/90 border border-glass-border flex flex-col justify-between"
+                  className="relative z-10 p-6 sm:p-8 card bg-white/90 border border-glass-border flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-6">
-                      <span className="text-4xl text-lavender-pastel leading-none">
+                      <span
+                        className="font-serif text-6xl leading-none gold-text"
+                        aria-hidden
+                      >
                         {s.step}
                       </span>
                       <span className="w-10 h-10 rounded-full bg-lavender-light border border-glass-border flex items-center justify-center text-lavender">

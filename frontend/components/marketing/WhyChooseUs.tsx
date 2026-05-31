@@ -92,8 +92,19 @@ export default function WhyChooseUs() {
               <motion.div
                 key={diff.title}
                 variants={fadeUp}
-                className="p-6 card bg-white border border-glass-border hover:shadow-lavender-glow transition-all duration-300 flex flex-col gap-4"
+                className="relative p-6 pl-7 card bg-white border border-glass-border hover:shadow-lavender-glow transition-all duration-300 flex flex-col gap-4 overflow-hidden"
               >
+                {/* Editorial left-accent rail — gold gradient hugging the card
+                    edge. Sits under the rounded corner via the card's
+                    overflow-hidden so it bleeds into the radius cleanly. */}
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-0 bottom-0 w-1"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, #F3D27A 0%, #D4AF37 50%, #B8962E 100%)',
+                  }}
+                />
                 <div className="w-12 h-12 rounded-2xl bg-lavender-light border border-glass-border flex items-center justify-center text-lavender">
                   <Icon className="w-6 h-6" />
                 </div>
@@ -128,18 +139,31 @@ export default function WhyChooseUs() {
           whileInView="visible"
           viewport={{ once: true, margin: '-20px' }}
           variants={stagger}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8"
+          className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8"
         >
+          {/* Desktop-only connecting gold rule behind the 4-card row. Same
+              pattern as CustomOrderCTA but spanning 4 columns. */}
+          <div
+            aria-hidden
+            className="hidden lg:block absolute top-14 left-[12.5%] right-[12.5%] h-px z-0"
+            style={{
+              background:
+                'linear-gradient(to right, transparent, rgba(201,168,76,0.45) 18%, rgba(201,168,76,0.45) 82%, transparent)',
+            }}
+          />
           {processSteps.map((step) => {
             return (
               <motion.div
                 key={step.step}
                 variants={fadeUp}
-                className="relative p-6 sm:p-8 card bg-white border border-glass-border flex flex-col justify-between"
+                className="relative z-10 p-6 sm:p-8 card bg-white border border-glass-border flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-3xl text-lavender-pastel/60 leading-none">
+                    <span
+                      className="font-serif text-5xl leading-none gold-text"
+                      aria-hidden
+                    >
                       {step.step}
                     </span>
                     <span className="w-8 h-8 rounded-full bg-lavender-light border border-glass-border flex items-center justify-center text-lavender">
