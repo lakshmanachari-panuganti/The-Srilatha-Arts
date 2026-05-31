@@ -118,15 +118,42 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
     })
   }
 
-  // Endpoint normalisation. Foundry's UI shows the full endpoint
-  // (`https://x.openai.azure.com/openai/v1/`) — if someone pastes that
-  // wholesale into the env var, we'd build a malformed URL like
-  // `…/openai/v1/openai/deployments/…`. Strip anything after `.azure.com`
-  // so both forms (bare host OR full Foundry URL) work.
-  const base = endpoint
-    .replace(/\/+$/, '')
-    .replace(/(\.azure\.com)\/.*$/i, '$1')
-  const url = `${base}/openai/deployments/${encodeURIComponent(deployment)}/chat/completions?api-version=${encodeURIComponent(apiVersion)}`
+  // Foundry exposes two endpoint surfaces for the same model:
+  //
+  //   Classic Azure OpenAI ......... https://<x>.openai.azure.com/...
+  //     URL:  {host}/openai/deployments/{deployment}/chat/completions
+  //           ?api-version=YYYY-MM-DD
+  //     Body: { messages, ... }                (no `model` field)
+  //
+  //   Foundry / AI Studio v1 ....... https://<x>.services.ai.azure.com/...
+  //     URL:  {host}/openai/v1/chat/completions
+  //     Body: { model: deploymentName, messages, ... }
+  //
+  // Detect by hostname so the same env var accepts either form. This
+  // matters because the Foundry UI's "Call this model" sample shows
+  // the services.ai.azure.com form, while the "Azure OpenAI endpoint"
+  // field shows the openai.azure.com form — both reach the same
+  // deployment, but the URL shapes are not interchangeable.
+  const trimmed = endpoint.replace(/\/+$/, '')
+  const isFoundryV1 = /\.services\.ai\.azure\.com\b/i.test(trimmed)
+
+  let url: string
+  let modelInBody: boolean
+  if (isFoundryV1) {
+    // Accept either bare host OR …/openai/v1[/] OR even
+    // …/openai/v1/chat/completions — strip back to the host and append
+    // `/openai/v1/chat/completions` ourselves.
+    const host = trimmed.replace(/(\.services\.ai\.azure\.com)\/.*$/i, '$1')
+    url = `${host}/openai/v1/chat/completions`
+    modelInBody = true
+  } else {
+    // Classic Azure: strip anything past `.openai.azure.com` (so a
+    // pasted `…/openai/v1/` doesn't double the path), then build the
+    // deployment-scoped chat-completions URL.
+    const host = trimmed.replace(/(\.openai\.azure\.com)\/.*$/i, '$1')
+    url = `${host}/openai/deployments/${encodeURIComponent(deployment)}/chat/completions?api-version=${encodeURIComponent(apiVersion)}`
+    modelInBody = false
+  }
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 30_000)
@@ -138,9 +165,22 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
-        'api-key': apiKey,
+        // Foundry v1 surface (services.ai.azure.com) is OpenAI-SDK-shaped
+        // and authenticates via `Authorization: Bearer <key>` — same as
+        // the Python sample in the Foundry portal. The classic Azure
+        // surface (*.openai.azure.com) uses its own `api-key` header.
+        // Sending the wrong header on the wrong surface gets a 401, so
+        // branch explicitly.
+        ...(modelInBody
+          ? { Authorization: `Bearer ${apiKey}` }
+          : { 'api-key': apiKey }),
       },
       body: JSON.stringify({
+        // The Foundry v1 surface routes by `model` (the deployment
+        // name) in the body. The classic Azure surface encodes the
+        // deployment in the URL and ignores `model`, so omit the
+        // field there to avoid noise.
+        ...(modelInBody ? { model: deployment } : {}),
         messages: [
           {
             role: 'user',
