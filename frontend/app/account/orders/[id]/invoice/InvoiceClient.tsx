@@ -4,11 +4,12 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, Printer } from 'lucide-react'
+import { ArrowLeft, Download, Loader2, Printer } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 import { STUDIO_EMAIL, PHONE_DISPLAY, WEBSITE_URL } from '@/lib/site-config'
+import { downloadInvoicePdf } from '@/lib/invoice-pdf'
 
 // Shapes mirrored from the orders.ts toApi() — kept minimal to what the
 // invoice actually renders. Unknown fields ride along untouched.
@@ -63,12 +64,16 @@ export default function InvoiceClient() {
   // after mount. Pathname: /account/orders/<id>/invoice/  → parts[2] = id.
   const [id, setId] = useState<string | null>(null)
   const [autoPrint, setAutoPrint] = useState(false)
+  const [autoDownload, setAutoDownload] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [downloadErr, setDownloadErr] = useState('')
 
   useEffect(() => {
     const parts = window.location.pathname.split('/').filter(Boolean)
     setId(parts[2] ?? null)
     const sp = new URLSearchParams(window.location.search)
     setAutoPrint(sp.get('auto') === 'print')
+    setAutoDownload(sp.get('auto') === 'download')
   }, [])
 
   const [order, setOrder] = useState<Order | null>(null)
@@ -118,6 +123,33 @@ export default function InvoiceClient() {
     const t = setTimeout(() => window.print(), 350)
     return () => clearTimeout(t)
   }, [autoPrint, order])
+
+  const handleDownload = useCallback(async () => {
+    if (!order) return
+    setDownloadErr('')
+    setDownloading(true)
+    try {
+      await downloadInvoicePdf(order, items)
+    } catch (e) {
+      setDownloadErr(
+        e instanceof Error
+          ? `Could not generate the PDF: ${e.message}`
+          : 'Could not generate the PDF.',
+      )
+    } finally {
+      setDownloading(false)
+    }
+  }, [order, items])
+
+  // Optional ?auto=download — used by links that want to fire the save
+  // dialog as soon as the order data resolves (e.g. a future "email me
+  // my invoice" flow). Triggered exactly once per page load.
+  const [autoFired, setAutoFired] = useState(false)
+  useEffect(() => {
+    if (!autoDownload || autoFired || !order) return
+    setAutoFired(true)
+    handleDownload()
+  }, [autoDownload, autoFired, order, handleDownload])
 
   if (!id || id === '__shell__' || loading) {
     return (
@@ -178,22 +210,42 @@ export default function InvoiceClient() {
   return (
     <main className="max-w-3xl mx-auto px-5 py-8 lg:py-12 invoice-root">
       {/* On-screen action bar — hidden when printing */}
-      <div className="flex items-center justify-between mb-6 invoice-actions">
+      <div className="flex items-center justify-between gap-3 mb-6 invoice-actions flex-wrap">
         <Link
           href={`/account/orders/${order.id}`}
           className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-lavender transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to order
         </Link>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="btn-dark text-sm h-10 px-4"
-        >
-          <Printer className="w-4 h-4" aria-hidden />
-          Download / Print
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+          >
+            <Printer className="w-4 h-4" aria-hidden />
+            Print
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={downloading}
+            className="btn-dark text-sm h-10 px-4 disabled:opacity-60"
+          >
+            {downloading ? (
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+            ) : (
+              <Download className="w-4 h-4" aria-hidden />
+            )}
+            {downloading ? 'Preparing PDF…' : 'Download PDF'}
+          </button>
+        </div>
       </div>
+      {downloadErr && (
+        <div className="invoice-actions mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {downloadErr}
+        </div>
+      )}
 
       {/* Invoice sheet — the only part printed */}
       <article className="invoice-sheet bg-white text-ink rounded-2xl border border-ink/10 shadow-sm p-6 sm:p-10">
