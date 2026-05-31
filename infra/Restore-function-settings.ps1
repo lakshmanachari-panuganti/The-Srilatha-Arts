@@ -5,20 +5,36 @@
 .DESCRIPTION
     Reads secrets written by Backup-function-settings.ps1 and restores them
     to the target Function App. For each setting in the backup:
-      - If the key already exists in the live app  → it is overwritten
-      - If the key does not exist in the live app  → it is created
-    Keys that exist in the live app but are NOT in the selected backup are
-    left completely untouched.
 
-    A diff preview is shown before anything is changed, and you must confirm
+      - If the key already exists in the live app  → OVERWRITE
+      - If the key does not exist in the live app  → CREATE
+      - If the value is already identical          → SAME (untouched)
+
+    Keys that exist in the live app but are NOT in the selected backup
+    are left completely untouched.
+
+    Three special cases are reversed on restore:
+
+      1. Underscore ( _ )
+         KV name has a single hyphen — restored via the OriginalKey tag.
+         e.g.  AZURE-OPENAI-KEY  →  AZURE_OPENAI_KEY
+
+      2. Dot ( . )
+         KV name has -DOT- — restored via the OriginalKey tag.
+         e.g.  TEST-DOT-DELETE  →  TEST.DELETE
+
+      3. Empty value
+         KV secret holds the sentinel __EMPTY__ — restored as an empty string.
+         e.g.  __EMPTY__  →  ""
+
+    A diff is shown before anything is changed, and you must confirm
     before the script touches the Function App.
 
 .PARAMETER FunctionAppName
     Name of the Azure Function App to restore settings into.
 
 .PARAMETER KeyVaultName
-    Name of the Key Vault that holds the backup secrets
-    (the one used when running Backup-function-settings.ps1).
+    Name of the Key Vault that holds the backup secrets.
 
 .PARAMETER BackupDate
     Optional. The exact backup-date string to restore, e.g.
@@ -48,7 +64,7 @@
           MY_APPREG_CLIENT_SECRET
           MY_APPREG_TENANT_ID
       - The service principal must have:
-          Contributor on the Function App's resource group
+          Contributor on the Function App resource group
           Key Vault Secrets User (or higher) on the Key Vault
 #>
 
@@ -98,8 +114,8 @@ Write-Host ""
 
 # -------------------------------------------------------
 # 3. Find the Function App
-#    @() forces the result into an array so .Count always works,
-#    even when only one item comes back
+#    @() forces the result into an array so .Count always works
+#    even when only one item is returned
 # -------------------------------------------------------
 $faResources = @(Get-AzResource `
         -ResourceType "Microsoft.Web/sites" `
@@ -130,8 +146,6 @@ if (-not $keyVault) {
 
 # -------------------------------------------------------
 # 5. Read all secret versions from the Key Vault
-#    We list every secret name first, then pull all versions
-#    for each one so we can find every available backup date
 # -------------------------------------------------------
 Write-Host "Reading backup secrets from Key Vault..." -ForegroundColor DarkGray
 
@@ -141,7 +155,6 @@ if ($secretNames.Count -eq 0) {
     throw "No secrets found in Key Vault '$KeyVaultName'. Has Backup-function-settings.ps1 been run against this vault?"
 }
 
-# Pull all versions for every secret in one pass
 $allVersions = $secretNames | ForEach-Object {
     Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $_ -IncludeVersions
 }
@@ -199,8 +212,23 @@ Write-Host ""
 
 # -------------------------------------------------------
 # 8. Build the settings dictionary from the selected backup
-#    The OriginalKey tag is always the source of truth for
-#    the real setting name — the KV secret name is just for storage
+#
+#    For each secret in the selected backup we handle three cases:
+#
+#    CASE 1 — Empty value (sentinel)
+#      If the KV secret value is __EMPTY__, the original setting
+#      was empty. We convert it back to an empty string for restore.
+#
+#    CASE 2 — Dot ( . ) in the name
+#      The OriginalKey tag holds TEST.DELETE exactly.
+#      We read the tag — no decoding needed.
+#
+#    CASE 3 — Underscore ( _ ) in the name
+#      The OriginalKey tag holds AZURE_OPENAI_KEY exactly.
+#      We read the tag — no decoding needed.
+#
+#    The OriginalKey tag is always the source of truth for the name.
+#    The fallback (if tag is missing) reverses the encoding manually.
 # -------------------------------------------------------
 $backupSettings = @{}
 
@@ -212,22 +240,36 @@ $selectedVersions = $allVersions | Where-Object {
 
 foreach ($version in $selectedVersions) {
 
-    # Get the plaintext value for this exact secret version
+    # Read the plaintext value for this exact secret version
     $value = Get-AzKeyVaultSecret `
         -VaultName  $KeyVaultName `
         -Name       $version.Name `
         -Version    $version.Version `
         -AsPlainText
 
-    # Always use the OriginalKey tag — it holds the exact Function App setting name
-    # (e.g. "AZURE_OPENAI_API_KEY") that was encoded into the KV secret name
+    # Resolve the original setting name from the OriginalKey tag
     if ($version.Tags -and $version.Tags.ContainsKey("OriginalKey")) {
+
+        # Primary path — always reliable
         $originalKey = $version.Tags["OriginalKey"]
+
     } else {
-        # Safety fallback: reverse the underscore encoding from the backup script
-        # This should never be needed since our backup always writes the tag
-        $originalKey = $version.Name -replace '^x-', '' -replace '-', '_'
-        Write-Warning "Secret '$($version.Name)' has no OriginalKey tag — falling back to name decoding: '$originalKey'"
+
+        # Fallback path — reverse the encoding manually
+        # Order matters: decode -DOT- first, then single hyphens
+        # CASE 2 : -DOT-  →  .
+        # CASE 3 : -      →  _
+        $originalKey = $version.Name
+        $originalKey = $originalKey -replace '-DOT-', '.'   # CASE 2
+        $originalKey = $originalKey -replace '^x-', ''    # strip digit prefix
+        $originalKey = $originalKey -replace '-', '_'  # CASE 3
+        Write-Warning "Secret '$($version.Name)' has no OriginalKey tag — decoded fallback: '$originalKey'. Verify after restore."
+    }
+
+    # CASE 1 — sentinel means the original value was empty
+    if ($value -eq '__EMPTY__') {
+        Write-Host "  Note: '$originalKey' was empty in the backup — will restore as empty." -ForegroundColor DarkGray
+        $value = ''
     }
 
     $backupSettings[$originalKey] = $value
@@ -257,12 +299,11 @@ if ($getResponse.StatusCode -ne 200) {
 $currentSettings = ($getResponse.Content | ConvertFrom-Json).properties
 
 # -------------------------------------------------------
-# 10. Decide what to do with each key and print it live
-#     We go through every key in the backup and check the
-#     live app right now — no separate diff pass needed.
-#     CREATED    = key does not exist in the live app yet
-#     OVERWRITE  = key exists but the value is different
-#     SAME       = key exists and value is already identical
+# 10. Check each key and print its status live
+#     [CREATE]           — does not exist in the live app
+#     [OVERWRITE]        — exists but value is different
+#     [SAME]             — exists and value is already correct
+#     [NOT IN BACKUP]    — exists in live app but not in backup
 # -------------------------------------------------------
 $toCreate = [System.Collections.Generic.List[string]]::new()
 $toOverwrite = [System.Collections.Generic.List[string]]::new()
@@ -286,7 +327,7 @@ foreach ($key in ($backupSettings.Keys | Sort-Object)) {
     }
 }
 
-# Keys in the live app that are not in the backup at all — we never touch these
+# Keys in the live app that are not in the backup — never touched
 $untouched = @(
     $currentSettings.PSObject.Properties.Name |
         Where-Object { -not $backupSettings.ContainsKey($_) } |
@@ -296,7 +337,7 @@ $untouched = @(
 if ($untouched.Count -gt 0) {
     Write-Host ""
     foreach ($k in $untouched) {
-        Write-Host "  [NOT IN BACKUP - SKIP]  $k" -ForegroundColor Cyan
+        Write-Host "  [NOT IN BACKUP]  $k" -ForegroundColor Cyan
     }
 }
 
@@ -323,8 +364,8 @@ if ($confirm -notmatch '^[Yy]$') {
 # -------------------------------------------------------
 # 12. Apply all changes in one ARM REST API call
 #     PUT replaces the full settings block, so we merge
-#     the backup on top of the current settings first —
-#     that way keys not in the backup are preserved.
+#     the backup on top of the current settings — that way
+#     keys not in the backup are preserved.
 # -------------------------------------------------------
 Write-Host ""
 Write-Host "Applying changes to Function App..."
