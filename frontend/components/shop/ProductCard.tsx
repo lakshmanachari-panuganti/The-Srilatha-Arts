@@ -6,6 +6,7 @@ import type { Product } from '@/types'
 import { formatINR, discountPct } from '@/lib/format'
 import { useWishlist } from '@/stores/wishlist'
 import { useAddToCart } from '@/hooks/useAddToCart'
+import { useToggleWishlist } from '@/hooks/useToggleWishlist'
 import { useHaptic } from '@/hooks/useHaptic'
 import { cn } from '@/lib/cn'
 
@@ -17,7 +18,7 @@ interface Props {
 
 export default function ProductCard({ product, variant = 'grid', priority = false }: Props) {
   const { addToCart } = useAddToCart()
-  const toggleWishlist = useWishlist((s) => s.toggle)
+  const { toggleWishlist } = useToggleWishlist()
   const inWishlist = useWishlist((s) => s.has(product.id))
   const haptic = useHaptic()
 
@@ -32,8 +33,9 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
 
   const onWish = (e: React.MouseEvent) => {
     e.preventDefault()
-    toggleWishlist(product)
-    haptic(10)
+    // Same auth gate as add-to-cart: anonymous users get a toast +
+    // redirect to login, and the add is replayed after sign-in.
+    if (toggleWishlist(product)) haptic(10)
   }
 
   return (

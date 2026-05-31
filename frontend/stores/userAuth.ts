@@ -2,14 +2,16 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
 import { useWishlist } from '@/stores/wishlist'
+import { useCart } from '@/stores/cart'
 
-// Side-effect runner — pulls server wishlist after auth state is known so
-// the user sees their cross-device saved pieces immediately. Best-effort:
-// network failures don't block sign-in.
-function syncWishlistAfterAuth() {
-  // Defer to next tick so the auth token is in place before the GET fires.
+// Side-effect runner — pulls the server cart + wishlist after auth state
+// is known so the user sees their cross-device saved pieces immediately.
+// Best-effort: network failures don't block sign-in.
+function syncUserDataAfterAuth() {
+  // Defer to next tick so the auth token is in place before the GETs fire.
   setTimeout(() => {
     useWishlist.getState().hydrateFromServer().catch(() => {})
+    useCart.getState().hydrateFromServer().catch(() => {})
   }, 0)
 }
 
@@ -65,7 +67,7 @@ export const useUserAuth = create<UserAuthState>()(
             isLoading: false,
             error: null,
           })
-          syncWishlistAfterAuth()
+          syncUserDataAfterAuth()
           return { needsProfileSetup: res.needsProfileSetup }
         } catch (err) {
           const message = extractErrorMessage(err)
@@ -83,7 +85,7 @@ export const useUserAuth = create<UserAuthState>()(
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
-          syncWishlistAfterAuth()
+          syncUserDataAfterAuth()
           return true
         } catch (err) {
           set({ isLoading: false, error: extractErrorMessage(err) })
@@ -100,7 +102,7 @@ export const useUserAuth = create<UserAuthState>()(
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
-          syncWishlistAfterAuth()
+          syncUserDataAfterAuth()
           return true
         } catch (err) {
           set({ isLoading: false, error: extractErrorMessage(err) })
@@ -137,9 +139,15 @@ export const useUserAuth = create<UserAuthState>()(
         }
         setApiAuthToken(null)
         set({ user: null, token: null, needsProfileSetup: false, error: null })
-        // Clear local wishlist so the next user on the same browser
-        // doesn't inherit the previous user's saved items (privacy bug).
+        // Clear local cart + wishlist so the next user on the same browser
+        // doesn't inherit the previous user's items. Spec: "When a user
+        // signs out, the Cart and Wishlist UI should be cleared
+        // immediately." Server-side data for THIS user is preserved —
+        // a fresh login for the same user restores their state.
+        // Note: cart.clear() also fires DELETE /api/cart, but the auth
+        // token has been removed above so that call 401s and is silenced.
         useWishlist.getState().clear()
+        useCart.getState().clear()
       },
 
       clearError: () => set({ error: null }),
@@ -157,7 +165,7 @@ export const useUserAuth = create<UserAuthState>()(
           setApiAuthToken(state.token)
           // After page reload, pull the latest server wishlist for the
           // restored session so the heart icons reflect cross-device state.
-          syncWishlistAfterAuth()
+          syncUserDataAfterAuth()
         }
       },
     },
