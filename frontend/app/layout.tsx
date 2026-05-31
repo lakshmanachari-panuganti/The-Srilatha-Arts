@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { Oswald } from 'next/font/google'
+import { Square_Peg } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
 
-const oswald = Oswald({
+const squarePeg = Square_Peg({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-oswald',
+  weight: ['400'],
+  variable: '--font-square-peg',
   display: 'swap',
 })
 
@@ -71,7 +71,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${oswald.variable}`}>
+    <html lang="en-IN" className={`${squarePeg.variable}`}>
       <body>
         <a
           href="#main"

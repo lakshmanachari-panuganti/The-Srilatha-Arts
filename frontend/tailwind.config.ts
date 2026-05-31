@@ -49,9 +49,12 @@ const config: Config = {
         sage: '#A7F3D0',
       },
       fontFamily: {
-        serif: ['var(--font-oswald)', 'Oswald', 'system-ui', 'sans-serif'],
-        sans: ['var(--font-oswald)', 'Oswald', 'system-ui', 'sans-serif'],
-        brand: ['Aldo', 'var(--font-oswald)', 'Oswald', 'system-ui', 'sans-serif'],
+        // Square Peg — playful hand-lettered script for all display headings and section titles
+        serif: ['var(--font-square-peg)', 'Square Peg', 'cursive'],
+        // Aldo — strong geometric font for all body text, UI, nav, buttons
+        sans: ['Aldo', 'system-ui', 'sans-serif'],
+        // brand — same Aldo for the logo wordmark
+        brand: ['Aldo', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         '10': ['0.625rem', { lineHeight: '1.5' }],   // 10px — label caps, tab bar text
