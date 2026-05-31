@@ -466,24 +466,21 @@ function OrderCard({
   )
 }
 
-// ─── Invoice download button ─────────────────────────────────
-// Opens the printable invoice page in a new tab with auto-print. Browsers
-// offer "Save as PDF" in the print dialog universally — no backend PDF
-// dependency to keep cold-start lean. Hidden for unpaid PLACED orders since
-// there's nothing to bill yet.
+// ─── Invoice link ────────────────────────────────────────────
+// Opens the invoice page where the customer can view the invoice on screen
+// and trigger a real PDF download (jsPDF) via the Download button on that
+// page. Hidden for unpaid PLACED orders since there's nothing to bill yet.
 
 function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
   if (order.paymentStatus !== 'PAID' && order.status === 'PLACED') return null
   return (
-    <a
-      href={`/account/orders/${order.id}/invoice?auto=print`}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      href={`/account/orders/${order.id}/invoice`}
       className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
     >
       <FileText className="w-4 h-4" aria-hidden />
       Invoice
-    </a>
+    </Link>
   )
 }
 
