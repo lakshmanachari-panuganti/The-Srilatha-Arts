@@ -84,6 +84,9 @@ export async function downloadInvoicePdf(
   const inkSoft: [number, number, number] = [110, 100, 130]
   const inkMute: [number, number, number] = [150, 145, 165]
   const rule: [number, number, number] = [225, 220, 235]
+  // Vivid lavender for the INVOICE eyebrow — Tailwind violet-600 (#7C3AED),
+  // same family as the Razorpay theme colour configured in CheckoutClient.
+  const lavender: [number, number, number] = [124, 58, 237]
 
   // ── Header row: brand on the left, invoice meta on the right ─────────
   let y = margin
@@ -98,17 +101,25 @@ export async function downloadInvoicePdf(
   doc.text(WEBSITE_URL.replace(/^https?:\/\//, ''), margin, y + 34)
   doc.text(`${STUDIO_EMAIL}  ·  ${PHONE_DISPLAY}`, margin, y + 47)
 
-  doc.setFontSize(9)
-  doc.setTextColor(...inkMute)
-  doc.text('INVOICE', pageW - margin, y + 14, { align: 'right' })
+  // INVOICE eyebrow — large, bold, lavender, letter-spaced. This is the
+  // single most prominent label on the page so the recipient knows what
+  // they're looking at the moment they open the file.
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(20)
+  doc.setTextColor(...lavender)
+  doc.text('INVOICE', pageW - margin, y + 18, {
+    align: 'right',
+    charSpace: 2,
+  })
+  doc.setFont('helvetica', 'normal')
 
-  doc.setFontSize(15)
+  doc.setFontSize(14)
   doc.setTextColor(...ink)
-  doc.text(order.id, pageW - margin, y + 32, { align: 'right' })
+  doc.text(order.id, pageW - margin, y + 38, { align: 'right' })
 
   doc.setFontSize(9)
   doc.setTextColor(...inkMute)
-  doc.text(`Dated ${fmtDate(order.createdAt)}`, pageW - margin, y + 46, {
+  doc.text(`Dated ${fmtDate(order.createdAt)}`, pageW - margin, y + 52, {
     align: 'right',
   })
 
@@ -120,9 +131,9 @@ export async function downloadInvoicePdf(
     order.paymentStatus === 'PAID' ? 65 : 7,
   )
   doc.setFontSize(8)
-  doc.text(paidLabel, pageW - margin, y + 60, { align: 'right' })
+  doc.text(paidLabel, pageW - margin, y + 66, { align: 'right' })
 
-  y += 80
+  y += 86
   drawRule(doc, margin, pageW - margin, y, rule)
   y += 18
 
@@ -161,16 +172,21 @@ export async function downloadInvoicePdf(
   if (addr.country) shipLines.push(addr.country)
   if (addr.phone) shipLines.push(addr.phone)
 
+  // Flatten source lines through splitTextToSize FIRST so we have a single
+  // ordered list of visual rows, then paint each at its own y. The old code
+  // indexed by source line which collided when a long street wrapped onto
+  // two visual rows — the second wrapped row landed on top of the next
+  // source line (city/pincode), producing the overlapping smear bug.
   doc.setTextColor(...inkSoft)
   doc.setFontSize(9)
-  shipLines.forEach((line, i) => {
-    const wrapped = doc.splitTextToSize(line, colW)
-    wrapped.forEach((wl: string, j: number) => {
-      doc.text(wl, shipX, y + 30 + (i + j) * 12)
-    })
+  const shipVisualLines: string[] = shipLines.flatMap((line) =>
+    doc.splitTextToSize(line, colW) as string[],
+  )
+  shipVisualLines.forEach((line, i) => {
+    doc.text(line, shipX, y + 30 + i * 12)
   })
 
-  const colRows = Math.max(billLines.length, shipLines.length) + 1
+  const colRows = Math.max(billLines.length, shipVisualLines.length) + 1
   y += 30 + colRows * 12 + 8
   drawRule(doc, margin, pageW - margin, y, rule)
   y += 14
