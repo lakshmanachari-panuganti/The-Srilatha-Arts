@@ -475,7 +475,7 @@ function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
   if (order.paymentStatus !== 'PAID' && order.status === 'PLACED') return null
   return (
     <Link
-      href={`/account/orders/${order.id}/invoice`}
+      href={`/account/invoices/${order.id}`}
       className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
     >
       <FileText className="w-4 h-4" aria-hidden />

@@ -66,10 +66,15 @@
       "PowerShell($r = Invoke-WebRequest -Uri \"https://srilatha.art/_next/static/chunks/main-app.js\" -UseBasicParsing -ErrorAction SilentlyContinue; if \\($r\\) { $r.Content -match \"azurewebsites|api\\\\.srilatha\" | Out-Null; $matches } else { \"no response\" })",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://srilatha.art\" -UseBasicParsing -MaximumRedirection 0 -ErrorAction Stop; $r.StatusCode; $r.Headers } catch { $_.Exception.Response.StatusCode; $_.Exception.Response.Headers })",
       "Bash(npm install *)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Read(//c/repos/The-Srilatha-Arts/frontend/app/account/invoices/**)",
+      "PowerShell($src = \"frontend\\\\app\\\\account\\\\orders\\\\[id]\\\\invoice\"; $dstParent = \"frontend\\\\app\\\\account\\\\invoices\"; $dst = \"frontend\\\\app\\\\account\\\\invoices\\\\[id]\"; New-Item -ItemType Directory -Force -Path $dstParent | Out-Null; New-Item -ItemType Directory -Force -LiteralPath $dst | Out-Null; Move-Item -LiteralPath \"$src\\\\page.tsx\" -Destination \"$dst\\\\page.tsx\"; Move-Item -LiteralPath \"$src\\\\InvoiceClient.tsx\" -Destination \"$dst\\\\InvoiceClient.tsx\"; Remove-Item -LiteralPath $src -Recurse -Force; Get-ChildItem -LiteralPath $dst)",
+      "PowerShell(\"Cleared .next\")",
+      "PowerShell(\"Cleared tsbuildinfo + .next\")"
     ],
     "additionalDirectories": [
-      "C:\\Users\\E092721\\AppData\\Local\\Temp"
+      "C:\\Users\\E092721\\AppData\\Local\\Temp",
+      "c:\\repos\\The-Srilatha-Arts\\frontend\\app\\account\\invoices"
     ]
   },
   "tools": {

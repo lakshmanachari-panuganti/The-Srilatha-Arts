@@ -61,7 +61,7 @@ export default function InvoiceClient() {
   const user = useUserAuth((s) => s.user)
 
   // Same shell pattern as OrderDetailClient: read id from window.location
-  // after mount. Pathname: /account/orders/<id>/invoice/  → parts[2] = id.
+  // after mount. Pathname: /account/invoices/<id>/  → parts[2] = id.
   const [id, setId] = useState<string | null>(null)
   const [autoPrint, setAutoPrint] = useState(false)
   const [autoDownload, setAutoDownload] = useState(false)
@@ -108,7 +108,7 @@ export default function InvoiceClient() {
     if (id && id !== '__shell__' && !user) {
       router.replace(
         '/login?next=' +
-          encodeURIComponent(`/account/orders/${id}/invoice`),
+          encodeURIComponent(`/account/invoices/${id}`),
       )
       return
     }
@@ -167,7 +167,7 @@ export default function InvoiceClient() {
           <h2 className="font-serif text-2xl text-ink mb-2">Your session expired</h2>
           <p className="text-sm text-ink-soft mb-5">Please sign in again to see this invoice.</p>
           <Link
-            href={`/login?next=${encodeURIComponent(`/account/orders/${id}/invoice`)}`}
+            href={`/login?next=${encodeURIComponent(`/account/invoices/${id}`)}`}
             className="btn-dark"
           >
             Sign in
