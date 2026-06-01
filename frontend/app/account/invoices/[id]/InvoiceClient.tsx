@@ -251,13 +251,16 @@ export default function InvoiceClient() {
       <article className="invoice-sheet bg-white text-ink rounded-2xl border border-ink/10 shadow-sm p-6 sm:p-10">
         {/* Header: studio brand block + invoice meta */}
         <header className="flex items-start justify-between gap-6 pb-6 border-b border-ink/10">
-          <div className="flex items-center gap-3">
-            <div className="relative w-14 h-14 shrink-0">
+          <div className="flex items-center gap-3 lg:gap-5">
+            {/* Logo intentionally larger on desktop where there's room — keeps
+                mobile compact so the meta block on the right still fits next
+                to it without wrapping. */}
+            <div className="relative w-14 h-14 lg:w-24 lg:h-24 shrink-0">
               <Image
                 src="/Logos/logo.png"
                 alt=""
                 fill
-                sizes="56px"
+                sizes="(min-width: 1024px) 96px, 56px"
                 className="object-contain"
               />
             </div>
@@ -270,7 +273,11 @@ export default function InvoiceClient() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-ink-mute">Invoice</p>
+            {/* INVOICE eyebrow — discreet 11px muted on mobile, large bold
+                lavender on desktop. Matches the PDF rendering of the same
+                label so the on-screen and downloaded artefacts feel like
+                one document at a glance. */}
+            <p className="text-[11px] uppercase tracking-[0.18em] text-ink-mute lg:text-2xl lg:tracking-[0.22em] lg:font-semibold lg:text-lavender lg:mb-1">Invoice</p>
             <p className="font-serif text-xl text-ink tabular-nums">{order.id}</p>
             <p className="text-xs text-ink-mute mt-1">Dated {formatDate(order.createdAt)}</p>
             <p className="text-[11px] uppercase tracking-[0.15em] mt-2">
