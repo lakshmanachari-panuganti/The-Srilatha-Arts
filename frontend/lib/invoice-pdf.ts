@@ -96,21 +96,25 @@ export async function downloadInvoicePdf(
   doc.setFontSize(22)
   doc.text('Srilatha Art', margin, y + 18)
 
+  // Brand contacts — one per line with labels. The earlier single-line
+  // form (`email · phone`) was hard to scan; labelled rows match how the
+  // studio prefers to read its own letterhead.
   doc.setFontSize(9)
   doc.setTextColor(...inkMute)
-  doc.text(WEBSITE_URL.replace(/^https?:\/\//, ''), margin, y + 34)
-  doc.text(`${STUDIO_EMAIL}  ·  ${PHONE_DISPLAY}`, margin, y + 47)
+  const website = WEBSITE_URL.replace(/^https?:\/\//, '').replace(/^www\./i, '')
+  doc.text(`www.${website}`, margin, y + 34)
+  doc.text(`email: ${STUDIO_EMAIL}`, margin, y + 47)
+  doc.text(`call/WhatsApp: ${PHONE_DISPLAY}`, margin, y + 60)
 
-  // INVOICE eyebrow — large, bold, lavender, letter-spaced. This is the
-  // single most prominent label on the page so the recipient knows what
-  // they're looking at the moment they open the file.
+  // INVOICE eyebrow — large, bold, lavender. No charSpace: jsPDF's
+  // right-alignment ignores per-character spacing when computing the
+  // anchor, so any positive charSpace pushes the last character past
+  // the right margin and makes the eyebrow look mis-aligned against
+  // the order ID and date underneath it.
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(20)
   doc.setTextColor(...lavender)
-  doc.text('INVOICE', pageW - margin, y + 18, {
-    align: 'right',
-    charSpace: 2,
-  })
+  doc.text('INVOICE', pageW - margin, y + 18, { align: 'right' })
   doc.setFont('helvetica', 'normal')
 
   doc.setFontSize(14)
