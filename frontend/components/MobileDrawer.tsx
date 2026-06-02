@@ -226,7 +226,7 @@ export default function MobileDrawer() {
                            text-white font-medium text-sm tracking-wide
                            transition-transform duration-200 active:scale-[0.98]"
                 style={{
-                  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                  background: 'linear-gradient(135deg, var(--wa-1) 0%, var(--wa-2) 100%)',
                   boxShadow:
                     '0 10px 24px -10px rgba(18,140,126,0.55), 0 0 0 1px rgba(255,255,255,0.08) inset',
                 }}

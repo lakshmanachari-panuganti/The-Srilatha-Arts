@@ -83,28 +83,28 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               const badges: React.ReactNode[] = []
               if (!product.inStock) {
                 badges.push(
-                  <span key="oos" className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: '#A49BB8' }}>
+                  <span key="oos" className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
                     Sold Out
                   </span>,
                 )
               }
               if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
                 badges.push(
-                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #E879F9, #A78BFA)', color: '#ffffff' }}>
+                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, var(--accent), var(--brand))', color: '#ffffff' }}>
                     Only {product.stockQty} left
                   </span>,
                 )
               }
               if (badges.length < 2 && pct !== null) {
                 badges.push(
-                  <span key="disc" className="sticker" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7, #E879F9)', color: '#ffffff' }}>
+                  <span key="disc" className="sticker" style={{ background: 'linear-gradient(135deg, var(--brand), var(--accent-strong), var(--accent))', color: '#ffffff' }}>
                     −{pct}%
                   </span>,
                 )
               }
               if (badges.length < 2 && product.isBestSeller) {
                 badges.push(
-                  <span key="best" className="sticker" style={{ background: 'linear-gradient(135deg, #8A74C9, #5E4B8B)' }}>
+                  <span key="best" className="sticker" style={{ background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))' }}>
                     Best Seller
                   </span>,
                 )
@@ -131,10 +131,10 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        hover:text-lavender-pastel active:scale-90 transition-all duration-500"
             style={{
               borderRadius: '24px',
-              background: 'rgba(255,255,255,0.92)',
+              background: 'color-mix(in srgb, var(--surface-raised) 92%, transparent)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(167,139,250,0.40)',
-              boxShadow: '0 2px 10px rgba(75,63,114,0.10)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 2px 10px color-mix(in srgb, var(--text) 10%, transparent)',
             }}
           >
             <Heart
@@ -165,8 +165,8 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        disabled:opacity-40 disabled:pointer-events-none"
             style={{
               borderRadius: '24px',
-              background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
-              boxShadow: '0 4px 16px rgba(138,116,201,0.3)',
+              background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))',
+              boxShadow: '0 4px 16px color-mix(in srgb, var(--brand) 30%, transparent)',
             }}
           >
             <Plus className="w-5 h-5" aria-hidden />

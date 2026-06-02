@@ -57,7 +57,7 @@ export default function FloatingWhatsApp() {
         'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40',
       ].join(' ')}
       style={{
-        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+        background: 'linear-gradient(135deg, var(--wa-1) 0%, var(--wa-2) 100%)',
         boxShadow:
           '0 10px 30px -8px rgba(18,140,126,0.55), 0 0 0 4px rgba(37,211,102,0.18)',
       }}

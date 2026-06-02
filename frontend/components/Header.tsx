@@ -57,7 +57,7 @@ export default function Header() {
               ? 'glass-strong'
               : 'bg-plum/40 backdrop-blur-sm',
           )}
-          style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
+          style={{ borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent' }}
         >
           {/* Left: logo + brand name (all viewports) — branding-first focal point */}
           <div className="flex items-center min-w-0">
@@ -140,7 +140,7 @@ export default function Header() {
                              text-[10px] font-bold leading-[18px] text-center text-plum"
                   style={{
                     borderRadius: '24px',
-                    background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
+                    background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))',
                   }}
                 >
                   {count > 99 ? '99+' : count}

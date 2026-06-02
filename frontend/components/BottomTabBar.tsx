@@ -29,10 +29,10 @@ export default function BottomTabBar() {
       aria-label="Primary"
       className="lg:hidden fixed bottom-0 inset-x-0 z-40"
       style={{
-        background: 'rgba(76,29,149,0.92)',
+        background: 'color-mix(in srgb, var(--brand-strong) 92%, transparent)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(167,139,250,0.30)',
+        borderTop: '1px solid var(--border)',
         // Respect device safe areas on every side so notches / rounded corners
         // never clip the rightmost tab. Bottom keeps the existing safe-pb feel.
         paddingLeft: 'env(safe-area-inset-left)',

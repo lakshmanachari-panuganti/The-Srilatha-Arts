@@ -9,59 +9,58 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ── Navigation dark surfaces ──────────────────────────────
-        'nav-surface': 'rgba(76,29,149,0.92)',   // BottomTabBar / StickyCartBar bg
-        'nav-surface-heavy': 'rgba(76,29,149,0.97)', // SearchOverlay bg
-        // ── Surfaces (Vibrant Lavender) ──────────────────────────
-        plum: '#EDE9FE',                 // violet-100 — visible lavender page bg
-        'plum-light': '#DDD6FE',         // violet-200 — richer lavender
-        'plum-warm': '#C4B5FD',          // violet-300 — deep lavender mist
-        lavender: '#7C3AED',             // violet-600 — vivid primary brand
-        'lavender-soft': '#A78BFA',      // violet-400 — vibrant medium
-        'lavender-pastel': '#E879F9',    // fuchsia-400 — vivid magenta accent
-        'lavender-light': '#F5F3FF',     // violet-50  — lightest surface
-        'lavender-faint': '#EDE9FE',     // violet-100 — faint lavender
-        // ── Text (calibrated hierarchy — warm violet undertone) ──
-        // Names kept for back-compat (token rename would ripple ~200
-        // call sites). Values rebalanced so the hierarchy is correct:
-        // headline > body > muted, in both contrast and saturation.
-        // Prior values had `ivory-mute` (#6D28D9, violet-700) MORE
-        // saturated than the body tone above it — a brand-coloured
-        // "muted" reads as purple, not as muted. Fixed below.
-        ivory: '#2A1056',                // primary text — deep violet, still
-                                          // rich enough to read editorial on
-                                          // light-lavender bg
-        'ivory-soft': '#3D2F55',         // body text — warm desaturated plum,
-                                          // calm enough to read as TEXT
-                                          // rather than as "purple"
-        'ivory-mute': '#7B6F8A',         // muted captions / meta — properly
-                                          // muted warm grey-violet, lighter
-                                          // and less saturated than body
-        // ── Glass & Overlay (Lavender Mode) ──────────────────────
-        'glass-surface': 'rgba(237,233,254,0.70)',
-        'glass-border': 'rgba(167,139,250,0.40)',
-        'glass-hover': 'rgba(221,214,254,0.90)',
-        'overlay-soft': 'rgba(124,58,237,0.08)',
-        'overlay-deep': 'rgba(46,16,101,0.35)',
-        // ── Legacy aliases (lavender-aliased back-compat tokens) ──
-        // These names predate the cream→lavender pivot; their *values*
-        // were remapped to lavender equivalents so existing call sites
-        // keep working. ink-* mirrors ivory-* for the same hierarchy
-        // (see ivory comments above).
-        cream: '#F5F3FF',
-        'cream-deep': '#DDD6FE',
-        paper: 'rgba(237,233,254,0.70)',
-        ink: '#2A1056',                  // mirrors `ivory`
-        'ink-soft': '#3D2F55',            // mirrors `ivory-soft`
-        'ink-mute': '#7B6F8A',            // mirrors `ivory-mute`
-        'primary-dark': '#7C3AED',
-        'primary-burnt': '#A78BFA',
-        // NOTE: `terracotta`, `terracotta-deep`, `clay`, `sage` tokens
-        // were removed on 2026-05-31. They were leftover from an earlier
-        // craft-palette concept and had been remapped to amber-200
-        // (#FDE68A — a pale yellow) which became unreadable text on the
-        // light-lavender page. All call sites have been migrated to
-        // `lavender` / `lavender-pastel` / `rose-700` per intent.
+        // ── Two-layer system ───────────────────────────────────────
+        // Tailwind tokens here are *aliases* of CSS variables defined
+        // in app/globals.css `:root`. The variables are the single
+        // source of truth — change them to retheme. Names kept for
+        // back-compat with ~200 call sites; values resolve at runtime.
+        //
+        // We use `rgb(var(--…-rgb) / <alpha-value>)` so opacity
+        // modifiers (`bg-plum/40`, `border-ink/10`, `text-lavender-
+        // pastel/60`) keep composing alpha at build time.
+        //
+        // Phase 1 of the reskin centralises colour without changing
+        // visuals. Phase 2 swaps the `:root` block (only) to warm
+        // ivory + ink + gold.
+        // ─────────────────────────────────────────────────────────
+
+        // Surfaces — page, raised cards, sunken alt sections
+        plum:            'rgb(var(--surface-rgb) / <alpha-value>)',
+        'plum-light':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
+        'plum-warm':     'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
+        'lavender-light':'rgb(var(--surface-raised-rgb) / <alpha-value>)',
+        'lavender-faint':'rgb(var(--surface-rgb) / <alpha-value>)',
+        cream:           'rgb(var(--surface-raised-rgb) / <alpha-value>)',
+        'cream-deep':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
+        paper:           'rgb(var(--surface-raised-rgb) / <alpha-value>)',
+
+        // Brand + accent
+        lavender:          'rgb(var(--brand-rgb) / <alpha-value>)',
+        'lavender-soft':   'rgb(var(--brand-rgb) / <alpha-value>)',
+        'lavender-pastel': 'rgb(var(--accent-rgb) / <alpha-value>)',
+        'primary-dark':    'rgb(var(--brand-rgb) / <alpha-value>)',
+        'primary-burnt':   'rgb(var(--brand-strong-rgb) / <alpha-value>)',
+
+        // Text — ivory-* and ink-* are both kept and point at the
+        // same vars; existing call sites use both interchangeably.
+        ivory:        'rgb(var(--text-rgb) / <alpha-value>)',
+        'ivory-soft': 'rgb(var(--text-body-rgb) / <alpha-value>)',
+        'ivory-mute': 'rgb(var(--text-muted-rgb) / <alpha-value>)',
+        ink:          'rgb(var(--text-rgb) / <alpha-value>)',
+        'ink-soft':   'rgb(var(--text-body-rgb) / <alpha-value>)',
+        'ink-mute':   'rgb(var(--text-muted-rgb) / <alpha-value>)',
+
+        // Navigation dark surfaces (BottomTabBar / StickyCartBar /
+        // SearchOverlay). Translucent shells derived from brand-strong.
+        'nav-surface':       'rgb(var(--brand-strong-rgb) / 0.92)',
+        'nav-surface-heavy': 'rgb(var(--brand-strong-rgb) / 0.97)',
+
+        // Glass + overlays
+        'glass-surface': 'rgb(var(--surface-rgb) / 0.70)',
+        'glass-border':  'var(--border)',
+        'glass-hover':   'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
+        'overlay-soft':  'rgb(var(--brand-rgb) / 0.08)',
+        'overlay-deep':  'rgb(var(--text-rgb) / 0.35)',
       },
       fontFamily: {
         // Three-font system, each with a clear role:

@@ -33,11 +33,54 @@
 
 @layer base {
   :root {
-    --color-plum: #EDE9FE;
-    --color-lavender: #7C3AED;
-    --color-lavender-soft: #A78BFA;
-    --color-lavender-pastel: #E879F9;
-    --color-ivory: #2A1056;
+    /* ── SEMANTIC SOURCE OF TRUTH (honest names) ──────────────────
+       Two forms per themed colour:
+         --<name>     : hex/rgba — for direct CSS use (`var(--brand)`)
+         --<name>-rgb : space-separated R G B triplet — consumed by
+                        Tailwind tokens via `rgb(var(--…) / <alpha>)`
+                        so opacity modifiers (`bg-plum/40`,
+                        `border-ink/10`) keep working.
+
+       Phase 1: values mirror the prior lavender palette so the site
+       looks identical after token centralization. Phase 2 swaps this
+       block — and only this block — to retheme everything.
+       ─────────────────────────────────────────────────────────── */
+
+    /* Surfaces */
+    --surface:        #EDE9FE;
+    --surface-rgb:    237 233 254;
+    --surface-raised: #FFFFFF;
+    --surface-raised-rgb: 255 255 255;
+    --surface-sunken: #DDD6FE;
+    --surface-sunken-rgb: 221 214 254;
+
+    /* Text */
+    --text:        #2A1056;
+    --text-rgb:    42 16 86;
+    --text-body:   #3D2F55;
+    --text-body-rgb: 61 47 85;
+    --text-muted:  #7B6F8A;
+    --text-muted-rgb: 123 111 138;
+
+    /* Brand + accent */
+    --brand:         #7C3AED;
+    --brand-rgb:     124 58 237;
+    --brand-strong:  #5B21B6;
+    --brand-strong-rgb: 91 33 182;
+    --accent:        #E879F9;
+    --accent-rgb:    232 121 249;
+    --accent-strong: #A855F7;
+    --accent-strong-rgb: 168 85 247;
+
+    --border:        rgba(124,58,237,0.40);
+    --ring:          #E879F9;
+
+    /* functional colours — NOT themed, keep across reskins */
+    --ok:   #1A7F4B;
+    --danger: #B42318;
+    --wa-1: #25D366;
+    --wa-2: #128C7E;
+
     --banner-h: 0px;
     --header-h: 64px;
     --tab-h: 68px;
@@ -78,10 +121,10 @@
        lines where they need lining figures (rare). */
     font-variant-numeric: lining-nums;
     background-image:
-      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124, 58, 237, 0.35) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 50% at 100% 80%, rgba(232, 121, 249, 0.25) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 0% 60%, rgba(167, 139, 250, 0.30) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 30% at 50% 100%, rgba(109, 40, 217, 0.20) 0%, transparent 50%);
+      radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in srgb, var(--brand) 35%, transparent) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 100% 80%, color-mix(in srgb, var(--accent) 25%, transparent) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 0% 60%, color-mix(in srgb, var(--brand) 30%, transparent) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 50% 100%, color-mix(in srgb, var(--brand-strong) 20%, transparent) 0%, transparent 50%);
   }
 
   body::before {
@@ -139,26 +182,27 @@
   }
 
   ::selection {
-    @apply bg-lavender-pastel/25 text-ivory;
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--text);
   }
 
   a, button {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Custom scrollbar for lavender theme */
+  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: rgba(196, 181, 253, 0.3);
+    background: color-mix(in srgb, var(--surface-sunken) 60%, transparent);
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(124, 58, 237, 0.5);
+    background: color-mix(in srgb, var(--brand) 50%, transparent);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(124, 58, 237, 0.75);
+    background: color-mix(in srgb, var(--brand) 75%, transparent);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -242,23 +286,24 @@
 
   .btn-dark {
     @apply btn text-white;
-    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 60%, #5B21B6 100%);
-    box-shadow: 0 4px 24px rgba(124, 58, 237, 0.45);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 60%, var(--brand-strong) 100%);
+    box-shadow: 0 4px 24px color-mix(in srgb, var(--brand) 45%, transparent);
   }
   .btn-dark:hover {
-    box-shadow: 0 8px 36px rgba(124, 58, 237, 0.65);
+    box-shadow: 0 8px 36px color-mix(in srgb, var(--brand) 65%, transparent);
     transform: translateY(-2px);
   }
 
   .btn-outline {
-    @apply btn text-ivory;
-    border: 1.5px solid rgba(124, 58, 237, 0.40);
+    @apply btn;
+    color: var(--text);
+    border: 1.5px solid var(--border);
     border-radius: 24px;
   }
   .btn-outline:hover {
-    border-color: rgba(124, 58, 237, 0.70);
-    color: #4C1D95;
-    background: rgba(124, 58, 237, 0.08);
+    border-color: color-mix(in srgb, var(--brand) 70%, transparent);
+    color: var(--brand-strong);
+    background: color-mix(in srgb, var(--brand) 8%, transparent);
   }
 
   /* Inline text link with a subtle underline — used in marketing
@@ -274,36 +319,35 @@
   /* ───────────── Cards & surfaces - glassmorphism ───────────── */
 
   .card {
-    background: rgba(255, 255, 255, 0.82);
+    background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(167, 139, 250, 0.45);
+    border: 1px solid color-mix(in srgb, var(--brand) 45%, transparent);
     border-radius: 24px;
-    box-shadow: 0 8px 32px 0 rgba(109, 40, 217, 0.12);
+    box-shadow: 0 8px 32px 0 color-mix(in srgb, var(--brand-strong) 12%, transparent);
     transition: box-shadow 0.5s ease, transform 0.5s ease, border-color 0.5s ease;
   }
   .card:hover {
-    box-shadow: 0 16px 48px rgba(124, 58, 237, 0.25);
-    border-color: rgba(124, 58, 237, 0.55);
+    box-shadow: 0 16px 48px color-mix(in srgb, var(--brand) 25%, transparent);
+    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
   }
 
   .card-cream {
     border-radius: 24px;
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgba(196, 181, 253, 0.60);
+    background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+    border: 1px solid color-mix(in srgb, var(--surface-sunken) 60%, transparent);
   }
 
-  /* Sticker / pill badge — vivid lavender label. Now slightly
-     heavier so the small all-caps text stays crisp at any size. */
+  /* Sticker / pill badge — vivid accent label. */
   .sticker {
     @apply inline-flex items-center justify-center
            text-[10px] uppercase font-semibold
            px-3 py-1.5;
     letter-spacing: 0.18em;
     border-radius: 24px;
-    background: linear-gradient(135deg, #7C3AED 0%, #A855F7 50%, #E879F9 100%);
+    background: linear-gradient(135deg, var(--brand) 0%, var(--accent-strong) 50%, var(--accent) 100%);
     color: #ffffff;
-    box-shadow: 0 2px 16px rgba(124, 58, 237, 0.45);
+    box-shadow: 0 2px 16px color-mix(in srgb, var(--brand) 45%, transparent);
   }
 
   /* Horizontal-scroll chip rail */
@@ -318,22 +362,22 @@
   .chip {
     @apply inline-flex items-center h-10 px-4 text-sm font-medium;
     border-radius: 24px;
-    border: 1.5px solid rgba(124, 58, 237, 0.25);
-    background: rgba(245, 243, 255, 0.75);
-    color: #4C1D95;
+    border: 1.5px solid color-mix(in srgb, var(--brand) 25%, transparent);
+    background: color-mix(in srgb, var(--surface-raised) 75%, transparent);
+    color: var(--brand-strong);
     transition: all 0.4s ease;
   }
   .chip:hover {
-    border-color: rgba(124, 58, 237, 0.55);
-    color: #2E1065;
-    background: rgba(221, 214, 254, 0.70);
+    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+    color: var(--text);
+    background: color-mix(in srgb, var(--surface-sunken) 70%, transparent);
   }
   .chip[aria-current='page'],
   .chip.is-active {
-    background: linear-gradient(135deg, #7C3AED, #A855F7);
+    background: linear-gradient(135deg, var(--brand), var(--accent-strong));
     border-color: transparent;
     color: #ffffff;
-    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.40);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--brand) 40%, transparent);
     font-weight: 600;
   }
 
@@ -343,42 +387,46 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
-  /* Editorial deco rule - vivid lavender gradient */
+  /* Editorial deco rule */
   .rule {
     height: 1px;
-    background: linear-gradient(to right, transparent, rgba(124, 58, 237, 0.6), rgba(232, 121, 249, 0.4), transparent);
+    background: linear-gradient(to right,
+      transparent,
+      color-mix(in srgb, var(--brand) 60%, transparent),
+      color-mix(in srgb, var(--accent) 40%, transparent),
+      transparent);
   }
 
   /* ───────────── Glass surfaces ───────────── */
 
   .glass {
-    background: rgba(237, 233, 254, 0.65);
+    background: color-mix(in srgb, var(--surface) 65%, transparent);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(167, 139, 250, 0.45);
+    border: 1px solid color-mix(in srgb, var(--brand) 45%, transparent);
   }
 
   .glass-strong {
-    background: rgba(245, 243, 255, 0.92);
+    background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(196, 181, 253, 0.60);
+    border: 1px solid color-mix(in srgb, var(--surface-sunken) 60%, transparent);
   }
 
-  /* ───────────── Lavender glow hover ───────────── */
+  /* ───────────── Glow hover ───────────── */
 
   .glow-hover {
     transition: box-shadow 0.5s ease, transform 0.5s ease;
   }
   .glow-hover:hover {
-    box-shadow: 0 0 60px rgba(124, 58, 237, 0.40);
+    box-shadow: 0 0 60px color-mix(in srgb, var(--brand) 40%, transparent);
     transform: translateY(-2px);
   }
 
   /* ───────────── Kolam decorative dot pattern ───────────── */
 
   .kolam-dots {
-    background-image: radial-gradient(circle, rgba(124, 58, 237, 0.18) 1px, transparent 1px);
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--brand) 18%, transparent) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 }
