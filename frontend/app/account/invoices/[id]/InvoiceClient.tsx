@@ -275,29 +275,28 @@ export default function InvoiceClient() {
 
         <div className="p-7 sm:p-12">
           {/* ── Header ─────────────────────────────────────────────────
-              Two-column letterhead. Left: brand block (logo, wordmark,
-              tagline, three contact lines). Right: oversized INVOICE
-              wordmark in serif, then meta + status pill. */}
-          <header className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-8 sm:gap-10 pb-8">
+              Two-column letterhead. Left: logo + Srilatha Art wordmark
+              in font-brand (Pramukh Rounded) to match the site header/
+              footer/drawer, then three contact lines - no tagline.
+              Right: oversized INVOICE wordmark, single-line meta rows,
+              status pill. */}
+          <header className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6 sm:gap-10 pb-7">
             <div className="flex items-start gap-4 lg:gap-5">
-              <div className="relative w-16 h-16 lg:w-20 lg:h-20 shrink-0">
+              {/* Logo bumped ~20% from the previous 64/80 to 76/96 so it
+                  carries weight against the 56px INVOICE wordmark on the
+                  right and reads as the anchor of the letterhead. */}
+              <div className="relative w-[76px] h-[76px] lg:w-24 lg:h-24 shrink-0">
                 <Image
                   src="/Logos/logo.png"
                   alt=""
                   fill
-                  sizes="(min-width: 1024px) 80px, 64px"
+                  sizes="(min-width: 1024px) 96px, 76px"
                   className="object-contain"
                 />
               </div>
               <div className="min-w-0">
-                <p
-                  className="font-serif text-2xl lg:text-[28px] text-ink leading-none tracking-[0.02em]"
-                  style={{ fontVariant: 'small-caps' }}
-                >
+                <p className="font-brand tracking-[0.06em] text-ink text-3xl lg:text-[34px] leading-none">
                   Srilatha Art
-                </p>
-                <p className="text-[11px] uppercase tracking-[0.22em] text-lavender-pastel mt-2 font-medium">
-                  Handcrafted Resin · Lippan · Mandala Art
                 </p>
                 <div className="mt-3 space-y-0.5 text-[12px] text-ink-soft leading-relaxed">
                   <p>{WEBSITE_URL.replace(/^https?:\/\//, '')}</p>
@@ -314,23 +313,20 @@ export default function InvoiceClient() {
               >
                 INVOICE
               </p>
-              <div className="mt-4 space-y-0.5">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-ink-mute">
-                  Invoice no.
+              {/* Single-line metadata: label : value, label dimmed.
+                  Tabular-nums on the value keeps the ID/date columns
+                  optically clean. */}
+              <div className="mt-3 space-y-1 text-sm">
+                <p className="text-ink">
+                  <span className="text-ink-mute">Invoice No:</span>{' '}
+                  <span className="tabular-nums">{order.id}</span>
                 </p>
-                <p className="font-serif text-lg text-ink tabular-nums">
-                  {order.id}
-                </p>
-              </div>
-              <div className="mt-3 space-y-0.5">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-ink-mute">
-                  Issued
-                </p>
-                <p className="text-sm text-ink tabular-nums">
-                  {formatDate(order.createdAt)}
+                <p className="text-ink">
+                  <span className="text-ink-mute">Issued:</span>{' '}
+                  <span className="tabular-nums">{formatDate(order.createdAt)}</span>
                 </p>
               </div>
-              <div className="mt-4 sm:flex sm:justify-end">
+              <div className="mt-3 sm:flex sm:justify-end">
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${TONE_CLASSES[badge.tone]}`}
                 >

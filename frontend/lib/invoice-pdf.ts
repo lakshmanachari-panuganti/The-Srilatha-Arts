@@ -202,8 +202,11 @@ export async function downloadInvoicePdf(
   let y = margin + 4
 
   // ── Header: brand block (left) vs. invoice meta (right) ──────────
-  const logoSize = 52
-  const brandTextX = logo ? margin + logoSize + 14 : margin
+  // Logo bumped ~18% (52 → 62pt) for better balance with the 34pt
+  // INVOICE wordmark on the right. Tagline removed per brief - the
+  // wordmark + contact lines do the work alone.
+  const logoSize = 62
+  const brandTextX = logo ? margin + logoSize + 16 : margin
 
   if (logo) {
     doc.addImage(
@@ -218,31 +221,25 @@ export async function downloadInvoicePdf(
     )
   }
 
-  // SRILATHA ART wordmark
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(...INK)
-  doc.setFontSize(20)
-  doc.text('SRILATHA ART', brandTextX, y + 14, { charSpace: 1.4 })
-
-  // Gold tagline - specific products, not generic "art"
+  // Srilatha Art wordmark. The on-screen site uses Pramukh Rounded
+  // (font-brand). jsPDF ships only the 14 PDF base fonts, so the
+  // closest tonal match here is bold Helvetica with slightly wider
+  // tracking. Embedding Pramukh Rounded would add ~150KB to the lazy
+  // chunk for a single line of brand text; not worth the cost.
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7.5)
-  doc.setTextColor(...GOLD_DEEP)
-  doc.text(
-    'HANDCRAFTED RESIN  ·  LIPPAN  ·  MANDALA ART',
-    brandTextX,
-    y + 27,
-    { charSpace: 1.2 },
-  )
+  doc.setTextColor(...INK)
+  doc.setFontSize(22)
+  doc.text('Srilatha Art', brandTextX, y + 18, { charSpace: 0.6 })
 
-  // Contact lines
+  // Contact lines - tightened directly under the wordmark with no
+  // tagline gap between them.
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...INK_SOFT)
   const website = WEBSITE_URL.replace(/^https?:\/\//, '').replace(/^www\./i, '')
-  doc.text(website, brandTextX, y + 42)
-  doc.text(STUDIO_EMAIL, brandTextX, y + 54)
-  doc.text(PHONE_DISPLAY, brandTextX, y + 66)
+  doc.text(website, brandTextX, y + 34)
+  doc.text(STUDIO_EMAIL, brandTextX, y + 46)
+  doc.text(PHONE_DISPLAY, brandTextX, y + 58)
 
   // ── Right column: oversized INVOICE wordmark + meta + status pill ─
   doc.setFont('helvetica', 'normal')
@@ -259,34 +256,40 @@ export async function downloadInvoicePdf(
   doc.setLineWidth(1.6)
   doc.line(pageW - margin - 56, y + 26, pageW - margin, y + 26)
 
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
-  doc.setTextColor(...INK_MUTE)
-  doc.text('INVOICE NO.', pageW - margin, y + 40, {
-    align: 'right',
-    charSpace: 1.1,
-  })
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10.5)
-  doc.setTextColor(...INK)
-  doc.text(order.id, pageW - margin, y + 53, { align: 'right' })
+  // Single-line metadata rows: "Invoice No: <id>" and "Issued: <date>".
+  // Label set in muted weight, value in ink. Right-anchored so the
+  // value's right edge aligns with the page margin.
+  const metaLabelY = y + 42
+  const metaIssuedY = y + 56
 
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
-  doc.setTextColor(...INK_MUTE)
-  doc.text('ISSUED', pageW - margin, y + 67, {
-    align: 'right',
-    charSpace: 1.1,
-  })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
+  // Invoice No row - paint value first (right-anchored), then prepend
+  // the label so we know exactly where to start the label.
   doc.setTextColor(...INK)
-  doc.text(fmtDate(order.createdAt), pageW - margin, y + 79, { align: 'right' })
+  const idText = order.id
+  doc.text(idText, pageW - margin, metaLabelY, { align: 'right' })
+  const idW = doc.getTextWidth(idText)
+  doc.setTextColor(...INK_MUTE)
+  doc.text('Invoice No:', pageW - margin - idW - 4, metaLabelY, {
+    align: 'right',
+  })
 
-  // Status pill - anchored under the meta block.
-  drawStatusPill(doc, order.paymentStatus, pageW - margin, y + 100)
+  // Issued row - same approach.
+  doc.setTextColor(...INK)
+  const dateText = fmtDate(order.createdAt)
+  doc.text(dateText, pageW - margin, metaIssuedY, { align: 'right' })
+  const dateW = doc.getTextWidth(dateText)
+  doc.setTextColor(...INK_MUTE)
+  doc.text('Issued:', pageW - margin - dateW - 4, metaIssuedY, {
+    align: 'right',
+  })
 
-  y += 112
+  // Status pill - tightened gap (was 100 → 78) so the right column
+  // doesn't drift below the left block.
+  drawStatusPill(doc, order.paymentStatus, pageW - margin, y + 78)
+
+  y += 96
 
   // ── Editorial gold rule ─────────────────────────────────────────
   drawGoldRule(doc, margin, pageW - margin, y)
