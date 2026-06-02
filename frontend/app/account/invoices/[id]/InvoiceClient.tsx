@@ -499,7 +499,7 @@ export default function InvoiceClient() {
               </div>
               <div className="invoice-total-underline mt-2 ml-auto" aria-hidden />
               <p className="text-[11px] text-ink-mute pt-3 text-right">
-                Inclusive of all taxes.
+                Inclusive of all.
               </p>
             </dl>
           </section>

@@ -548,7 +548,7 @@ export async function downloadInvoicePdf(
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...INK_MUTE)
-  doc.text('Inclusive of all taxes.', valX, y, { align: 'right' })
+  doc.text('Inclusive of all.', valX, y, { align: 'right' })
   y += 38
 
   // ── Footer: warm artisan note + legal small print ─────────────
@@ -623,7 +623,7 @@ function estimateTotalsAndFooterHeight(order: InvoiceOrder): number {
   if (typeof order.subtotal === 'number') h += 17
   if (typeof order.shippingAmount === 'number') h += 17
   if (typeof order.discountAmount === 'number' && order.discountAmount > 0) h += 17
-  // Total row + gold underline + "inclusive of all taxes"
+  // Total row + gold underline + "inclusive of all"
   h += 6 + 24 + 24 + 38
   // Footer hairline + payment ref + thank-you + body + Q block + legal
   h += 24
