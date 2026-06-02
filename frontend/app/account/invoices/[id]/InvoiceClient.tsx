@@ -52,8 +52,27 @@ interface OrderItem {
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'short', year: 'numeric',
+    day: 'numeric', month: 'long', year: 'numeric',
   })
+}
+
+// Maps payment / order status to a pill badge styling. Kept here so both
+// the heading and any future inline reuses pull from one place.
+type BadgeTone = 'amber' | 'emerald' | 'slate'
+function statusBadge(paymentStatus: string): { label: string; tone: BadgeTone } {
+  const s = (paymentStatus || '').toUpperCase()
+  if (s === 'PAID') return { label: 'Paid', tone: 'emerald' }
+  if (s === 'REFUNDED') return { label: 'Refunded', tone: 'slate' }
+  return { label: 'Payment pending', tone: 'amber' }
+}
+
+const TONE_CLASSES: Record<BadgeTone, string> = {
+  emerald:
+    'bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200',
+  amber:
+    'bg-amber-50 text-amber-900 ring-1 ring-inset ring-amber-200',
+  slate:
+    'bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200',
 }
 
 export default function InvoiceClient() {
@@ -193,6 +212,7 @@ export default function InvoiceClient() {
   }
 
   const addr = order.shippingAddress || {}
+  const badge = statusBadge(order.paymentStatus)
 
   // All money on the invoice is in rupees. Backend stores paise on numeric
   // fields; displayPrice / displayTotal are pre-converted. We reconstruct
@@ -247,177 +267,330 @@ export default function InvoiceClient() {
         </div>
       )}
 
-      {/* Invoice sheet - the only part printed */}
-      <article className="invoice-sheet bg-white text-ink rounded-2xl border border-ink/10 shadow-sm p-6 sm:p-10">
-        {/* Header: studio brand block + invoice meta */}
-        <header className="flex items-start justify-between gap-6 pb-6 border-b border-ink/10">
-          <div className="flex items-center gap-3 lg:gap-5">
-            {/* Logo intentionally larger on desktop where there's room - keeps
-                mobile compact so the meta block on the right still fits next
-                to it without wrapping. */}
-            <div className="relative w-14 h-14 lg:w-24 lg:h-24 shrink-0">
-              <Image
-                src="/Logos/logo.png"
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 96px, 56px"
-                className="object-contain"
-              />
+      {/* Invoice sheet - the only part printed.
+          A thin gold hairline at the very top reads as letterhead trim
+          on both screen and paper without shouting. */}
+      <article className="invoice-sheet bg-white text-ink rounded-2xl border border-ink/10 shadow-sm overflow-hidden">
+        <div className="invoice-trim" aria-hidden />
+
+        <div className="p-7 sm:p-12">
+          {/* ── Header ─────────────────────────────────────────────────
+              Two-column letterhead. Left: logo + Srilatha Art wordmark
+              in font-brand (Pramukh Rounded) to match the site header/
+              footer/drawer, then three contact lines - no tagline.
+              Right: oversized INVOICE wordmark, single-line meta rows,
+              status pill. */}
+          <header className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6 sm:gap-10 pb-7">
+            <div className="flex items-start gap-4 lg:gap-5">
+              {/* Logo bumped ~20% from the previous 64/80 to 76/96 so it
+                  carries weight against the 56px INVOICE wordmark on the
+                  right and reads as the anchor of the letterhead. */}
+              <div className="relative w-[76px] h-[76px] lg:w-24 lg:h-24 shrink-0">
+                <Image
+                  src="/Logos/logo.png"
+                  alt=""
+                  fill
+                  sizes="(min-width: 1024px) 96px, 76px"
+                  className="object-contain"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="font-brand tracking-[0.06em] text-ink text-3xl lg:text-[34px] leading-none">
+                  Srilatha Art
+                </p>
+                <div className="mt-3 space-y-0.5 text-[12px] text-ink-soft leading-relaxed">
+                  <p>{WEBSITE_URL.replace(/^https?:\/\//, '')}</p>
+                  <p>{STUDIO_EMAIL}</p>
+                  <p className="tabular-nums">{PHONE_DISPLAY}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="sm:text-right">
+              <p
+                className="font-serif text-4xl lg:text-[56px] leading-none text-ink"
+                style={{ letterSpacing: '0.08em' }}
+              >
+                INVOICE
+              </p>
+              {/* Single-line metadata: label : value, label dimmed.
+                  Tabular-nums on the value keeps the ID/date columns
+                  optically clean. */}
+              <div className="mt-3 space-y-1 text-sm">
+                <p className="text-ink">
+                  <span className="text-ink-mute">Invoice No:</span>{' '}
+                  <span className="tabular-nums">{order.id}</span>
+                </p>
+                <p className="text-ink">
+                  <span className="text-ink-mute">Issued:</span>{' '}
+                  <span className="tabular-nums">{formatDate(order.createdAt)}</span>
+                </p>
+              </div>
+              <div className="mt-3 sm:flex sm:justify-end">
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${TONE_CLASSES[badge.tone]}`}
+                >
+                  <span
+                    className={`inline-block h-1.5 w-1.5 rounded-full ${
+                      badge.tone === 'emerald'
+                        ? 'bg-emerald-500'
+                        : badge.tone === 'amber'
+                        ? 'bg-amber-500'
+                        : 'bg-slate-400'
+                    }`}
+                    aria-hidden
+                  />
+                  {badge.label}
+                </span>
+              </div>
+            </div>
+          </header>
+
+          {/* Editorial gold rule - signals end of header. */}
+          <div className="invoice-rule" aria-hidden />
+
+          {/* ── Parties ────────────────────────────────────────────────
+              Billed to / Ship to. Slightly more vertical air than before;
+              labels are tracked-out small caps, names sit at body weight. */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-12 py-8">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-ink-mute mb-3 font-semibold">
+                Billed to
+              </p>
+              <p className="text-[15px] font-medium text-ink">
+                {order.customerName}
+              </p>
+              {order.customerEmail && (
+                <p className="text-sm text-ink-soft mt-1">
+                  {order.customerEmail}
+                </p>
+              )}
+              {order.customerPhone && (
+                <p className="text-sm text-ink-soft mt-0.5 tabular-nums">
+                  {order.customerPhone}
+                </p>
+              )}
             </div>
             <div>
-              <p className="font-serif text-2xl text-ink leading-none">Srilatha Art</p>
-              <p className="text-xs text-ink-mute mt-1">{WEBSITE_URL.replace(/^https?:\/\//, '')}</p>
-              <p className="text-xs text-ink-mute">
-                {STUDIO_EMAIL} · {PHONE_DISPLAY}
+              <p className="text-[11px] uppercase tracking-[0.22em] text-ink-mute mb-3 font-semibold">
+                Ship to
               </p>
-            </div>
-          </div>
-          <div className="text-right">
-            {/* INVOICE eyebrow - discreet 11px muted on mobile, large bold
-                lavender on desktop. Matches the PDF rendering of the same
-                label so the on-screen and downloaded artefacts feel like
-                one document at a glance. */}
-            <p className="text-[11px] uppercase tracking-[0.18em] text-ink-mute lg:text-2xl lg:tracking-[0.22em] lg:font-semibold lg:text-lavender lg:mb-1">Invoice</p>
-            <p className="font-serif text-xl text-ink tabular-nums">{order.id}</p>
-            <p className="text-xs text-ink-mute mt-1">Dated {formatDate(order.createdAt)}</p>
-            <p className="text-[11px] uppercase tracking-[0.15em] mt-2">
-              <span
-                className={
-                  order.paymentStatus === 'PAID'
-                    ? 'text-emerald-700'
-                    : 'text-amber-700'
-                }
-              >
-                {order.paymentStatus === 'PAID' ? 'Paid' : 'Payment pending'}
-              </span>
-            </p>
-          </div>
-        </header>
-
-        {/* Billing / shipping block */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-6 border-b border-ink/10">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.15em] text-ink-mute mb-2">Billed to</p>
-            <p className="text-sm font-medium text-ink">{order.customerName}</p>
-            {order.customerEmail && (
-              <p className="text-sm text-ink-soft">{order.customerEmail}</p>
-            )}
-            {order.customerPhone && (
-              <p className="text-sm text-ink-soft">{order.customerPhone}</p>
-            )}
-          </div>
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.15em] text-ink-mute mb-2">Ship to</p>
-            <p className="text-sm text-ink">
-              {addr.fullName || order.customerName}
-            </p>
-            <p className="text-sm text-ink-soft leading-relaxed">
-              {addr.line1}
-              {addr.line2 ? <>, {addr.line2}</> : null}
-              {addr.line1 && <br />}
-              {[addr.city, addr.state].filter(Boolean).join(', ')}
-              {addr.pincode ? ` ${addr.pincode}` : ''}
-              {addr.country ? <><br />{addr.country}</> : null}
-            </p>
-            {addr.phone && (
-              <p className="text-sm text-ink-soft mt-1">{addr.phone}</p>
-            )}
-          </div>
-        </section>
-
-        {/* Items table */}
-        <section className="py-6 border-b border-ink/10">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-[0.15em] text-ink-mute">
-                <th className="text-left font-medium pb-2">Item</th>
-                <th className="text-right font-medium pb-2 w-16">Qty</th>
-                <th className="text-right font-medium pb-2 w-24">Unit</th>
-                <th className="text-right font-medium pb-2 w-28">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink/8">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-3 text-ink-mute">
-                    No items recorded on this order.
-                  </td>
-                </tr>
-              ) : (
-                items.map((it) => (
-                  <tr key={it.productId} className="align-top">
-                    <td className="py-3">
-                      <p className="text-ink">{it.title}</p>
-                      <p className="text-[11px] text-ink-mute uppercase tracking-wider">
-                        {it.category}
-                      </p>
-                    </td>
-                    <td className="py-3 text-right tabular-nums">{it.qty}</td>
-                    <td className="py-3 text-right tabular-nums">
-                      {formatINR(it.displayPrice)}
-                    </td>
-                    <td className="py-3 text-right tabular-nums">
-                      {formatINR(it.displayPrice * it.qty)}
-                    </td>
-                  </tr>
-                ))
+              <p className="text-[15px] font-medium text-ink">
+                {addr.fullName || order.customerName}
+              </p>
+              <p className="text-sm text-ink-soft leading-relaxed mt-1">
+                {addr.line1}
+                {addr.line2 ? <>, {addr.line2}</> : null}
+                {addr.line1 && <br />}
+                {[addr.city, addr.state].filter(Boolean).join(', ')}
+                {addr.pincode ? ` ${addr.pincode}` : ''}
+                {addr.country ? <><br />{addr.country}</> : null}
+              </p>
+              {addr.phone && (
+                <p className="text-sm text-ink-soft mt-1 tabular-nums">
+                  {addr.phone}
+                </p>
               )}
-            </tbody>
-          </table>
-        </section>
-
-        {/* Totals */}
-        <section className="py-6 flex justify-end">
-          <dl className="w-full sm:w-72 text-sm space-y-1.5">
-            {subtotalR != null && (
-              <Row label="Subtotal" value={formatINR(subtotalR)} />
-            )}
-            {shippingR != null && (
-              <Row
-                label="Shipping"
-                value={shippingR > 0 ? formatINR(shippingR) : 'Free'}
-              />
-            )}
-            {discountR != null && (
-              <Row
-                label={`Discount${order.couponCode ? ` (${order.couponCode})` : ''}`}
-                value={`− ${formatINR(discountR)}`}
-                tone="emerald"
-              />
-            )}
-            <div className="pt-2 mt-2 border-t border-ink/15 flex items-baseline justify-between">
-              <dt className="text-sm font-medium text-ink">Total</dt>
-              <dd className="font-serif text-xl font-semibold text-ink tabular-nums">
-                {formatINR(order.displayTotal)}
-              </dd>
             </div>
-            <p className="text-[11px] text-ink-mute pt-1">Inclusive of all taxes.</p>
-          </dl>
-        </section>
+          </section>
 
-        {/* Payment reference + footer */}
-        <footer className="pt-6 border-t border-ink/10 text-[11px] text-ink-mute leading-relaxed">
-          {order.razorpayPaymentId && (
-            <p className="mb-2">
-              Payment reference:{' '}
-              <span className="tabular-nums text-ink">{order.razorpayPaymentId}</span>
+          {/* ── Items table ────────────────────────────────────────────
+              Adds a 44px product thumbnail in the first cell (when an
+              imageUrl is available) so each row reads like a line in a
+              boutique receipt rather than a spreadsheet. Hairline divider
+              between rows; comfortable 14px vertical padding. */}
+          <section className="border-t border-ink/10 pt-3">
+            <div className="grid grid-cols-[1fr_3rem_5rem_5.5rem] gap-3 py-3 text-[10px] uppercase tracking-[0.22em] text-ink-mute font-semibold">
+              <div>Item</div>
+              <div className="text-right">Qty</div>
+              <div className="text-right">Unit</div>
+              <div className="text-right">Amount</div>
+            </div>
+
+            {items.length === 0 ? (
+              <div className="py-6 text-sm text-ink-mute border-t border-ink/8">
+                No items recorded on this order.
+              </div>
+            ) : (
+              <ul className="divide-y divide-ink/8 border-t border-ink/8">
+                {items.map((it) => (
+                  <li
+                    key={it.productId}
+                    className="grid grid-cols-[1fr_3rem_5rem_5.5rem] gap-3 py-4 items-center"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {it.imageUrl ? (
+                        <div className="relative w-11 h-11 shrink-0 rounded-md overflow-hidden bg-cream-deep ring-1 ring-ink/8">
+                          {/* unoptimized: invoice thumbnails come from the
+                              order snapshot URL which may not be in the
+                              Next image allowlist; the small size makes
+                              optimization moot anyway. */}
+                          <Image
+                            src={it.imageUrl}
+                            alt=""
+                            fill
+                            sizes="44px"
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="w-11 h-11 shrink-0 rounded-md bg-cream-deep ring-1 ring-ink/8"
+                          aria-hidden
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-[14px] text-ink leading-snug truncate">
+                          {it.title}
+                        </p>
+                        {it.category && (
+                          <p className="text-[10px] text-ink-mute uppercase tracking-[0.18em] mt-1">
+                            {it.category}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right tabular-nums text-[14px] text-ink-soft">
+                      {it.qty}
+                    </div>
+                    <div className="text-right tabular-nums text-[14px] text-ink-soft">
+                      {formatINR(it.displayPrice)}
+                    </div>
+                    <div className="text-right tabular-nums text-[14px] text-ink font-medium">
+                      {formatINR(it.displayPrice * it.qty)}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* ── Totals ─────────────────────────────────────────────────
+              Dominant Total - serif, 30px, with a hairline above and a
+              gold underline below. Subtotal / Shipping sit quiet above. */}
+          <section className="pt-6 pb-2 flex justify-end">
+            <dl className="w-full sm:w-80 text-sm">
+              <div className="space-y-2">
+                {subtotalR != null && (
+                  <Row label="Subtotal" value={formatINR(subtotalR)} />
+                )}
+                {shippingR != null && (
+                  <Row
+                    label="Shipping"
+                    value={shippingR > 0 ? formatINR(shippingR) : 'Free'}
+                  />
+                )}
+                {discountR != null && (
+                  <Row
+                    label={`Discount${order.couponCode ? ` (${order.couponCode})` : ''}`}
+                    value={`− ${formatINR(discountR)}`}
+                    tone="emerald"
+                  />
+                )}
+              </div>
+              <div className="mt-4 pt-4 border-t border-ink/15 flex items-baseline justify-between">
+                <dt className="text-[11px] uppercase tracking-[0.22em] text-ink font-semibold">
+                  Total
+                </dt>
+                <dd className="font-serif text-3xl text-ink tabular-nums leading-none">
+                  {formatINR(order.displayTotal)}
+                </dd>
+              </div>
+              <div className="invoice-total-underline mt-2 ml-auto" aria-hidden />
+              <p className="text-[11px] text-ink-mute pt-3 text-right">
+                Inclusive of all.
+              </p>
+            </dl>
+          </section>
+
+          {/* ── Footer ─────────────────────────────────────────────────
+              Replaces the generic receipt footer with a studio-letter
+              thank-you. Payment reference (when present) sits above as
+              the only piece of operational metadata. */}
+          <footer className="mt-8 pt-8 border-t border-ink/10">
+            {order.razorpayPaymentId && (
+              <p className="text-[11px] text-ink-mute mb-6">
+                Payment reference:{' '}
+                <span className="tabular-nums text-ink-soft">
+                  {order.razorpayPaymentId}
+                </span>
+              </p>
+            )}
+            <p
+              className="font-serif text-lg text-ink leading-snug"
+              style={{ letterSpacing: '0.01em' }}
+            >
+              Thank you for supporting handcrafted art.
             </p>
-          )}
-          <p>
-            Thank you for supporting handmade work. Questions about this invoice?
-            Email {STUDIO_EMAIL} or call {PHONE_DISPLAY}.
-          </p>
-          <p className="mt-1">
-            This invoice is generated electronically and is valid without signature.
-          </p>
-        </footer>
+            <p className="text-sm text-ink-soft leading-relaxed mt-2 max-w-md">
+              Every piece from Srilatha Art is individually designed and
+              handmade in our Hyderabad studio.
+            </p>
+
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-8 gap-y-1 text-[12px]">
+              <p className="uppercase tracking-[0.22em] text-ink-mute font-semibold">
+                Questions?
+              </p>
+              <div className="text-ink-soft space-y-0.5">
+                <p>{STUDIO_EMAIL}</p>
+                <p className="tabular-nums">{PHONE_DISPLAY}</p>
+                <p>{WEBSITE_URL.replace(/^https?:\/\//, '')}</p>
+              </div>
+            </div>
+
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ink-mute mt-8">
+              This invoice is generated electronically and is valid without
+              signature.
+            </p>
+          </footer>
+        </div>
       </article>
 
-      {/* Print styles - keep them scoped to this page so other routes are
-          unaffected. The action bar hides; the sheet flattens to plain paper. */}
+      {/* Print + sheet styles - scoped global so the styled-jsx <style>
+          tag picks up the rule against deep child selectors. */}
       <style jsx global>{`
+        .invoice-sheet {
+          /* Subtle vertical paper tone - reads as letterhead under print
+             without affecting on-screen perception of "white". */
+          background:
+            linear-gradient(180deg, #ffffff 0%, #fdfcf8 100%);
+        }
+        .invoice-trim {
+          height: 4px;
+          background: linear-gradient(
+            90deg,
+            #8a6a1a 0%,
+            #c8962f 35%,
+            #e8c25a 50%,
+            #c8962f 65%,
+            #8a6a1a 100%
+          );
+        }
+        .invoice-rule {
+          height: 1px;
+          background: linear-gradient(
+            to right,
+            transparent 0%,
+            rgba(200, 150, 47, 0.55) 18%,
+            rgba(138, 106, 26, 0.65) 50%,
+            rgba(200, 150, 47, 0.55) 82%,
+            transparent 100%
+          );
+        }
+        .invoice-total-underline {
+          width: 64px;
+          height: 2px;
+          background: linear-gradient(
+            90deg,
+            #c8962f 0%,
+            #8a6a1a 100%
+          );
+          border-radius: 2px;
+        }
+
         @media print {
-          @page { margin: 16mm; }
+          @page { margin: 14mm; }
           html, body { background: #fff !important; }
           .invoice-actions { display: none !important; }
           .invoice-root { padding: 0 !important; max-width: none !important; }
@@ -425,7 +598,16 @@ export default function InvoiceClient() {
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
+            background: #fff !important;
+          }
+          .invoice-sheet > div {
             padding: 0 !important;
+          }
+          .invoice-trim {
+            /* Keep the gold trim in print - colour-adjust hint helps
+               Chromium honour it instead of stripping background prints. */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
           /* Hide site chrome (header, bottom tab bar, FAB) when printing. */
           header.fixed, nav[aria-label="Primary"], a[aria-label*="WhatsApp"] {

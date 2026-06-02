@@ -244,7 +244,7 @@ export default function ProductDetailClient() {
               </>
             )}
           </div>
-          <p className="text-xs text-ink-mute mb-7">Inclusive of all taxes</p>
+          <p className="text-xs text-ink-mute mb-7">Inclusive of all</p>
 
           <div className="flex flex-wrap gap-2 mb-7">
             <Pill label={p.size} />
