@@ -13,7 +13,7 @@ interface ActiveCoupon {
 
 // Loads the current valid promo codes from GET /api/coupons/active so the
 // studio can rotate codes without a frontend deploy. Renders nothing if
-// nothing's active — better than showing a stale hardcoded code.
+// nothing's active - better than showing a stale hardcoded code.
 export default function SaleCoupons() {
   const { data, isLoading } = useQuery({
     queryKey: ['coupons', 'active'],
@@ -29,7 +29,7 @@ export default function SaleCoupons() {
   if (coupons.length === 0) {
     return (
       <p className="text-ink-soft text-sm mt-3">
-        These pieces are already at special prices — no extra code needed.
+        These pieces are already at special prices - no extra code needed.
       </p>
     )
   }

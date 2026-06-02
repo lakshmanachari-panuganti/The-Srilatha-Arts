@@ -1,6 +1,6 @@
-# Studio Film — Production Plan
+# Studio Film - Production Plan
 
-**Purpose:** Produce a 60-second cinematic documentary portrait of Srilatha and her handcrafted-art studio, to live on the homepage `<OurStoryTeaser />` block. This is the single highest-impact piece of trust-building content the brand can ship (see UI/UX audit Strategic Finding #1 — "There is no MAKER on this website").
+**Purpose:** Produce a 60-second cinematic documentary portrait of Srilatha and her handcrafted-art studio, to live on the homepage `<OurStoryTeaser />` block. This is the single highest-impact piece of trust-building content the brand can ship (see UI/UX audit Strategic Finding #1 - "There is no MAKER on this website").
 
 **Owner:** Srilatha (subject) · Lucky (production lead)
 **Status:** Pre-production
@@ -16,7 +16,7 @@ Srilatha's actual journey, as she described it:
 
 > "I was passionate about painting. I did not start this thinking it would become a business. I started with just paint and canvas. Then slowly the work grew into resin, then lippan, then DOT mandala, and other creative art."
 
-This is the **emotional spine** of the film. It is a far stronger story than "buy our wall art" because it positions Srilatha as an artist first and a seller second — which is exactly what premium handcrafted-brand buyers want to believe about who they're buying from.
+This is the **emotional spine** of the film. It is a far stronger story than "buy our wall art" because it positions Srilatha as an artist first and a seller second - which is exactly what premium handcrafted-brand buyers want to believe about who they're buying from.
 
 The film should never explicitly say "buy our art". It should make the viewer want to be the kind of person who owns a piece Srilatha made.
 
@@ -33,7 +33,7 @@ Read slowly. Pauses are intentional. Time markers are guide-pacing, not strict.
        evenings. One brush. One canvas at a time.
 
 [0:14] Then one day, someone asked if I could try
-       resin. I poured it once — and the way light
+       resin. I poured it once - and the way light
        moved inside it, I couldn't look away.
 
 [0:26] Slowly the work grew. Clay and mirrors. Dots,
@@ -41,24 +41,24 @@ Read slowly. Pauses are intentional. Time markers are guide-pacing, not strict.
        something the last one did not.
 
 [0:40] I still paint. But now I also make resin,
-       lippan, mandalas — anything that asks to
+       lippan, mandalas - anything that asks to
        be made.
 
 [0:50] Made by hand. Made with love.
        Made in Hyderabad.
 
-[0:58] (silence — closing brand frame holds for 2s)
+[0:58] (silence - closing brand frame holds for 2s)
 ```
 
 **Word count:** 86 words. Natural reading speed ~145 wpm = ~36s. Add deliberate pauses between sentences = ~58s. Perfect for a 60s film.
 
 ---
 
-## 3. 🎙 Voice cloning workflow — record in your language, deliver in English
+## 3. 🎙 Voice cloning workflow - record in your language, deliver in English
 
-This is the most important section of the plan. **Srilatha records once in her natural language (Telugu or Hindi), and an AI voice-cloning tool reproduces her voice timbre speaking the English script.** The audience hears Srilatha's actual voice — not a synthetic narrator, not a voice actor — speaking English fluently.
+This is the most important section of the plan. **Srilatha records once in her natural language (Telugu or Hindi), and an AI voice-cloning tool reproduces her voice timbre speaking the English script.** The audience hears Srilatha's actual voice - not a synthetic narrator, not a voice actor - speaking English fluently.
 
-This is what premium documentary filmmakers do when their subject is more comfortable speaking their native language. It is not "fake" — it is *Srilatha's voice*, the same way a translator works for a head-of-state interview.
+This is what premium documentary filmmakers do when their subject is more comfortable speaking their native language. It is not "fake" - it is *Srilatha's voice*, the same way a translator works for a head-of-state interview.
 
 ### Recommended tool: **ElevenLabs**
 
@@ -78,8 +78,8 @@ The current best-in-class for cross-lingual voice cloning. Web-based, no install
 3. **Open Voice Memos (iPhone) or any recording app.** Set quality to highest available (Lossless / WAV / 48kHz if offered).
 4. **Record 90 seconds to 3 minutes of Srilatha speaking Telugu or Hindi naturally.** She should:
    - Just talk. Describe her work, her day, her studio, what she had for breakfast. Anything.
-   - Speak with full natural emotional range — soft, slightly louder, contemplative pauses, occasional warm laugh.
-   - Use her normal cadence — no "narrator voice", no slowing down artificially.
+   - Speak with full natural emotional range - soft, slightly louder, contemplative pauses, occasional warm laugh.
+   - Use her normal cadence - no "narrator voice", no slowing down artificially.
    - Avoid speaking too close to the mic (no "ear-eating" effect). 6-8 inches is right.
    - Re-record any takes with phone notifications, traffic, dog barks, etc.
 5. **Save as WAV or M4A.** Send the file to a computer (Airdrop / Google Drive / WhatsApp Web).
@@ -90,32 +90,32 @@ The current best-in-class for cross-lingual voice cloning. Web-based, no install
 
 1. Go to https://elevenlabs.io and sign up. Free tier is enough to test; Starter at $5/mo (₹420) is enough to ship the final film.
 2. In the left sidebar click **Voices** → **My Voices** → **Add a new voice**.
-3. Choose **Instant Voice Clone** (not Professional Voice Clone — that takes 4 weeks).
+3. Choose **Instant Voice Clone** (not Professional Voice Clone - that takes 4 weeks).
 4. Upload the Telugu / Hindi audio file from Step A.
 5. Name the voice **"Srilatha"**. Tick the consent box (Srilatha owns her voice, so consent is implicit).
-6. Save. The clone is ready immediately — usually within 30 seconds.
+6. Save. The clone is ready immediately - usually within 30 seconds.
 
 #### Step C. Generate the English voiceover (~5 minutes)
 
 1. In ElevenLabs, go to **Speech → Text to Speech**.
 2. Voice: select **"Srilatha"** (your new clone).
-3. Model: select **Eleven Multilingual v2** (this is the cross-lingual model — the one that takes a voice cloned from any language and renders it in any other supported language, including English).
+3. Model: select **Eleven Multilingual v2** (this is the cross-lingual model - the one that takes a voice cloned from any language and renders it in any other supported language, including English).
 4. Voice settings (these matter):
    - Stability: **40–50%** (lower = more emotional variance, higher = more flat). For documentary feel, 45% is the sweet spot.
    - Clarity + Similarity Enhancement: **75–85%** (stay close to the source voice).
-   - Style exaggeration: **0–15%** (low — we want her natural cadence, not a performance).
+   - Style exaggeration: **0–15%** (low - we want her natural cadence, not a performance).
    - Speaker boost: **on**.
 5. Paste the English voiceover script from Section 2 above.
 6. Click **Generate**.
-7. Listen. If a line sounds off (wrong intonation, mispronounced word), regenerate just that line — ElevenLabs lets you edit and re-render individual lines.
+7. Listen. If a line sounds off (wrong intonation, mispronounced word), regenerate just that line - ElevenLabs lets you edit and re-render individual lines.
 8. When happy: **Download MP3**. Save as `srilatha-vo-english.mp3`.
 
-**Quality check:** Play the result to Srilatha. Does it sound like her? If yes, ship it. If no, re-record the source sample in a quieter room with cleaner audio and try again — clone quality is bottlenecked by source quality.
+**Quality check:** Play the result to Srilatha. Does it sound like her? If yes, ship it. If no, re-record the source sample in a quieter room with cleaner audio and try again - clone quality is bottlenecked by source quality.
 
-#### Step D. (Optional but recommended) — Cross-check pronunciations
+#### Step D. (Optional but recommended) - Cross-check pronunciations
 
-The cloned voice will say English words in Srilatha's accent (which is the point — that's authenticity). But it may stumble on:
-- Specific Indian English words ("Hyderabad" — should sound like "Hai-der-aa-baad" not "High-der-uh-bad")
+The cloned voice will say English words in Srilatha's accent (which is the point - that's authenticity). But it may stumble on:
+- Specific Indian English words ("Hyderabad" - should sound like "Hai-der-aa-baad" not "High-der-uh-bad")
 - Brand names
 
 For any word that sounds wrong, ElevenLabs accepts **phonetic spelling** inline. Example: replace `Hyderabad` with `Hai-deh-rah-baad` in the script just for that sentence. Re-generate. The output spelling is unchanged for the listener, only pronunciation changes.
@@ -130,7 +130,7 @@ For any word that sounds wrong, ElevenLabs accepts **phonetic spelling** inline.
 
 ElevenLabs is the recommended primary. The others are worth knowing exist if ElevenLabs blocks Srilatha's account or her source recording for any reason.
 
-### Plan B — if voice clone doesn't sound right
+### Plan B - if voice clone doesn't sound right
 
 If the cloned English voice feels uncanny or wrong, the dignified fallback is:
 1. Use Srilatha's **actual Telugu/Hindi voice** (the source recording, re-cut to match the visual pacing) as the audio.
@@ -142,13 +142,13 @@ Decide after hearing the clone output. Both paths are valid.
 
 ---
 
-## 4. Visual storyboard — 6 shots × ~10 seconds each
+## 4. Visual storyboard - 6 shots × ~10 seconds each
 
 Most AI video tools (Veo 3 / Gemini Omni, Sora, Runway) generate 5–15 second clips at a time. We will generate 6 short cinematic clips and stitch them with the voiceover in Step 6.
 
 Each clip below has a copy-paste prompt for Veo 3 / Gemini Omni.
 
-### Shot 1 — Opening (0:00–0:10) — "I never planned this"
+### Shot 1 - Opening (0:00–0:10) - "I never planned this"
 
 ```
 Extreme macro close-up of a single paintbrush dipping into a small
@@ -160,7 +160,7 @@ and a small brass diya softly out of focus in the background. Quiet,
 contemplative mood. No music. 10 seconds. 16:9 aspect ratio.
 ```
 
-### Shot 2 — Resin discovery (0:10–0:20) — "The way light moved inside it"
+### Shot 2 - Resin discovery (0:10–0:20) - "The way light moved inside it"
 
 ```
 Slow overhead shot of an Indian woman artist's hands pouring clear
@@ -173,7 +173,7 @@ Camera slowly dollies in by 15 percent. Cinematic 35mm film grain.
 10 seconds. 16:9 aspect ratio.
 ```
 
-### Shot 3 — Lippan mirrors (0:20–0:30) — "Clay and mirrors"
+### Shot 3 - Lippan mirrors (0:20–0:30) - "Clay and mirrors"
 
 ```
 Tight macro close-up of an Indian woman's fingers carefully pressing
@@ -181,11 +181,11 @@ tiny silver mirror chips into wet white clay arranged in a
 traditional Lippan mandala pattern. Each mirror catches a tiny
 pinpoint of warm directional light. Shallow depth of field with very
 soft warm shadows, slow gentle hand movements. Earthy clay tones
-contrast with the bright mirror sparkle. No music — only the soft
+contrast with the bright mirror sparkle. No music - only the soft
 sound of clay being shaped. 10 seconds. 16:9 aspect ratio.
 ```
 
-### Shot 4 — Dot mandala (0:30–0:40) — "Dots, thousands of them"
+### Shot 4 - Dot mandala (0:30–0:40) - "Dots, thousands of them"
 
 ```
 Macro shot of an Indian woman's hand holding a fine dotting tool,
@@ -197,7 +197,7 @@ slight 35mm film grain. Slow, meditative pace. The mandala glows
 softly against the dark plate. 10 seconds. 16:9 aspect ratio.
 ```
 
-### Shot 5 — Finished pieces in the studio (0:40–0:50) — "Each piece takes its time"
+### Shot 5 - Finished pieces in the studio (0:40–0:50) - "Each piece takes its time"
 
 ```
 Slow dolly shot through a small artist's home studio in Hyderabad,
@@ -210,15 +210,15 @@ small brass diya glows in the corner. No people in frame. Cinematic
 slow movement, premium documentary feel. 10 seconds. 16:9 aspect.
 ```
 
-### Shot 6 — Artist portrait + brand frame (0:50–1:00) — "Made by hand. Made with love."
+### Shot 6 - Artist portrait + brand frame (0:50–1:00) - "Made by hand. Made with love."
 
 ```
 Medium shot of an Indian woman artist in her late 30s, wearing a
 simple muted plum cotton sari with subtle gold border. She steps
 back from her work-table, dusts her hands lightly on her apron,
-looks up slowly and gives a soft, unforced smile — not at the camera
+looks up slowly and gives a soft, unforced smile - not at the camera
 but past it, catching the warm late-afternoon window light. Her
-hands have small fingertip pigment stains — she has been working.
+hands have small fingertip pigment stains - she has been working.
 Shallow depth of field, gentle film grain. The shot holds for 7
 seconds, then crossfades to a brand title card on lavender
 background: "Srilatha Art" written in elegant deep-purple cursive
@@ -238,7 +238,7 @@ A 60-second cinematic documentary portrait of Srilatha, an Indian
 woman artist in her late 30s, working alone in her sunlit Hyderabad
 home studio. The film follows the arc of an artist who began with
 painting and slowly discovered resin art, Lippan clay-and-mirror
-work, and dot mandalas — without ever planning a business.
+work, and dot mandalas - without ever planning a business.
 
 The film is divided into six unhurried 10-second beats:
 
@@ -258,7 +258,7 @@ on a black mandala plate. Dozens of dots accumulate in slow time-
 lapse.
 
 [40–50s] FINISHED WORK: Slow dolly through her studio showing
-completed pieces — resin tray, Lippan, mandala plate, keepsakes —
+completed pieces - resin tray, Lippan, mandala plate, keepsakes -
 on a wooden bench in late afternoon golden light. Dried lavender,
 marigolds, a small brass diya.
 
@@ -312,13 +312,13 @@ Music is licensed separately. AI video tools rarely match music to mood reliably
 - Instrumentation: tabla brushed gently, harmonium drone, occasional sitar or bansuri (flute)
 - Mood: contemplative, never melancholic, never upbeat-commercial
 - No vocals (would compete with Srilatha's voiceover)
-- Should build subtly over the 60s — slightly fuller at 30s, softening at 50s
+- Should build subtly over the 60s - slightly fuller at 30s, softening at 50s
 
 **Free alternative:** YouTube Audio Library → filter `Genre: Ambient` + `Mood: Calm`. Quality is lower but workable. Search "Indian classical instrumental" + "Calm".
 
 ---
 
-## 7. Editing — assembling the final 60-second film
+## 7. Editing - assembling the final 60-second film
 
 ### Tool recommendation: **CapCut** (free, web + desktop)
 
@@ -363,11 +363,11 @@ Why CapCut over Premiere Rush or DaVinci Resolve: it's free, runs on any laptop,
 
 Re-export the same edit with these changes:
 - Crop to 9:16 vertical (1080×1920). Re-center each clip on the artist's hands or face.
-- Trim to 30 seconds — drop Shots 1 and 5, keep Shots 2, 3, 4, 6.
+- Trim to 30 seconds - drop Shots 1 and 5, keep Shots 2, 3, 4, 6.
 - Trim voiceover to: *"I never planned this. I just loved to paint. Then one day, I tried resin… clay… mirrors… dots. Each piece, taking its time. Made by hand. Made in Hyderabad."*
 - Save as `srilatha-film-reels.mp4`.
 
-This drives Instagram discovery — the audit's biggest gap was no organic top-of-funnel.
+This drives Instagram discovery - the audit's biggest gap was no organic top-of-funnel.
 
 ### 8b. 15-second teaser (homepage hover or pre-roll)
 
@@ -379,7 +379,7 @@ Same edit again, but:
 
 ---
 
-## 9. Delivery — where to drop the files
+## 9. Delivery - where to drop the files
 
 When all cuts are ready, place them at:
 
@@ -406,12 +406,12 @@ No other component changes needed. Total wiring time: under 5 minutes.
 
 | Item | One-off | Recurring | Notes |
 | --- | --- | --- | --- |
-| ElevenLabs Starter | — | $5/mo (~₹420) | One month is enough to ship the film. Cancel after. |
-| Veo 3 / Gemini Omni access | — | $20/mo (~₹1,700) | Google AI Pro. One month is enough. |
-| Artlist.io (music) | — | ₹1,300/mo billed annually, OR pay-per-track ~₹2,500 single track | One annual track license is fine for a single film. |
-| CapCut (editing) | — | Free | Web + desktop, no watermark on free tier. |
-| USB mic (optional) | ₹3,000–6,000 | — | Skip if iPhone with sock works for the source recording. |
-| **Total one-month outlay** | — | **~₹2,500–4,500** | Cancel subscriptions after the film ships. |
+| ElevenLabs Starter | - | $5/mo (~₹420) | One month is enough to ship the film. Cancel after. |
+| Veo 3 / Gemini Omni access | - | $20/mo (~₹1,700) | Google AI Pro. One month is enough. |
+| Artlist.io (music) | - | ₹1,300/mo billed annually, OR pay-per-track ~₹2,500 single track | One annual track license is fine for a single film. |
+| CapCut (editing) | - | Free | Web + desktop, no watermark on free tier. |
+| USB mic (optional) | ₹3,000–6,000 | - | Skip if iPhone with sock works for the source recording. |
+| **Total one-month outlay** | - | **~₹2,500–4,500** | Cancel subscriptions after the film ships. |
 
 This is materially cheaper than commissioning a videographer for a brand film (typical ₹40,000–₹1,50,000 in India). The trade-off: time investment is 3–4 focused days vs. 1 day with a hired crew.
 
@@ -434,7 +434,7 @@ This is materially cheaper than commissioning a videographer for a brand film (t
 
 ---
 
-## 12. Quality bar — what "done" looks like
+## 12. Quality bar - what "done" looks like
 
 The film is done when **all three** of these are true:
 
@@ -442,7 +442,7 @@ The film is done when **all three** of these are true:
 2. **A first-time visitor who has never heard of Srilatha Art can watch the 60s and would feel comfortable spending ₹5,000 on a piece.** Trust + emotional connection.
 3. **The film holds attention for the full 60 seconds on a mobile screen without sound.** Visuals alone should be strong enough. (60% of Indian D2C traffic watches videos muted.)
 
-If any of these three fails, revise. Don't ship a film that fails 1 — that's worse than no film.
+If any of these three fails, revise. Don't ship a film that fails 1 - that's worse than no film.
 
 ---
 

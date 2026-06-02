@@ -24,7 +24,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const showChrome = !isAdmin && !isAuth
   const showTabs = !isAdmin && !isAuth && !isCheckout
   const showFooter = !isAdmin && !isAuth && !isCheckout
-  // Floating WhatsApp: same gating as footer — anywhere the user is shopping
+  // Floating WhatsApp: same gating as footer - anywhere the user is shopping
   // or browsing. Hidden in checkout (don't interrupt payment), admin, auth.
   const showWhatsApp = showFooter
 

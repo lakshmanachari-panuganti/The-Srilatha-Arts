@@ -46,7 +46,7 @@ export default function Footer() {
   const [newsletterBusy, setNewsletterBusy] = useState(false)
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
   const [newsletterMessage, setNewsletterMessage] = useState(
-    'Thanks — we’ll send a note when the studio newsletter launches.',
+    'Thanks - we’ll send a note when the studio newsletter launches.',
   )
   const [newsletterError, setNewsletterError] = useState('')
 
@@ -62,7 +62,7 @@ export default function Footer() {
             Updates from the <em className="italic gold-text">studio</em>
           </h3>
           <p className="text-ivory-mute text-sm lg:text-base mb-6">
-            New pieces, studio updates and the occasional discount — sent straight to your inbox. No spam, ever.
+            New pieces, studio updates and the occasional discount - sent straight to your inbox. No spam, ever.
           </p>
           {newsletterSubmitted ? (
             <div
@@ -141,13 +141,13 @@ export default function Footer() {
         <div className="lg:grid lg:grid-cols-5 lg:gap-10 lg:items-start">
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
-              <Image src="/Logos/logo.svg" alt="" width={48} height={48} className="w-12 h-12" />
+              <Image src="/Logos/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
               <span className="font-brand text-3xl text-ivory tracking-[0.06em]">
                 Srilatha Art
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.
+              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts - made by hand in Hyderabad.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <SocialLink href={SOCIAL.instagram} label="Instagram">
@@ -178,7 +178,7 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
         >
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
-            <Image src="/Logos/logo.svg" alt="" width={36} height={36} className="w-9 h-9" />
+            <Image src="/Logos/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
             <span className="font-brand text-3xl text-ivory tracking-[0.06em]">
               Srilatha Art
             </span>
@@ -198,7 +198,7 @@ export default function Footer() {
             </SocialLink>
           </div>
 
-          {/* Contact strip — WhatsApp + Email + Phone, all tap-to-action on
+          {/* Contact strip - WhatsApp + Email + Phone, all tap-to-action on
               mobile. Prioritised per audit §7: WhatsApp and Instagram are
               the two most-used contact channels for a handcrafted Indian
               brand, so they sit at the top of the visual hierarchy. */}

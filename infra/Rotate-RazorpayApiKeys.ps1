@@ -131,7 +131,7 @@ if ($trimmedKeySecret.Length -lt 16) {
 }
 
 if (-not $trimmedKeyId.StartsWith($envCfg.ExpectedPrefix)) {
-    $msg = "KeyId '$($trimmedKeyId.Substring(0, [Math]::Min(12, $trimmedKeyId.Length)))...' does not start with '$($envCfg.ExpectedPrefix)' — that's the prefix expected for $($envCfg.RazorpayMode) on $Environment."
+    $msg = "KeyId '$($trimmedKeyId.Substring(0, [Math]::Min(12, $trimmedKeyId.Length)))...' does not start with '$($envCfg.ExpectedPrefix)' - that's the prefix expected for $($envCfg.RazorpayMode) on $Environment."
     if ($Force) {
         Write-Warning "$msg  (-Force was supplied; continuing anyway.)"
     } else {
@@ -159,15 +159,15 @@ if ($current) {
     Write-Host 'Existing Razorpay settings on this Function App:' -ForegroundColor Yellow
     foreach ($s in $current | Sort-Object Key) {
         if ($s.Key -eq 'RAZORPAY_KEY_ID') {
-            # Safe to show — the key id is public anyway.
+            # Safe to show - the key id is public anyway.
             Write-Host ("  {0} = {1}  (will overwrite)" -f $s.Key, $s.Value)
         } else {
-            # Don't print the secret — just the length.
+            # Don't print the secret - just the length.
             Write-Host ("  {0} = ******** ({1} chars, will overwrite)" -f $s.Key, $s.Value.Length)
         }
     }
 } else {
-    Write-Host 'No existing Razorpay key settings — adding new.' -ForegroundColor Yellow
+    Write-Host 'No existing Razorpay key settings - adding new.' -ForegroundColor Yellow
 }
 Write-Host ''
 
@@ -191,10 +191,10 @@ $appliedKeyId = ($applied | Where-Object { $_.Key -eq 'RAZORPAY_KEY_ID' }).Value
 $appliedKeySecret = ($applied | Where-Object { $_.Key -eq 'RAZORPAY_KEY_SECRET' }).Value
 
 if ($appliedKeyId -ne $trimmedKeyId) {
-    throw "Verification failed — RAZORPAY_KEY_ID on the Function App does not match what we sent."
+    throw "Verification failed - RAZORPAY_KEY_ID on the Function App does not match what we sent."
 }
 if ($appliedKeySecret.Length -ne $trimmedKeySecret.Length) {
-    throw "Verification failed — RAZORPAY_KEY_SECRET length on the Function App differs from what we sent."
+    throw "Verification failed - RAZORPAY_KEY_SECRET length on the Function App differs from what we sent."
 }
 
 Write-Host ''

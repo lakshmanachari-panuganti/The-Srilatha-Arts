@@ -21,7 +21,7 @@ export default function FeaturedCreations() {
 
   return (
     <section className="relative py-14 sm:py-20 lg:py-32 overflow-hidden">
-      {/* Section background — subtle vertical wash, no glow orb. The hero
+      {/* Section background - subtle vertical wash, no glow orb. The hero
           slideshow already owns the ambient-glow visual; repeating it in
           every section devalues the effect (audit §1.6). */}
       <div className="absolute inset-0 bg-gradient-to-b from-plum-light/50 via-plum to-plum" aria-hidden />

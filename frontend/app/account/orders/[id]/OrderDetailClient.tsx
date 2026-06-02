@@ -159,7 +159,7 @@ export default function OrderDetailClient() {
       const [detail, timeline] = await Promise.all([
         apiFetch<{ order: Order; items: OrderItem[] }>(`/orders/${encodeURIComponent(id)}`),
         apiFetch<{ events: TimelineEvent[] }>(`/orders/${encodeURIComponent(id)}/events`).catch(
-          // Timeline failure shouldn't blank the page — it's secondary info.
+          // Timeline failure shouldn't blank the page - it's secondary info.
           () => ({ events: [] as TimelineEvent[] }),
         ),
       ])
@@ -251,7 +251,7 @@ export default function OrderDetailClient() {
         </div>
       </header>
 
-      {/* Return / refund banners — same set the OrdersTab uses */}
+      {/* Return / refund banners - same set the OrdersTab uses */}
       {order.status === 'RETURN_REQUESTED' && (
         <Banner tone="amber" title="Return request submitted">
           {order.returnReason && (

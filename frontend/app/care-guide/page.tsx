@@ -20,23 +20,23 @@ export default function CareGuidePage() {
       <Section title="Day-to-day care">
         <Item><strong>Keep it dry.</strong> Avoid hanging art in bathrooms or other very damp places.</Item>
         <Item><strong>Stay out of direct sunlight.</strong> Strong sunlight all day can slowly fade the colours.</Item>
-        <Item><strong>Dust gently.</strong> Use a soft, dry cloth — like an old cotton t-shirt — once a week.</Item>
+        <Item><strong>Dust gently.</strong> Use a soft, dry cloth - like an old cotton t-shirt - once a week.</Item>
         <Item><strong>No harsh cleaners.</strong> Don&apos;t use soap, water, or any cleaning sprays directly on the art.</Item>
       </Section>
 
       <Section title="Resin Art">
-        <Item>Wipe with a dry microfibre cloth. For a deeper clean, use a slightly damp cloth — never soak it.</Item>
+        <Item>Wipe with a dry microfibre cloth. For a deeper clean, use a slightly damp cloth - never soak it.</Item>
         <Item>Don&apos;t place hot items directly on resin coasters; let them cool first.</Item>
       </Section>
 
       <Section title="Dot Mandala (painted art)">
         <Item>Dust gently with a soft brush or dry cloth.</Item>
-        <Item>If a corner gets a small bump or scratch, leave it as it is — re-touching at home can make it worse.</Item>
+        <Item>If a corner gets a small bump or scratch, leave it as it is - re-touching at home can make it worse.</Item>
       </Section>
 
       <Section title="Lippan (clay &amp; mirror art)">
         <Item>The mirrors are firmly set, but don&apos;t scrub them. Just dust with a soft brush.</Item>
-        <Item>Hang it on a smooth wall using the hook on the back — don&apos;t lay it flat for long periods.</Item>
+        <Item>Hang it on a smooth wall using the hook on the back - don&apos;t lay it flat for long periods.</Item>
       </Section>
 
       <Section title="Kolam">
@@ -45,7 +45,7 @@ export default function CareGuidePage() {
       </Section>
 
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mt-12 mb-3">
-        Have a question about a specific piece? <Link href="/contact" className="text-lavender-pastel hover:underline">Message us</Link> — we&apos;re happy to help.
+        Have a question about a specific piece? <Link href="/contact" className="text-lavender-pastel hover:underline">Message us</Link> - we&apos;re happy to help.
       </p>
     </main>
   )

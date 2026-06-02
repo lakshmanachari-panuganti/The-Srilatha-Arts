@@ -1,5 +1,5 @@
 /**
- * Admin Auth Function — admin login.
+ * Admin Auth Function - admin login.
  * Sets httpOnly cookie with shorter TTL (24h).
  */
 
@@ -87,9 +87,9 @@ export async function adminLogin(
     const azErr = err as { statusCode?: number; code?: string; message?: string }
     if (typeof azErr.statusCode === 'number') {
       if (azErr.statusCode === 403) {
-        context.error('adminLogin: Azure Table access denied — check RBAC / Managed Identity permissions', err)
+        context.error('adminLogin: Azure Table access denied - check RBAC / Managed Identity permissions', err)
         return errorResponse(
-          'Service configuration error — storage access denied. Please contact support.',
+          'Service configuration error - storage access denied. Please contact support.',
           503,
           origin,
         )
@@ -97,7 +97,7 @@ export async function adminLogin(
       if (azErr.code === 'TableNotFound') {
         context.error('adminLogin: "admins" table does not exist in storage account', err)
         return errorResponse(
-          'Service configuration error — admin data store not found. Please contact support.',
+          'Service configuration error - admin data store not found. Please contact support.',
           503,
           origin,
         )

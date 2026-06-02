@@ -26,7 +26,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
 
   const onAdd = (e: React.MouseEvent) => {
     e.preventDefault()
-    // useAddToCart returns false if it redirected to login — no haptic
+    // useAddToCart returns false if it redirected to login - no haptic
     // in that case (the page is unmounting anyway).
     if (addToCart(product)) haptic([12, 30, 12])
   }
@@ -68,7 +68,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           />
 
           {/*
-            Badges — top-left. Capped at 2 visible to avoid a sticker pile
+            Badges - top-left. Capped at 2 visible to avoid a sticker pile
             covering the upper-left quadrant of the image. Priority order:
             Sold Out > discount % > Best Seller > New (the most important
             commercial signal wins).
@@ -76,7 +76,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {/*
               Sticker priority: Sold Out > Low stock > discount > Best Seller > New.
-              Capped at 2 visible. Low-stock cue is honest urgency — handcrafted
+              Capped at 2 visible. Low-stock cue is honest urgency - handcrafted
               inventory is genuinely limited, so "Only N left" is truthful (audit §3).
             */}
             {(() => {
@@ -117,7 +117,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           </div>
 
           {/*
-            Wishlist heart — moved to a high-contrast pale chip so it pops
+            Wishlist heart - moved to a high-contrast pale chip so it pops
             against the lavender-gradient card. Previous version used a
             plum-purple chip that visually disappeared into the card.
           */}
@@ -177,7 +177,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             {product.category.replace('-', ' ')}
           </p>
           {/*
-            Mobile uses DM Sans at 15px — Cormorant at this size on a card
+            Mobile uses DM Sans at 15px - Cormorant at this size on a card
             reads decoratively where it should read functionally. From the
             sm breakpoint up, where the card is larger and the title gets
             real estate, the Cormorant serif comes back. Audit §2.5.

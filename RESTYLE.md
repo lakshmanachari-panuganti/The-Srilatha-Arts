@@ -1,8 +1,8 @@
-# RESTYLE.md — Srilatha Art frontend reskin brief
+# RESTYLE.md - Srilatha Art frontend reskin brief
 
 > **For: Claude Code (VS Code extension), working on branch `develop`.**
-> **Goal:** Transform the entire site's look — warm, premium, gallery-grade,
-> photography-forward — for **mobile-first** *and* desktop, **without breaking
+> **Goal:** Transform the entire site's look - warm, premium, gallery-grade,
+> photography-forward - for **mobile-first** *and* desktop, **without breaking
 > any wiring** (frontend↔backend contract, auth, CSRF, routing, stores, tests).
 >
 > Read this whole file before writing code. Work in the phases at the bottom,
@@ -41,7 +41,7 @@ instead.
 
 ---
 
-## 1. Backend review (summary — for context only, do not modify)
+## 1. Backend review (summary - for context only, do not modify)
 
 The backend is solid and **entirely out of scope** for this work. Noted so you
 understand the contract you must not disturb:
@@ -74,7 +74,7 @@ valuable thing on every screen. **The UI must recede so the photography sings.**
 
 Direction:
 - Warm **ivory / sand** ground instead of the current lavender-purple gradients.
-- **Espresso ink** for headlines, body, and primary buttons — timeless, lets
+- **Espresso ink** for headlines, body, and primary buttons - timeless, lets
   colour photography pop.
 - **One** restrained metallic accent: **gold/ochre** (ties to gold leaf in resin
   & Lippan, and revives the intended `.gold-text` highlight).
@@ -88,7 +88,7 @@ Direction:
 
 ---
 
-## 3. Token centralization (Phase 1 — NON-BREAKING)
+## 3. Token centralization (Phase 1 - NON-BREAKING)
 
 The problem today: token **names lie** after the old cream→lavender pivot
 (`ivory` is `#2A1056` deep-violet; `plum` is `#EDE9FE` light-lavender), and ~21
@@ -127,7 +127,7 @@ come in Phase 2.
   --border:         rgba(124,58,237,0.40);  /* hairlines                     */
   --ring:           #E879F9;                /* focus ring                    */
 
-  /* functional colours — NOT themed, keep across reskins */
+  /* functional colours - NOT themed, keep across reskins */
   --ok:   #1A7F4B;  --danger: #B42318;
   --wa-1: #25D366;  --wa-2: #128C7E;  /* WhatsApp button only */
 
@@ -215,9 +215,9 @@ Now change **only the `:root` block from §3a**. Everything else inherits.
   --text-body:      #43392E;
   --text-muted:     #8A7E6E;
 
-  --brand:          #221B12;  /* ink — primary buttons/links */
+  --brand:          #221B12;  /* ink - primary buttons/links */
   --brand-strong:   #000000;
-  --accent:         #C8962F;  /* gold/ochre — single accent  */
+  --accent:         #C8962F;  /* gold/ochre - single accent  */
   --accent-strong:  #8A6A1A;  /* gold for SMALL text (AA on ivory) */
 
   --border:         rgba(34,27,18,0.12);
@@ -234,7 +234,7 @@ Then, also in `globals.css` / config:
   `var(--surface)`, optionally ONE ultra-subtle warm wash:
   `radial-gradient(ellipse 90% 60% at 50% -10%, rgba(200,150,47,0.06), transparent 60%)`.
 - **Paper-grain overlay:** keep at `opacity:0.02` on desktop; **disable on mobile**
-  (`@media (max-width:768px)`) — it's a full-screen `mix-blend-mode` layer that
+  (`@media (max-width:768px)`) - it's a full-screen `mix-blend-mode` layer that
   costs paint on phones.
 - **Buttons:** ink fill, no gradient, no glow shadow. Hover = `--brand-strong`
   + a 1px lift, no 36px colored shadow.
@@ -244,7 +244,7 @@ Then, also in `globals.css` / config:
   perf cost here (it's in 8 components).
 - **Remove** `.glow-hover`'s 60px colored glow; replace with the lift only.
 
-### 4a. Define the missing `.gold-text` (NEW — currently a no-op)
+### 4a. Define the missing `.gold-text` (NEW - currently a no-op)
 `.gold-text` is referenced in **9 places** (Hero "Home", Footer "studio", admin
 wordmark, the-craft, care-guide, the big serif numbers in `WhyChooseUs` &
 `CustomOrderCTA`) but **is never defined**, so those words render plain. Add to
@@ -261,7 +261,7 @@ wordmark, the-craft, care-guide, the big serif numbers in `WhyChooseUs` &
 }
 ```
 Use gold only on **large display words**; for any small text rely on
-`--accent-strong` (contrast — see §7).
+`--accent-strong` (contrast - see §7).
 
 **Phase 2 acceptance:** whole site reads warm/ivory/ink/gold; no purple, no
 glass blur, no glow; build + e2e green. Commit
@@ -279,7 +279,7 @@ legibility. Behaviour to preserve from `Hero.tsx`: the staggered framer-motion
 reveal, the **primary `Explore Collections` → `/shop`** + quieter
 **`Or order a custom piece` → `/custom-order`** hierarchy, and the trust strip
 (Painting since 2020 · Free shipping ₹999 · 7-day returns). Reuse the existing
-slideshow image list/state — don't rebuild the data.
+slideshow image list/state - don't rebuild the data.
 
 Reference structure (adapt to your components; keep `next/link` routes):
 - `section` height `100svh`, `min-height:600px`, `overflow:hidden`.
@@ -303,7 +303,7 @@ Reference structure (adapt to your components; keep `next/link` routes):
   `StickyCartBar`, `.sticky-cta`.
 - **Thumb reach:** primary actions reachable bottom-half; the bottom tab bar +
   sticky cart stay.
-- **Images:** `output: 'export'` means `next/image` runs unoptimized — set
+- **Images:** `output: 'export'` means `next/image` runs unoptimized - set
   explicit `sizes`, real `width`/`height` (no layout shift), and `priority`
   only on the hero's first slide; `loading="lazy"` everything below the fold.
 - **Reduce motion on mobile:** the heavy ambient animations (`float`,
@@ -315,11 +315,11 @@ no horizontal scroll; tap targets pass; build + e2e green.
 ---
 
 ## 6. Performance budget (verify in Phase 4)
-Most buyers are on mid-range Android in India — these are conversion + SEO wins:
+Most buyers are on mid-range Android in India - these are conversion + SEO wins:
 - **No `backdrop-filter: blur()`** in the shipped CSS (removed in §4).
 - **≤ 2** infinite CSS animations on any given screen.
 - Lighthouse **mobile**: LCP < 2.5s, CLS < 0.1, TBT low. The hero's first image
-  is the LCP element — preload/`priority` it, lazy-load the rest.
+  is the LCP element - preload/`priority` it, lazy-load the rest.
 - Drop the body multi-gradient + mobile grain (done in §4).
 
 ---
@@ -328,7 +328,7 @@ Most buyers are on mid-range Android in India — these are conversion + SEO win
 - Keep the skip-link, focus-visible rings (now `--ring` gold), and the
   `prefers-reduced-motion` block.
 - **Contrast (WCAG AA):** ink `#221B12` on ivory `#FBF8F2` ≈ 14:1 ✓. Gold
-  `#C8962F` on ivory is **~2:1 — fails for text**; therefore gold is allowed
+  `#C8962F` on ivory is **~2:1 - fails for text**; therefore gold is allowed
   only on **large display** (≥24px/700, AA large = 3:1) or as a decorative
   fill. For small gold-ish text use `--accent-strong` `#8A6A1A` (≈ 4.7:1 ✓).
 - White text on the ink primary button ≈ 14:1 ✓.
@@ -338,23 +338,23 @@ Most buyers are on mid-range Android in India — these are conversion + SEO win
 
 ## 8. Phased execution checklist (do in order, commit each)
 
-- [ ] **Phase 0 — Guardrails.** Confirm branch `develop`. Re-read §0 do-not-touch
+- [ ] **Phase 0 - Guardrails.** Confirm branch `develop`. Re-read §0 do-not-touch
       list. Baseline: `cd frontend && npm run build` and `npx playwright test`
       both green. Screenshot home/shop/product/cart on mobile + desktop widths.
-- [ ] **Phase 1 — Centralize (no visual change).** §3a–3d. Vars == current
+- [ ] **Phase 1 - Centralize (no visual change).** §3a–3d. Vars == current
       values. Diff = plumbing only. Visual diff ≈ none. Build + e2e green.
       Commit.
-- [ ] **Phase 2 — Reskin palette.** §4 + §4a. Edit `:root` only; kill purple
+- [ ] **Phase 2 - Reskin palette.** §4 + §4a. Edit `:root` only; kill purple
       gradients, glass blur, glows; define `.gold-text`. Build + e2e green.
       Commit.
-- [ ] **Phase 3 — Hero + mobile-first.** §5. Merge heroes, full-bleed responsive
+- [ ] **Phase 3 - Hero + mobile-first.** §5. Merge heroes, full-bleed responsive
       hero, tap targets, image sizing, motion trim. Build + e2e green. Commit.
-- [ ] **Phase 4 — QA.** §6 + §7. Lighthouse mobile, contrast check, click every
-      nav route, add to cart, start a custom order — confirm nothing in the
+- [ ] **Phase 4 - QA.** §6 + §7. Lighthouse mobile, contrast check, click every
+      nav route, add to cart, start a custom order - confirm nothing in the
       `lib/api.ts`/`stores` path was touched and flows still work. Commit.
 
 If any e2e test asserts a literal old color (e.g. a hex/class), update the
-**assertion** to the new value — do not weaken the wiring it guards.
+**assertion** to the new value - do not weaken the wiring it guards.
 
 ---
 

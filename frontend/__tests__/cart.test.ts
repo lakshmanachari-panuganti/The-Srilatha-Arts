@@ -85,9 +85,9 @@ describe('cartSubtotal', () => {
   })
 })
 
-// ─── useCart store — add ──────────────────────────────────────────────────────
+// ─── useCart store - add ──────────────────────────────────────────────────────
 
-describe('useCart — add', () => {
+describe('useCart - add', () => {
   it('adds a new product to an empty cart', () => {
     const product = makeProduct()
     useCart.getState().add(product)
@@ -137,9 +137,9 @@ describe('useCart — add', () => {
   })
 })
 
-// ─── useCart store — remove ───────────────────────────────────────────────────
+// ─── useCart store - remove ───────────────────────────────────────────────────
 
-describe('useCart — remove', () => {
+describe('useCart - remove', () => {
   it('removes an item by productId', () => {
     useCart.getState().add(makeProduct({ id: 'prod-1' }))
     useCart.getState().remove('prod-1')
@@ -161,9 +161,9 @@ describe('useCart — remove', () => {
   })
 })
 
-// ─── useCart store — setQty ───────────────────────────────────────────────────
+// ─── useCart store - setQty ───────────────────────────────────────────────────
 
-describe('useCart — setQty', () => {
+describe('useCart - setQty', () => {
   it('updates quantity for an existing item', () => {
     useCart.getState().add(makeProduct())
     useCart.getState().setQty('prod-1', 5)
@@ -190,9 +190,9 @@ describe('useCart — setQty', () => {
   })
 })
 
-// ─── useCart store — clear ────────────────────────────────────────────────────
+// ─── useCart store - clear ────────────────────────────────────────────────────
 
-describe('useCart — clear', () => {
+describe('useCart - clear', () => {
   it('empties all items', () => {
     useCart.getState().add(makeProduct({ id: 'a' }))
     useCart.getState().add(makeProduct({ id: 'b', slug: 'b' }))
@@ -206,9 +206,9 @@ describe('useCart — clear', () => {
   })
 })
 
-// ─── useCart store — open / close / toggle ────────────────────────────────────
+// ─── useCart store - open / close / toggle ────────────────────────────────────
 
-describe('useCart — open / close / toggle', () => {
+describe('useCart - open / close / toggle', () => {
   it('starts closed', () => {
     expect(useCart.getState().isOpen).toBe(false)
   })

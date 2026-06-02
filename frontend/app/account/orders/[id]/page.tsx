@@ -1,4 +1,4 @@
-// Customer order detail — fully client-side so orders placed after the
+// Customer order detail - fully client-side so orders placed after the
 // last static deploy are still reachable. generateStaticParams returns a
 // single shell entry to satisfy Next.js's static-export requirement;
 // the SWA rewrite routes /account/orders/* to this shell so the client

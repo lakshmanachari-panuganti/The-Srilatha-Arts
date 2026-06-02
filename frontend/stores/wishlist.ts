@@ -29,7 +29,7 @@ interface ServerWishlistItem {
   category: string
   image: string
   price: number
-  /** Strikethrough "was" price — undefined when not on sale. */
+  /** Strikethrough "was" price - undefined when not on sale. */
   compareAtPrice?: number
   inStock: boolean
   addedAt: string
@@ -48,7 +48,7 @@ export const useWishlist = create<WishlistState>()(
         const exists = get().items.find((i) => i.productId === product.id)
         if (exists) {
           set((s) => ({ items: s.items.filter((i) => i.productId !== product.id) }))
-          // Best-effort server sync — never block the UI on a network error.
+          // Best-effort server sync - never block the UI on a network error.
           // Anonymous users (no token) hit a 401 here, which is fine: the
           // local optimistic update already happened.
           apiFetch(`/wishlist/${encodeURIComponent(product.id)}`, { method: 'DELETE' }).catch(
@@ -139,5 +139,5 @@ export const useWishlist = create<WishlistState>()(
 function silenceAuthErrors(err: unknown) {
   if (err instanceof ApiError && err.status === 401) return
   // Anything else is a real failure but we deliberately don't surface
-  // wishlist sync errors to the user — the UI is already updated.
+  // wishlist sync errors to the user - the UI is already updated.
 }

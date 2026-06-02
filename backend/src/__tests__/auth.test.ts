@@ -61,9 +61,9 @@ describe('generateToken + verifyToken round-trip', () => {
   })
 })
 
-// ─── verifyToken — invalid inputs ─────────────────────────────────────────────
+// ─── verifyToken - invalid inputs ─────────────────────────────────────────────
 
-describe('verifyToken — invalid inputs', () => {
+describe('verifyToken - invalid inputs', () => {
   it('returns null for a random string', () => {
     expect(verifyToken('not-a-jwt')).toBeNull()
   })
@@ -73,7 +73,7 @@ describe('verifyToken — invalid inputs', () => {
   })
 
   it('returns null for a token signed with a different secret', () => {
-    // Decode the header + payload, rebuild signature with wrong key —
+    // Decode the header + payload, rebuild signature with wrong key -
     // easiest is to just use a hardcoded forged token structure.
     const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IngiLCJyb2xlIjoiY3VzdG9tZXIiLCJpYXQiOjE3MDAwMDAwMDB9.wrong_signature'
     expect(verifyToken(fakeToken)).toBeNull()
@@ -138,7 +138,7 @@ describe('extractTokenFromCookie', () => {
 
   it('decodes URL-encoded tokens', () => {
     // A JWT naturally contains dots which are not URL-reserved, but the
-    // builder uses encodeURIComponent — verify round-trip correctness.
+    // builder uses encodeURIComponent - verify round-trip correctness.
     const jwt = 'header.payload.sig'
     const cookie = `tsa_token=${encodeURIComponent(jwt)}`
     expect(extractTokenFromCookie(cookie)).toBe(jwt)
@@ -238,7 +238,7 @@ describe('buildClearCookie', () => {
 // ─── hashPassword / comparePassword ───────────────────────────────────────────
 
 describe('hashPassword + comparePassword', () => {
-  // bcrypt is intentionally slow — allow 15 s per test
+  // bcrypt is intentionally slow - allow 15 s per test
   const TIMEOUT = 15_000
 
   it('produces a hash that is not equal to the original password', async () => {

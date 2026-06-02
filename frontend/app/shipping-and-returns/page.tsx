@@ -36,7 +36,7 @@ export default function ShippingPage() {
       </ul>
 
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mt-10">
-        Need help with an order? <Link href="/contact" className="text-lavender-pastel hover:underline">Contact us</Link> — we usually reply within a few hours.
+        Need help with an order? <Link href="/contact" className="text-lavender-pastel hover:underline">Contact us</Link> - we usually reply within a few hours.
       </p>
     </main>
   )

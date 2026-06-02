@@ -1,5 +1,5 @@
 /**
- * Jest global setup — runs before any test module is imported.
+ * Jest global setup - runs before any test module is imported.
  *
  * The module-level guards in auth.ts and csrf.ts throw at load time if these
  * env vars are missing.  Setting them here ensures the modules can be imported

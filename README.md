@@ -1,15 +1,15 @@
 # The-Srilatha-Arts
 
-Premium handcrafted-art e-commerce — Next.js frontend (static export hosted
+Premium handcrafted-art e-commerce - Next.js frontend (static export hosted
 on Azure Static Web Apps) + Azure Functions backend on Azure Table Storage.
 
 ## Repo layout
 
-- `frontend/` — Next.js 14 + React + Tailwind. `output: 'export'`.
-- `backend/` — Azure Functions (TypeScript v4 model). One file per route
+- `frontend/` - Next.js 14 + React + Tailwind. `output: 'export'`.
+- `backend/` - Azure Functions (TypeScript v4 model). One file per route
   group in `backend/src/functions/*.ts`.
-- `e2e/` — Playwright end-to-end tests.
-- `infra/` — Bicep + scripts for the Azure deployment.
+- `e2e/` - Playwright end-to-end tests.
+- `infra/` - Bicep + scripts for the Azure deployment.
 
 ## Local dev
 
@@ -21,7 +21,7 @@ The frontend reads the backend URL from
 
 ## First-time admin bootstrap
 
-The site has no UI for creating the very first admin user — that path is
+The site has no UI for creating the very first admin user - that path is
 intentionally hidden behind a setup key so a public deploy can't be
 hijacked. To create the first admin, set the env var `ADMIN_SETUP_KEY` on
 the Functions app (it's only ever used by `POST /api/auth/admin/setup`),

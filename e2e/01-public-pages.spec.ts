@@ -1,5 +1,5 @@
 /**
- * 1. Public Pages — visual smoke tests.
+ * 1. Public Pages - visual smoke tests.
  * Verifies every ✅ public page loads without error.
  */
 import { test, expect } from '@playwright/test'

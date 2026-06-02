@@ -11,16 +11,16 @@
 > the new copy + typography are on `https://www.srilatha.art/`, and the
 > webhook signature check is rejecting unsigned posts as expected.
 > Admin-configurable shipping settings are now on `develop` (commit
-> `e2272c9`) and will land on PRD with the next `develop → main` merge —
+> `e2272c9`) and will land on PRD with the next `develop → main` merge -
 > no extra action required after that. The Key Vault hardening below
 > remains open work for an admin account.
 
 ---
 
-## ✅ 1. Razorpay Function App settings — DONE on PRD (2026-05-17)
+## ✅ 1. Razorpay Function App settings - DONE on PRD (2026-05-17)
 
 The three settings were added to `func-thesrilathaarts-prd` as plain app
-settings — same shape as DEV.
+settings - same shape as DEV.
 
 | Setting | Value (truncated) | Length |
 | --- | --- | --- |
@@ -55,12 +55,12 @@ Update-AzFunctionAppSetting `
 
 ---
 
-## ⚠️ 2. Key Vault RBAC fixes — still open on PRD
+## ⚠️ 2. Key Vault RBAC fixes - still open on PRD
 
 These are intentionally **not** done. They require an account with
 role-assignment-write authority (Owner / User Access Administrator /
 Role Based Access Control Administrator). The deployer SP has
-`Contributor` and `Key Vault Administrator` at the prd RG scope — both
+`Contributor` and `Key Vault Administrator` at the prd RG scope - both
 of which are data-plane / sub-resource roles and do **not** include
 `Microsoft.Authorization/roleAssignments/write`.
 
@@ -75,7 +75,7 @@ $fnApp    = Get-AzFunctionApp -ResourceGroupName 'rg-thesrilathaarts-prd' -Name 
 $miOid    = $fnApp.IdentityPrincipalId
 $spOid    = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID).Id
 
-# Function App managed identity: read-only on secrets — enough to resolve
+# Function App managed identity: read-only on secrets - enough to resolve
 # @Microsoft.KeyVault(...) references at app startup.
 New-AzRoleAssignment -ObjectId $miOid -RoleDefinitionName 'Key Vault Secrets User'    -Scope $vaultId
 
@@ -89,7 +89,7 @@ New-AzRoleAssignment -ObjectId $spOid -RoleDefinitionName 'Key Vault Secrets Off
 DEV had a stray `Key Vault Administrator` role for the deployer SP scoped
 to the Function App resource (instead of the vault). PRD's existing
 assignment is at the RG scope, which is actually fine, so this step is
-likely a no-op on PRD — but worth checking:
+likely a no-op on PRD - but worth checking:
 
 ```powershell
 $badScope = (Get-AzFunctionApp -ResourceGroupName 'rg-thesrilathaarts-prd' -Name 'func-thesrilathaarts-prd').Id
@@ -103,7 +103,7 @@ Get-AzRoleAssignment -ObjectId $spOid -Scope $badScope -ErrorAction SilentlyCont
     }
 ```
 
-Same authority requirement — needs an admin account.
+Same authority requirement - needs an admin account.
 
 The patched `infra/Deploy-Infrastructure.ps1` (commit `b161062` on
 `develop`) does both of these automatically on its next run, once the
@@ -150,9 +150,9 @@ Update-AzFunctionAppSetting `
 Configuration, each of these three app settings should show a green
 "Key vault reference" badge after a few seconds. If you see
 "Failed to resolve…", the Function App MI does not yet have
-`Key Vault Secrets User` — go back and finish Step 2a.
+`Key Vault Secrets User` - go back and finish Step 2a.
 
-The same migration should be applied to DEV — DEV stores the values as
+The same migration should be applied to DEV - DEV stores the values as
 plain app settings only because step 2a couldn't be completed there
 during the audit either.
 
@@ -173,13 +173,13 @@ Nothing manual needed. When the next `develop → main` PR merges:
   `backend/src/functions/shippingSettings.ts`, plus the form on the
   admin settings page).
 - The PRD Function App will pick up the three new routes:
-  - `GET  /api/shipping-settings`        — public, 60-second cache
-  - `GET  /api/admin/shipping-settings`  — admin
-  - `PATCH /api/admin/shipping-settings` — admin, CSRF-guarded
+  - `GET  /api/shipping-settings`        - public, 60-second cache
+  - `GET  /api/admin/shipping-settings`  - admin
+  - `PATCH /api/admin/shipping-settings` - admin, CSRF-guarded
 - The PRD SWA will pick up the new admin form + dynamic cart/checkout.
 - The Azure Table `config` row (`PK='config'`, `RK='shipping'`) is
   written lazily on first save. Until then `getShippingConfig()` returns
-  the defaults — which match the previous hardcoded values (₹99 charge,
+  the defaults - which match the previous hardcoded values (₹99 charge,
   ₹2999 threshold). **No silent price changes for existing customers.**
 
 ### Optional: pre-seed a config row before deploy
@@ -202,7 +202,7 @@ $row = New-Object Microsoft.Azure.Cosmos.Table.DynamicTableEntity 'config','ship
 $row.Properties.Add('value', (New-Object Microsoft.Azure.Cosmos.Table.EntityProperty (
   ConvertTo-Json @{
     baseCharge      = 9900
-    effectiveCharge = 4900            # ₹49 — half-price delivery
+    effectiveCharge = 4900            # ₹49 - half-price delivery
     freeThreshold   = 299900
     discountLabel   = 'Festive offer · 50% off delivery'
   } -Compress
@@ -240,10 +240,10 @@ When you are ready to charge real money:
    - `RazorpayKeyId` → `rzp_live_…`
    - `RazorpayKeySecret` → live key secret
    - `RazorpayWebhookSecret` → the new live-mode webhook secret
-5. **Do not touch DEV** during this — DEV stays on test keys.
+5. **Do not touch DEV** during this - DEV stays on test keys.
 6. Restart the Function App so the new env vars are picked up.
 
-No code change is needed — `services/razorpay.ts` and
+No code change is needed - `services/razorpay.ts` and
 `functions/payments.ts` are agnostic to test vs live keys; only the key
 prefix differs.
 
@@ -277,14 +277,14 @@ prefix differs.
 
 ---
 
-## 7. Sanity checklist — declaring PRD "DEV-parity ready"
+## 7. Sanity checklist - declaring PRD "DEV-parity ready"
 
-- [x] **Step 1** — PRD Function App has `RAZORPAY_KEY_ID`,
+- [x] **Step 1** - PRD Function App has `RAZORPAY_KEY_ID`,
       `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. _(applied 2026-05-17)_
-- [x] **`develop` → `main` PR merged** — code is now on PRD: Razorpay
+- [x] **`develop` → `main` PR merged** - code is now on PRD: Razorpay
       endpoints, auth-gated cart, saved-address book, plain-English
       copy, typography refresh, CSRF `SameSite=None`. _(merged 2026-05-17 via PR #8)_
-- [x] **PRD deploy verified** — probed live endpoints:
+- [x] **PRD deploy verified** - probed live endpoints:
       `/api/auth/csrf` → 200, `/api/razorpay/webhook` POST → 400
       `"Bad signature"` (signature check is engaged),
       `/api/razorpay/{create-order,verify}` POST → 403 (CSRF guard is
@@ -294,18 +294,18 @@ prefix differs.
 - [ ] **"Test webhook" from Razorpay Dashboard** returns 200 with no
       signature-mismatch warning in App Insights. _(can be triggered
       from the dashboard now that the endpoint is live)_
-- [ ] **Step 2a + 2b** — `kv-thesrilathaarts-prd` has the two RBAC role
+- [ ] **Step 2a + 2b** - `kv-thesrilathaarts-prd` has the two RBAC role
       assignments at the vault scope and any stray Function App-scoped
       role is removed. (Same status on DEV.)
-- [ ] **Step 3** — the three app settings show green "Key vault reference"
+- [ ] **Step 3** - the three app settings show green "Key vault reference"
       badges. (Same status on DEV.)
-- [ ] **End-to-end test payment** — one real Razorpay Checkout on
+- [ ] **End-to-end test payment** - one real Razorpay Checkout on
       `https://www.srilatha.art/` with the test card
       `4111 1111 1111 1111`, ends on the success page, the order is
       visible in `/account` with `paymentStatus = CAPTURED`.
 - [ ] Webhook event for that same payment shows `200` in Razorpay
       Dashboard → Webhooks → "Recent Deliveries".
-- [ ] **Admin-configurable shipping is live on PRD** — after the next
+- [ ] **Admin-configurable shipping is live on PRD** - after the next
       `develop → main` merge, `GET /api/shipping-settings` on
       `func-thesrilathaarts-prd` returns JSON (defaults are fine), and
       saving a discount from `/admin/settings#shipping` is reflected on

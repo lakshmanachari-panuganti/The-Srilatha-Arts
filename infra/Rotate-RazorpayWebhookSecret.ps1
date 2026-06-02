@@ -18,7 +18,7 @@
 
     The secret never touches a file on disk. The console output is the only
     place you'll see it after the run. Razorpay also never reveals it back
-    after you save it — so write it down or trust the Function App app
+    after you save it - so write it down or trust the Function App app
     setting as the only source of truth.
 
 .PARAMETER Environment
@@ -132,7 +132,7 @@ if ([string]::IsNullOrWhiteSpace($WebhookSecret)) {
 }
 
 # ─── Check current value, then overwrite ──────────────────────────────────
-# Update-AzFunctionAppSetting performs a MERGE — keys you don't pass are
+# Update-AzFunctionAppSetting performs a MERGE - keys you don't pass are
 # left alone, keys you DO pass get overwritten unconditionally. So this is
 # already an "overwrite if exists, add if missing" operation. We just log
 # the before-state explicitly so the run output is self-explanatory.
@@ -140,9 +140,9 @@ $existing = (Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -
     Where-Object { $_.Key -eq 'RAZORPAY_WEBHOOK_SECRET' }
 
 if ($existing) {
-    Write-Host "Existing setting found — will overwrite (was $($existing.Value.Length) chars)." -ForegroundColor Yellow
+    Write-Host "Existing setting found - will overwrite (was $($existing.Value.Length) chars)." -ForegroundColor Yellow
 } else {
-    Write-Host 'No existing setting on this Function App — will add a new one.' -ForegroundColor Yellow
+    Write-Host 'No existing setting on this Function App - will add a new one.' -ForegroundColor Yellow
 }
 
 Write-Host "Updating $($envCfg.FunctionApp) RAZORPAY_WEBHOOK_SECRET ..." -ForegroundColor Yellow
@@ -152,13 +152,13 @@ Update-AzFunctionAppSetting `
     -AppSetting @{ 'RAZORPAY_WEBHOOK_SECRET' = $WebhookSecret } `
     -Force -ErrorAction Stop | Out-Null
 
-# Verify by reading back the length (NOT the value — keep it off any logs
+# Verify by reading back the length (NOT the value - keep it off any logs
 # that might be retained by the host).
 $applied = (Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp).GetEnumerator() |
     Where-Object { $_.Key -eq 'RAZORPAY_WEBHOOK_SECRET' }
 
 if (-not $applied -or $applied.Value.Length -ne $WebhookSecret.Length) {
-    throw "Verification failed — the setting did not land. Try again."
+    throw "Verification failed - the setting did not land. Try again."
 }
 Write-Host "OK. RAZORPAY_WEBHOOK_SECRET now $($applied.Value.Length) chars on Function App." -ForegroundColor Green
 Write-Host ''
@@ -166,7 +166,7 @@ Write-Host ''
 # ─── Print the secret + next step instructions ─────────────────────────────
 Write-Host '──────────────────────────────────────────────────────────────────────' -ForegroundColor Magenta
 if ($generated) {
-    Write-Host 'NEW WEBHOOK SECRET — copy this NOW, it will not be shown again:' -ForegroundColor Magenta
+    Write-Host 'NEW WEBHOOK SECRET - copy this NOW, it will not be shown again:' -ForegroundColor Magenta
 } else {
     Write-Host 'WEBHOOK SECRET (the one you passed in):' -ForegroundColor Magenta
 }
@@ -175,7 +175,7 @@ Write-Host "    $WebhookSecret" -ForegroundColor White -BackgroundColor DarkBlue
 Write-Host ''
 Write-Host '──────────────────────────────────────────────────────────────────────' -ForegroundColor Magenta
 Write-Host ''
-Write-Host "NEXT — Razorpay Dashboard ($($envCfg.RazorpayMode))" -ForegroundColor Cyan
+Write-Host "NEXT - Razorpay Dashboard ($($envCfg.RazorpayMode))" -ForegroundColor Cyan
 Write-Host '  1. Toggle the Test/Live switch to the matching mode at the top right.'
 Write-Host '  2. Account & Settings -> Webhooks -> Add new webhook (or edit existing).'
 Write-Host "  3. Webhook URL : $($envCfg.WebhookUrl)"

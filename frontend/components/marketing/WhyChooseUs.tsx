@@ -94,7 +94,7 @@ export default function WhyChooseUs() {
                 variants={fadeUp}
                 className="relative p-6 pl-7 card bg-white border border-glass-border hover:shadow-lavender-glow transition-all duration-300 flex flex-col gap-4 overflow-hidden"
               >
-                {/* Editorial left-accent rail — gold gradient hugging the card
+                {/* Editorial left-accent rail - gold gradient hugging the card
                     edge. Sits under the rounded corner via the card's
                     overflow-hidden so it bleeds into the radius cleanly. */}
                 <span

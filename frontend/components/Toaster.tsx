@@ -3,7 +3,7 @@ import { useToast } from '@/stores/toast'
 import { CheckCircle2, Info, AlertCircle, X } from 'lucide-react'
 
 // Top-right stack of toasts. Mounted once in ConditionalLayout so it's
-// visible on every customer-facing route (admin/auth/checkout included —
+// visible on every customer-facing route (admin/auth/checkout included -
 // flash messages there are still useful, e.g. session expired). Single
 // instance avoids the duplicate-portal problem you'd get if every page
 // owned its own root.

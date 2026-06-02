@@ -7,18 +7,18 @@ import Providers from '@/components/Providers'
 // ── Typography system ──────────────────────────────────────────────
 // Three Google fonts, each with a clear role. next/font self-hosts at
 // build time, generates fallback metrics to prevent layout shift, and
-// inlines the CSS — no runtime CDN hit, no FOUT beyond the swap.
+// inlines the CSS - no runtime CDN hit, no FOUT beyond the swap.
 //
-//   Cormorant Garamond — `font-serif`. Display + headlines. Variable
+//   Cormorant Garamond - `font-serif`. Display + headlines. Variable
 //     weight range with elegant high-contrast capitals (the previous
 //     Aldo face was a single-weight script that produced faux-bold
 //     under font-semibold/bold and looked stiff under uppercase, which
 //     this site uses heavily for h1/h2 + buttons + nav + eyebrows).
 //
-//   DM Sans — `font-sans`. Body, UI, prices, buttons. Variable weight,
+//   DM Sans - `font-sans`. Body, UI, prices, buttons. Variable weight,
 //     proper hinting at small sizes.
 //
-//   Pramukh Rounded — `font-brand`. Reserved for the "Srilatha Art"
+//   Pramukh Rounded - `font-brand`. Reserved for the "Srilatha Art"
 //     wordmark only. Don't use it elsewhere.
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     template: '%s · Srilatha Art',
   },
   description:
-    'Resin Art, Lippan Art, Kolam, Wedding Decor and Gift Items — all made by hand in Hyderabad. Free shipping across India on orders above ₹999.',
+    'Resin Art, Lippan Art, Kolam, Wedding Decor and Gift Items - all made by hand in Hyderabad. Free shipping across India on orders above ₹999.',
   keywords: [
     'Resin Art',
     'Lippan Art',
@@ -66,20 +66,20 @@ export const metadata: Metadata = {
     siteName: 'Srilatha Art',
     title: 'Srilatha Art - Handcrafted with Heart & Soul',
     description:
-      'Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives — made one piece at a time.',
+      'Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives - made one piece at a time.',
     images: [
-      { url: '/Logos/logo.svg', width: 1200, height: 630, alt: 'Srilatha Art' },
+      { url: '/Logos/logo.png', width: 1200, height: 630, alt: 'Srilatha Art' },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Srilatha Art',
     description: 'Handcrafted with Heart & Soul',
-    images: ['/Logos/logo.svg'],
+    images: ['/Logos/logo.png'],
   },
   icons: {
-    icon: '/Logos/logo.svg',
-    apple: '/Logos/logo.svg',
+    icon: '/Logos/logo.png',
+    apple: '/Logos/logo.png',
   },
   manifest: '/manifest.webmanifest',
 }

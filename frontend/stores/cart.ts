@@ -40,8 +40,8 @@ let _hydrateInFlight: Promise<void> | null = null
 function silenceAuthErrors(err: unknown) {
   if (err instanceof ApiError && err.status === 401) return
   // Anything else (5xx, 404, network) is a real failure. We deliberately
-  // don't surface it as a toast — the optimistic local update already
-  // gave the user feedback — but log it so devs can see when sync is
+  // don't surface it as a toast - the optimistic local update already
+  // gave the user feedback - but log it so devs can see when sync is
   // silently broken (e.g. a table missing in Azure). Visible in DevTools
   // console, no impact on production users.
   if (typeof console !== 'undefined') {
@@ -58,7 +58,7 @@ export const useCart = create<CartState>()(
       hydrated: false,
       add: (product, qty = 1) => {
         // Local optimistic update first. Auth gating is enforced one
-        // layer up (useAddToCart) — by the time we get here the caller
+        // layer up (useAddToCart) - by the time we get here the caller
         // has confirmed there's a user, or we're replaying an intent
         // post-login.
         set((s) => {

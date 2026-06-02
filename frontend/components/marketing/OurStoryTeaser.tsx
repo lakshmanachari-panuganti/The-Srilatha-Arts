@@ -6,7 +6,7 @@ import { ArrowRight, Play } from 'lucide-react'
  * Our Story teaser.
  *
  * The visual slot is reserved for a 60-second studio film featuring
- * Srilatha at work (in production — the user will supply the video).
+ * Srilatha at work (in production - the user will supply the video).
  * Until then, the placeholder below uses one of the real DOT Mandala
  * pieces from /public/category/dot-mandala/ as the still backdrop and
  * overlays a "Studio film · Coming soon" badge + a circular play button.
@@ -19,7 +19,7 @@ import { ArrowRight, Play } from 'lucide-react'
  *
  * Why a circular play button on a placeholder: it signals to a first-time
  * visitor that this surface is about to do more than just sit there.
- * Anticipation is a luxury-brand technique — Aesop and Anthropologie do
+ * Anticipation is a luxury-brand technique - Aesop and Anthropologie do
  * the same thing for upcoming collections.
  */
 
@@ -36,7 +36,7 @@ export default function OurStoryTeaser() {
         <div className="lg:col-span-6">
           <button
             type="button"
-            aria-label="Studio film — coming soon"
+            aria-label="Studio film - coming soon"
             disabled
             className="group relative block w-full aspect-[4/5] overflow-hidden
                        border border-glass-border
@@ -44,7 +44,7 @@ export default function OurStoryTeaser() {
                        disabled:cursor-default"
             style={{ borderRadius: '24px' }}
           >
-            {/* Backdrop — one of Srilatha's actual pieces, not a logo. */}
+            {/* Backdrop - one of Srilatha's actual pieces, not a logo. */}
             <Image
               src={VIDEO_THUMBNAIL}
               alt="A glimpse of work in the Hyderabad studio"
@@ -63,7 +63,7 @@ export default function OurStoryTeaser() {
               }}
             />
 
-            {/* Play button — visual anticipation, no actual playback yet. */}
+            {/* Play button - visual anticipation, no actual playback yet. */}
             <span
               aria-hidden
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2

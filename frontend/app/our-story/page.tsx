@@ -22,7 +22,7 @@ export default function OurStoryPage() {
 
       <div className="my-10 relative aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-b from-plum-warm to-plum-light flex items-center justify-center">
         <Image
-          src="/Logos/logo.svg"
+          src="/Logos/logo.png"
           alt="Our studio in Hyderabad"
           width={300}
           height={300}
@@ -32,21 +32,21 @@ export default function OurStoryPage() {
 
       <h2 className="font-serif text-2xl lg:text-3xl text-ivory mt-12 mb-4">How it started</h2>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
-        During the lockdown in 2020, Srilatha started painting dot mandalas at home — just to keep
+        During the lockdown in 2020, Srilatha started painting dot mandalas at home - just to keep
         herself busy. Friends and family loved them, and started asking for pieces of their own.
       </p>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
-        One thing led to another. Today, we make five different styles of handmade art —
-        Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives — and we ship them to homes all over India.
+        One thing led to another. Today, we make five different styles of handmade art -
+        Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives - and we ship them to homes all over India.
       </p>
 
       <h2 className="font-serif text-2xl lg:text-3xl text-ivory mt-12 mb-4">How we work</h2>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
-        Each piece is made by hand. That means no two pieces are exactly the same — and that&apos;s
+        Each piece is made by hand. That means no two pieces are exactly the same - and that&apos;s
         the whole point. We take our time so every artwork looks just right when it reaches you.
       </p>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-8">
-        We also make custom pieces — your colour, your size, your style. Just tell us what you have
+        We also make custom pieces - your colour, your size, your style. Just tell us what you have
         in mind and we&apos;ll bring it to life.
       </p>
 

@@ -1,5 +1,5 @@
 /**
- * User Auth Functions — register, login, Google OAuth.
+ * User Auth Functions - register, login, Google OAuth.
  * Sets httpOnly cookie (§9) + returns token in body during V1 transition.
  */
 
@@ -20,7 +20,7 @@ import { checkAndIncrement } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
 import { enforceCsrf } from '../middleware/csrfGuard'
 
-// No default fallback — validated at call time so Google sign-in can be disabled
+// No default fallback - validated at call time so Google sign-in can be disabled
 // simply by not setting this env var rather than causing a startup failure.
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 
@@ -105,7 +105,7 @@ export async function userRegister(
     return jsonResponse(
       {
         user: { email, name, role: 'customer' },
-        token, // V1 compat — drop in V2
+        token, // V1 compat - drop in V2
       },
       201,
       { 'Set-Cookie': cookie },
@@ -115,12 +115,12 @@ export async function userRegister(
     const azErr = err as { statusCode?: number; code?: string }
     if (typeof azErr.statusCode === 'number') {
       if (azErr.statusCode === 403) {
-        context.error('userRegister: Azure Table access denied — check RBAC / Managed Identity permissions', err)
-        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+        context.error('userRegister: Azure Table access denied - check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error - storage access denied. Please contact support.', 503, origin)
       }
       if (azErr.code === 'TableNotFound') {
         context.error('userRegister: "users" table does not exist in storage account', err)
-        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+        return errorResponse('Service configuration error - data store not found. Please contact support.', 503, origin)
       }
       context.error(`userRegister: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
       return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
@@ -205,12 +205,12 @@ export async function userLogin(
     const azErr = err as { statusCode?: number; code?: string }
     if (typeof azErr.statusCode === 'number') {
       if (azErr.statusCode === 403) {
-        context.error('userLogin: Azure Table access denied — check RBAC / Managed Identity permissions', err)
-        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+        context.error('userLogin: Azure Table access denied - check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error - storage access denied. Please contact support.', 503, origin)
       }
       if (azErr.code === 'TableNotFound') {
         context.error('userLogin: "users" table does not exist in storage account', err)
-        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+        return errorResponse('Service configuration error - data store not found. Please contact support.', 503, origin)
       }
       context.error(`userLogin: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
       return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
@@ -240,7 +240,7 @@ export async function googleAuth(
   }
 
   if (!GOOGLE_CLIENT_ID) {
-    context.error('googleAuth: GOOGLE_CLIENT_ID is not configured — set env var to enable Google sign-in')
+    context.error('googleAuth: GOOGLE_CLIENT_ID is not configured - set env var to enable Google sign-in')
     return errorResponse('Google sign-in is not available. Please use email/password login.', 503, origin)
   }
 
@@ -335,12 +335,12 @@ export async function googleAuth(
     const azErr = err as { statusCode?: number; code?: string }
     if (typeof azErr.statusCode === 'number') {
       if (azErr.statusCode === 403) {
-        context.error('googleAuth: Azure Table access denied — check RBAC / Managed Identity permissions', err)
-        return errorResponse('Service configuration error — storage access denied. Please contact support.', 503, origin)
+        context.error('googleAuth: Azure Table access denied - check RBAC / Managed Identity permissions', err)
+        return errorResponse('Service configuration error - storage access denied. Please contact support.', 503, origin)
       }
       if (azErr.code === 'TableNotFound') {
         context.error('googleAuth: "users" table does not exist in storage account', err)
-        return errorResponse('Service configuration error — data store not found. Please contact support.', 503, origin)
+        return errorResponse('Service configuration error - data store not found. Please contact support.', 503, origin)
       }
       context.error(`googleAuth: Azure Table error (HTTP ${azErr.statusCode}, code=${azErr.code})`, err)
       return errorResponse('Service temporarily unavailable. Please try again in a moment.', 503, origin)
@@ -377,7 +377,7 @@ app.http('googleAuth', {
 })
 
 // ─── POST /api/auth/logout ───────────────────────────────────
-// Clears the httpOnly tsa_token cookie. No auth required — clearing an
+// Clears the httpOnly tsa_token cookie. No auth required - clearing an
 // already-expired or missing cookie is harmless.
 
 export async function userLogout(

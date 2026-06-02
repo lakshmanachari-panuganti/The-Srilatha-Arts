@@ -32,7 +32,7 @@ export const useToast = create<ToastState>((set) => ({
     set((s) => ({ toasts: [...s.toasts, toast] }))
     if (durationMs > 0) {
       // Auto-dismiss. We use a plain setTimeout instead of useEffect on the
-      // render component so the timeout survives a page navigation — the
+      // render component so the timeout survives a page navigation - the
       // toast announcing "redirecting…" needs to keep counting down as the
       // user lands on the next route.
       if (typeof window !== 'undefined') {

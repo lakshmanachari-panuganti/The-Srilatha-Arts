@@ -111,7 +111,7 @@ export default function AdminOrdersPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const isFiltered = Boolean(debouncedSearch || status)
 
-  // Clear selection whenever the visible page changes — selections shouldn't
+  // Clear selection whenever the visible page changes - selections shouldn't
   // silently carry across pages (the user can't see what they have selected
   // off-screen anymore).
   useEffect(() => { setSelected(new Set()); setBulkResult('') }, [debouncedSearch, status, page])
@@ -229,7 +229,7 @@ export default function AdminOrdersPage() {
         </div>
       )}
 
-      {/* Bulk-update toolbar — slides in when ≥1 row selected. Floats above
+      {/* Bulk-update toolbar - slides in when ≥1 row selected. Floats above
           the table so it's visible even mid-scroll on long pages. Hits
           PATCH /api/admin/orders/bulk-status. */}
       {selected.size > 0 && (

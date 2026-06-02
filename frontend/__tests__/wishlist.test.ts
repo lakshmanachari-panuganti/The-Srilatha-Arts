@@ -43,7 +43,7 @@ beforeEach(() => {
 
 // ─── has ──────────────────────────────────────────────────────────────────────
 
-describe('useWishlist — has', () => {
+describe('useWishlist - has', () => {
   it('returns false for an empty wishlist', () => {
     expect(useWishlist.getState().has('prod-1')).toBe(false)
   })
@@ -62,7 +62,7 @@ describe('useWishlist — has', () => {
 
 // ─── toggle ───────────────────────────────────────────────────────────────────
 
-describe('useWishlist — toggle', () => {
+describe('useWishlist - toggle', () => {
   it('adds a product when it is not in the wishlist', () => {
     useWishlist.getState().toggle(makeProduct())
     expect(useWishlist.getState().items).toHaveLength(1)
@@ -112,7 +112,7 @@ describe('useWishlist — toggle', () => {
 
 // ─── remove ───────────────────────────────────────────────────────────────────
 
-describe('useWishlist — remove', () => {
+describe('useWishlist - remove', () => {
   it('removes the specified product', () => {
     useWishlist.getState().toggle(makeProduct())
     useWishlist.getState().remove('prod-1')
@@ -136,7 +136,7 @@ describe('useWishlist — remove', () => {
 
 // ─── clear ────────────────────────────────────────────────────────────────────
 
-describe('useWishlist — clear', () => {
+describe('useWishlist - clear', () => {
   it('removes all items', () => {
     useWishlist.getState().toggle(makeProduct({ id: 'a', slug: 'a' }))
     useWishlist.getState().toggle(makeProduct({ id: 'b', slug: 'b' }))

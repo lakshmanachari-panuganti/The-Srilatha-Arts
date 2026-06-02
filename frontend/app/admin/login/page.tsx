@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
     e.preventDefault()
     const success = await login(username, password)
     if (success) {
-      // Only honour `next` if it points inside /admin — never accept an
+      // Only honour `next` if it points inside /admin - never accept an
       // arbitrary URL (open-redirect class). The leading-slash check rules
       // out protocol-relative URLs like //evil.com.
       const next = searchParams.get('next') || ''
@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center justify-center gap-3 mb-2">
             <Image
-              src="/Logos/logo.svg"
+              src="/Logos/logo.png"
               alt="Srilatha Art"
               width={64}
               height={64}

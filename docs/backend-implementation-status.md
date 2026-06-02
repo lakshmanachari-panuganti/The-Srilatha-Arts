@@ -2,7 +2,7 @@
 
 > Last reviewed: 2026-05-13 by full-stack audit of [backend-plan.md](backend-plan.md) vs. repo code.
 
-## Phase 1: Foundation Backend — ✅ Complete
+## Phase 1: Foundation Backend - ✅ Complete
 
 | Item | Plan Reference | Status | Files |
 |------|---------------|--------|-------|
@@ -13,7 +13,7 @@
 | `GET /api/orders/{id}` owner-OR-admin | §4.1 | ✅ Done | `orders.ts` |
 | `GET /api/orders/me` | §4.1 | ✅ Done | `orders.ts` |
 
-## Phase 2: Commerce + Order Management — ⚠️ Partial
+## Phase 2: Commerce + Order Management - ⚠️ Partial
 
 | Item | Plan Reference | Status | Files |
 |------|---------------|--------|-------|
@@ -37,11 +37,11 @@
 | **WhatsApp Cloud API client** | §10 | ❌ Missing | No `services/whatsapp.ts` |
 | **ACS Email client** | §10 | ❌ Missing | No `services/email.ts` |
 | **Invoice PDF generation** | §8.3 | ❌ Missing | No `invoice.ts` / `services/pdf.ts` |
-| File upload (admin + customer) | §5.2 | ✅ Done | `upload.ts` — `POST /api/admin/upload`, `POST /api/upload/customer` (blob storage) |
+| File upload (admin + customer) | §5.2 | ✅ Done | `upload.ts` - `POST /api/admin/upload`, `POST /api/upload/customer` (blob storage) |
 | Notification queue trigger handler | §11.1 | ❌ Missing | No `processNotification` function |
 | Webhook queue trigger handler | §11.1 | ❌ Missing | No `processWebhook` function |
 
-## Phase 3: Custom Orders + Reviews — ✅ Complete
+## Phase 3: Custom Orders + Reviews - ✅ Complete
 
 | Item | Plan Reference | Status | Files |
 |------|---------------|--------|-------|
@@ -53,7 +53,7 @@
 | Wishlist GET/POST/DELETE | §4.2 | ✅ Done | `wishlist.ts` |
 | Addresses CRUD + default enforcement | §4.2 | ✅ Done | `addresses.ts` |
 
-## Phase 4: Admin Expansion — ⚠️ Partial
+## Phase 4: Admin Expansion - ⚠️ Partial
 
 | Item | Plan Reference | Status | Files |
 |------|---------------|--------| ------|
@@ -67,7 +67,7 @@
 | Full analytics (revenue trend, top sellers, category breakdown) | §5.2 | ❌ Missing | `adminStats.ts` provides totals only |
 | Shiprocket courier webhook | §8.2 | ❌ Missing | |
 
-## Phase 5: Polish — ⚠️ Partial
+## Phase 5: Polish - ⚠️ Partial
 
 | Item | Plan Reference | Status | Files |
 |------|---------------|--------|-------|
@@ -77,7 +77,7 @@
 | Expired-orders cleanup timer | §11.2 | ❌ Missing | |
 | App Insights alerts + workbooks | §16 | ❌ Missing | |
 
-## Phase 6: V2 — ❌ Not Started
+## Phase 6: V2 - ❌ Not Started
 
 - [ ] API Management with rate-limit policies
 - [ ] Azure Front Door + WAF
@@ -92,12 +92,12 @@
 
 The core order management loop (create → track → cancel → return), coupons, announcements, custom orders, reviews, wishlist, and addresses are all implemented with proper backend endpoints. The order state machine with 12 statuses, transition validation, and audit logging is production-ready. A basic stats endpoint (`adminStats.ts`) exists for the admin dashboard. File upload for both admin and customer is live.
 
-**`adminStats.ts` is NOT listed in any phase above** — it was created outside the plan. It provides: total revenue (paise), order count, avg order value, customer count, product count, pending/processing order counts via `GET /api/admin/stats`.
+**`adminStats.ts` is NOT listed in any phase above** - it was created outside the plan. It provides: total revenue (paise), order count, avg order value, customer count, product count, pending/processing order counts via `GET /api/admin/stats`.
 
 **Critical gaps before the checkout pipeline is end-to-end:**
-1. **Razorpay payments** — no payment creation, verification, or webhook
-2. **Notifications** — queue service exists but no actual WhatsApp/Email dispatch handlers
-3. **Invoice PDF** — no generation or blob storage
-4. **Courier integration** — no Shiprocket client or tracking webhook
-5. **Admin settings endpoint** — `config` table exists; needs `GET/PATCH /api/admin/settings`
-6. **Admin customer list** — `users` table exists; needs `GET /api/admin/customers` + `listAllUsers()` in tableStorage
+1. **Razorpay payments** - no payment creation, verification, or webhook
+2. **Notifications** - queue service exists but no actual WhatsApp/Email dispatch handlers
+3. **Invoice PDF** - no generation or blob storage
+4. **Courier integration** - no Shiprocket client or tracking webhook
+5. **Admin settings endpoint** - `config` table exists; needs `GET/PATCH /api/admin/settings`
+6. **Admin customer list** - `users` table exists; needs `GET /api/admin/customers` + `listAllUsers()` in tableStorage

@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Srilatha Art',
     short_name: 'Srilatha Art',
-    description: 'Resin Art, Lippan Art, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.',
+    description: 'Resin Art, Lippan Art, Wedding Decor and Handmade Gifts - made by hand in Hyderabad.',
     start_url: '/',
     display: 'standalone',
     background_color: '#FBF8F2',
@@ -16,9 +16,9 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait',
     categories: ['shopping', 'lifestyle', 'art'],
     icons: [
-      { src: '/Logos/logo.svg', sizes: '192x192', type: 'image/jpeg', purpose: 'any' },
-      { src: '/Logos/logo.svg', sizes: '512x512', type: 'image/jpeg', purpose: 'any' },
-      { src: '/Logos/logo.svg', sizes: '512x512', type: 'image/jpeg', purpose: 'maskable' },
+      { src: '/Logos/logo.png', sizes: '192x192', type: 'image/jpeg', purpose: 'any' },
+      { src: '/Logos/logo.png', sizes: '512x512', type: 'image/jpeg', purpose: 'any' },
+      { src: '/Logos/logo.png', sizes: '512x512', type: 'image/jpeg', purpose: 'maskable' },
     ],
   }
 }

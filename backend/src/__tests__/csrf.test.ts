@@ -13,7 +13,7 @@ import {
   extractCsrfFromCookie,
 } from '../services/csrf'
 
-// The test signing key set in jest.setup.ts — must match exactly.
+// The test signing key set in jest.setup.ts - must match exactly.
 const TEST_KEY = 'test-csrf-signing-key-unit-tests-only!'
 
 // Helper: manually build a signed token with a custom expiry so we can
@@ -102,7 +102,7 @@ describe('verifyCsrfToken', () => {
   })
 
   it('accepts a token expiring 1 ms in the future', () => {
-    // This is technically a race — generous enough for a unit test.
+    // This is technically a race - generous enough for a unit test.
     const token = buildTestToken(Date.now() + 5000)
     expect(verifyCsrfToken(token)).toBe(true)
   })
@@ -137,7 +137,7 @@ describe('buildCsrfCookie', () => {
   it('is SameSite=None (required for cross-site mutating fetches)', () => {
     // SwA frontend lives on a different registrable domain than the
     // Functions backend in dev/prd. SameSite=Lax would block the cookie
-    // from being attached to POST/PATCH/DELETE — we need None+Secure.
+    // from being attached to POST/PATCH/DELETE - we need None+Secure.
     expect(buildCsrfCookie('tok')).toContain('SameSite=None')
     expect(buildCsrfCookie('tok')).not.toContain('SameSite=Lax')
   })

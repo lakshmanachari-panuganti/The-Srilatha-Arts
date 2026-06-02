@@ -1,7 +1,7 @@
 /**
  * Unit tests for services/orderState.ts
  *
- * Pure functions — no I/O, no Azure SDK, no environment variables needed.
+ * Pure functions - no I/O, no Azure SDK, no environment variables needed.
  * Run with: npm test
  */
 

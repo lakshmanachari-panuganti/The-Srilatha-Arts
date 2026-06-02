@@ -16,7 +16,7 @@ export default function TheCraftPage() {
         Five art styles, <em className="italic gold-text">explained</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-12">
-        Each style has its own way of being made. Here&apos;s a quick look at each one — and what
+        Each style has its own way of being made. Here&apos;s a quick look at each one - and what
         makes it special.
       </p>
 

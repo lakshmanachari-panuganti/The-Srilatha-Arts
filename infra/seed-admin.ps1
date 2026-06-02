@@ -15,7 +15,7 @@
         email        : <user email>
         name         : <display name>
         role         : 'admin' | 'superadmin'
-        passwordHash : <bcrypt hash with embedded salt — 60 chars>
+        passwordHash : <bcrypt hash with embedded salt - 60 chars>
         isActive     : true
         createdAt    : ISO8601 (set on create, preserved on update)
         updatedAt    : ISO8601 (set every time this script writes)
@@ -27,7 +27,7 @@
 
       * If an entity already exists: the script MERGEs the supplied
         passwordHash + email + isActive=true onto it. It also makes sure
-        the role is 'admin' or 'superadmin' — if the existing role is
+        the role is 'admin' or 'superadmin' - if the existing role is
         anything else it gets bumped to the -Role value; an existing
         'superadmin' is NEVER downgraded to 'admin'. createdAt is
         preserved.
@@ -39,7 +39,7 @@
 
 .PARAMETER Environment
     'DEV' or 'PRD'. Picks the matching storage account via the same
-    $config hashtable used by [infra/Deploy-Infrastructure.ps1] —
+    $config hashtable used by [infra/Deploy-Infrastructure.ps1] -
     'st{appslug}dev' or 'st{appslug}prd'. DEV is the default; PRD
     seeding requires explicit -Environment PRD.
 
@@ -57,7 +57,7 @@
 .PARAMETER BcryptHash
     A pre-generated bcrypt hash including the embedded salt (the
     "$2a$..", "$2b$..", or "$2y$.." 60-char form that bcryptjs.compare
-    expects). The script does NOT hash a plaintext password — this is
+    expects). The script does NOT hash a plaintext password - this is
     deliberate so cleartext never lands on the operator's shell history.
 
     Generate one out-of-band, e.g. from the backend project root:
@@ -92,7 +92,7 @@
 .NOTES
     Requires:
       - PowerShell 7+
-      - Az.Accounts module (for the bearer token only — no AzTable / no
+      - Az.Accounts module (for the bearer token only - no AzTable / no
         deprecated modules)
       - An active Az session (Connect-AzAccount, or the env-var SP path
         used by the other /infra scripts) whose principal has
@@ -141,7 +141,7 @@ Set-StrictMode -Version Latest
 
 # ─── Per-environment resource names ──────────────────────────────────
 # Mirror the $config map in infra/Deploy-Infrastructure.ps1 (PART B.1)
-# so this script and the deploy script stay in lockstep — if the
+# so this script and the deploy script stay in lockstep - if the
 # storage-account naming convention ever changes, both files change
 # together and we only need to verify one source of truth.
 try { Disconnect-AzAccount } catch {}
@@ -257,7 +257,7 @@ function Invoke-TableRest {
     }
     if ($IfMatch) { $headers['If-Match'] = $IfMatch }
 
-    # Named $restArgs (not $args — that's an automatic variable inside
+    # Named $restArgs (not $args - that's an automatic variable inside
     # functions and would shadow ours).
     $restArgs = @{
         Method             = $Method
@@ -281,7 +281,7 @@ Write-Host "Checking for existing admin at RowKey='$normalizedUsername' ..." -Fo
 $existing = Invoke-TableRest -Method 'GET' -Uri $entityUri
 
 if ($existing.StatusCode -eq 404) {
-    # Could be entity-missing (good — INSERT path) or table-missing.
+    # Could be entity-missing (good - INSERT path) or table-missing.
     # Table-missing surfaces as 404 with code='TableNotFound' in the body.
     $detail = if ($null -ne $existing.Body) { ($existing.Body | ConvertTo-Json -Depth 6 -Compress) } else { '' }
     if ($detail -match 'TableNotFound') {
@@ -353,7 +353,7 @@ if ($action -eq 'insert') {
         updatedAt    = $nowIso
     }
 
-    # If-Match: * means "merge regardless of ETag" — fine for this
+    # If-Match: * means "merge regardless of ETag" - fine for this
     # one-operator-at-a-time admin-bootstrap path.
     $write = Invoke-TableRest -Method 'MERGE' -Uri $entityUri -Body $payload -IfMatch '*'
     if ($write.StatusCode -lt 200 -or $write.StatusCode -ge 300) {

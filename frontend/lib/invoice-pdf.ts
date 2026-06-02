@@ -1,7 +1,7 @@
 // Real, downloadable, text-searchable invoice PDF.
 //
 // Built with jsPDF + jspdf-autotable. Lazy-imported by callers so the
-// ~150KB library only loads when the customer actually clicks Download —
+// ~150KB library only loads when the customer actually clicks Download -
 // not on every page that links to an invoice. Mirrors the on-screen
 // layout from InvoiceClient.tsx (header / billing-shipping / items table
 // / totals / footer) so customers see the same document they download.
@@ -51,7 +51,7 @@ function fmtDate(iso: string): string {
 
 // formatINR returns "₹ 1,234" with the rupee glyph. jsPDF's default Helvetica
 // font has no glyph for U+20B9, so it renders as a tofu box. We swap to "Rs."
-// for the PDF — clearer in print and universally renderable. Could be replaced
+// for the PDF - clearer in print and universally renderable. Could be replaced
 // later by embedding a Unicode font, but that adds ~300KB.
 function fmtMoney(rs: number): string {
   return formatINR(rs).replace(/^\s*₹\s*/, 'Rs. ')
@@ -79,12 +79,12 @@ export async function downloadInvoicePdf(
   const pageW = doc.internal.pageSize.getWidth()
   const margin = 42
 
-  // ── Brand colours (espresso ink + ochre gold accent — matches site theme).
+  // ── Brand colours (espresso ink + ochre gold accent - matches site theme).
   const ink: [number, number, number] = [34, 27, 18]
   const inkSoft: [number, number, number] = [67, 57, 46]
   const inkMute: [number, number, number] = [138, 126, 110]
   const rule: [number, number, number] = [225, 219, 207]
-  // Gold for the INVOICE eyebrow — --accent-strong #8A6A1A (passes AA on
+  // Gold for the INVOICE eyebrow - --accent-strong #8A6A1A (passes AA on
   // ivory paper). Lighter ochre is reserved for display-size words only.
   const lavender: [number, number, number] = [138, 106, 26]
 
@@ -96,7 +96,7 @@ export async function downloadInvoicePdf(
   doc.setFontSize(22)
   doc.text('Srilatha Art', margin, y + 18)
 
-  // Brand contacts — one per line with labels. The earlier single-line
+  // Brand contacts - one per line with labels. The earlier single-line
   // form (`email · phone`) was hard to scan; labelled rows match how the
   // studio prefers to read its own letterhead.
   doc.setFontSize(9)
@@ -106,7 +106,7 @@ export async function downloadInvoicePdf(
   doc.text(`email: ${STUDIO_EMAIL}`, margin, y + 47)
   doc.text(`call/WhatsApp: ${PHONE_DISPLAY}`, margin, y + 60)
 
-  // INVOICE eyebrow — large, bold, lavender. No charSpace: jsPDF's
+  // INVOICE eyebrow - large, bold, lavender. No charSpace: jsPDF's
   // right-alignment ignores per-character spacing when computing the
   // anchor, so any positive charSpace pushes the last character past
   // the right margin and makes the eyebrow look mis-aligned against
@@ -179,7 +179,7 @@ export async function downloadInvoicePdf(
   // Flatten source lines through splitTextToSize FIRST so we have a single
   // ordered list of visual rows, then paint each at its own y. The old code
   // indexed by source line which collided when a long street wrapped onto
-  // two visual rows — the second wrapped row landed on top of the next
+  // two visual rows - the second wrapped row landed on top of the next
   // source line (city/pincode), producing the overlapping smear bug.
   doc.setTextColor(...inkSoft)
   doc.setFontSize(9)
@@ -239,7 +239,7 @@ export async function downloadInvoicePdf(
       cell: { x: number; y: number; height: number }
       row: { index: number }
     }) => {
-      // Bottom border per body row — matches the divide-y on screen.
+      // Bottom border per body row - matches the divide-y on screen.
       if (data.section === 'body' && data.column.index === 0) {
         const { y: cy, height } = data.cell
         doc.setDrawColor(...rule)

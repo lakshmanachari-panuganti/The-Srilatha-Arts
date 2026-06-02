@@ -13,7 +13,7 @@ import { useUserAuth } from '@/stores/userAuth'
 const MAX_FILE_BYTES = 5 * 1024 * 1024 // mirror backend cap
 
 interface Props {
-  /** Already-uploaded URLs. Owner state — pass to value, receive in onChange. */
+  /** Already-uploaded URLs. Owner state - pass to value, receive in onChange. */
   value: string[]
   onChange: (next: string[]) => void
   /** Hard cap; defaults to 5. */

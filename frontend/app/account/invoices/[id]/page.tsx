@@ -1,4 +1,4 @@
-// Printable invoice — fully client-side so any order ID resolves at runtime,
+// Printable invoice - fully client-side so any order ID resolves at runtime,
 // not at build time. The SWA rewrite (staticwebapp.config.json) routes
 // /account/invoices/<orderId> to this shell. The client reads the real id
 // from window.location.pathname. URL sits under /account/invoices/ rather

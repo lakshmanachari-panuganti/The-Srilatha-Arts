@@ -1,13 +1,13 @@
 /**
  * Newsletter subscription endpoint.
  *
- * POST /api/newsletter — anonymous, rate-limited 5/hour/IP.
+ * POST /api/newsletter - anonymous, rate-limited 5/hour/IP.
  *   Body: { email: string, source?: string }
  *
  * Persists to the `newsletterSubscribers` Table Storage. Status starts
  * at `pending`; a future double-opt-in flow can flip it to `confirmed`
  * after the user clicks an email link. We do NOT yet send a confirmation
- * email — that requires an email service the studio hasn't picked. The
+ * email - that requires an email service the studio hasn't picked. The
  * row is the foundation; sending is layered on later.
  *
  * NOTE: the Footer previously fake-acknowledged signups in a useState
@@ -60,7 +60,7 @@ async function subscribe(
     return jsonResponse(
       {
         ok: true,
-        message: 'Thanks — we’ll send a note when the studio newsletter launches.',
+        message: 'Thanks - we’ll send a note when the studio newsletter launches.',
       },
       201,
       {},

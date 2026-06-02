@@ -4,7 +4,7 @@ import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
 import { useWishlist } from '@/stores/wishlist'
 import { useCart } from '@/stores/cart'
 
-// Side-effect runner — pulls the server cart + wishlist after auth state
+// Side-effect runner - pulls the server cart + wishlist after auth state
 // is known so the user sees their cross-device saved pieces immediately.
 // Best-effort: network failures don't block sign-in.
 function syncUserDataAfterAuth() {
@@ -142,7 +142,7 @@ export const useUserAuth = create<UserAuthState>()(
         // Clear local cart + wishlist so the next user on the same browser
         // doesn't inherit the previous user's items. Spec: "When a user
         // signs out, the Cart and Wishlist UI should be cleared
-        // immediately." Server-side data for THIS user is preserved —
+        // immediately." Server-side data for THIS user is preserved -
         // a fresh login for the same user restores their state.
         // Note: cart.clear() also fires DELETE /api/cart, but the auth
         // token has been removed above so that call 401s and is silenced.

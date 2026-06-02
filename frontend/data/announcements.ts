@@ -4,11 +4,11 @@ import type { Announcement } from '@/types'
  * Marquee announcements.
  *
  * The previous "FLAT 30% OFF · USE CODE SRILATHA30" was removed deliberately
- * — discount-code shouting at the top of the page reads as "Amazon seller",
+ * - discount-code shouting at the top of the page reads as "Amazon seller",
  * not "luxury handcrafted studio". Keep this surface for brand-positive,
  * service-promise content: shipping, hours, special collections.
  *
- * If a real promo runs, prefer email + the newsletter — not the chrome.
+ * If a real promo runs, prefer email + the newsletter - not the chrome.
  */
 export const ANNOUNCEMENTS: Announcement[] = [
   {

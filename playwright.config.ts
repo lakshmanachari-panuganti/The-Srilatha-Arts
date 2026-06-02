@@ -5,7 +5,7 @@ const API_URL  = 'https://func-thesrilathaarts-dev.azurewebsites.net/api'
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: false,        // keep sequential — shared live data
+  fullyParallel: false,        // keep sequential - shared live data
   retries: 1,
   timeout: 30_000,
   use: {

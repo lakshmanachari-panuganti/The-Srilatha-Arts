@@ -15,7 +15,7 @@ import { PHONE_DISPLAY, PHONE_TEL, STUDIO_EMAIL } from '@/lib/site-config'
 
 // Routes where the header is allowed to hide-on-scroll-down. Home + brand
 // pages tolerate it. PDP, cart, checkout, account need the cart icon + search
-// always reachable — hiding the header on those pages strands the user away
+// always reachable - hiding the header on those pages strands the user away
 // from key actions (audit §4).
 const HIDE_ON_SCROLL_ROUTES = ['/', '/our-story', '/the-craft', '/reviews', '/about']
 
@@ -59,7 +59,7 @@ export default function Header() {
           )}
           style={{ borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent' }}
         >
-          {/* Left: logo + brand name (all viewports) — branding-first focal point */}
+          {/* Left: logo + brand name (all viewports) - branding-first focal point */}
           <div className="flex items-center min-w-0">
             <Link
               href="/"
@@ -67,7 +67,7 @@ export default function Header() {
               className="flex items-center gap-2.5 min-w-0"
             >
               <Image
-                src="/Logos/logo.svg"
+                src="/Logos/logo.png"
                 alt="Srilatha Art"
                 width={112}
                 height={112}
@@ -109,7 +109,7 @@ export default function Header() {
             >
               <Search className="w-5 h-5" aria-hidden />
             </button>
-            {/* Account / Login icon — desktop only */}
+            {/* Account / Login icon - desktop only */}
             <Link
               href={authUser ? '/account' : '/login'}
               aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
@@ -147,7 +147,7 @@ export default function Header() {
                 </span>
               )}
             </Link>
-            {/* Hamburger — mobile only, rightmost */}
+            {/* Hamburger - mobile only, rightmost */}
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
@@ -158,7 +158,7 @@ export default function Header() {
             </button>
             </div>
 
-            {/* Contact links — mobile only, below the icons row */}
+            {/* Contact links - mobile only, below the icons row */}
             <div className="flex flex-col items-end gap-0.5 text-[11px] leading-tight lg:hidden">
               <a
                 href={`mailto:${STUDIO_EMAIL}`}

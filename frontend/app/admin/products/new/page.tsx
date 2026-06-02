@@ -167,7 +167,7 @@ export default function AdminNewProductPage() {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Form */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Images — moved to the top so the admin uploads photos before
+          {/* Images - moved to the top so the admin uploads photos before
               filling out the rest of the listing (uploads run async and the
               form can keep being filled out while they complete). */}
           <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-4">
@@ -219,7 +219,7 @@ export default function AdminNewProductPage() {
           <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-5">
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <h2 className="font-serif text-lg text-ink">Basic Information</h2>
-              {/* AI generate — analyses the first uploaded image and fills
+              {/* AI generate - analyses the first uploaded image and fills
                   Title, Short Description, Description, Material, Care
                   Instructions. Does not touch any other field. */}
               <AiGenerateProductContent

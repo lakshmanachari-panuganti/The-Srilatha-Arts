@@ -47,7 +47,7 @@ export type OrderStatus =
 
 export type PaymentStatus = 'PENDING' | 'CAPTURED' | 'FAILED' | 'REFUNDED' | 'COD'
 
-// Structured customer return reasons. Keep the set small and stable —
+// Structured customer return reasons. Keep the set small and stable -
 // admins filter / report on these. "other" lets the customer free-text.
 export type ReturnReasonCode =
   | 'damaged'
@@ -105,7 +105,7 @@ export interface OrderEntity {
   returnPhotos?: string            // JSON array of image URLs (validated to our blob domain)
   returnDeclineReason?: string     // admin reason when a return is declined
   refundedAt?: string
-  refundAmount?: number            // paise — partial refunds allowed
+  refundAmount?: number            // paise - partial refunds allowed
   razorpayRefundId?: string        // 'rfnd_...' once Razorpay creates the refund
   refundFailureReason?: string     // populated if the Razorpay refund call fails
   customerNote?: string
@@ -150,7 +150,7 @@ export interface OrderEventEntity {
   by: string              // userId or adminId or 'system'
   byRole: 'customer' | 'admin' | 'superadmin' | 'system'
   note?: string
-  meta?: string           // JSON — tracking#, refundId, etc.
+  meta?: string           // JSON - tracking#, refundId, etc.
   createdAt: string
 }
 
@@ -227,7 +227,7 @@ export interface AnnouncementEntity {
 
 export interface UserEntity {
   partitionKey: 'customer'
-  rowKey: string  // email — lowercase
+  rowKey: string  // email - lowercase
   name: string
   phone: string
   passwordHash: string  // empty string for OAuth-only users
@@ -252,7 +252,7 @@ export type AdminRole = 'owner' | 'manager' | 'support' | 'readonly' | 'admin' |
 
 export interface AdminEntity {
   partitionKey: 'admin'
-  rowKey: string  // username — alphanumeric, lowercase
+  rowKey: string  // username - alphanumeric, lowercase
   name: string
   passwordHash: string
   role: AdminRole

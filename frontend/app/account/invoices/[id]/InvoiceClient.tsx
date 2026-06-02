@@ -11,7 +11,7 @@ import { formatINR } from '@/lib/format'
 import { STUDIO_EMAIL, PHONE_DISPLAY, WEBSITE_URL } from '@/lib/site-config'
 import { downloadInvoicePdf } from '@/lib/invoice-pdf'
 
-// Shapes mirrored from the orders.ts toApi() — kept minimal to what the
+// Shapes mirrored from the orders.ts toApi() - kept minimal to what the
 // invoice actually renders. Unknown fields ride along untouched.
 interface ShippingAddress {
   fullName?: string
@@ -141,7 +141,7 @@ export default function InvoiceClient() {
     }
   }, [order, items])
 
-  // Optional ?auto=download — used by links that want to fire the save
+  // Optional ?auto=download - used by links that want to fire the save
   // dialog as soon as the order data resolves (e.g. a future "email me
   // my invoice" flow). Triggered exactly once per page load.
   const [autoFired, setAutoFired] = useState(false)
@@ -209,7 +209,7 @@ export default function InvoiceClient() {
 
   return (
     <main className="max-w-3xl mx-auto px-5 py-8 lg:py-12 invoice-root">
-      {/* On-screen action bar — hidden when printing */}
+      {/* On-screen action bar - hidden when printing */}
       <div className="flex items-center justify-between gap-3 mb-6 invoice-actions flex-wrap">
         <Link
           href={`/account/orders/${order.id}`}
@@ -247,17 +247,17 @@ export default function InvoiceClient() {
         </div>
       )}
 
-      {/* Invoice sheet — the only part printed */}
+      {/* Invoice sheet - the only part printed */}
       <article className="invoice-sheet bg-white text-ink rounded-2xl border border-ink/10 shadow-sm p-6 sm:p-10">
         {/* Header: studio brand block + invoice meta */}
         <header className="flex items-start justify-between gap-6 pb-6 border-b border-ink/10">
           <div className="flex items-center gap-3 lg:gap-5">
-            {/* Logo intentionally larger on desktop where there's room — keeps
+            {/* Logo intentionally larger on desktop where there's room - keeps
                 mobile compact so the meta block on the right still fits next
                 to it without wrapping. */}
             <div className="relative w-14 h-14 lg:w-24 lg:h-24 shrink-0">
               <Image
-                src="/Logos/logo.svg"
+                src="/Logos/logo.png"
                 alt=""
                 fill
                 sizes="(min-width: 1024px) 96px, 56px"
@@ -273,7 +273,7 @@ export default function InvoiceClient() {
             </div>
           </div>
           <div className="text-right">
-            {/* INVOICE eyebrow — discreet 11px muted on mobile, large bold
+            {/* INVOICE eyebrow - discreet 11px muted on mobile, large bold
                 lavender on desktop. Matches the PDF rendering of the same
                 label so the on-screen and downloaded artefacts feel like
                 one document at a glance. */}
@@ -413,7 +413,7 @@ export default function InvoiceClient() {
         </footer>
       </article>
 
-      {/* Print styles — keep them scoped to this page so other routes are
+      {/* Print styles - keep them scoped to this page so other routes are
           unaffected. The action bar hides; the sheet flattens to plain paper. */}
       <style jsx global>{`
         @media print {

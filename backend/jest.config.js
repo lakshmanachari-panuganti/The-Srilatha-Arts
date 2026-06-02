@@ -7,7 +7,7 @@ module.exports = {
   // This is where we set env vars that module-level guards read at load time
   // (JWT_SECRET, CSRF_SIGNING_KEY).
   setupFiles: ['<rootDir>/jest.setup.ts'],
-  // Only transform project source — leave node_modules as-is.
+  // Only transform project source - leave node_modules as-is.
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
   },

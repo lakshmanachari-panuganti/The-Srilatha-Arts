@@ -1,7 +1,7 @@
 /**
  * Admin Dashboard Stats Endpoint.
  *
- * GET  /api/admin/stats  — aggregated metrics for the overview dashboard
+ * GET  /api/admin/stats  - aggregated metrics for the overview dashboard
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'

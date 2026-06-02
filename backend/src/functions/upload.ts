@@ -1,9 +1,9 @@
 /**
  * Image Upload Endpoints (§8.4).
  *
- * POST /api/admin/upload     — admin product images (writes to the
+ * POST /api/admin/upload     - admin product images (writes to the
  *                              public product-images container).
- * POST /api/upload/customer  — customer photos (auth required). Used by:
+ * POST /api/upload/customer  - customer photos (auth required). Used by:
  *                                - /custom-order reference images
  *                                - /account return-request evidence
  *                                - /product/[id] review photos
@@ -12,7 +12,7 @@
  *                              endpoint (custom-orders, orders/return,
  *                              reviews) stores the resulting URL on
  *                              the relevant record. There is no
- *                              separate /upload/review endpoint —
+ *                              separate /upload/review endpoint -
  *                              one customer upload route serves all
  *                              authenticated customer image flows.
  */
@@ -49,7 +49,7 @@ function detectImageMime(buf: Buffer): 'image/jpeg' | 'image/png' | 'image/webp'
   return null
 }
 
-// Reused Azure clients — avoid re-creating per request and avoid runtime require().
+// Reused Azure clients - avoid re-creating per request and avoid runtime require().
 const customerBlobService = (() => {
   const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME
   if (!accountName) return null

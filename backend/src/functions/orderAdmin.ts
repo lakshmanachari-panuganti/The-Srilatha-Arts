@@ -1,12 +1,12 @@
 /**
  * Admin Order Endpoints (§5.1).
  *
- * GET    /api/admin/orders                 — filtered list
- * GET    /api/admin/orders/{id}            — full detail
- * PATCH  /api/admin/orders/{id}/status     — transition via state machine
- * POST   /api/admin/orders/{id}/notes      — internal admin note
- * GET    /api/admin/orders/{id}/events     — full activity log
- * PATCH  /api/admin/orders/bulk-status     — bulk advance
+ * GET    /api/admin/orders                 - filtered list
+ * GET    /api/admin/orders/{id}            - full detail
+ * PATCH  /api/admin/orders/{id}/status     - transition via state machine
+ * POST   /api/admin/orders/{id}/notes      - internal admin note
+ * GET    /api/admin/orders/{id}/events     - full activity log
+ * PATCH  /api/admin/orders/bulk-status     - bulk advance
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
@@ -277,7 +277,7 @@ async function adminUpdateStatus(
 
     const now = new Date().toISOString()
 
-    // Razorpay refund — runs FIRST when moving to REFUNDED on a card/UPI/
+    // Razorpay refund - runs FIRST when moving to REFUNDED on a card/UPI/
     // netbanking order, so we don't mark the order REFUNDED in our system
     // unless the gateway accepted the refund. Failure here keeps the order
     // at whatever it was before and surfaces the gateway's error to admin.
@@ -353,7 +353,7 @@ async function adminUpdateStatus(
         updatedAt: now,
       })
     } catch (indexErr) {
-      // Non-fatal — nightly reconciliation will fix drift.
+      // Non-fatal - nightly reconciliation will fix drift.
       context.warn('ordersByStatus index update failed', indexErr)
     }
 

@@ -1,6 +1,6 @@
 'use client'
 /**
- * HomeHero — full-bleed editorial hero.
+ * HomeHero - full-bleed editorial hero.
  *
  * Replaces the prior stacked HeroSlideshow + Hero pair. The slideshow
  * now lives behind a static headline + CTAs (brand promise, not per-slide
@@ -38,7 +38,7 @@ const SLIDES: readonly Slide[] = [
   { src: '/Slideshow/02-dot-mandala.jpg',         alt: 'Hand-painted dot mandala in vibrant colour',              eyebrow: 'Dot Mandala' },
   { src: '/Slideshow/03-lippan.jpg',              alt: 'Lippan art with clay and mirror work',                    eyebrow: 'Lippan Art' },
   { src: '/Slideshow/04-kolam.jpg',               alt: 'Kolam line art on dark background',                       eyebrow: 'Kolam Art' },
-  { src: '/Slideshow/05-wedding-decoratives.jpg', alt: 'Handcrafted wedding decoratives — keepsakes and gifts',   eyebrow: 'Wedding Collection' },
+  { src: '/Slideshow/05-wedding-decoratives.jpg', alt: 'Handcrafted wedding decoratives - keepsakes and gifts',   eyebrow: 'Wedding Collection' },
 ] as const
 
 const AUTOPLAY_MS = 5000
@@ -129,7 +129,7 @@ export default function HomeHero() {
         )
       })}
 
-      {/* Warm ink scrim — diagonal so the photograph still breathes on the
+      {/* Warm ink scrim - diagonal so the photograph still breathes on the
           right while text on the left/centre stays legible, plus a soft
           top-down wash so the fixed Header's ivory-tinted glyphs have a
           dark backing while the user is at scroll position 0. Ink-toned
@@ -188,7 +188,7 @@ export default function HomeHero() {
             transition={{ duration: 1, delay: 0.45 }}
             className="flex flex-col items-start gap-3 mb-10"
           >
-            {/* Primary CTA — ivory fill, ink text. Reads as the brand's
+            {/* Primary CTA - ivory fill, ink text. Reads as the brand's
                 "click here" against the warm scrim. */}
             <Link
               href="/shop"
@@ -212,7 +212,7 @@ export default function HomeHero() {
             </Link>
           </motion.div>
 
-          {/* Trust strip — concrete signals, dot separators on ≥sm. */}
+          {/* Trust strip - concrete signals, dot separators on ≥sm. */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -230,7 +230,7 @@ export default function HomeHero() {
         </div>
       </div>
 
-      {/* Dots indicator. Sits over the image at the bottom centre — large
+      {/* Dots indicator. Sits over the image at the bottom centre - large
           enough on mobile to be a real tap target (44×44 hit area via
           generous padding on the wrapping button). */}
       <div className="absolute inset-x-0 bottom-6 sm:bottom-8 z-[4] flex items-center justify-center gap-2">
@@ -257,7 +257,7 @@ export default function HomeHero() {
         })}
       </div>
 
-      {/* Pause / play. WCAG 2.2.1 — autoplay must be pause-able. */}
+      {/* Pause / play. WCAG 2.2.1 - autoplay must be pause-able. */}
       <button
         type="button"
         onClick={() => {

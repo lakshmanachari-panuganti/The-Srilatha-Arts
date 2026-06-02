@@ -185,7 +185,7 @@ app.http('adminCreateProduct', {
   handler: adminCreateProduct,
 })
 
-// Note: OPTIONS is NOT listed here — adminDeleteProduct already registers OPTIONS
+// Note: OPTIONS is NOT listed here - adminDeleteProduct already registers OPTIONS
 // on this route. Registering OPTIONS in two functions on the same route causes
 // Azure Functions v4 to silently drop one handler (the PATCH handler was lost).
 app.http('adminUpdateProduct', {

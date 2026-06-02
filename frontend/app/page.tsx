@@ -11,7 +11,7 @@ import ContactCTA from '@/components/marketing/ContactCTA'
 export default function HomePage() {
   return (
     <>
-      {/* 1. Hero — full-bleed slideshow with overlaid brand promise + CTAs.
+      {/* 1. Hero - full-bleed slideshow with overlaid brand promise + CTAs.
             Negative top pulls the hero under the fixed Header (which reserves
             5rem / 7.5rem via its own spacer) so the photograph reaches the
             top of the viewport. The warm scrim already covers the area where

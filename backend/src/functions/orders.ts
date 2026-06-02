@@ -1,10 +1,10 @@
 /**
  * Customer Order Endpoints (§4.1).
  *
- * POST   /api/orders          — create order
- * GET    /api/my-orders       — list user's orders (renamed from /orders/me to avoid route conflict)
- * GET    /api/orders/{id}     — owner OR admin
- * GET    /api/orders/{id}/events — owner timeline
+ * POST   /api/orders          - create order
+ * GET    /api/my-orders       - list user's orders (renamed from /orders/me to avoid route conflict)
+ * GET    /api/orders/{id}     - owner OR admin
+ * GET    /api/orders/{id}/events - owner timeline
  * POST   /api/orders/{id}/cancel
  * PATCH  /api/orders/{id}/address
  * POST   /api/orders/{id}/issue
@@ -40,7 +40,7 @@ import {
 } from '../types'
 import { randomBytes } from 'crypto'
 
-// Photo URLs on return requests must live on our own blob domain — same
+// Photo URLs on return requests must live on our own blob domain - same
 // rule we apply to review photos. Stops customers (or scripted clients)
 // from pointing us at javascript:/data:/external URLs.
 function sanitiseReturnPhotos(input: unknown): string[] {
@@ -66,7 +66,7 @@ function sanitiseReturnPhotos(input: unknown): string[] {
     .slice(0, 6)
 }
 
-// 5-digit Math.random() collision space was 100K — a year of orders would
+// 5-digit Math.random() collision space was 100K - a year of orders would
 // have measurable collisions, and an attacker could simply guess IDs.
 // Switch to crypto.randomBytes for 10 hex chars of entropy.
 function generateOrderId(): string {
@@ -99,7 +99,7 @@ function toApi(row: Row) {
     holdReason: row.holdReason || undefined,
     invoiceUrl: row.invoiceUrl || undefined,
     customerNote: row.customerNote || undefined,
-    // Return / refund metadata — exposed so the account page can render
+    // Return / refund metadata - exposed so the account page can render
     // the right "in progress" / "approved" / "declined" / "refunded" UI.
     returnRequestedAt: row.returnRequestedAt || undefined,
     returnReason: row.returnReason || undefined,
@@ -159,7 +159,7 @@ async function createNewOrder(
       }
     }
 
-    // Authoritative price lookup — never trust client-side prices (§13).
+    // Authoritative price lookup - never trust client-side prices (§13).
     let subtotal = 0
     const itemSnapshots: OrderItemSnapshot[] = []
 

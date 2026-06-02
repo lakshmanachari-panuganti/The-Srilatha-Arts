@@ -37,22 +37,22 @@ export default function AdminDashboardPage() {
   const statCards = [
     {
       name: 'Total Revenue',
-      value: stats ? formatINR(stats.totalRevenue) : '—',
+      value: stats ? formatINR(stats.totalRevenue) : '-',
       icon: IndianRupee,
     },
     {
       name: 'Orders (30d)',
-      value: stats ? String(stats.ordersLast30Days) : '—',
+      value: stats ? String(stats.ordersLast30Days) : '-',
       icon: ShoppingBag,
     },
     {
       name: 'Active Products',
-      value: stats ? String(stats.activeProducts) : '—',
+      value: stats ? String(stats.activeProducts) : '-',
       icon: Package,
     },
     {
       name: 'Total Customers',
-      value: stats ? String(stats.totalCustomers) : '—',
+      value: stats ? String(stats.totalCustomers) : '-',
       icon: Users,
     },
   ]
@@ -76,7 +76,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
                 <p className="text-sm text-ink-soft mb-1">{stat.name}</p>
-                <p className="text-2xl font-serif text-ink">{isError ? '—' : stat.value}</p>
+                <p className="text-2xl font-serif text-ink">{isError ? '-' : stat.value}</p>
               </div>
             ))}
       </div>

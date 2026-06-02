@@ -1,13 +1,13 @@
 /**
- * Cart Endpoints — per-user persistence so the cart survives device
+ * Cart Endpoints - per-user persistence so the cart survives device
  * switches, browser clears, and incognito sessions, and so two users
  * sharing a browser don't see each other's items.
  *
- * GET    /api/cart                 — list user's cart (enriched)
- * POST   /api/cart                 — add or increment item
- * PATCH  /api/cart/{productId}     — set exact quantity (0 removes)
- * DELETE /api/cart/{productId}     — remove
- * DELETE /api/cart                 — clear entire cart (used after checkout)
+ * GET    /api/cart                 - list user's cart (enriched)
+ * POST   /api/cart                 - add or increment item
+ * PATCH  /api/cart/{productId}     - set exact quantity (0 removes)
+ * DELETE /api/cart/{productId}     - remove
+ * DELETE /api/cart                 - clear entire cart (used after checkout)
  *
  * Shape of GET response mirrors the frontend's CartItem type so the
  * store can swap server data in without per-item product fetches.
@@ -27,7 +27,7 @@ import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '../utils/response'
 
 // Sane upper bound per line. Handcrafted inventory is one-of-a-kind, so
-// 99 is the absolute ceiling — we'd never sell that many of a single
+// 99 is the absolute ceiling - we'd never sell that many of a single
 // piece in a single order. Stops users (or scripted clients) from
 // posting absurd quantities.
 const MAX_QTY_PER_ITEM = 99
@@ -38,7 +38,7 @@ async function enrich(rows: Row[]): Promise<unknown[]> {
       const product = await getProductById(row.rowKey as string)
       // `price` is the current (potentially discounted) display price the
       // customer actually pays. `compareAtPrice` is the original/strike-
-      // through price for sale messaging — only set when the product is
+      // through price for sale messaging - only set when the product is
       // genuinely on sale. The cart UI renders both side-by-side, same
       // treatment as the product card.
       const compareAtPrice =
@@ -88,7 +88,7 @@ async function cartHandler(
       const product = await getProductById(body.productId)
       if (!product) return errorResponse('Product not found', 404, origin)
 
-      // POST increments — fetch existing qty and add. PATCH is the way
+      // POST increments - fetch existing qty and add. PATCH is the way
       // to SET an absolute quantity.
       const existing = (await getCart(user.userId)).find((r) => r.rowKey === body.productId)
       const currentQty = Number(existing?.quantity ?? 0)

@@ -352,7 +352,7 @@ export default function CartPage() {
           </Link>
 
           {/*
-            Payment-method strip — answers the "will my UPI work here?"
+            Payment-method strip - answers the "will my UPI work here?"
             question BEFORE the customer commits to checkout. Per the
             buyer-psychology audit, payment-method anxiety is one of the
             top 3 Indian D2C abandonment reasons. A single line of trust

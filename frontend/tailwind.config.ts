@@ -12,7 +12,7 @@ const config: Config = {
         // ── Two-layer system ───────────────────────────────────────
         // Tailwind tokens here are *aliases* of CSS variables defined
         // in app/globals.css `:root`. The variables are the single
-        // source of truth — change them to retheme. Names kept for
+        // source of truth - change them to retheme. Names kept for
         // back-compat with ~200 call sites; values resolve at runtime.
         //
         // We use `rgb(var(--…-rgb) / <alpha-value>)` so opacity
@@ -24,7 +24,7 @@ const config: Config = {
         // ivory + ink + gold.
         // ─────────────────────────────────────────────────────────
 
-        // Surfaces — page, raised cards, sunken alt sections
+        // Surfaces - page, raised cards, sunken alt sections
         plum:            'rgb(var(--surface-rgb) / <alpha-value>)',
         'plum-light':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
         'plum-warm':     'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
@@ -45,7 +45,7 @@ const config: Config = {
         'primary-dark':    'rgb(var(--brand-rgb) / <alpha-value>)',
         'primary-burnt':   'rgb(var(--brand-strong-rgb) / <alpha-value>)',
 
-        // Text — ivory-* and ink-* are both kept and point at the
+        // Text - ivory-* and ink-* are both kept and point at the
         // same vars; existing call sites use both interchangeably.
         ivory:        'rgb(var(--text-rgb) / <alpha-value>)',
         'ivory-soft': 'rgb(var(--text-body-rgb) / <alpha-value>)',
@@ -80,15 +80,15 @@ const config: Config = {
         //   brand → Square Peg, reserved exclusively for the "Srilatha
         //           Art" wordmark. Do not use it elsewhere.
         //
-        // CSS variables come from next/font/google in app/layout.tsx —
+        // CSS variables come from next/font/google in app/layout.tsx -
         // see the Typography comment block there for the loader config.
         sans:  ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-cormorant)', 'Georgia', 'serif'],
         brand: ['"Pramukh Rounded"', 'sans-serif'],
       },
       fontSize: {
-        '10': ['0.625rem', { lineHeight: '1.5' }],   // 10px — label caps, tab bar text
-        '11': ['0.6875rem', { lineHeight: '1.5' }],  // 11px — eyebrow / sticker
+        '10': ['0.625rem', { lineHeight: '1.5' }],   // 10px - label caps, tab bar text
+        '11': ['0.6875rem', { lineHeight: '1.5' }],  // 11px - eyebrow / sticker
         xs: ['14px', { lineHeight: '1.5' }],
         sm: ['14px', { lineHeight: '1.5' }],
         base: ['16px', { lineHeight: '1.65' }],
@@ -164,7 +164,7 @@ const config: Config = {
         card: '0 8px 24px -12px rgba(34, 27, 18, 0.18)',
         soft: '0 2px 12px -2px rgba(34, 27, 18, 0.08)',
         // The `lavender-glow*` keys are kept for back-compat but the
-        // colored glow is intentionally retired — these now resolve
+        // colored glow is intentionally retired - these now resolve
         // to a soft neutral lift, matching the rest of the theme.
         'lavender-glow':   '0 8px 18px -10px rgba(34, 27, 18, 0.18)',
         'lavender-glow-lg':'0 14px 28px -14px rgba(34, 27, 18, 0.22)',
