@@ -74,7 +74,7 @@ export default function Header() {
                 priority
                 className={cn(
                   'w-[68px] h-[68px] lg:w-28 lg:h-28 object-contain transition-all duration-500 shrink-0',
-                  'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
+                  'drop-shadow-[0_2px_6px_rgba(34,27,18,0.10)]',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />

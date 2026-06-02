@@ -70,7 +70,14 @@
       "Read(//c/repos/The-Srilatha-Arts/frontend/app/account/invoices/**)",
       "PowerShell($src = \"frontend\\\\app\\\\account\\\\orders\\\\[id]\\\\invoice\"; $dstParent = \"frontend\\\\app\\\\account\\\\invoices\"; $dst = \"frontend\\\\app\\\\account\\\\invoices\\\\[id]\"; New-Item -ItemType Directory -Force -Path $dstParent | Out-Null; New-Item -ItemType Directory -Force -LiteralPath $dst | Out-Null; Move-Item -LiteralPath \"$src\\\\page.tsx\" -Destination \"$dst\\\\page.tsx\"; Move-Item -LiteralPath \"$src\\\\InvoiceClient.tsx\" -Destination \"$dst\\\\InvoiceClient.tsx\"; Remove-Item -LiteralPath $src -Recurse -Force; Get-ChildItem -LiteralPath $dst)",
       "PowerShell(\"Cleared .next\")",
-      "PowerShell(\"Cleared tsbuildinfo + .next\")"
+      "PowerShell(\"Cleared tsbuildinfo + .next\")",
+      "Read(//c/Users/E092721/**)",
+      "Bash(env)",
+      "Bash(NODE_EXTRA_CA_CERTS=\"C:\\\\\\\\ProgramData\\\\\\\\RSM\\\\\\\\TLS\\\\\\\\cacertWithRsm.pem\" npm run build)",
+      "Bash(NODE_TLS_REJECT_UNAUTHORIZED=0 npm run build)",
+      "Bash(git -c commit.gpgsign=false commit -m ' *)",
+      "Bash(git -c commit.gpgsign=false commit -m \"refactor\\(theme\\): centralize colors behind semantic CSS variables \\(no visual change\\)\" -m \"Phase 1 of the warm-ivory reskin \\(see RESTYLE.md\\). Tailwind tokens now resolve to CSS variables on :root; opacity modifiers continue to compose alpha via parallel -rgb triplets. Inline component hexes swapped for var\\(--brand/--accent/--wa-1\\) etc. Hex values remain == the prior lavender palette so the site renders identically.\" -m \"Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\")",
+      "Bash(git -c commit.gpgsign=false commit -m \"feat\\(theme\\): warm ivory + ink + gold palette\" -m \"Phase 2 of the reskin \\(see RESTYLE.md §4\\). Only the :root token block changes value to swap the whole site to warm ivory ground, espresso ink for text/primary buttons, and a single restrained gold accent. Backdrop blur dropped from .card / .glass / .glass-strong, colored glow shadows removed from buttons + .glow-hover, body multi-gradient replaced with one subtle warm wash, paper grain disabled on mobile. New .gold-text component class added with a graceful fallback. Razorpay theme + PWA themeColor + invoice PDF brand RGB aligned to the new palette. lavender-pastel Tailwind alias points at --accent-strong \\(deep gold, AA on ivory\\) so small-text links stay readable.\" -m \"Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\E092721\\AppData\\Local\\Temp",

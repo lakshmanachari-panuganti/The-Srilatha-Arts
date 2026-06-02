@@ -79,14 +79,14 @@ export async function downloadInvoicePdf(
   const pageW = doc.internal.pageSize.getWidth()
   const margin = 42
 
-  // ── Brand colours (deep purple ink + lavender accent — matches site theme).
-  const ink: [number, number, number] = [42, 30, 60]
-  const inkSoft: [number, number, number] = [110, 100, 130]
-  const inkMute: [number, number, number] = [150, 145, 165]
-  const rule: [number, number, number] = [225, 220, 235]
-  // Vivid lavender for the INVOICE eyebrow — Tailwind violet-600 (#7C3AED),
-  // same family as the Razorpay theme colour configured in CheckoutClient.
-  const lavender: [number, number, number] = [124, 58, 237]
+  // ── Brand colours (espresso ink + ochre gold accent — matches site theme).
+  const ink: [number, number, number] = [34, 27, 18]
+  const inkSoft: [number, number, number] = [67, 57, 46]
+  const inkMute: [number, number, number] = [138, 126, 110]
+  const rule: [number, number, number] = [225, 219, 207]
+  // Gold for the INVOICE eyebrow — --accent-strong #8A6A1A (passes AA on
+  // ivory paper). Lighter ochre is reserved for display-size words only.
+  const lavender: [number, number, number] = [138, 106, 26]
 
   // ── Header row: brand on the left, invoice meta on the right ─────────
   let y = margin

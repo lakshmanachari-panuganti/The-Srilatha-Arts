@@ -34,10 +34,14 @@ const config: Config = {
         'cream-deep':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
         paper:           'rgb(var(--surface-raised-rgb) / <alpha-value>)',
 
-        // Brand + accent
+        // Brand + accent. `lavender-pastel` is used on small-text links
+        // across the site (FAQ, contact, custom-order…) so it points at
+        // --accent-strong (deeper gold, AA-passing on ivory at text size)
+        // rather than the bright --accent. The `.gold-text` display class
+        // and hover states are where the bright gold lives.
         lavender:          'rgb(var(--brand-rgb) / <alpha-value>)',
         'lavender-soft':   'rgb(var(--brand-rgb) / <alpha-value>)',
-        'lavender-pastel': 'rgb(var(--accent-rgb) / <alpha-value>)',
+        'lavender-pastel': 'rgb(var(--accent-strong-rgb) / <alpha-value>)',
         'primary-dark':    'rgb(var(--brand-rgb) / <alpha-value>)',
         'primary-burnt':   'rgb(var(--brand-strong-rgb) / <alpha-value>)',
 
@@ -148,20 +152,23 @@ const config: Config = {
       backgroundImage: {
         'paper-grain':
           "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E\")",
-        'lavender-gradient': 'linear-gradient(135deg, #EFE7FF 0%, #E9D5FF 45%, #D8B4F8 100%)',
-        'plum-gradient': 'linear-gradient(135deg, #FFFFFF 0%, #F8F4FF 50%, #EFE7FF 100%)',
+        'lavender-gradient': 'linear-gradient(135deg, #FFFFFF 0%, #FBF8F2 45%, #F2EBDD 100%)',
+        'plum-gradient': 'linear-gradient(135deg, #FFFFFF 0%, #FBF8F2 50%, #F2EBDD 100%)',
       },
       maxWidth: {
         '8xl': '88rem',
         reader: '38rem',
       },
       boxShadow: {
-        editorial: '0 30px 60px -20px rgba(75, 63, 114, 0.15)',
-        card: '0 8px 32px -8px rgba(75, 63, 114, 0.12)',
-        soft: '0 2px 12px -2px rgba(75, 63, 114, 0.08)',
-        'lavender-glow': '0 0 30px rgba(216, 180, 248, 0.4)',
-        'lavender-glow-lg': '0 0 60px rgba(216, 180, 248, 0.45)',
-        glass: '0 8px 32px 0 rgba(75, 63, 114, 0.1)',
+        editorial: '0 30px 60px -20px rgba(34, 27, 18, 0.18)',
+        card: '0 8px 24px -12px rgba(34, 27, 18, 0.18)',
+        soft: '0 2px 12px -2px rgba(34, 27, 18, 0.08)',
+        // The `lavender-glow*` keys are kept for back-compat but the
+        // colored glow is intentionally retired — these now resolve
+        // to a soft neutral lift, matching the rest of the theme.
+        'lavender-glow':   '0 8px 18px -10px rgba(34, 27, 18, 0.18)',
+        'lavender-glow-lg':'0 14px 28px -14px rgba(34, 27, 18, 0.22)',
+        glass: '0 8px 24px -12px rgba(34, 27, 18, 0.18)',
       },
     },
   },

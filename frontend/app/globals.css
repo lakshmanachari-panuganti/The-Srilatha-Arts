@@ -46,34 +46,34 @@
        block — and only this block — to retheme everything.
        ─────────────────────────────────────────────────────────── */
 
-    /* Surfaces */
-    --surface:        #EDE9FE;
-    --surface-rgb:    237 233 254;
+    /* Surfaces — warm ivory ground, sand alt sections */
+    --surface:        #FBF8F2;
+    --surface-rgb:    251 248 242;
     --surface-raised: #FFFFFF;
     --surface-raised-rgb: 255 255 255;
-    --surface-sunken: #DDD6FE;
-    --surface-sunken-rgb: 221 214 254;
+    --surface-sunken: #F2EBDD;
+    --surface-sunken-rgb: 242 235 221;
 
-    /* Text */
-    --text:        #2A1056;
-    --text-rgb:    42 16 86;
-    --text-body:   #3D2F55;
-    --text-body-rgb: 61 47 85;
-    --text-muted:  #7B6F8A;
-    --text-muted-rgb: 123 111 138;
+    /* Text — espresso ink */
+    --text:        #221B12;
+    --text-rgb:    34 27 18;
+    --text-body:   #43392E;
+    --text-body-rgb: 67 57 46;
+    --text-muted:  #8A7E6E;
+    --text-muted-rgb: 138 126 110;
 
-    /* Brand + accent */
-    --brand:         #7C3AED;
-    --brand-rgb:     124 58 237;
-    --brand-strong:  #5B21B6;
-    --brand-strong-rgb: 91 33 182;
-    --accent:        #E879F9;
-    --accent-rgb:    232 121 249;
-    --accent-strong: #A855F7;
-    --accent-strong-rgb: 168 85 247;
+    /* Brand = ink (primary buttons/links); accent = gold/ochre */
+    --brand:         #221B12;
+    --brand-rgb:     34 27 18;
+    --brand-strong:  #000000;
+    --brand-strong-rgb: 0 0 0;
+    --accent:        #C8962F;
+    --accent-rgb:    200 150 47;
+    --accent-strong: #8A6A1A;
+    --accent-strong-rgb: 138 106 26;
 
-    --border:        rgba(124,58,237,0.40);
-    --ring:          #E879F9;
+    --border:        rgba(34,27,18,0.12);
+    --ring:          #C8962F;
 
     /* functional colours — NOT themed, keep across reskins */
     --ok:   #1A7F4B;
@@ -120,22 +120,26 @@
     /* Inherit-friendly default; consumers can override on individual
        lines where they need lining figures (rare). */
     font-variant-numeric: lining-nums;
+    /* ONE ultra-subtle warm wash at the top — keeps the page from
+       reading as flat paper without competing with photography. */
+    background-color: var(--surface);
     background-image:
-      radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in srgb, var(--brand) 35%, transparent) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 50% at 100% 80%, color-mix(in srgb, var(--accent) 25%, transparent) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 40% at 0% 60%, color-mix(in srgb, var(--brand) 30%, transparent) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 30% at 50% 100%, color-mix(in srgb, var(--brand-strong) 20%, transparent) 0%, transparent 50%);
+      radial-gradient(ellipse 90% 60% at 50% -10%, rgba(200,150,47,0.06) 0%, transparent 60%);
   }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: theme('backgroundImage.paper-grain');
-    opacity: 0.025;
-    pointer-events: none;
-    z-index: 1;
-    mix-blend-mode: overlay;
+  /* Paper-grain overlay — desktop only. On mobile the full-screen
+     mix-blend-mode layer costs paint with no perceptible benefit. */
+  @media (min-width: 769px) {
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: theme('backgroundImage.paper-grain');
+      opacity: 0.02;
+      pointer-events: none;
+      z-index: 1;
+      mix-blend-mode: overlay;
+    }
   }
 
   /* Default heading style — picks up Cormorant Garamond via
@@ -286,12 +290,11 @@
 
   .btn-dark {
     @apply btn text-white;
-    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 60%, var(--brand-strong) 100%);
-    box-shadow: 0 4px 24px color-mix(in srgb, var(--brand) 45%, transparent);
+    background: var(--brand);
   }
   .btn-dark:hover {
-    box-shadow: 0 8px 36px color-mix(in srgb, var(--brand) 65%, transparent);
-    transform: translateY(-2px);
+    background: var(--brand-strong);
+    transform: translateY(-1px);
   }
 
   .btn-outline {
@@ -299,11 +302,12 @@
     color: var(--text);
     border: 1.5px solid var(--border);
     border-radius: 24px;
+    background: transparent;
   }
   .btn-outline:hover {
-    border-color: color-mix(in srgb, var(--brand) 70%, transparent);
-    color: var(--brand-strong);
-    background: color-mix(in srgb, var(--brand) 8%, transparent);
+    border-color: color-mix(in srgb, var(--text) 35%, transparent);
+    color: var(--text);
+    background: color-mix(in srgb, var(--text) 4%, transparent);
   }
 
   /* Inline text link with a subtle underline — used in marketing
@@ -319,35 +323,33 @@
   /* ───────────── Cards & surfaces - glassmorphism ───────────── */
 
   .card {
-    background: color-mix(in srgb, var(--surface-raised) 82%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid color-mix(in srgb, var(--brand) 45%, transparent);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
     border-radius: 24px;
-    box-shadow: 0 8px 32px 0 color-mix(in srgb, var(--brand-strong) 12%, transparent);
+    box-shadow: 0 8px 24px -12px rgba(34,27,18,0.18);
     transition: box-shadow 0.5s ease, transform 0.5s ease, border-color 0.5s ease;
   }
   .card:hover {
-    box-shadow: 0 16px 48px color-mix(in srgb, var(--brand) 25%, transparent);
-    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+    box-shadow: 0 16px 32px -14px rgba(34,27,18,0.22);
+    border-color: color-mix(in srgb, var(--text) 18%, transparent);
   }
 
   .card-cream {
     border-radius: 24px;
-    background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
-    border: 1px solid color-mix(in srgb, var(--surface-sunken) 60%, transparent);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
   }
 
-  /* Sticker / pill badge — vivid accent label. */
+  /* Sticker / pill badge — solid ink fill, restrained. Photography
+     carries the colour now; chrome stays warm-neutral. */
   .sticker {
     @apply inline-flex items-center justify-center
            text-[10px] uppercase font-semibold
            px-3 py-1.5;
     letter-spacing: 0.18em;
     border-radius: 24px;
-    background: linear-gradient(135deg, var(--brand) 0%, var(--accent-strong) 50%, var(--accent) 100%);
+    background: var(--brand);
     color: #ffffff;
-    box-shadow: 0 2px 16px color-mix(in srgb, var(--brand) 45%, transparent);
   }
 
   /* Horizontal-scroll chip rail */
@@ -374,10 +376,9 @@
   }
   .chip[aria-current='page'],
   .chip.is-active {
-    background: linear-gradient(135deg, var(--brand), var(--accent-strong));
+    background: var(--brand);
     border-color: transparent;
     color: #ffffff;
-    box-shadow: 0 4px 16px color-mix(in srgb, var(--brand) 40%, transparent);
     font-weight: 600;
   }
 
@@ -397,37 +398,55 @@
       transparent);
   }
 
-  /* ───────────── Glass surfaces ───────────── */
+  /* ───────────── Surfaces (formerly glass) ─────────────
+     Blur dropped: it's the biggest mobile paint cost and the warm
+     ivory ground doesn't need a frosted layer to read clean. These
+     class names are kept so the ~8 components using them don't need
+     touching; the look is now a solid raised panel with a hairline. */
 
   .glass {
-    background: color-mix(in srgb, var(--surface) 65%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid color-mix(in srgb, var(--brand) 45%, transparent);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
   }
 
   .glass-strong {
-    background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid color-mix(in srgb, var(--surface-sunken) 60%, transparent);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
   }
 
-  /* ───────────── Glow hover ───────────── */
+  /* ───────────── Hover lift (no glow) ───────────── */
 
   .glow-hover {
     transition: box-shadow 0.5s ease, transform 0.5s ease;
   }
   .glow-hover:hover {
-    box-shadow: 0 0 60px color-mix(in srgb, var(--brand) 40%, transparent);
+    box-shadow: 0 12px 28px -16px rgba(34,27,18,0.22);
     transform: translateY(-2px);
   }
 
   /* ───────────── Kolam decorative dot pattern ───────────── */
 
   .kolam-dots {
-    background-image: radial-gradient(circle, color-mix(in srgb, var(--brand) 18%, transparent) 1px, transparent 1px);
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 14%, transparent) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  /* ───────────── Gold display text ─────────────
+     Used on hero/section accent words: "Home" (Hero), "studio"
+     (Footer), wordmark accents, the big serif numbers in WhyChooseUs
+     and CustomOrderCTA. Gradient text-fill via background-clip with
+     a solid fallback for browsers that lack support. Per §7 contrast,
+     use this only on ≥24px/700 display words; for small text rely on
+     --accent-strong instead. */
+  .gold-text {
+    background: linear-gradient(135deg, #E8C25A 0%, var(--accent) 45%, var(--accent-strong) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--accent-strong);
+  }
+  @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+    .gold-text { color: var(--accent-strong); }
   }
 }
 
@@ -484,10 +503,13 @@
   /* Semantic on-dark text helpers — use on elements inside dark nav
      surfaces (MobileDrawer, BottomTabBar, StickyCartBar, SearchOverlay)
      instead of repeating the equivalent dark-text tokens which would be
-     invisible against a deep-purple background. */
+     invisible against the dark ink background.
+       on-dark         → warm ivory (page surface)
+       on-dark-muted   → soft sand
+       on-dark-accent  → gold accent — calls attention without competing */
   .text-on-dark { @apply text-plum; }
   .text-on-dark-muted { @apply text-plum-warm; }
-  .text-on-dark-accent { @apply text-lavender-soft; }
+  .text-on-dark-accent { color: var(--accent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
