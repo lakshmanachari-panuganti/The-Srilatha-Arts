@@ -22,7 +22,7 @@
          Stored as the sentinel string __EMPTY__ so restore can write it back correctly.
 
     The original setting name is always saved in the OriginalKey tag.
-    This is what the restore script uses — so the encoded name is just
+    This is what the restore script uses - so the encoded name is just
     for readability when browsing the vault.
 
 .PARAMETER FunctionAppName
@@ -138,7 +138,7 @@ Write-Host ""
 $keyVault = Get-AzKeyVault -VaultName $KeyVaultName -ErrorAction SilentlyContinue
 
 if (-not $keyVault) {
-    Write-Host "Key Vault '$KeyVaultName' not found — creating it now..." -ForegroundColor Yellow
+    Write-Host "Key Vault '$KeyVaultName' not found - creating it now..." -ForegroundColor Yellow
 
     $keyVault = New-AzKeyVault `
         -Name                    $KeyVaultName `
@@ -184,19 +184,19 @@ Write-Host ""
 #
 #    Three special cases handled per setting:
 #
-#    CASE 1 — Empty value
+#    CASE 1 - Empty value
 #      KV cannot store empty strings. We store the sentinel
 #      '__EMPTY__' so restore knows to write back an empty string.
 #
-#    CASE 2 — Dot ( . ) in the name
+#    CASE 2 - Dot ( . ) in the name
 #      KV secret names do not allow dots.
 #      Encoded as -DOT-  e.g.  TEST.DELETE  →  TEST-DOT-DELETE
 #
-#    CASE 3 — Underscore ( _ ) in the name
+#    CASE 3 - Underscore ( _ ) in the name
 #      KV secret names do not allow underscores.
 #      Encoded as a single hyphen  e.g.  AZURE_OPENAI_KEY  →  AZURE-OPENAI-KEY
 #
-#    No collision risk — app setting names can never contain hyphens,
+#    No collision risk - app setting names can never contain hyphens,
 #    so every hyphen in the KV name came from our encoding.
 #    The OriginalKey tag is the primary source of truth on restore.
 # -------------------------------------------------------
@@ -208,19 +208,19 @@ foreach ($setting in $settingsProperties) {
     $originalKey = $setting.Name
     $value = $setting.Value
 
-    # CASE 1 — Empty value
+    # CASE 1 - Empty value
     if ([string]::IsNullOrEmpty($value)) {
-        Write-Host "  Backing up : $originalKey  ->  (empty — storing as sentinel __EMPTY__)" -ForegroundColor DarkGray
+        Write-Host "  Backing up : $originalKey  ->  (empty - storing as sentinel __EMPTY__)" -ForegroundColor DarkGray
         $value = '__EMPTY__'
         $empty++
     }
 
-    # CASE 2 + 3 — Encode the secret name for Key Vault
+    # CASE 2 + 3 - Encode the secret name for Key Vault
     # Dot must be replaced before underscore so -DOT- is written intact
     $secretName = $originalKey -replace '\.', '-DOT-'   # CASE 2 : . → -DOT-
     $secretName = $secretName -replace '_', '-'        # CASE 3 : _ → -
 
-    # KV requires the name to start with a letter — prefix if it starts with a digit
+    # KV requires the name to start with a letter - prefix if it starts with a digit
     if ($secretName -match '^\d') { $secretName = "x-$secretName" }
 
     if (-not [string]::IsNullOrEmpty($setting.Value)) {

@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
     e.preventDefault()
     const success = await login(username, password)
     if (success) {
-      // Only honour `next` if it points inside /admin — never accept an
+      // Only honour `next` if it points inside /admin - never accept an
       // arbitrary URL (open-redirect class). The leading-slash check rules
       // out protocol-relative URLs like //evil.com.
       const next = searchParams.get('next') || ''

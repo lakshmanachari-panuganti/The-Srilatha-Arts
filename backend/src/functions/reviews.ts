@@ -2,15 +2,15 @@
  * Review Endpoints (§4.2, §5.2).
  *
  * Public:
- *   GET  /api/reviews/product/{id}     — moderated reviews for a product
+ *   GET  /api/reviews/product/{id}     - moderated reviews for a product
  *
  * Customer:
- *   GET  /api/reviews/eligibility?productId=...  — can I review this?
- *   POST /api/reviews                  — submit review (gated: must have DELIVERED order)
+ *   GET  /api/reviews/eligibility?productId=...  - can I review this?
+ *   POST /api/reviews                  - submit review (gated: must have DELIVERED order)
  *
  * Admin:
- *   GET   /api/admin/reviews           — moderation queue
- *   PATCH /api/admin/reviews/{id}      — approve/hide/reply
+ *   GET   /api/admin/reviews           - moderation queue
+ *   PATCH /api/admin/reviews/{id}      - approve/hide/reply
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
@@ -104,7 +104,7 @@ async function reviewEligibility(
 
   const user = requireUser(request)
   if (!user) {
-    // 200 + eligible:false on purpose — anonymous visitors shouldn't get
+    // 200 + eligible:false on purpose - anonymous visitors shouldn't get
     // a console-noisy 401; the PDP just renders the "sign in to review"
     // CTA. Reason is informational.
     return jsonResponse(

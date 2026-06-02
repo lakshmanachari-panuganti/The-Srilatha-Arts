@@ -13,7 +13,7 @@ import { CATEGORIES } from '@/data/categories'
 import { SOCIAL, INSTAGRAM_HANDLE, whatsappLink } from '@/lib/site-config'
 
 // Primary navigation grouped by intent. The accordion for Shop keeps the menu
-// short by default — opening it surfaces the five categories without making
+// short by default - opening it surfaces the five categories without making
 // every visit a long scroll past links the user did not ask for.
 type LeafItem = { kind: 'leaf'; href: string; label: string; icon: React.ComponentType<{ className?: string }> }
 type AccordionItem = {
@@ -71,12 +71,9 @@ export default function MobileDrawer() {
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="fixed top-0 bottom-0 left-0 z-[71] w-[88vw] max-w-sm flex flex-col safe-pt"
             style={{
-              background:
-                'linear-gradient(180deg, rgba(76,29,149,0.96) 0%, rgba(91,33,182,0.96) 60%, rgba(67,20,138,0.96) 100%)',
-              backdropFilter: 'blur(18px)',
-              WebkitBackdropFilter: 'blur(18px)',
-              borderRight: '1px solid rgba(167,139,250,0.30)',
-              boxShadow: '24px 0 60px -20px rgba(20,7,55,0.6)',
+              background: 'var(--brand)',
+              borderRight: '1px solid color-mix(in srgb, #ffffff 12%, transparent)',
+              boxShadow: '24px 0 60px -20px rgba(0,0,0,0.55)',
             }}
           >
             {/* ── Header: brand mark + sign-in pill + close ─────────────────── */}
@@ -93,7 +90,7 @@ export default function MobileDrawer() {
                   width={56}
                   height={56}
                   className="w-12 h-12 object-contain shrink-0
-                             drop-shadow-[0_0_14px_rgba(216,180,248,0.35)]"
+                             drop-shadow-[0_0_14px_rgba(200,150,47,0.35)]"
                 />
                 <span className="font-brand text-[2.25rem] leading-none text-plum tracking-[0.04em] truncate">
                   Srilatha Art
@@ -122,7 +119,7 @@ export default function MobileDrawer() {
               </div>
             </header>
 
-            {/* Tagline — sets the premium tone without consuming a row of nav */}
+            {/* Tagline - sets the premium tone without consuming a row of nav */}
             <p className="flex-none px-5 pb-4 font-serif italic text-base text-plum-warm/95
                           border-b border-white/10">
               Handcrafted Art For Modern Homes
@@ -163,7 +160,7 @@ export default function MobileDrawer() {
                 )}
               </ul>
 
-              {/* Account row — links to existing comprehensive dashboard at /account */}
+              {/* Account row - links to existing comprehensive dashboard at /account */}
               <p className="eyebrow text-lavender-pastel/80 mt-7 mb-2 px-3">Account</p>
               <ul className="space-y-1">
                 <li>
@@ -207,14 +204,12 @@ export default function MobileDrawer() {
               </ul>
             </nav>
 
-            {/* ── Sticky footer CTA — WhatsApp + Instagram, always visible ─── */}
+            {/* ── Sticky footer CTA - WhatsApp + Instagram, always visible ─── */}
             <div
               className="flex-none px-5 pt-4 pb-5 safe-pb"
               style={{
-                borderTop: '1px solid rgba(167,139,250,0.22)',
-                background: 'rgba(46,16,101,0.55)',
-                backdropFilter: 'blur(18px)',
-                WebkitBackdropFilter: 'blur(18px)',
+                borderTop: '1px solid color-mix(in srgb, #ffffff 10%, transparent)',
+                background: 'color-mix(in srgb, var(--brand-strong) 60%, transparent)',
               }}
             >
               <a
@@ -226,7 +221,7 @@ export default function MobileDrawer() {
                            text-white font-medium text-sm tracking-wide
                            transition-transform duration-200 active:scale-[0.98]"
                 style={{
-                  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                  background: 'linear-gradient(135deg, var(--wa-1) 0%, var(--wa-2) 100%)',
                   boxShadow:
                     '0 10px 24px -10px rgba(18,140,126,0.55), 0 0 0 1px rgba(255,255,255,0.08) inset',
                 }}

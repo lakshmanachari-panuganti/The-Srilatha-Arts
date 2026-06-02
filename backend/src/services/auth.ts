@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { TokenPayload } from '../types'
 
-// Fail fast at module load — non-null assertion only catches TypeScript, not runtime.
+// Fail fast at module load - non-null assertion only catches TypeScript, not runtime.
 // Without this, jwt.sign would throw a cryptic error on every request instead of at startup.
 const JWT_SECRET = (() => {
   const secret = process.env.JWT_SECRET

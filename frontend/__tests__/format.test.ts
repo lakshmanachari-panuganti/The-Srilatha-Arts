@@ -1,6 +1,6 @@
 /**
  * Unit tests for lib/format.ts
- * Tests pure formatting functions — no DOM or network required.
+ * Tests pure formatting functions - no DOM or network required.
  */
 
 import { formatINR, discountPct, formatDate } from '../lib/format'
@@ -75,7 +75,7 @@ describe('discountPct', () => {
   })
 
   it('returns null when compareAtPrice is 0', () => {
-    // Division by zero guard — compareAt of 0 is falsy
+    // Division by zero guard - compareAt of 0 is falsy
     expect(discountPct(0, 0)).toBeNull()
   })
 })

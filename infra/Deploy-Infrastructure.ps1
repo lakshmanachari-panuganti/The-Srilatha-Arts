@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Creates and configures a complete environment for the Srilatha Art
-    backend. Idempotent — re-runs are safe and only apply diffs.
+    backend. Idempotent - re-runs are safe and only apply diffs.
 
     ── TABLE OF CONTENTS ─────────────────────────────────────────────
        PART A.  Script parameters + connection
@@ -13,7 +13,7 @@
        PART D.  Execution (numbered phases)
          Phase 1  Prerequisites
          Phase 2  Create core resources
-         Phase 3  Bootstrap SP RBAC (minimal — enables phases 4–6)
+         Phase 3  Bootstrap SP RBAC (minimal - enables phases 4–6)
          Phase 4  Provision storage (tables, queues, blobs, CORS)
          Phase 5  Seed Key Vault secrets
          Phase 6  Configure Function App (app settings + CORS)
@@ -24,7 +24,7 @@
 
     The role-assignment design (Phase 3 + Phase 7 combined):
 
-      ▸ Deployer Service Principal — used by this script and the
+      ▸ Deployer Service Principal - used by this script and the
         GitHub Actions deploy workflows. Roles:
           • Key Vault Secrets Officer        → rotate secrets
           • Storage Blob Data Contributor    → read/write product
@@ -32,7 +32,7 @@
           • Storage Table Data Contributor   → seed / patch data
           • Storage Queue Data Contributor   → drain queues at deploy
 
-      ▸ Function App System-Assigned Managed Identity — used at
+      ▸ Function App System-Assigned Managed Identity - used at
         RUNTIME by the Function App. Roles:
           • Key Vault Secrets User           → resolve
                                                 @Microsoft.KeyVault refs
@@ -87,7 +87,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-# Azure connection — uses the deployer service principal whose creds
+# Azure connection - uses the deployer service principal whose creds
 # are exposed as env vars (see docs/Azure-Connectivity.ps1 for the
 # same pattern used outside this script).
 $securePassword = ConvertTo-SecureString $env:MY_APPREG_CLIENT_SECRET -AsPlainText -Force
@@ -99,7 +99,7 @@ Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential
 #  PART B.  Configuration (all environment-dependent values here)
 # ═══════════════════════════════════════════════════════════════════
 #
-# Everything below is data only — no side effects. Edit values here,
+# Everything below is data only - no side effects. Edit values here,
 # never inline in the execution phases. Brand-new naming throughout,
 # so this script does NOT touch the legacy rg-tsa-dev / rg-tsa-prd
 # resource groups.
@@ -181,12 +181,12 @@ $requiredModules = @(
 
 # ── B.6  RBAC role plan ─────────────────────────────────────────────
 # Two collections of role assignments. The actual application is
-# split across Phase 3 (bootstrap — minimum to make the rest of the
-# script work) and Phase 7 (runtime — the bulk).
+# split across Phase 3 (bootstrap - minimum to make the rest of the
+# script work) and Phase 7 (runtime - the bulk).
 #
 # Note: $sp_BootstrapRoles is what THIS script needs in order to
 # perform later data-plane operations against Storage and Key
-# Vault. $sp_RuntimeRoles is the same SP's enduring assignments —
+# Vault. $sp_RuntimeRoles is the same SP's enduring assignments -
 # they happen to overlap, which means Phase 7 mostly re-asserts
 # what Phase 3 already established. Idempotent assignment makes
 # the duplication harmless and the intent clearer.
@@ -199,7 +199,7 @@ $sp_BootstrapRoles = @(
 )
 
 $sp_RuntimeRoles = @(
-    # Same as bootstrap — re-asserted at the end for the durable
+    # Same as bootstrap - re-asserted at the end for the durable
     # documented role set (helps when this script is re-run with a
     # fresh SP that didn't go through Phase 3 yet).
     @{ Resource = 'storage'; Role = 'Storage Blob Data Contributor'; Why = 'Deploy-time read/write of product + invoice blobs' }
@@ -211,16 +211,16 @@ $sp_RuntimeRoles = @(
 # The Function App's System-Assigned Managed Identity needs these
 # four roles to function correctly at runtime. Storage Blob Data
 # OWNER (not Contributor) is required because we use an
-# identity-based AzureWebJobsStorage connection — the Functions host
+# identity-based AzureWebJobsStorage connection - the Functions host
 # needs Owner to manage internal state (lease blobs, host secrets,
 # distributed locks for queue/timer triggers).
 # Ref: https://learn.microsoft.com/azure/azure-functions/functions-reference#configure-an-identity-based-connection
 $mi_RuntimeRoles = @(
     @{ Resource = 'keyvault'; Role = 'Key Vault Secrets User'; Why = 'Resolve @Microsoft.KeyVault(...) refs at startup' }
-    @{ Resource = 'storage'; Role = 'Storage Blob Data Owner'; Why = 'Identity-based AzureWebJobsStorage — host internal state' }
+    @{ Resource = 'storage'; Role = 'Storage Blob Data Owner'; Why = 'Identity-based AzureWebJobsStorage - host internal state' }
     @{ Resource = 'storage'; Role = 'Storage Table Data Contributor'; Why = 'App data (orders, products, ...)' }
     @{ Resource = 'storage'; Role = 'Storage Queue Data Contributor'; Why = 'Notifications, webhook ingest, review request queues' }
-    @{ Resource = 'appinsights'; Role = 'Monitoring Metrics Publisher'; Why = 'Forward-looking — AAD-based AI telemetry path' }
+    @{ Resource = 'appinsights'; Role = 'Monitoring Metrics Publisher'; Why = 'Forward-looking - AAD-based AI telemetry path' }
 )
 
 
@@ -239,7 +239,7 @@ function Write-Err { param([string]$Message); Write-Host "  ✗ $Message" -Foreg
 
 # Idempotent role assignment helper. Returns $true on success / already-
 # present, $false on a hard failure (Forbidden / propagation lag). Never
-# throws — callers decide whether a miss is fatal.
+# throws - callers decide whether a miss is fatal.
 function Assign-AzRoleIfMissing {
     param(
         [Parameter(Mandatory)] [string]$ObjectId,
@@ -257,7 +257,7 @@ function Assign-AzRoleIfMissing {
         Write-Success "Assigned        : $RoleDefinitionName on $ScopeLabel"
         return $true
     } catch {
-        Write-Err "Could not assign : $RoleDefinitionName on $ScopeLabel — $($_.Exception.Message.Split([Environment]::NewLine)[0])"
+        Write-Err "Could not assign : $RoleDefinitionName on $ScopeLabel - $($_.Exception.Message.Split([Environment]::NewLine)[0])"
         return $false
     }
 }
@@ -280,7 +280,7 @@ function Resolve-RoleScope {
     }
 }
 
-# Apply a list of (Principal, Resource, Role) tuples. Used twice — once
+# Apply a list of (Principal, Resource, Role) tuples. Used twice - once
 # for the SP in Phase 3, once for the SP + MI in Phase 7.
 function Apply-RolePlan {
     param(
@@ -321,7 +321,7 @@ Write-Host @"
 # ─────────────────────────────────────────────────────────────────
 #  PHASE 1.  Prerequisites
 # ─────────────────────────────────────────────────────────────────
-Write-Step "PHASE 1 — Prerequisites"
+Write-Step "PHASE 1 - Prerequisites"
 
 foreach ($mod in $requiredModules) {
     if (-not (Get-Module -ListAvailable -Name $mod)) {
@@ -339,7 +339,7 @@ if (-not $context) {
 Write-Success "Logged in as  : $($context.Account.Id)"
 Write-Success "Subscription  : $($context.Subscription.Name) ($($context.Subscription.Id))"
 
-# Resolve the deployer SP's object id once — used by both Phase 3 and
+# Resolve the deployer SP's object id once - used by both Phase 3 and
 # Phase 7. The Get-Az call requires Directory.Read for the SP itself,
 # which the env-var SP has implicitly as a directory member.
 $spObjectId = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID).Id
@@ -349,7 +349,7 @@ Write-Success "Deployer SP   : $spObjectId"
 # ─────────────────────────────────────────────────────────────────
 #  PHASE 2.  Create core resources (no RBAC yet)
 # ─────────────────────────────────────────────────────────────────
-Write-Step "PHASE 2 — Create core resources"
+Write-Step "PHASE 2 - Create core resources"
 
 # ── 2.1  Resource Group ──────────────────────────────────────────
 $rg = Get-AzResourceGroup -Name $envCfg.ResourceGroup -ErrorAction SilentlyContinue
@@ -438,11 +438,11 @@ if ($keyVault) {
 #
 # Just enough for the deployer SP to perform the data-plane
 # operations in Phases 4 + 5 of THIS script. The same SP roles are
-# re-asserted in Phase 7 as part of the durable role plan — that's
+# re-asserted in Phase 7 as part of the durable role plan - that's
 # intentional (idempotent), so the long-term documented set lives
 # in one place near the end.
 
-Write-Step "PHASE 3 — Bootstrap deployer-SP RBAC (data plane access)"
+Write-Step "PHASE 3 - Bootstrap deployer-SP RBAC (data plane access)"
 
 [void] (Apply-RolePlan `
         -ObjectId $spObjectId `
@@ -454,7 +454,7 @@ Write-Step "PHASE 3 — Bootstrap deployer-SP RBAC (data plane access)"
 Write-Info "Waiting 15s for RBAC propagation before data-plane ops..."
 Start-Sleep -Seconds 15
 
-# Storage context — AAD-based, no shared keys. This call validates
+# Storage context - AAD-based, no shared keys. This call validates
 # the bootstrap RBAC above; if it fails the next phases would
 # silently produce 403s.
 $storageCtx = New-AzStorageContext -StorageAccountName $envCfg.StorageAccount -UseConnectedAccount
@@ -464,7 +464,7 @@ Write-Success "Storage context ready (AAD-based)"
 # ─────────────────────────────────────────────────────────────────
 #  PHASE 4.  Provision storage (tables, queues, blob containers, CORS)
 # ─────────────────────────────────────────────────────────────────
-Write-Step "PHASE 4 — Provision storage"
+Write-Step "PHASE 4 - Provision storage"
 
 # ── 4.1  Tables ──────────────────────────────────────────────────
 Write-Info "Tables..."
@@ -518,27 +518,27 @@ Write-Success "Blob CORS set for: $($envCfg.CorsOrigins -join ', ')"
 # ─────────────────────────────────────────────────────────────────
 #  PHASE 5.  Seed Key Vault secrets
 # ─────────────────────────────────────────────────────────────────
-Write-Step "PHASE 5 — Seed Key Vault secrets"
+Write-Step "PHASE 5 - Seed Key Vault secrets"
 
-# ── 5.1  JwtSecret — random, generated once, never rotated here ──
+# ── 5.1  JwtSecret - random, generated once, never rotated here ──
 if (-not (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'JwtSecret' -ErrorAction SilentlyContinue)) {
     $jwt = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
     Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'JwtSecret' -SecretValue (ConvertTo-SecureString $jwt -AsPlainText -Force) | Out-Null
     Write-Success "Stored secret : JwtSecret (newly generated, 64 chars)"
 } else {
-    Write-Info "JwtSecret already present — left as-is"
+    Write-Info "JwtSecret already present - left as-is"
 }
 
-# ── 5.2  CsrfSigningKey — same pattern ───────────────────────────
+# ── 5.2  CsrfSigningKey - same pattern ───────────────────────────
 if (-not (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'CsrfSigningKey' -ErrorAction SilentlyContinue)) {
     $csrf = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
     Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'CsrfSigningKey' -SecretValue (ConvertTo-SecureString $csrf -AsPlainText -Force) | Out-Null
     Write-Success "Stored secret : CsrfSigningKey (newly generated, 64 chars)"
 } else {
-    Write-Info "CsrfSigningKey already present — left as-is"
+    Write-Info "CsrfSigningKey already present - left as-is"
 }
 
-# ── 5.3  RazorpayWebhookSecret — we choose this; same value goes into
+# ── 5.3  RazorpayWebhookSecret - we choose this; same value goes into
 #        the Razorpay Dashboard webhook config. First deploy generates
 #        + prints; later deploys leave it alone.
 if (-not (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RazorpayWebhookSecret' -ErrorAction SilentlyContinue)) {
@@ -546,13 +546,13 @@ if (-not (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RazorpayWebhoo
     [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
     $whValue = [Convert]::ToBase64String($bytes)
     Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RazorpayWebhookSecret' -SecretValue (ConvertTo-SecureString $whValue -AsPlainText -Force) | Out-Null
-    Write-Success "Stored secret : RazorpayWebhookSecret (newly generated — paste into Razorpay dashboard)"
+    Write-Success "Stored secret : RazorpayWebhookSecret (newly generated - paste into Razorpay dashboard)"
     Write-Info "Webhook secret value: $whValue"
 } else {
-    Write-Info "RazorpayWebhookSecret already present — left as-is"
+    Write-Info "RazorpayWebhookSecret already present - left as-is"
 }
 
-# ── 5.4  RazorpayKeyId / RazorpayKeySecret — placeholders only ───
+# ── 5.4  RazorpayKeyId / RazorpayKeySecret - placeholders only ───
 foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
     if (-not (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name -ErrorAction SilentlyContinue)) {
         Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name -SecretValue (ConvertTo-SecureString 'replace-me' -AsPlainText -Force) | Out-Null
@@ -564,18 +564,18 @@ foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
 # ─────────────────────────────────────────────────────────────────
 #  PHASE 6.  Configure Function App
 # ─────────────────────────────────────────────────────────────────
-Write-Step "PHASE 6 — Configure Function App"
+Write-Step "PHASE 6 - Configure Function App"
 
 # ── 6.1  App settings (env vars) ─────────────────────────────────
 $appSettings = @{
-    # MSI-based storage binding for the Functions runtime host —
+    # MSI-based storage binding for the Functions runtime host -
     # works only AFTER Phase 7 grants the MI 'Storage Blob Data Owner'.
     'AzureWebJobsStorage__accountName'      = $envCfg.StorageAccount
     'AzureWebJobsStorage__blobServiceUri'   = "https://$($envCfg.StorageAccount).blob.core.windows.net"
     'AzureWebJobsStorage__queueServiceUri'  = "https://$($envCfg.StorageAccount).queue.core.windows.net"
     'AzureWebJobsStorage__tableServiceUri'  = "https://$($envCfg.StorageAccount).table.core.windows.net"
 
-    # Key Vault references — resolved at app startup using the MI.
+    # Key Vault references - resolved at app startup using the MI.
     'JWT_SECRET'                            = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=JwtSecret)"
     'CSRF_SIGNING_KEY'                      = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=CsrfSigningKey)"
 
@@ -627,17 +627,17 @@ Write-Success "Platform CORS configured (with credentials) for: $($envCfg.CorsOr
 # ─────────────────────────────────────────────────────────────────
 #
 # This is where the bulk of role assignments live. The script's
-# design promise — "all the durable role assignments are at the
-# end" — is fulfilled here. Anything granted in Phase 3 is a
+# design promise - "all the durable role assignments are at the
+# end" - is fulfilled here. Anything granted in Phase 3 is a
 # subset of what we re-assert below.
 
-Write-Step "PHASE 7 — Function App Managed Identity + runtime RBAC"
+Write-Step "PHASE 7 - Function App Managed Identity + runtime RBAC"
 
 # ── 7.1  Enable the System-Assigned MI on the Function App ───────
 Update-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp -IdentityType SystemAssigned -Force | Out-Null
 $functionApp = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp
 $principalId = $functionApp.IdentityPrincipalId
-Write-Success "Function App MI enabled — principalId: $principalId"
+Write-Success "Function App MI enabled - principalId: $principalId"
 
 # ── 7.2  Clean up any mis-scoped legacy assignment ───────────────
 # Earlier versions of this script mis-scoped 'Key Vault Administrator'
@@ -676,11 +676,11 @@ Start-Sleep -Seconds 15
 # ─────────────────────────────────────────────────────────────────
 #  PHASE 8.  Verify RBAC + summary
 # ─────────────────────────────────────────────────────────────────
-Write-Step "PHASE 8 — Verify RBAC on Function App MI"
+Write-Step "PHASE 8 - Verify RBAC on Function App MI"
 
 $miAssignments = Get-AzRoleAssignment -ObjectId $principalId -ErrorAction SilentlyContinue
 if (-not $miAssignments) {
-    Write-Err "No role assignments visible on the Function App MI. RBAC propagation may still be in flight — re-run this script in a minute, or check the Portal."
+    Write-Err "No role assignments visible on the Function App MI. RBAC propagation may still be in flight - re-run this script in a minute, or check the Portal."
 } else {
     Write-Success "Function App MI currently holds:"
     Write-Host ''
@@ -694,7 +694,7 @@ if (-not $miAssignments) {
     }
     Write-Host ''
 
-    # Hard-required runtime set — script fails loud if anything is missing.
+    # Hard-required runtime set - script fails loud if anything is missing.
     $required = @(
         @{ Role = 'Key Vault Secrets User'; ScopeContains = $envCfg.KeyVault }
         @{ Role = 'Storage Blob Data Owner'; ScopeContains = $envCfg.StorageAccount }
@@ -711,7 +711,7 @@ if (-not $miAssignments) {
     if ($missing.Count -gt 0) {
         Write-Err 'Function App MI is MISSING these REQUIRED roles:'
         $missing | ForEach-Object { Write-Err "   • $_" }
-        Write-Err 'The deploy is incomplete. Re-run this script — RBAC reads sometimes lag and the assignment is already in place but not visible yet.'
+        Write-Err 'The deploy is incomplete. Re-run this script - RBAC reads sometimes lag and the assignment is already in place but not visible yet.'
     } else {
         Write-Success 'All required RBAC roles are present. Function App is ready to run.'
     }
@@ -760,9 +760,9 @@ Function App URL   : $functionUrl
 🔐 Key Vault Secrets
    • JwtSecret              (auto-generated, 64 chars)
    • CsrfSigningKey         (auto-generated, 64 chars)
-   • RazorpayWebhookSecret  (auto-generated — paste into Razorpay dashboard)
-   • RazorpayKeyId          (placeholder — set via infra/Rotate-RazorpayApiKeys.ps1)
-   • RazorpayKeySecret      (placeholder — set via infra/Rotate-RazorpayApiKeys.ps1)
+   • RazorpayWebhookSecret  (auto-generated - paste into Razorpay dashboard)
+   • RazorpayKeyId          (placeholder - set via infra/Rotate-RazorpayApiKeys.ps1)
+   • RazorpayKeySecret      (placeholder - set via infra/Rotate-RazorpayApiKeys.ps1)
 
 📋 Next Steps
    1. Deploy backend code             : func azure functionapp publish $($envCfg.FunctionApp)

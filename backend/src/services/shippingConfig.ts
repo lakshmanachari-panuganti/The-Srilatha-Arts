@@ -18,9 +18,9 @@
 import { getConfig, setConfig } from './tableStorage'
 
 export interface ShippingConfig {
-  baseCharge: number      // paise — "regular" price, shown as the strike-through
-  effectiveCharge: number // paise — what we actually bill (≤ baseCharge)
-  freeThreshold: number   // paise — free shipping above this cart subtotal
+  baseCharge: number      // paise - "regular" price, shown as the strike-through
+  effectiveCharge: number // paise - what we actually bill (≤ baseCharge)
+  freeThreshold: number   // paise - free shipping above this cart subtotal
   discountLabel?: string  // optional short banner text shown on the cart
                           //   when effectiveCharge < baseCharge
 }
@@ -59,7 +59,7 @@ export async function setShippingConfig(next: ShippingConfig): Promise<ShippingC
 
 /**
  * Compute the shipping amount in paise for a given cart subtotal under a
- * given configuration. Pure function — used by orders.ts, payments.ts,
+ * given configuration. Pure function - used by orders.ts, payments.ts,
  * and any future order-recompute logic.
  */
 export function computeShippingAmount(subtotalPaise: number, cfg: ShippingConfig): number {
@@ -76,7 +76,7 @@ export function computeShippingAmount(subtotalPaise: number, cfg: ShippingConfig
 function normalise(input: any): ShippingConfig {
   const base = nonNegInt(input.baseCharge, DEFAULT_SHIPPING_CONFIG.baseCharge)
   let effective = nonNegInt(input.effectiveCharge, base)
-  // Effective cannot exceed base — otherwise the strike-through UI would
+  // Effective cannot exceed base - otherwise the strike-through UI would
   // show a "discount" that's actually a markup.
   if (effective > base) effective = base
   const threshold = nonNegInt(input.freeThreshold, DEFAULT_SHIPPING_CONFIG.freeThreshold)

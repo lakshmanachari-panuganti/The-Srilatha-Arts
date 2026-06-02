@@ -10,7 +10,7 @@ import {
 import { formatINR, formatDate } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
 
-// ─── Domain types — mirror what the backend toApi() returns ──────────────
+// ─── Domain types - mirror what the backend toApi() returns ──────────────
 
 type OrderStatus =
   | 'PLACED' | 'CONFIRMED' | 'CRAFTING' | 'PACKED' | 'SHIPPED' | 'OUT_FOR_DELIVERY'
@@ -149,7 +149,7 @@ function OrderDetail() {
 
   if (!id) {
     return (
-      <ErrorPanel msg="Missing order id in the URL — make sure you opened this page via the Orders list." />
+      <ErrorPanel msg="Missing order id in the URL - make sure you opened this page via the Orders list." />
     )
   }
   if (loading) {
@@ -201,7 +201,7 @@ function OrderDetail() {
         </div>
       </div>
 
-      {/* Return-flow banners — high signal, render at the very top of the
+      {/* Return-flow banners - high signal, render at the very top of the
           main content area so admin can act without scrolling. */}
       <ReturnPanels
         order={order}
@@ -504,7 +504,7 @@ function ReturnPanels({
     }
   }
 
-  // ── RETURN_REQUESTED — show customer's reason + Approve / Decline ────
+  // ── RETURN_REQUESTED - show customer's reason + Approve / Decline ────
   if (order.status === 'RETURN_REQUESTED') {
     return (
       <div className="mb-6 rounded-xl border border-pink-200 bg-pink-50/70 p-4 md:p-6">
@@ -523,12 +523,12 @@ function ReturnPanels({
           <div>
             <dt className="text-xs uppercase tracking-wider text-pink-900/60 mb-1">Reason</dt>
             <dd className="text-pink-900 font-medium">
-              {order.returnReason ? (RETURN_REASON_LABEL[order.returnReason] || order.returnReason) : '—'}
+              {order.returnReason ? (RETURN_REASON_LABEL[order.returnReason] || order.returnReason) : '-'}
             </dd>
           </div>
           <div className="sm:col-span-2">
             <dt className="text-xs uppercase tracking-wider text-pink-900/60 mb-1">Customer comment</dt>
-            <dd className="text-pink-900">{order.returnComment || <span className="text-pink-900/60">—</span>}</dd>
+            <dd className="text-pink-900">{order.returnComment || <span className="text-pink-900/60">-</span>}</dd>
           </div>
         </dl>
 
@@ -572,7 +572,7 @@ function ReturnPanels({
     )
   }
 
-  // ── RETURNED — show "Issue refund" CTA ───────────────────────────────
+  // ── RETURNED - show "Issue refund" CTA ───────────────────────────────
   if (order.status === 'RETURNED') {
     return (
       <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50/70 p-4 md:p-6">
@@ -609,7 +609,7 @@ function ReturnPanels({
     )
   }
 
-  // ── REFUNDED — read-only summary ─────────────────────────────────────
+  // ── REFUNDED - read-only summary ─────────────────────────────────────
   if (order.status === 'REFUNDED') {
     return (
       <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 md:p-6">
@@ -704,7 +704,7 @@ function IssueRefundModal({
         <p className="text-sm text-ink-soft mb-4">
           {paymentId
             ? 'This will call the Razorpay refund API and mark the order Refunded.'
-            : 'No Razorpay payment id on this order — the refund will be recorded but no money will move via Razorpay. Use this for COD or manually settled orders.'}
+            : 'No Razorpay payment id on this order - the refund will be recorded but no money will move via Razorpay. Use this for COD or manually settled orders.'}
         </p>
         <label className="block text-xs uppercase tracking-wider text-ink-mute mb-1.5">Refund amount (₹)</label>
         <input

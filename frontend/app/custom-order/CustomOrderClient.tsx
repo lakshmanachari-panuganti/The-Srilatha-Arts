@@ -11,7 +11,7 @@ import PhotoUploader from '@/components/PhotoUploader'
 import type { Product } from '@/types'
 
 // Mirrors VALID_ART_FORMS in backend/src/functions/customOrders.ts.
-// Keep in sync — the backend rejects any value not in this set.
+// Keep in sync - the backend rejects any value not in this set.
 const ART_FORMS: { value: string; label: string }[] = [
   { value: 'resin',       label: 'Resin Art' },
   { value: 'dot-mandala', label: 'Dot Mandala' },
@@ -57,7 +57,7 @@ export default function CustomOrderClient() {
 
   // Source product (when arriving from a PDP "Customise this art" link).
   // Fetched once, used to seed the form + render the small reference card.
-  // Failure is silent — the form still works without it.
+  // Failure is silent - the form still works without it.
   const [source, setSource] = useState<Product | null>(null)
   const [sourceSeeded, setSourceSeeded] = useState(false)
 
@@ -90,7 +90,7 @@ export default function CustomOrderClient() {
   function clearSource() {
     setSource(null)
     // We don't yank the description / photos the user has had a chance to
-    // edit — only remove the photo if it's still the seeded primary.
+    // edit - only remove the photo if it's still the seeded primary.
     if (source) {
       const primary = source.images?.[0]
       if (primary) setPhotos((cur) => cur.filter((p) => p !== primary))
@@ -104,7 +104,7 @@ export default function CustomOrderClient() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setErr('')
-    // Required-field validation — mirror the backend exactly so users see
+    // Required-field validation - mirror the backend exactly so users see
     // the issue inline before a round-trip.
     if (!form.customerName.trim()) { setErr('Please enter your name.'); return }
     if (!form.customerPhone.trim() && !form.customerEmail.trim()) {
@@ -151,7 +151,7 @@ export default function CustomOrderClient() {
         </div>
         <p className="eyebrow justify-center mb-3">Request received</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
-          Thanks — we&apos;ll be in <em className="italic gold-text">touch</em>
+          Thanks - we&apos;ll be in <em className="italic gold-text">touch</em>
         </h1>
         <p className="text-ivory-soft text-base mb-8">{success}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -173,7 +173,7 @@ export default function CustomOrderClient() {
         piece for you. Great for birthdays, anniversaries, housewarmings, or any occasion.
       </p>
 
-      {/* Reference piece — shown when the visitor arrived via the PDP
+      {/* Reference piece - shown when the visitor arrived via the PDP
           "Customise this art" CTA. Pre-fills artForm + a starter line in
           description + seeds the primary image as a reference photo. */}
       {source && (
@@ -213,9 +213,9 @@ export default function CustomOrderClient() {
         </div>
       )}
 
-      {/* Quick what-to-share grid — same content as before, kept for context */}
+      {/* Quick what-to-share grid - same content as before, kept for context */}
       <section className="mb-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Info icon={Palette} title="Style & colours" body="Resin, Dot Mandala, Lippan, Kolam or Wedding Decoratives — and your colour preferences." />
+        <Info icon={Palette} title="Style & colours" body="Resin, Dot Mandala, Lippan, Kolam or Wedding Decoratives - and your colour preferences." />
         <Info icon={Ruler} title="Size" body="The size in inches or where you plan to hang it (a photo of the wall helps a lot)." />
         <Info icon={Clock} title="Deadline" body="Tell us if you need it by a specific date so we can plan around it." />
       </section>
@@ -229,7 +229,7 @@ export default function CustomOrderClient() {
           <Input value={form.customerName} onChange={on('customerName')} placeholder="Full name" />
         </Field>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Phone (WhatsApp)" hint="Either phone or email — we'll use it to reply.">
+          <Field label="Phone (WhatsApp)" hint="Either phone or email - we'll use it to reply.">
             <Input value={form.customerPhone} onChange={on('customerPhone')} placeholder="+91 …" inputMode="tel" />
           </Field>
           <Field label="Email">
@@ -253,10 +253,10 @@ export default function CustomOrderClient() {
           </Field>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Colour palette" hint="Free text — moody pastels, gold + black, etc.">
+          <Field label="Colour palette" hint="Free text - moody pastels, gold + black, etc.">
             <Input value={form.palette} onChange={on('palette')} placeholder="Colours you like" />
           </Field>
-          <Field label="Budget (₹)" hint="Optional — helps us match the right scope.">
+          <Field label="Budget (₹)" hint="Optional - helps us match the right scope.">
             <Input value={form.budget} onChange={on('budget')} placeholder="e.g. 8000–15000" />
           </Field>
         </div>
@@ -270,7 +270,7 @@ export default function CustomOrderClient() {
           />
         </Field>
 
-        {/* Reference photos — uploader handles its own validation, CSRF,
+        {/* Reference photos - uploader handles its own validation, CSRF,
             and the anonymous-user case (shows "sign in" hint instead). */}
         <Field label="Reference photos (optional)">
           <PhotoUploader

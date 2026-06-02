@@ -1,31 +1,29 @@
 'use client'
 /**
- * HeroSlideshow — primary hero block at the top of the homepage.
+ * HomeHero - full-bleed editorial hero.
  *
- * Five curated category slides shipped in /public/Slideshow:
- *   01-resin → 02-dot-mandala → 03-lippan → 04-kolam → 05-wedding-decoratives
+ * Replaces the prior stacked HeroSlideshow + Hero pair. The slideshow
+ * now lives behind a static headline + CTAs (brand promise, not per-slide
+ * sells), with a warm ink scrim for legibility. Dots stay for navigation;
+ * the per-slide eyebrow/tagline overlay was removed because two competing
+ * messages at once (brand promise + category promise) read as noise.
  *
- * Premium-ecommerce design choices baked in here:
- *   - Cross-fade between slides (700ms) — no horizontal slide, no flips.
- *   - Slow Ken-Burns zoom on the active image — subliminal motion that
- *     keeps the still photography feeling cinematic.
- *   - Per-slide overlay (category eyebrow + 1-line tagline + pill CTA)
- *     anchored bottom-left, with a soft dark gradient for legibility.
- *   - Dots indicator centred under the image. Active dot has a soft
- *     lavender glow.
- *   - Pause / play control bottom-right (WCAG 2.2.1 — required because
- *     the autoplay is shorter than 5 seconds is the threshold; we use
- *     5s but still expose the control because it's a moving region the
- *     user may want to study).
- *   - prefers-reduced-motion: freeze on the first slide; dots still work.
- *   - All five images preloaded via Next/Image — total payload ~650KB.
- *   - Click/tap on any dot pauses autoplay for 8s so the user can read
- *     without the carousel snatching attention away.
+ * Behaviour preserved from both predecessors:
+ *   - 5 curated category slides, crossfade, slow Ken-Burns on active.
+ *   - 5s autoplay with WCAG-required pause/play control and an
+ *     8s user-pause window after any interaction.
+ *   - Touch swipe (50px threshold).
+ *   - prefers-reduced-motion: freeze on first slide, no zoom, no fade.
+ *   - Staggered framer-motion reveal on the centred copy + CTAs.
+ *   - Primary "Explore Collections" → /shop, quieter "Or order a
+ *     custom piece" → /custom-order, plus trust strip
+ *     (Painting since 2020 · Free shipping ₹999 · 7-day returns).
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { ArrowRight, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
@@ -33,65 +31,26 @@ interface Slide {
   src: string
   alt: string
   eyebrow: string
-  tagline: string
-  href: string
-  ctaLabel: string
 }
 
 const SLIDES: readonly Slide[] = [
-  {
-    src: '/Slideshow/01-resin.jpg',
-    alt: 'Resin art piece with poured colour and gloss finish',
-    eyebrow: 'Resin Art',
-    tagline: 'Ocean waves, preserved florals, keepsakes captured in clear resin.',
-    href: '/shop/resin',
-    ctaLabel: 'Shop Resin',
-  },
-  {
-    src: '/Slideshow/02-dot-mandala.jpg',
-    alt: 'Hand-painted dot mandala in vibrant colour',
-    eyebrow: 'Dot Mandala',
-    tagline: 'Thousands of dots — each placed with intention.',
-    href: '/shop/dot-mandala',
-    ctaLabel: 'Shop Dot Mandala',
-  },
-  {
-    src: '/Slideshow/03-lippan.jpg',
-    alt: 'Lippan art with clay and mirror work',
-    eyebrow: 'Lippan Art',
-    tagline: 'Clay, mirrors and four hundred years of Kutch craft.',
-    href: '/shop/lippan',
-    ctaLabel: 'Shop Lippan',
-  },
-  {
-    src: '/Slideshow/04-kolam.jpg',
-    alt: 'Kolam line art on dark background',
-    eyebrow: 'Kolam Art',
-    tagline: 'South Indian rangoli, reimagined for your wall.',
-    href: '/shop/kolam',
-    ctaLabel: 'Shop Kolam',
-  },
-  {
-    src: '/Slideshow/05-wedding-decoratives.jpg',
-    alt: 'Handcrafted wedding decoratives — keepsakes and gifts',
-    eyebrow: 'Wedding Collection',
-    tagline: 'Custom keepsakes for the day you remember forever.',
-    href: '/custom-order',
-    ctaLabel: 'Start a custom order',
-  },
+  { src: '/Slideshow/01-resin.jpg',               alt: 'Resin art piece with poured colour and gloss finish',     eyebrow: 'Resin Art' },
+  { src: '/Slideshow/02-dot-mandala.jpg',         alt: 'Hand-painted dot mandala in vibrant colour',              eyebrow: 'Dot Mandala' },
+  { src: '/Slideshow/03-lippan.jpg',              alt: 'Lippan art with clay and mirror work',                    eyebrow: 'Lippan Art' },
+  { src: '/Slideshow/04-kolam.jpg',               alt: 'Kolam line art on dark background',                       eyebrow: 'Kolam Art' },
+  { src: '/Slideshow/05-wedding-decoratives.jpg', alt: 'Handcrafted wedding decoratives - keepsakes and gifts',   eyebrow: 'Wedding Collection' },
 ] as const
 
 const AUTOPLAY_MS = 5000
 const USER_PAUSE_AFTER_INTERACTION_MS = 8000
 const TRANSITION_MS = 700
 
-export default function HeroSlideshow() {
+export default function HomeHero() {
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
   const [reduceMotion, setReduceMotion] = useState(false)
   const userPauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Pick up prefers-reduced-motion once on mount and react to changes.
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
     setReduceMotion(mql.matches)
@@ -100,7 +59,6 @@ export default function HeroSlideshow() {
     return () => mql.removeEventListener('change', onChange)
   }, [])
 
-  // Autoplay. Disabled when paused OR reduced motion is requested.
   useEffect(() => {
     if (paused || reduceMotion) return
     const id = setInterval(() => {
@@ -109,8 +67,6 @@ export default function HeroSlideshow() {
     return () => clearInterval(id)
   }, [paused, reduceMotion])
 
-  // After a user interaction (dot tap, swipe, keyboard), pause autoplay
-  // for a short window so they can actually read the slide.
   const userInteract = useCallback(() => {
     if (userPauseTimer.current) clearTimeout(userPauseTimer.current)
     setPaused(true)
@@ -122,8 +78,6 @@ export default function HeroSlideshow() {
     userInteract()
   }
 
-  // Swipe gesture on mobile via touch events. Threshold 50px so a vertical
-  // page scroll doesn't accidentally trigger a slide change.
   const touchStartX = useRef<number | null>(null)
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0]?.clientX ?? null
@@ -141,136 +95,145 @@ export default function HeroSlideshow() {
   return (
     <section
       aria-label="Featured collections"
-      className="relative w-full"
+      className="relative w-full overflow-hidden"
+      style={{ height: '100svh', minHeight: '600px', maxHeight: '900px' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => {
-        // Don't immediately resume if a user-interaction pause is active.
-        if (!userPauseTimer.current) setPaused(false)
-      }}
-      onFocus={() => setPaused(true)}
-      onBlur={() => {
-        if (!userPauseTimer.current) setPaused(false)
-      }}
     >
-      {/*
-        Frame. Portrait on mobile (3:4) for editorial feel, cinematic 21:9 on
-        desktop. The frame is rounded with a soft lavender hairline border so
-        it reads as a finished card rather than a full-bleed banner.
-      */}
-      <div
-        className="relative w-full overflow-hidden mx-auto"
-        style={{
-          maxWidth: '1280px',
-          borderRadius: '24px',
-        }}
-      >
-        <div className="relative w-full aspect-[3/4] sm:aspect-[16/10] lg:aspect-[21/9]">
-          {SLIDES.map((slide, i) => {
-            const isActive = i === active
-            return (
-              <div
-                key={slide.src}
-                className={cn(
-                  'absolute inset-0 transition-opacity ease-out',
-                  isActive ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none',
-                )}
-                style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-                aria-hidden={!isActive}
-              >
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  fill
-                  sizes="(min-width: 1280px) 1280px, 100vw"
-                  priority={i === 0}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  className={cn(
-                    'object-cover',
-                    // Slow Ken-Burns zoom only on the active slide and only
-                    // when reduced-motion is off. The keyframes live in
-                    // globals.css under `@keyframes hero-ken-burns`.
-                    isActive && !reduceMotion && 'hero-ken-burns',
-                  )}
-                />
-                {/* Bottom gradient for overlay legibility. */}
-                <div
-                  aria-hidden
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      'linear-gradient(to top, rgba(46,16,90,0.78) 0%, rgba(46,16,90,0.35) 35%, transparent 60%)',
-                  }}
-                />
-              </div>
-            )
-          })}
-
-          {/* Overlay — eyebrow + tagline + CTA, bottom-left. */}
-          <div className="absolute inset-x-0 bottom-0 z-[3] px-5 sm:px-8 pb-8 sm:pb-10 lg:pb-14">
-            {SLIDES.map((slide, i) => {
-              const isActive = i === active
-              return (
-                <div
-                  key={slide.src}
-                  className={cn(
-                    'transition-all duration-700 ease-out',
-                    isActive
-                      ? 'opacity-100 translate-y-0'
-                      : 'opacity-0 translate-y-3 pointer-events-none absolute inset-x-5 sm:inset-x-8 bottom-8 sm:bottom-10 lg:bottom-14',
-                  )}
-                  aria-hidden={!isActive}
-                >
-                  <p className="eyebrow text-lavender-pastel mb-2">
-                    {slide.eyebrow}
-                  </p>
-                  <p className="font-serif text-xl sm:text-2xl lg:text-3xl text-plum leading-snug max-w-md lg:max-w-xl mb-4 sm:mb-5">
-                    {slide.tagline}
-                  </p>
-                  <Link
-                    href={slide.href}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-ivory
-                               bg-white/10 backdrop-blur-md hover:bg-white/20
-                               border border-white/25 hover:border-lavender-pastel/60
-                               transition-all duration-500
-                               px-5 py-2.5 rounded-full"
-                  >
-                    {slide.ctaLabel}
-                    <ArrowRight className="w-3.5 h-3.5" aria-hidden />
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Pause / play control, bottom-right. WCAG 2.2.1 safeguard. */}
-          <button
-            type="button"
-            onClick={() => {
-              if (userPauseTimer.current) {
-                clearTimeout(userPauseTimer.current)
-                userPauseTimer.current = null
-              }
-              setPaused((p) => !p)
-            }}
-            aria-label={paused ? 'Resume slideshow' : 'Pause slideshow'}
-            className="absolute right-4 sm:right-5 bottom-4 sm:bottom-5 z-[4]
-                       w-9 h-9 rounded-full flex items-center justify-center
-                       text-ivory bg-black/30 hover:bg-black/45 backdrop-blur-md
-                       border border-white/15 transition-colors duration-300"
-          >
-            {paused || reduceMotion ? (
-              <Play className="w-3.5 h-3.5" aria-hidden />
-            ) : (
-              <Pause className="w-3.5 h-3.5" aria-hidden />
+      {/* Slide layers. Each fills the section; crossfade by toggling opacity. */}
+      {SLIDES.map((slide, i) => {
+        const isActive = i === active
+        return (
+          <div
+            key={slide.src}
+            className={cn(
+              'absolute inset-0 transition-opacity ease-out',
+              isActive ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none',
             )}
-          </button>
+            style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+            aria-hidden={!isActive}
+          >
+            <Image
+              src={slide.src}
+              alt={slide.alt}
+              fill
+              sizes="100vw"
+              priority={i === 0}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              className={cn(
+                'object-cover',
+                isActive && !reduceMotion && 'hero-ken-burns',
+              )}
+            />
+          </div>
+        )
+      })}
+
+      {/* Warm ink scrim - diagonal so the photograph still breathes on the
+          right while text on the left/centre stays legible, plus a soft
+          top-down wash so the fixed Header's ivory-tinted glyphs have a
+          dark backing while the user is at scroll position 0. Ink-toned
+          rather than generic black so it sits inside the ivory/ink palette. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 z-[2]"
+        style={{
+          background:
+            'linear-gradient(180deg, rgba(20,16,10,0.55) 0%, rgba(20,16,10,0.20) 18%, transparent 32%), linear-gradient(105deg, rgba(20,16,10,0.78) 0%, rgba(20,16,10,0.55) 35%, rgba(20,16,10,0.25) 65%, transparent 100%), linear-gradient(to top, rgba(20,16,10,0.55) 0%, transparent 50%)',
+        }}
+      />
+
+      {/* Centred copy + CTAs. Max-w keeps the headline from sprawling on
+          wide desktops; padding bottom leaves room for dots. */}
+      <div className="relative z-[3] h-full flex items-center">
+        <div className="w-full max-w-5xl mx-auto px-5 sm:px-8 lg:px-12 pb-20 sm:pb-24">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="eyebrow text-on-dark-accent mb-4"
+          >
+            {SLIDES[active]!.eyebrow}
+          </motion.p>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="display text-4xl sm:text-6xl lg:text-7xl xl:text-8xl uppercase text-white mb-6 max-w-3xl"
+            style={{ textShadow: '0 2px 14px rgba(0,0,0,0.35)' }}
+          >
+            Premium Handcrafted
+            <br />
+            Art for Your{' '}
+            <span className="relative italic font-serif font-medium gold-text">
+              Home
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="text-base sm:text-lg lg:text-xl text-white/85 leading-relaxed max-w-2xl mb-8"
+            style={{ textShadow: '0 1px 8px rgba(0,0,0,0.35)' }}
+          >
+            Specializing in handcrafted Resin Art, traditional Lippan Art, and elegant Home &amp; Wedding Decor.
+            Hand-painted, hand-poured, and shockproof-shipped from Hyderabad to elevate your space.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.45 }}
+            className="flex flex-col items-start gap-3 mb-10"
+          >
+            {/* Primary CTA - ivory fill, ink text. Reads as the brand's
+                "click here" against the warm scrim. */}
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center gap-2 min-h-12 px-7
+                         text-sm font-semibold uppercase tracking-wide
+                         bg-white text-ink hover:bg-white/90
+                         transition-all duration-300 active:scale-[0.98]
+                         w-full sm:w-auto sm:min-w-[18rem]"
+              style={{ borderRadius: '24px', letterSpacing: '0.04em' }}
+            >
+              Explore Collections
+              <ArrowRight className="w-4 h-4" aria-hidden />
+            </Link>
+            <Link
+              href="/custom-order"
+              className="text-sm text-white/80 hover:text-white inline-flex items-center gap-1
+                         underline-offset-4 hover:underline transition-colors duration-300"
+            >
+              Or order a custom piece
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden />
+            </Link>
+          </motion.div>
+
+          {/* Trust strip - concrete signals, dot separators on ≥sm. */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.7 }}
+            className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center
+                       gap-y-2 sm:gap-x-5 text-[11px] uppercase text-white/70"
+            style={{ letterSpacing: '0.12em' }}
+          >
+            <span>Painting since 2020</span>
+            <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/40" aria-hidden />
+            <span>Free shipping above ₹999</span>
+            <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/40" aria-hidden />
+            <span>7-day easy returns</span>
+          </motion.div>
         </div>
       </div>
 
-      {/* Dots indicator. Sits below the image so it can never overlap text. */}
-      <div className="mt-5 sm:mt-6 flex items-center justify-center gap-2">
+      {/* Dots indicator. Sits over the image at the bottom centre - large
+          enough on mobile to be a real tap target (44×44 hit area via
+          generous padding on the wrapping button). */}
+      <div className="absolute inset-x-0 bottom-6 sm:bottom-8 z-[4] flex items-center justify-center gap-2">
         {SLIDES.map((slide, i) => {
           const isActive = i === active
           return (
@@ -280,17 +243,42 @@ export default function HeroSlideshow() {
               onClick={() => goTo(i)}
               aria-label={`Show ${slide.eyebrow}`}
               aria-current={isActive ? 'true' : undefined}
-              className={cn(
-                'h-2 rounded-full transition-all duration-500',
-                isActive
-                  ? 'w-8 bg-lavender-pastel'
-                  : 'w-2 bg-lavender-pastel/30 hover:bg-lavender-pastel/55',
-              )}
-              style={isActive ? { boxShadow: '0 0 12px rgba(232,121,249,0.55)' } : undefined}
-            />
+              className="p-3 -m-3"
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  'block h-2 rounded-full transition-all duration-500',
+                  isActive ? 'w-8 bg-white' : 'w-2 bg-white/45 hover:bg-white/70',
+                )}
+              />
+            </button>
           )
         })}
       </div>
+
+      {/* Pause / play. WCAG 2.2.1 - autoplay must be pause-able. */}
+      <button
+        type="button"
+        onClick={() => {
+          if (userPauseTimer.current) {
+            clearTimeout(userPauseTimer.current)
+            userPauseTimer.current = null
+          }
+          setPaused((p) => !p)
+        }}
+        aria-label={paused ? 'Resume slideshow' : 'Pause slideshow'}
+        className="absolute right-4 sm:right-6 bottom-4 sm:bottom-6 z-[5]
+                   min-w-11 min-h-11 w-11 h-11 rounded-full flex items-center justify-center
+                   text-white bg-black/35 hover:bg-black/55
+                   border border-white/20 transition-colors duration-300"
+      >
+        {paused || reduceMotion ? (
+          <Play className="w-4 h-4" aria-hidden />
+        ) : (
+          <Pause className="w-4 h-4" aria-hidden />
+        )}
+      </button>
 
       {/* Live region announces slide changes to screen readers. */}
       <p className="sr-only" aria-live="polite" aria-atomic="true">

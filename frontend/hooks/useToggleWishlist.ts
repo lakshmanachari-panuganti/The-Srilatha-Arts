@@ -34,7 +34,7 @@ export function useToggleWishlist() {
     /**
      * Returns true if the toggle was applied locally, false if the
      * caller was redirected to the login flow. Callers usually don't
-     * need the return value — the visual heart icon flips based on
+     * need the return value - the visual heart icon flips based on
      * `useWishlist((s) => s.has(...))` and refreshes automatically.
      */
     toggleWishlist(product: Product): boolean {

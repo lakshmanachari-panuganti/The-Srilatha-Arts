@@ -1,9 +1,9 @@
 /**
  * Custom Order Inquiry Endpoints (§4.2, §5.2).
  *
- * POST  /api/custom-orders          — public submission (rate-limited)
- * GET   /api/admin/custom-orders    — admin Kanban listing
- * PATCH /api/admin/custom-orders/{id} — update status/quote
+ * POST  /api/custom-orders          - public submission (rate-limited)
+ * GET   /api/admin/custom-orders    - admin Kanban listing
+ * PATCH /api/admin/custom-orders/{id} - update status/quote
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
@@ -38,7 +38,7 @@ const customOrdersTableClient = (() => {
 
 // Art forms supported by the business (used for validation). Must stay
 // in sync with the frontend select on /custom-order. `wedding` was added
-// on 2026-05-31 — the brand sells wedding decoratives, and routing those
+// on 2026-05-31 - the brand sells wedding decoratives, and routing those
 // inquiries through "other" lost the categorisation.
 const VALID_ART_FORMS = ['resin', 'dot-mandala', 'lippan', 'pichwai', 'kolam', 'wedding', 'other']
 
@@ -175,7 +175,7 @@ async function submitCustomOrder(
         },
       })
     } catch (notifyErr) {
-      // Non-fatal — admin will see it in the dashboard, but log so we know the queue is unhealthy.
+      // Non-fatal - admin will see it in the dashboard, but log so we know the queue is unhealthy.
       context.warn('submitCustomOrder: admin notification enqueue failed (non-fatal)', {
         inquiryId,
         error: String(notifyErr),
@@ -279,7 +279,7 @@ async function adminUpdateCustomOrder(
         }
         await customOrdersTableClient.deleteEntity('inbox', existing.rowKey)
       } catch (deleteErr) {
-        // Non-fatal — the new row was already written. Log for manual cleanup.
+        // Non-fatal - the new row was already written. Log for manual cleanup.
         context.warn('adminUpdateCustomOrder: old row deletion failed after status move (non-fatal, manual cleanup may be needed)', {
           oldRowKey: existing.rowKey,
           newRowKey: `${newStatus}_${inquiryId}`,

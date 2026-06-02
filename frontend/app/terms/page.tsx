@@ -22,11 +22,11 @@ export default function TermsPage() {
       </Section>
 
       <Section title="2. Using this website">
-        Please use the site like a normal customer would. Don&apos;t copy our photos or descriptions for your own use, and don&apos;t try to break the site. The content (images, text, art designs) is ours — we&apos;re happy for you to share links to a product page, but please don&apos;t reuse the content elsewhere without asking.
+        Please use the site like a normal customer would. Don&apos;t copy our photos or descriptions for your own use, and don&apos;t try to break the site. The content (images, text, art designs) is ours - we&apos;re happy for you to share links to a product page, but please don&apos;t reuse the content elsewhere without asking.
       </Section>
 
       <Section title="3. Orders">
-        When you place an order, we confirm it by email. We&apos;ll start making your piece (or pick it from stock) once your payment is successful. If we can&apos;t fulfil an order for any reason — out of stock, payment issue, or anything else — we&apos;ll get in touch and offer a full refund.
+        When you place an order, we confirm it by email. We&apos;ll start making your piece (or pick it from stock) once your payment is successful. If we can&apos;t fulfil an order for any reason - out of stock, payment issue, or anything else - we&apos;ll get in touch and offer a full refund.
       </Section>
 
       <Section title="4. Prices and payment">

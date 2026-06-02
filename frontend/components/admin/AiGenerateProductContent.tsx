@@ -17,7 +17,7 @@ export interface AiProductContent {
 
 // Stable error codes returned by the backend in the JSON body alongside
 // HTTP status. Keep in sync with AiErrorCode in
-// backend/src/services/aiContentGenerator.ts — each new code MUST get a
+// backend/src/services/aiContentGenerator.ts - each new code MUST get a
 // message below.
 type AiErrorCode =
   | 'MISSING_CONFIG'
@@ -34,7 +34,7 @@ type AiErrorCode =
   | 'INTERNAL_ERROR'
 
 // Two-line messages: the first line states the problem, the second tells
-// the admin what to do. Copy is locked in by spec — do not paraphrase.
+// the admin what to do. Copy is locked in by spec - do not paraphrase.
 const ERROR_MESSAGES: Record<AiErrorCode, string> = {
   MISSING_CONFIG:
     'AI content generation is not configured.\n\nPlease configure Azure OpenAI settings in the application environment variables and try again.',
@@ -71,7 +71,7 @@ function messageForError(err: unknown): string {
     if (body?.code && body.code in ERROR_MESSAGES) {
       return ERROR_MESSAGES[body.code]
     }
-    // No typed code from server — fall back on the HTTP status the
+    // No typed code from server - fall back on the HTTP status the
     // server returned (matches what the typed mapping would have done).
     if (err.status === 401) return ERROR_MESSAGES.AUTH_ERROR
     if (err.status === 404) return ERROR_MESSAGES.DEPLOYMENT_NOT_FOUND
@@ -88,7 +88,7 @@ function messageForError(err: unknown): string {
 }
 
 interface Props {
-  /** First uploaded image URL — the source the AI analyses. Disable
+  /** First uploaded image URL - the source the AI analyses. Disable
    *  state is driven from whether this is set. */
   imageUrl: string | null
   /** Current values of the AI-writable fields. Used to decide whether to
@@ -102,7 +102,7 @@ interface Props {
 type Status = 'idle' | 'confirming' | 'loading' | 'success' | 'error'
 
 // Returns true if any of the AI-writable fields already contain text.
-// We intentionally do not consider "whitespace-only" as content — an
+// We intentionally do not consider "whitespace-only" as content - an
 // admin who left a stray space deserves a quiet overwrite.
 function hasExistingContent(c: AiProductContent): boolean {
   return Boolean(

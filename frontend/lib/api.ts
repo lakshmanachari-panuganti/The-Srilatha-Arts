@@ -2,7 +2,7 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api'
 
 // Auth tokens injected by the admin/user auth stores at login or on
-// rehydration. Two separate slots — customer and admin — because both
+// rehydration. Two separate slots - customer and admin - because both
 // stores persist independently and rehydrate asynchronously on every
 // page load. With a single shared slot, whichever store rehydrated
 // last would win and the admin DELETE/PATCH requests would 401 because
@@ -26,7 +26,7 @@ function tokenForPath(path: string): string | null {
   return isAdminCall ? _adminAuthToken : _userAuthToken
 }
 
-// CSRF — double-submit cookie pattern.
+// CSRF - double-submit cookie pattern.
 //
 // The frontend and the API are on different registrable domains in dev/prd
 // (SWA vs Function App), so JS cannot read the `tsa_csrf` cookie even when
@@ -85,7 +85,7 @@ async function ensureCsrfToken(): Promise<string | null> {
 }
 
 /**
- * Exposed for non-JSON requests that bypass apiFetch — primarily multipart
+ * Exposed for non-JSON requests that bypass apiFetch - primarily multipart
  * file uploads, which need to set their own Content-Type boundary and so
  * cannot go through the normal JSON path. Call sites should attach the
  * returned value (if non-null) as `X-CSRF-Token` on their fetch().

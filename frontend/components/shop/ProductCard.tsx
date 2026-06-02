@@ -26,7 +26,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
 
   const onAdd = (e: React.MouseEvent) => {
     e.preventDefault()
-    // useAddToCart returns false if it redirected to login — no haptic
+    // useAddToCart returns false if it redirected to login - no haptic
     // in that case (the page is unmounting anyway).
     if (addToCart(product)) haptic([12, 30, 12])
   }
@@ -68,7 +68,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           />
 
           {/*
-            Badges — top-left. Capped at 2 visible to avoid a sticker pile
+            Badges - top-left. Capped at 2 visible to avoid a sticker pile
             covering the upper-left quadrant of the image. Priority order:
             Sold Out > discount % > Best Seller > New (the most important
             commercial signal wins).
@@ -76,35 +76,35 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {/*
               Sticker priority: Sold Out > Low stock > discount > Best Seller > New.
-              Capped at 2 visible. Low-stock cue is honest urgency — handcrafted
+              Capped at 2 visible. Low-stock cue is honest urgency - handcrafted
               inventory is genuinely limited, so "Only N left" is truthful (audit §3).
             */}
             {(() => {
               const badges: React.ReactNode[] = []
               if (!product.inStock) {
                 badges.push(
-                  <span key="oos" className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: '#A49BB8' }}>
+                  <span key="oos" className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
                     Sold Out
                   </span>,
                 )
               }
               if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
                 badges.push(
-                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, #E879F9, #A78BFA)', color: '#ffffff' }}>
+                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, var(--accent), var(--brand))', color: '#ffffff' }}>
                     Only {product.stockQty} left
                   </span>,
                 )
               }
               if (badges.length < 2 && pct !== null) {
                 badges.push(
-                  <span key="disc" className="sticker" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7, #E879F9)', color: '#ffffff' }}>
+                  <span key="disc" className="sticker" style={{ background: 'linear-gradient(135deg, var(--brand), var(--accent-strong), var(--accent))', color: '#ffffff' }}>
                     −{pct}%
                   </span>,
                 )
               }
               if (badges.length < 2 && product.isBestSeller) {
                 badges.push(
-                  <span key="best" className="sticker" style={{ background: 'linear-gradient(135deg, #8A74C9, #5E4B8B)' }}>
+                  <span key="best" className="sticker" style={{ background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))' }}>
                     Best Seller
                   </span>,
                 )
@@ -117,7 +117,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           </div>
 
           {/*
-            Wishlist heart — moved to a high-contrast pale chip so it pops
+            Wishlist heart - moved to a high-contrast pale chip so it pops
             against the lavender-gradient card. Previous version used a
             plum-purple chip that visually disappeared into the card.
           */}
@@ -131,10 +131,9 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        hover:text-lavender-pastel active:scale-90 transition-all duration-500"
             style={{
               borderRadius: '24px',
-              background: 'rgba(255,255,255,0.92)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(167,139,250,0.40)',
-              boxShadow: '0 2px 10px rgba(75,63,114,0.10)',
+              background: 'var(--surface-raised)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 2px 10px color-mix(in srgb, var(--text) 10%, transparent)',
             }}
           >
             <Heart
@@ -165,8 +164,8 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        disabled:opacity-40 disabled:pointer-events-none"
             style={{
               borderRadius: '24px',
-              background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
-              boxShadow: '0 4px 16px rgba(138,116,201,0.3)',
+              background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))',
+              boxShadow: '0 4px 16px color-mix(in srgb, var(--brand) 30%, transparent)',
             }}
           >
             <Plus className="w-5 h-5" aria-hidden />
@@ -178,7 +177,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             {product.category.replace('-', ' ')}
           </p>
           {/*
-            Mobile uses DM Sans at 15px — Cormorant at this size on a card
+            Mobile uses DM Sans at 15px - Cormorant at this size on a card
             reads decoratively where it should read functionally. From the
             sm breakpoint up, where the card is larger and the title gets
             real estate, the Cormorant serif comes back. Audit §2.5.

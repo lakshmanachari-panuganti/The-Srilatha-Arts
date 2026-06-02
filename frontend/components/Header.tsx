@@ -15,7 +15,7 @@ import { PHONE_DISPLAY, PHONE_TEL, STUDIO_EMAIL } from '@/lib/site-config'
 
 // Routes where the header is allowed to hide-on-scroll-down. Home + brand
 // pages tolerate it. PDP, cart, checkout, account need the cart icon + search
-// always reachable — hiding the header on those pages strands the user away
+// always reachable - hiding the header on those pages strands the user away
 // from key actions (audit §4).
 const HIDE_ON_SCROLL_ROUTES = ['/', '/our-story', '/the-craft', '/reviews', '/about']
 
@@ -55,11 +55,11 @@ export default function Header() {
             'transition-all duration-500',
             scrolled
               ? 'glass-strong'
-              : 'bg-plum/40 backdrop-blur-sm',
+              : 'bg-plum/85',
           )}
-          style={{ borderBottom: scrolled ? '1px solid rgba(167,139,250,0.30)' : '1px solid transparent' }}
+          style={{ borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent' }}
         >
-          {/* Left: logo + brand name (all viewports) — branding-first focal point */}
+          {/* Left: logo + brand name (all viewports) - branding-first focal point */}
           <div className="flex items-center min-w-0">
             <Link
               href="/"
@@ -74,7 +74,7 @@ export default function Header() {
                 priority
                 className={cn(
                   'w-[68px] h-[68px] lg:w-28 lg:h-28 object-contain transition-all duration-500 shrink-0',
-                  'drop-shadow-[0_0_12px_rgba(138,116,201,0.25)]',
+                  'drop-shadow-[0_2px_6px_rgba(34,27,18,0.10)]',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
@@ -109,7 +109,7 @@ export default function Header() {
             >
               <Search className="w-5 h-5" aria-hidden />
             </button>
-            {/* Account / Login icon — desktop only */}
+            {/* Account / Login icon - desktop only */}
             <Link
               href={authUser ? '/account' : '/login'}
               aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
@@ -140,14 +140,14 @@ export default function Header() {
                              text-[10px] font-bold leading-[18px] text-center text-plum"
                   style={{
                     borderRadius: '24px',
-                    background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
+                    background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))',
                   }}
                 >
                   {count > 99 ? '99+' : count}
                 </span>
               )}
             </Link>
-            {/* Hamburger — mobile only, rightmost */}
+            {/* Hamburger - mobile only, rightmost */}
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
@@ -158,7 +158,7 @@ export default function Header() {
             </button>
             </div>
 
-            {/* Contact links — mobile only, below the icons row */}
+            {/* Contact links - mobile only, below the icons row */}
             <div className="flex flex-col items-end gap-0.5 text-[11px] leading-tight lg:hidden">
               <a
                 href={`mailto:${STUDIO_EMAIL}`}

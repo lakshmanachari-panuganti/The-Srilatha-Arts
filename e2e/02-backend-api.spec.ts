@@ -1,5 +1,5 @@
 /**
- * 2. Backend API Tests — validate every ✅ backend endpoint.
+ * 2. Backend API Tests - validate every ✅ backend endpoint.
  * Uses page.request (browser-routed) so ignoreHTTPSErrors applies.
  */
 import { test, expect } from '@playwright/test'

@@ -1,7 +1,7 @@
 /**
  * Order State Machine (§12 of backend-plan.md)
  *
- * Pure functions — no I/O, 100% unit-testable.
+ * Pure functions - no I/O, 100% unit-testable.
  * Imported by: POST /api/orders, PATCH /api/admin/orders/{id}/status,
  * POST /api/payments/verify, processWebhook (courier updates).
  */

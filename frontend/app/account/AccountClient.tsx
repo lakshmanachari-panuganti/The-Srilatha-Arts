@@ -33,7 +33,7 @@ interface OrderSummary {
   displayTotal: number
   customerName: string
   createdAt: string
-  // Cancellation metadata — populated when a customer cancels via the
+  // Cancellation metadata - populated when a customer cancels via the
   // detail page or the list-page CancelOrderModal. Backend stores the
   // human reason string verbatim (label + optional comment).
   cancelReason?: string
@@ -233,7 +233,7 @@ function SideTab({
   )
 }
 
-// Shown when a tab's API call returns 401 — the JWT in localStorage
+// Shown when a tab's API call returns 401 - the JWT in localStorage
 // outlived its server-side validity. Clear local auth and prompt re-login.
 function SessionExpiredCard() {
   const logout = useUserAuth((s) => s.logout)
@@ -352,7 +352,7 @@ function OrderCard({
         </div>
       </Link>
 
-      {/* Return / refund context strip — shown only when applicable */}
+      {/* Return / refund context strip - shown only when applicable */}
       {order.status === 'RETURN_REQUESTED' && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <p className="font-medium mb-1">Return request submitted</p>
@@ -390,9 +390,9 @@ function OrderCard({
         </div>
       )}
 
-      {/* Cancellation context strip — shown after a successful cancel.
+      {/* Cancellation context strip - shown after a successful cancel.
           Backend stores the full human label (+ optional comment), so we
-          render order.cancelReason verbatim — no code → label map needed. */}
+          render order.cancelReason verbatim - no code → label map needed. */}
       {order.status === 'CANCELLED' && (
         <div className="mt-4 rounded-xl border border-ink/15 bg-cream-deep/60 px-4 py-3 text-sm text-ink-soft">
           <p className="font-medium text-ink mb-1">Order cancelled</p>
@@ -433,7 +433,7 @@ function OrderCard({
         </div>
       )}
 
-      {/* Invoice row always shown when no other action is eligible — keeps
+      {/* Invoice row always shown when no other action is eligible - keeps
           the download discoverable for SHIPPED / DELIVERED / CANCELLED. */}
       {!canReturn && !canCancel && (
         <div className="mt-4 flex justify-end">
@@ -475,7 +475,7 @@ function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
   if (order.paymentStatus !== 'PAID' && order.status === 'PLACED') return null
   return (
     <Link
-      href={`/account/orders/${order.id}/invoice`}
+      href={`/account/invoices/${order.id}`}
       className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
     >
       <FileText className="w-4 h-4" aria-hidden />

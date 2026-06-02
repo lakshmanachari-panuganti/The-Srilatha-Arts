@@ -1,9 +1,9 @@
 /**
  * Wishlist Endpoints (§4.2).
  *
- * GET    /api/wishlist          — list user's wishlist
- * POST   /api/wishlist          — add item
- * DELETE /api/wishlist/{productId} — remove item
+ * GET    /api/wishlist          - list user's wishlist
+ * POST   /api/wishlist          - add item
+ * DELETE /api/wishlist/{productId} - remove item
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'

@@ -159,7 +159,7 @@ export default function OrderDetailClient() {
       const [detail, timeline] = await Promise.all([
         apiFetch<{ order: Order; items: OrderItem[] }>(`/orders/${encodeURIComponent(id)}`),
         apiFetch<{ events: TimelineEvent[] }>(`/orders/${encodeURIComponent(id)}/events`).catch(
-          // Timeline failure shouldn't blank the page — it's secondary info.
+          // Timeline failure shouldn't blank the page - it's secondary info.
           () => ({ events: [] as TimelineEvent[] }),
         ),
       ])
@@ -251,7 +251,7 @@ export default function OrderDetailClient() {
         </div>
       </header>
 
-      {/* Return / refund banners — same set the OrdersTab uses */}
+      {/* Return / refund banners - same set the OrdersTab uses */}
       {order.status === 'RETURN_REQUESTED' && (
         <Banner tone="amber" title="Return request submitted">
           {order.returnReason && (
@@ -402,14 +402,17 @@ export default function OrderDetailClient() {
 
           <Card title="Payment">
             <dl className="text-sm space-y-1.5">
+              {/* Backend stores subtotal / shipping / discount in PAISE, but
+                  displayTotal is pre-converted to RUPEES. Divide by 100 so
+                  all four numbers are in the same unit before formatINR. */}
               {order.subtotal != null && (
-                <Row label="Subtotal" value={formatINR(order.subtotal)} />
+                <Row label="Subtotal" value={formatINR(order.subtotal / 100)} />
               )}
               {order.discountAmount != null && order.discountAmount > 0 && (
-                <Row label={`Discount${order.couponCode ? ` (${order.couponCode})` : ''}`} value={`−${formatINR(order.discountAmount)}`} />
+                <Row label={`Discount${order.couponCode ? ` (${order.couponCode})` : ''}`} value={`−${formatINR(order.discountAmount / 100)}`} />
               )}
               {order.shippingAmount != null && (
-                <Row label="Shipping" value={order.shippingAmount === 0 ? 'Free' : formatINR(order.shippingAmount)} />
+                <Row label="Shipping" value={order.shippingAmount === 0 ? 'Free' : formatINR(order.shippingAmount / 100)} />
               )}
               <div className="border-t border-ink/8 pt-1.5">
                 <Row label="Total" value={formatINR(order.displayTotal)} bold />

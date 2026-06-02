@@ -25,7 +25,7 @@ const styleEntries = [
   {
     slug: 'dot-mandala',
     title: 'Dot Mandala',
-    tagline: 'Thousands of hand-painted dots placed one by one — each mandala unique.',
+    tagline: 'Thousands of hand-painted dots placed one by one - each mandala unique.',
     href: '/shop/dot-mandala',
     image: '/category/dot-mandala/29edd2b99f56d8048df6aea5ef22895b.jpg',
     badge: '03 / Mandala',
@@ -49,7 +49,7 @@ const styleEntries = [
   {
     slug: 'gifts',
     title: 'Gift Items',
-    tagline: 'Resin coasters, Lippan frames and art sets — beautifully packaged to gift.',
+    tagline: 'Resin coasters, Lippan frames and art sets - beautifully packaged to gift.',
     href: '/shop',
     image: '/category/lippan/1edb12e7ed96b46b7a4e9f79c1a85167.jpg',
     badge: '06 / Gifts',

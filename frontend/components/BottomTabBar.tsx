@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn'
 import { useHaptic } from '@/hooks/useHaptic'
 
 // Five equal-weight tabs. The previous design had "Custom" as a raised,
-// gradient-filled floating button — visually it screamed louder than the
+// gradient-filled floating button - visually it screamed louder than the
 // brand itself on every screen of the site. Demoted to a regular tab so
 // the nav reads as a quiet utility surface, not a sales pitch.
 const tabs = [
@@ -29,10 +29,8 @@ export default function BottomTabBar() {
       aria-label="Primary"
       className="lg:hidden fixed bottom-0 inset-x-0 z-40"
       style={{
-        background: 'rgba(76,29,149,0.92)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(167,139,250,0.30)',
+        background: 'color-mix(in srgb, var(--brand-strong) 96%, transparent)',
+        borderTop: '1px solid var(--border)',
         // Respect device safe areas on every side so notches / rounded corners
         // never clip the rightmost tab. Bottom keeps the existing safe-pb feel.
         paddingLeft: 'env(safe-area-inset-left)',
@@ -43,7 +41,7 @@ export default function BottomTabBar() {
       <ul
         className="h-16"
         style={{
-          // Explicit grid with `minmax(0,1fr)` + zero gap — guarantees five equal
+          // Explicit grid with `minmax(0,1fr)` + zero gap - guarantees five equal
           // columns that each refuse to grow beyond their share, regardless of
           // child content. Inline so it can never be overridden by a stale
           // utility class shipped in an older CSS bundle.

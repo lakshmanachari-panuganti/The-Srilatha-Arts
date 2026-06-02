@@ -64,7 +64,7 @@ export function csrfCheck(request: HttpRequest): string | null {
 }
 
 /**
- * Convenience wrapper for handlers — returns a 403 HttpResponseInit if the
+ * Convenience wrapper for handlers - returns a 403 HttpResponseInit if the
  * request fails the CSRF check, or `null` to indicate the handler should
  * continue. Usage:
  *

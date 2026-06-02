@@ -23,7 +23,7 @@ const REDIRECT_DELAY_MS = 700
  *      Product + qty.
  *   3. Navigate to /login?next=<current path>.
  *   4. After successful login, LoginClient consumes the intent and
- *      replays the add automatically — the user does NOT need to repeat
+ *      replays the add automatically - the user does NOT need to repeat
  *      the action.
  *
  * The cart store itself stays auth-agnostic (still just a data structure).

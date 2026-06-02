@@ -57,7 +57,7 @@ export interface CartItem {
   category: CategorySlug
   /** Current price the customer pays (after any sale discount). */
   price: number
-  /** Strikethrough "was" price — undefined when not on sale. Lets the
+  /** Strikethrough "was" price - undefined when not on sale. Lets the
    *  cart row mirror the product card's price treatment. */
   compareAtPrice?: number
   image: string
@@ -72,7 +72,7 @@ export interface WishlistItem {
   image: string
   /** Current price (after any sale discount). */
   price: number
-  /** Strikethrough "was" price — same semantics as CartItem.compareAtPrice. */
+  /** Strikethrough "was" price - same semantics as CartItem.compareAtPrice. */
   compareAtPrice?: number
   category: CategorySlug
   addedAt: string

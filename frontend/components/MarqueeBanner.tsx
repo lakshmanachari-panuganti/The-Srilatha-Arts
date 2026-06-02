@@ -36,8 +36,8 @@ export default function MarqueeBanner({ items }: { items: Announcement[] }) {
       className="fixed top-0 inset-x-0 z-[60] h-7 sm:h-8
                  overflow-hidden flex items-center"
       style={{
-        background: 'linear-gradient(135deg, #5B21B6 0%, #7C3AED 40%, #A855F7 70%, #E879F9 100%)',
-        borderBottom: '1px solid rgba(232,121,249,0.30)',
+        background: 'linear-gradient(135deg, var(--brand-strong) 0%, var(--brand) 40%, var(--accent-strong) 70%, var(--accent) 100%)',
+        borderBottom: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
       }}
     >
       <div className="flex-1 overflow-hidden">

@@ -12,7 +12,7 @@
  *   The JSON body always includes a stable machine-readable `code` so the
  *   admin UI can render the precise user-facing message for each scenario
  *   (auth error vs deployment-not-found vs rate-limit, etc.). The `error`
- *   string is a short technical hint — never an Azure dump and never
+ *   string is a short technical hint - never an Azure dump and never
  *   contains API keys or endpoints.
  *
  *   Detailed root-cause information (Azure status, Azure error body,
@@ -32,7 +32,7 @@ import {
 } from '../services/aiContentGenerator'
 
 // Short, neutral hint strings paired with each code. The real user-facing
-// copy lives on the frontend (mapped from `code`) — these strings just
+// copy lives on the frontend (mapped from `code`) - these strings just
 // exist so a curl client or test harness gets something readable.
 const ERROR_HINT: Record<AiErrorCode, string> = {
   MISSING_CONFIG: 'AI content generation is not configured.',
@@ -115,7 +115,7 @@ async function aiGenerateContent(
       })
       return errorJson(origin, err.status, err.code, requestId)
     }
-    // Truly unexpected — log the full error and surface INTERNAL_ERROR.
+    // Truly unexpected - log the full error and surface INTERNAL_ERROR.
     logFailure(context, {
       requestId,
       adminId: admin.adminId,

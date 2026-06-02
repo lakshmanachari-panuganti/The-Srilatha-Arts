@@ -48,7 +48,7 @@ export default function CustomOrderCTA() {
             Share your idea and we will guide you through every step of the handmade process.
           </p>
 
-          {/* 3-Step Process Flow — horizontal editorial timeline on desktop,
+          {/* 3-Step Process Flow - horizontal editorial timeline on desktop,
               vertical stack on mobile. A faint gold rule connects the steps
               behind the cards so the eye reads the sequence even before
               numbering registers. */}

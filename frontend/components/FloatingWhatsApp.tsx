@@ -5,7 +5,7 @@ import { MessageCircle } from 'lucide-react'
 import { whatsappLink } from '@/lib/site-config'
 
 // Persistent WhatsApp shortcut. WhatsApp is the dominant contact channel for
-// a handcrafted Indian D2C brand — the footer already has a link, but a
+// a handcrafted Indian D2C brand - the footer already has a link, but a
 // floating CTA visible on every scroll position dramatically lowers the
 // conversion threshold for "I have a question".
 //
@@ -18,7 +18,7 @@ import { whatsappLink } from '@/lib/site-config'
 //   "tap to WhatsApp". Painting it lavender would hide what it does.
 //   The brand still shows through the page around it.
 export default function FloatingWhatsApp() {
-  // Tiny stagger so it doesn't pop in the moment the page mounts — same
+  // Tiny stagger so it doesn't pop in the moment the page mounts - same
   // editorial rhythm as the rest of the hero motion.
   const [visible, setVisible] = useState(false)
   useEffect(() => {
@@ -57,12 +57,12 @@ export default function FloatingWhatsApp() {
         'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40',
       ].join(' ')}
       style={{
-        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+        background: 'linear-gradient(135deg, var(--wa-1) 0%, var(--wa-2) 100%)',
         boxShadow:
           '0 10px 30px -8px rgba(18,140,126,0.55), 0 0 0 4px rgba(37,211,102,0.18)',
       }}
     >
-      {/* Soft pulsing halo — pure CSS, respects prefers-reduced-motion via
+      {/* Soft pulsing halo - pure CSS, respects prefers-reduced-motion via
           the global rule in globals.css that flattens animation durations. */}
       <span
         aria-hidden

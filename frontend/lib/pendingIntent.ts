@@ -5,7 +5,7 @@
  *
  * The full Product object is stored (not just the id) so the post-login
  * replay can complete without an extra `/api/products/{id}` round-trip.
- * Stale intents (>15 min) are ignored — if the user takes that long to
+ * Stale intents (>15 min) are ignored - if the user takes that long to
  * sign in, the original intent has very likely lost its context.
  */
 
@@ -33,7 +33,7 @@ export function setPendingIntent(intent: Omit<PendingIntent, 'queuedAt'>): void 
       JSON.stringify({ ...intent, queuedAt: new Date().toISOString() }),
     )
   } catch {
-    // QuotaExceeded or storage disabled — silently no-op. The user will
+    // QuotaExceeded or storage disabled - silently no-op. The user will
     // just need to repeat the action after signing in.
   }
 }

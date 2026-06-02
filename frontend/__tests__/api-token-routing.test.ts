@@ -1,5 +1,5 @@
 /**
- * Unit tests for lib/api.ts — token routing.
+ * Unit tests for lib/api.ts - token routing.
  *
  * The two-slot design (one customer token, one admin token, both alive at
  * once) exists to fix a real bug: when both stores rehydrate, whichever
@@ -42,7 +42,7 @@ function authHeader(call: Parameters<typeof fetch>): string | null {
   return headers.Authorization ?? headers.authorization ?? null
 }
 
-describe('apiFetch — auth token routing', () => {
+describe('apiFetch - auth token routing', () => {
   it('attaches the customer token on a public path', async () => {
     const fetchMock = mockFetchCapturing()
     setApiAuthToken('USER_TOKEN', 'user')
@@ -64,7 +64,7 @@ describe('apiFetch — auth token routing', () => {
     setApiAuthToken('USER_TOKEN', 'user')
     setApiAuthToken('ADMIN_TOKEN', 'admin')
     await apiFetch('/auth/admin/logout', { method: 'POST' })
-    // The first call may be the CSRF preflight to /auth/csrf — find the
+    // The first call may be the CSRF preflight to /auth/csrf - find the
     // call to our actual target path.
     const target = fetchMock.mock.calls.find((c) =>
       String(c[0]).includes('/auth/admin/logout'),
@@ -100,7 +100,7 @@ describe('apiFetch — auth token routing', () => {
     await apiFetch('/my-orders')
     await apiFetch('/admin/orders')
 
-    // Two underlying calls (no CSRF preflight on GETs) — first user, second admin.
+    // Two underlying calls (no CSRF preflight on GETs) - first user, second admin.
     const headers = fetchMock.mock.calls.map(authHeader)
     expect(headers).toContain('Bearer USER_TOKEN')
     expect(headers).toContain('Bearer ADMIN_TOKEN')

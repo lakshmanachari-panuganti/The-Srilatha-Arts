@@ -1,5 +1,5 @@
 /**
- * Azure Storage Queue wrapper (§10 — shared services).
+ * Azure Storage Queue wrapper (§10 - shared services).
  * Used by order state machine to enqueue notifications, webhooks, review requests.
  */
 

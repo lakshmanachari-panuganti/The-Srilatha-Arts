@@ -44,7 +44,7 @@ export const useAdminAuth = create<AdminAuthState>()(
           let message: string
 
           if (err instanceof ApiError) {
-            // Backend responded with a structured error — surface its message
+            // Backend responded with a structured error - surface its message
             message =
               err.body && typeof err.body === 'object' && 'error' in err.body
                 ? String((err.body as { error: string }).error)
@@ -72,7 +72,7 @@ export const useAdminAuth = create<AdminAuthState>()(
         // Fire-and-forget: the UI is already cleared; if this fails the cookie
         // expires naturally after 24 h and the next API call returns 401.
         apiFetch('/auth/admin/logout', { method: 'POST' }).catch(() => {
-          // Intentionally ignored — local state is authoritative for the guard.
+          // Intentionally ignored - local state is authoritative for the guard.
         })
       },
 

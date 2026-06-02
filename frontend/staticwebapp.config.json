@@ -6,6 +6,10 @@
     },
 
     {
+      "route": "/account/invoices/*",
+      "rewrite": "/account/invoices/__shell__/index.html"
+    },
+    {
       "route": "/account/orders/*",
       "rewrite": "/account/orders/__shell__/index.html"
     }

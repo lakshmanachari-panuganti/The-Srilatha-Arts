@@ -2,12 +2,12 @@
 
 > Last reviewed: 2026-05-13 by full-stack audit of [frontend-plan.md](frontend-plan.md) vs. repo code + live site (srilatha.art).
 
-## Design System & Infrastructure — ✅ Complete
+## Design System & Infrastructure - ✅ Complete
 
 | Item | Status | Notes |
 |------|--------|-------|
 | Mobile-first Tailwind setup | ✅ | `globals.css`, `tailwind.config.ts` |
-| Custom color palette (plum, lavender, ivory, terracotta) | ✅ | Differs from plan's terracotta/cream — uses purple/lavender theme instead |
+| Custom color palette (plum, lavender, ivory, terracotta) | ✅ | Differs from plan's terracotta/cream - uses purple/lavender theme instead |
 | Typography (serif + sans) | ✅ | Working well |
 | Glassmorphism cards + glass surfaces | ✅ | `.card`, `.card-cream`, `.glass` in `globals.css` |
 | Gold-text gradient | ✅ | `.gold-text` component class |
@@ -26,7 +26,7 @@
 
 ## Customer-Facing Pages
 
-### Core Pages — ✅ Complete
+### Core Pages - ✅ Complete
 
 | Route | Plan §  | Status | Notes |
 |-------|---------|--------|-------|
@@ -52,7 +52,7 @@
 | `/sale` | §7.2 | ✅ | Sale items |
 | `/collections` | §4 | ✅ | Collections listing |
 
-### Account Pages — ⚠️ Partial
+### Account Pages - ⚠️ Partial
 
 | Route | Plan § | Status | Notes |
 |-------|--------|--------|-------|
@@ -77,27 +77,27 @@
 
 ## Admin Panel
 
-### Admin Infrastructure — ✅ Complete
+### Admin Infrastructure - ✅ Complete
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Admin layout (sidebar + mobile header) | ✅ | `admin/layout.tsx` — active nav state now fixed |
+| Admin layout (sidebar + mobile header) | ✅ | `admin/layout.tsx` - active nav state now fixed |
 | Admin login | ✅ | `admin/login/page.tsx` |
 
-### Admin Pages — ⚠️ Partial (UI exists; see wiring status below)
+### Admin Pages - ⚠️ Partial (UI exists; see wiring status below)
 
 | Route | Plan § | Status | Notes |
 |-------|--------|--------|-------|
-| `/admin` (Dashboard) | §9.1 | ✅ | KPI cards via `GET /api/admin/stats` — real data |
-| `/admin/orders` | §9.2 | ✅ | Order list via `GET /api/admin/orders` — real data |
-| `/admin/products` | §9.3 | ✅ | Product table via `GET /api/products` — real data |
-| `/admin/products/new` | §9.3 | ✅ | Add product form — calls `POST /api/admin/products` |
-| `/admin/products/[id]/edit` | §9.3 | ✅ | Edit/delete form — calls `PATCH`/`DELETE /api/admin/products/{id}` |
+| `/admin` (Dashboard) | §9.1 | ✅ | KPI cards via `GET /api/admin/stats` - real data |
+| `/admin/orders` | §9.2 | ✅ | Order list via `GET /api/admin/orders` - real data |
+| `/admin/products` | §9.3 | ✅ | Product table via `GET /api/products` - real data |
+| `/admin/products/new` | §9.3 | ✅ | Add product form - calls `POST /api/admin/products` |
+| `/admin/products/[id]/edit` | §9.3 | ✅ | Edit/delete form - calls `PATCH`/`DELETE /api/admin/products/{id}` |
 | `/admin/custom-orders` | §9.8 | ✅ | Wired to `GET`/`PATCH /api/admin/custom-orders` |
 | `/admin/reviews` | §9.9 | ✅ | Wired to `GET`/`PATCH /api/admin/reviews` |
 | `/admin/coupons` | §9.10 | ✅ | Wired to full CRUD `/api/admin/coupons` |
 | `/admin/announcements` | §9.15 | ✅ | Wired to full CRUD `/api/admin/announcements` |
-| `/admin/inventory` | §9.4 | ✅ | Read-only stock view via `GET /api/products` — no stock-edit endpoint yet |
+| `/admin/inventory` | §9.4 | ✅ | Read-only stock view via `GET /api/products` - no stock-edit endpoint yet |
 | `/admin/settings` | §9.16 | ⚠️ | UI hub + general form exists; **Save button has no handler**, no `apiFetch`, no backend endpoint |
 | `/admin/categories` | §9.5 | ⚠️ | UI reads `@/data/categories` (local static file); Add/Edit/Delete buttons are no-ops; no backend CRUD |
 | `/admin/collections` | §9.6 | ⚠️ | UI has mock data; no backend CRUD endpoint |
@@ -106,16 +106,16 @@
 | `/admin/customers` | §9.7 | ❌ | Uses `MOCK_CUSTOMERS` array; no `apiFetch`; no backend endpoint |
 | `/admin/orders/[id]` | §9.2 | ❌ | Uses `MOCK_ORDER` + `MOCK_EVENTS`; no `apiFetch`; status controls are no-ops |
 
-## State Management & Data Layer — ⚠️ Partial
+## State Management & Data Layer - ⚠️ Partial
 
 | Item | Status | Notes |
 |------|--------|-------|
 | Zustand stores directory | ✅ | `stores/` dir exists |
 | Cart store | ⚠️ | Needs verification |
 | API wiring to backend | ⚠️ | Dashboard/Orders/Products/Custom-Orders/Reviews/Coupons/Announcements/Inventory wired; Settings/Categories/Collections/Customers/Analytics/Media/Orders[id] still mock/static |
-| Product data | ✅ | Admin products page calls `GET /api/products` — wired to backend |
+| Product data | ✅ | Admin products page calls `GET /api/products` - wired to backend |
 
-## PWA & SEO — ✅ Mostly Complete
+## PWA & SEO - ✅ Mostly Complete
 
 | Item | Status | Notes |
 |------|--------|-------|
@@ -135,15 +135,15 @@
 ### What's working well:
 - Full design system with mobile-first approach
 - All public-facing content pages (shop, categories, product detail, static pages)
-- Admin panel: Dashboard, Orders, Products, Products/New, Products/Edit, Custom-Orders, Reviews, Coupons, Announcements, Inventory — all wired to real backend APIs
+- Admin panel: Dashboard, Orders, Products, Products/New, Products/Edit, Custom-Orders, Reviews, Coupons, Announcements, Inventory - all wired to real backend APIs
 - Product add/edit/delete fully functional (partition-key bug fixed in c5492a7)
 
 ### Critical gaps:
-1. **Account order management** — `/account/orders`, `/account/orders/[id]` — the customer can't view their own orders yet
-2. **Admin orders/[id]** — detail page still uses `MOCK_ORDER` + `MOCK_EVENTS`; no API call
-3. **Admin Customers** — `MOCK_CUSTOMERS` array; needs `GET /api/admin/customers` backend endpoint + `listAllUsers()` in tableStorage
-4. **Admin Settings Save** — form inputs exist but Save has no handler; needs `GET/PATCH /api/admin/settings` backend endpoint
-5. **Admin Categories/Collections** — UI-only, no backend CRUD; correctly ❌ in backend doc
-6. **Admin Analytics** — hardcoded zeros; should call `GET /api/admin/stats` (already exists) and extend it
-7. **Admin Media** — MOCK_MEDIA; Upload button is a no-op; `adminUpload` endpoint exists in backend but frontend not wired
-8. **Checkout flow** — placeholder; needs Razorpay SDK integration once backend payments land
+1. **Account order management** - `/account/orders`, `/account/orders/[id]` - the customer can't view their own orders yet
+2. **Admin orders/[id]** - detail page still uses `MOCK_ORDER` + `MOCK_EVENTS`; no API call
+3. **Admin Customers** - `MOCK_CUSTOMERS` array; needs `GET /api/admin/customers` backend endpoint + `listAllUsers()` in tableStorage
+4. **Admin Settings Save** - form inputs exist but Save has no handler; needs `GET/PATCH /api/admin/settings` backend endpoint
+5. **Admin Categories/Collections** - UI-only, no backend CRUD; correctly ❌ in backend doc
+6. **Admin Analytics** - hardcoded zeros; should call `GET /api/admin/stats` (already exists) and extend it
+7. **Admin Media** - MOCK_MEDIA; Upload button is a no-op; `adminUpload` endpoint exists in backend but frontend not wired
+8. **Checkout flow** - placeholder; needs Razorpay SDK integration once backend payments land

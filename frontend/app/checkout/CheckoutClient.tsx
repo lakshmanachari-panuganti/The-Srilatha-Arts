@@ -54,7 +54,7 @@ interface RazorpayOptions {
     paylater?: boolean
     qr?: boolean
   }
-  // Custom display config (block-based) — used to feature UPI at the top.
+  // Custom display config (block-based) - used to feature UPI at the top.
   config?: {
     display?: {
       blocks?: Record<string, {
@@ -266,7 +266,7 @@ export default function CheckoutClient() {
     return addresses.find((a) => a.id === selectedId) || null
   }, [addresses, selectedId])
 
-  // Whichever data set we'll actually charge against — the active saved
+  // Whichever data set we'll actually charge against - the active saved
   // address (if one is selected) or the manual form.
   const activeShipping: ShippingForm = useMemo(() => {
     if (selectedAddress) return shippingFromSaved(selectedAddress, user?.email || form.email)
@@ -352,7 +352,7 @@ export default function CheckoutClient() {
     try {
       // If the customer chose "new address" and ticked "save for next time",
       // persist it to their address book FIRST so future checkouts get the
-      // picker. Failure here is non-fatal — we'd still want to take the
+      // picker. Failure here is non-fatal - we'd still want to take the
       // payment for the order they're trying to place right now.
       if (selectedId === NEW_ADDRESS_ID && saveNewAddress && user) {
         try {
@@ -372,7 +372,7 @@ export default function CheckoutClient() {
           })
           setAddresses((prev) => [...(prev || []), r.address])
         } catch {
-          // intentionally swallowed — see comment above
+          // intentionally swallowed - see comment above
         }
       }
 
@@ -414,7 +414,7 @@ export default function CheckoutClient() {
         return
       }
 
-      // Absolute logo URL — Razorpay's iframe needs a fully-qualified https URL.
+      // Absolute logo URL - Razorpay's iframe needs a fully-qualified https URL.
       // Falls back to the production site if NEXT_PUBLIC_SITE_URL is unset
       // (during local dev the image just won't load, which is fine).
       const siteUrl =
@@ -436,7 +436,7 @@ export default function CheckoutClient() {
           contact: res.order.customerPhone,
         },
         notes: { internalOrderId: res.order.id },
-        theme: { color: '#6D28D9' },
+        theme: { color: '#221B12' },
         // Explicitly opt every method in. Razorpay shows a method only when
         // it's both enabled on the merchant account AND not set to false
         // here, so this guarantees nothing is being suppressed client-side.
@@ -452,7 +452,7 @@ export default function CheckoutClient() {
         // customers expect it as the primary option). `show_default_blocks`
         // keeps Cards / Netbanking / Wallet / Pay Later visible below.
         // If UPI is disabled on the merchant account this block is silently
-        // skipped — it never errors out.
+        // skipped - it never errors out.
         config: {
           display: {
             blocks: {
@@ -507,7 +507,7 @@ export default function CheckoutClient() {
         },
       })
 
-      // Razorpay surfaces granular failure metadata — show what actually
+      // Razorpay surfaces granular failure metadata - show what actually
       // went wrong instead of a generic message. Common reasons include:
       //   payment_failed, BAD_REQUEST_ERROR, GATEWAY_ERROR, NETWORK_ERROR
       // and `error.description` is human-readable.
@@ -516,7 +516,7 @@ export default function CheckoutClient() {
         const reason = f?.error?.description || f?.error?.reason || 'Payment did not go through.'
         const code = f?.error?.code ? ` (${f.error.code})` : ''
         setError(
-          `${reason}${code}. No charge was made — you can retry from the cart.`,
+          `${reason}${code}. No charge was made - you can retry from the cart.`,
         )
         setSubmitting(false)
         // Also log the full envelope to the console so dev / support can
@@ -555,7 +555,7 @@ export default function CheckoutClient() {
     )
   }
 
-  // While unauthenticated, render the loader — the redirect effect above
+  // While unauthenticated, render the loader - the redirect effect above
   // will move the user to /login on the next tick.
   if (!hydrated || cartEmpty || !user) {
     return (

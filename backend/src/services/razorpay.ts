@@ -13,7 +13,7 @@
  *
  *   3. POST /api/payments/webhook         → verifyWebhookSignature()
  *      Asynchronous backup. Razorpay POSTs JSON with X-Razorpay-Signature.
- *      We verify with HMAC-SHA256(raw_body, WEBHOOK_SECRET) — using the
+ *      We verify with HMAC-SHA256(raw_body, WEBHOOK_SECRET) - using the
  *      RAW request bytes, not parsed JSON, because re-serializing would
  *      reorder keys and break the digest.
  *
@@ -27,7 +27,7 @@ import { createHmac, timingSafeEqual } from 'crypto'
 // pasted values (especially when the source is Excel or the Razorpay
 // dashboard's copy button). A whitespace-padded secret base64-encodes
 // to a different string than the one Razorpay holds on file, which
-// Razorpay surfaces as HTTP 401 "Authentication failed" — visually
+// Razorpay surfaces as HTTP 401 "Authentication failed" - visually
 // identical to a wrong/revoked key. Normalising here removes that
 // whole class of misconfiguration.
 const KEY_ID = process.env.RAZORPAY_KEY_ID?.trim() || undefined
@@ -83,7 +83,7 @@ export async function createRazorpayOrder(input: CreateOrderInput): Promise<Razo
       currency: input.currency || 'INR',
       receipt: input.receipt,
       notes: input.notes || {},
-      // Wait for the customer to interact with Checkout — do NOT auto-capture
+      // Wait for the customer to interact with Checkout - do NOT auto-capture
       // partial payments. Razorpay defaults are fine for our flow.
     }),
   })
@@ -207,7 +207,7 @@ export function verifyPaymentSignature(input: {
 }
 
 /**
- * Verify a webhook from Razorpay. The signature is on the RAW body —
+ * Verify a webhook from Razorpay. The signature is on the RAW body -
  * always pass the exact bytes from the request, not a re-serialized JSON.
  *
  *   sig = HMAC_SHA256(raw_body, WEBHOOK_SECRET)

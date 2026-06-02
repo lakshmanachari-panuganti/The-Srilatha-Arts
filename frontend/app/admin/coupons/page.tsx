@@ -65,7 +65,7 @@ const TYPE_COLORS: Record<CouponType, string> = {
   FREE_SHIPPING: 'bg-green-50 text-green-700 ring-green-600/20',
 }
 
-// All monetary amounts stored in paise — divide by 100 to display in ₹
+// All monetary amounts stored in paise - divide by 100 to display in ₹
 function formatCouponValue(coupon: Coupon): string {
   switch (coupon.type) {
     case 'PERCENTAGE': return `${coupon.value}% off`

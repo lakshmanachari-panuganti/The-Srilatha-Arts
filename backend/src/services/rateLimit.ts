@@ -1,5 +1,5 @@
 /**
- * Rate Limiter — Table Storage sliding window (§10).
+ * Rate Limiter - Table Storage sliding window (§10).
  * Used by coupon validate (5/min/IP) and login (20 failures/hour).
  */
 

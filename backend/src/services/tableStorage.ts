@@ -15,7 +15,7 @@ function getTableClient(tableName: string): TableClient {
 // Per-process cache of "we've already verified this table exists" so we
 // only pay the createTable() round-trip once per cold start, per table.
 // Self-healing: lets new tables (added in code) be reached without
-// re-running the infra script. Race-safe — concurrent first calls both
+// re-running the infra script. Race-safe - concurrent first calls both
 // race for createTable(), TableAlreadyExists is benign.
 const _tableEnsured = new Set<string>()
 async function ensureTable(tableName: string): Promise<TableClient> {
@@ -24,11 +24,11 @@ async function ensureTable(tableName: string): Promise<TableClient> {
   try {
     await client.createTable()
   } catch (e: any) {
-    // Azure returns either `TableAlreadyExists` or a 409 — both mean
+    // Azure returns either `TableAlreadyExists` or a 409 - both mean
     // someone else got there first, which is exactly what we want.
     const code = e?.code || e?.details?.errorCode || ''
     if (code !== 'TableAlreadyExists' && e?.statusCode !== 409) {
-      // Anything else (permissions, network) — let the caller see it
+      // Anything else (permissions, network) - let the caller see it
       // rather than silently masking a configuration problem.
       throw e
     }
@@ -151,7 +151,7 @@ export async function deleteProduct(category: string, productId: string): Promis
   await client.deleteEntity(category, productId)
 }
 
-// ─── ORDERS (new PK=userEmail scheme — §3) ───────────────────
+// ─── ORDERS (new PK=userEmail scheme - §3) ───────────────────
 
 export async function createOrder(order: Row): Promise<void> {
   const client = getTableClient('orders')
@@ -173,7 +173,7 @@ export async function getOrderByOwner(userEmail: string, orderId: string): Promi
 }
 
 /**
- * Find an order by ID regardless of owner — scans all partitions.
+ * Find an order by ID regardless of owner - scans all partitions.
  * Used by admin endpoints.
  */
 export async function getOrderById(orderId: string): Promise<Row | null> {
@@ -183,7 +183,7 @@ export async function getOrderById(orderId: string): Promise<Row | null> {
 
 /**
  * List all orders for a user (GET /api/orders/me).
- * Single-partition query — fast.
+ * Single-partition query - fast.
  */
 export async function getOrdersByUser(userEmail: string): Promise<Row[]> {
   const rows = await listAll('orders', odata`PartitionKey eq ${userEmail}`)
@@ -193,7 +193,7 @@ export async function getOrdersByUser(userEmail: string): Promise<Row[]> {
 }
 
 /**
- * Update an order's fields in-place (merge update — no row move).
+ * Update an order's fields in-place (merge update - no row move).
  */
 export async function mergeOrder(userEmail: string, orderId: string, fields: Row): Promise<void> {
   const client = getTableClient('orders')
@@ -210,7 +210,7 @@ export async function getAllOrders(): Promise<Row[]> {
   )
 }
 
-// Legacy compat — used during migration; remove after Stage 2.
+// Legacy compat - used during migration; remove after Stage 2.
 export async function updateOrderStatus(
   currentStatus: string,
   orderId: string,
@@ -240,7 +240,7 @@ export async function getOrderItems(orderId: string): Promise<Row[]> {
   return listAll('orderItems', odata`PartitionKey eq ${orderId}`)
 }
 
-// ─── ORDER EVENTS (append-only audit log — §2.1) ─────────────
+// ─── ORDER EVENTS (append-only audit log - §2.1) ─────────────
 
 export async function appendOrderEvent(event: Row): Promise<void> {
   const client = getTableClient('orderEvents')
@@ -257,7 +257,7 @@ export async function getOrderEvents(orderId: string, includeInternal = false): 
   )
 }
 
-// ─── ORDERS BY STATUS (secondary index — §3.1) ──────────────
+// ─── ORDERS BY STATUS (secondary index - §3.1) ──────────────
 
 export async function upsertOrderByStatus(row: Row): Promise<void> {
   const client = getTableClient('ordersByStatus')
@@ -446,7 +446,7 @@ export async function removeFromWishlist(userEmail: string, productId: string): 
 // ─── CART ────────────────────────────────────────────────────
 // Per-user cart persistence, same shape as wishlist (PK=userEmail,
 // RK=productId, with `quantity` and `addedAt` payload). Listing and
-// mutation helpers are intentionally tiny — the route handler does the
+// mutation helpers are intentionally tiny - the route handler does the
 // product enrichment so the client sees a self-contained item row
 // (title, image, price) without needing a separate /products fetch.
 

@@ -105,7 +105,7 @@ export default function ProductDetailClient() {
     staleTime: 2 * 60_000,
   })
 
-  // Eligibility pre-flight. Only fires when the user is logged in — the
+  // Eligibility pre-flight. Only fires when the user is logged in - the
   // anonymous-state CTA ("Sign in to review") doesn't need a network
   // round-trip. The backend mirrors POST /api/reviews' own checks
   // (verified delivered purchase + one-per-user-product), so the form
@@ -253,7 +253,7 @@ export default function ProductDetailClient() {
           </div>
 
           {/*
-            Trust strip — moved above the description so the buyer sees the
+            Trust strip - moved above the description so the buyer sees the
             three reassurances at the exact moment of price decision (audit
             §3). Four signals: handmade by Srilatha (provenance), ships in N
             (lead-time honesty), free shipping (cost surprise removed),
@@ -268,18 +268,18 @@ export default function ProductDetailClient() {
             <Feature icon={ShieldCheck} label="7-day easy returns" />
           </div>
 
-          {/* Low-stock urgency cue — honest, since handcrafted is genuinely
+          {/* Low-stock urgency cue - honest, since handcrafted is genuinely
               limited. Only fires when stock is positive but ≤ 2. */}
           {p.inStock && p.stockQty > 0 && p.stockQty <= 2 && (
             <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-lavender bg-lavender/10 px-3 py-2 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-lavender animate-pulse" aria-hidden />
-              Only {p.stockQty} left — each piece is unique
+              Only {p.stockQty} left - each piece is unique
             </p>
           )}
 
           <p className="text-ink/85 leading-relaxed mb-7 text-base lg:text-lg">{p.description}</p>
 
-          {/* Customise CTA — opens custom-order with this piece as the brief
+          {/* Customise CTA - opens custom-order with this piece as the brief
               source. Keeps the existing custom-order form schema unchanged;
               the form just pre-fills initial state from ?source=<id>. */}
           <Link
@@ -294,7 +294,7 @@ export default function ProductDetailClient() {
             <span className="flex-1 min-w-0">
               <span className="block font-serif text-lg text-ink mb-0.5">Want a custom version?</span>
               <span className="block text-sm text-ink-soft leading-relaxed">
-                Different size, palette or theme — we can craft one inspired by this piece.
+                Different size, palette or theme - we can craft one inspired by this piece.
               </span>
             </span>
             <span className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-lavender shrink-0 self-center">
@@ -379,13 +379,13 @@ export default function ProductDetailClient() {
           )}
         </div>
 
-        {/* Contextual eligibility messaging — explains WHY the user
+        {/* Contextual eligibility messaging - explains WHY the user
             can't write a review instead of letting them fill the form
             and hit a 401/403 on submit. */}
         {!showForm && !formSuccess && user && eligibility?.eligible === false && (
           <p className="text-sm text-ink-mute mb-6">
             {eligibility.reason === 'already-reviewed'
-              ? 'Thanks — you’ve already shared a review for this piece.'
+              ? 'Thanks - you’ve already shared a review for this piece.'
               : eligibility.reason === 'no-delivered-order'
                 ? 'Only customers who’ve received this piece can leave a review.'
                 : null}
@@ -440,7 +440,7 @@ export default function ProductDetailClient() {
                 onChange={setFormPhotos}
                 max={6}
                 label="Photos (optional)"
-                hint="Show off the piece in your space — up to 6 photos, 5 MB each."
+                hint="Show off the piece in your space - up to 6 photos, 5 MB each."
               />
             </div>
             {formError && <p className="text-xs text-red-600 mb-3">{formError}</p>}

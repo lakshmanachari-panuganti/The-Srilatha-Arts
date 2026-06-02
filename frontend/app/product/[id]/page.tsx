@@ -1,4 +1,4 @@
-// Product detail page — fully client-side so that products created after a deploy
+// Product detail page - fully client-side so that products created after a deploy
 // are accessible without rebuilding. generateStaticParams returns a single shell entry
 // to satisfy Next.js's static-export requirement; all real data fetching happens in
 // ProductDetailClient via useQuery.

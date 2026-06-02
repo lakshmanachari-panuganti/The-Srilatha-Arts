@@ -16,15 +16,15 @@
     Three special cases are reversed on restore:
 
       1. Underscore ( _ )
-         KV name has a single hyphen — restored via the OriginalKey tag.
+         KV name has a single hyphen - restored via the OriginalKey tag.
          e.g.  AZURE-OPENAI-KEY  →  AZURE_OPENAI_KEY
 
       2. Dot ( . )
-         KV name has -DOT- — restored via the OriginalKey tag.
+         KV name has -DOT- - restored via the OriginalKey tag.
          e.g.  TEST-DOT-DELETE  →  TEST.DELETE
 
       3. Empty value
-         KV secret holds the sentinel __EMPTY__ — restored as an empty string.
+         KV secret holds the sentinel __EMPTY__ - restored as an empty string.
          e.g.  __EMPTY__  →  ""
 
     A diff is shown before anything is changed, and you must confirm
@@ -42,13 +42,13 @@
     of all available backup dates and asks you to pick one.
 
 .EXAMPLE
-    # Interactive — pick a backup from the menu
+    # Interactive - pick a backup from the menu
     ./infra/Restore-function-settings.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
         -KeyVaultName    kv-thesrilathaarts-dev
 
 .EXAMPLE
-    # Non-interactive — pass the backup date directly
+    # Non-interactive - pass the backup date directly
     ./infra/Restore-function-settings.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
         -KeyVaultName    kv-thesrilathaarts-dev `
@@ -215,17 +215,17 @@ Write-Host ""
 #
 #    For each secret in the selected backup we handle three cases:
 #
-#    CASE 1 — Empty value (sentinel)
+#    CASE 1 - Empty value (sentinel)
 #      If the KV secret value is __EMPTY__, the original setting
 #      was empty. We convert it back to an empty string for restore.
 #
-#    CASE 2 — Dot ( . ) in the name
+#    CASE 2 - Dot ( . ) in the name
 #      The OriginalKey tag holds TEST.DELETE exactly.
-#      We read the tag — no decoding needed.
+#      We read the tag - no decoding needed.
 #
-#    CASE 3 — Underscore ( _ ) in the name
+#    CASE 3 - Underscore ( _ ) in the name
 #      The OriginalKey tag holds AZURE_OPENAI_KEY exactly.
-#      We read the tag — no decoding needed.
+#      We read the tag - no decoding needed.
 #
 #    The OriginalKey tag is always the source of truth for the name.
 #    The fallback (if tag is missing) reverses the encoding manually.
@@ -250,12 +250,12 @@ foreach ($version in $selectedVersions) {
     # Resolve the original setting name from the OriginalKey tag
     if ($version.Tags -and $version.Tags.ContainsKey("OriginalKey")) {
 
-        # Primary path — always reliable
+        # Primary path - always reliable
         $originalKey = $version.Tags["OriginalKey"]
 
     } else {
 
-        # Fallback path — reverse the encoding manually
+        # Fallback path - reverse the encoding manually
         # Order matters: decode -DOT- first, then single hyphens
         # CASE 2 : -DOT-  →  .
         # CASE 3 : -      →  _
@@ -263,12 +263,12 @@ foreach ($version in $selectedVersions) {
         $originalKey = $originalKey -replace '-DOT-', '.'   # CASE 2
         $originalKey = $originalKey -replace '^x-', ''    # strip digit prefix
         $originalKey = $originalKey -replace '-', '_'  # CASE 3
-        Write-Warning "Secret '$($version.Name)' has no OriginalKey tag — decoded fallback: '$originalKey'. Verify after restore."
+        Write-Warning "Secret '$($version.Name)' has no OriginalKey tag - decoded fallback: '$originalKey'. Verify after restore."
     }
 
-    # CASE 1 — sentinel means the original value was empty
+    # CASE 1 - sentinel means the original value was empty
     if ($value -eq '__EMPTY__') {
-        Write-Host "  Note: '$originalKey' was empty in the backup — will restore as empty." -ForegroundColor DarkGray
+        Write-Host "  Note: '$originalKey' was empty in the backup - will restore as empty." -ForegroundColor DarkGray
         $value = ''
     }
 
@@ -300,10 +300,10 @@ $currentSettings = ($getResponse.Content | ConvertFrom-Json).properties
 
 # -------------------------------------------------------
 # 10. Check each key and print its status live
-#     [CREATE]           — does not exist in the live app
-#     [OVERWRITE]        — exists but value is different
-#     [SAME]             — exists and value is already correct
-#     [NOT IN BACKUP]    — exists in live app but not in backup
+#     [CREATE]           - does not exist in the live app
+#     [OVERWRITE]        - exists but value is different
+#     [SAME]             - exists and value is already correct
+#     [NOT IN BACKUP]    - exists in live app but not in backup
 # -------------------------------------------------------
 $toCreate = [System.Collections.Generic.List[string]]::new()
 $toOverwrite = [System.Collections.Generic.List[string]]::new()
@@ -327,7 +327,7 @@ foreach ($key in ($backupSettings.Keys | Sort-Object)) {
     }
 }
 
-# Keys in the live app that are not in the backup — never touched
+# Keys in the live app that are not in the backup - never touched
 $untouched = @(
     $currentSettings.PSObject.Properties.Name |
         Where-Object { -not $backupSettings.ContainsKey($_) } |
@@ -347,7 +347,7 @@ Write-Host ""
 # 11. If nothing needs to change, exit early
 # -------------------------------------------------------
 if ($toCreate.Count -eq 0 -and $toOverwrite.Count -eq 0) {
-    Write-Host "Nothing to do — the live app already matches this backup." -ForegroundColor Green
+    Write-Host "Nothing to do - the live app already matches this backup." -ForegroundColor Green
     exit 0
 }
 
@@ -364,7 +364,7 @@ if ($confirm -notmatch '^[Yy]$') {
 # -------------------------------------------------------
 # 12. Apply all changes in one ARM REST API call
 #     PUT replaces the full settings block, so we merge
-#     the backup on top of the current settings — that way
+#     the backup on top of the current settings - that way
 #     keys not in the backup are preserved.
 # -------------------------------------------------------
 Write-Host ""

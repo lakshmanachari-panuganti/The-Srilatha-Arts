@@ -46,13 +46,13 @@ export default function Footer() {
   const [newsletterBusy, setNewsletterBusy] = useState(false)
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
   const [newsletterMessage, setNewsletterMessage] = useState(
-    'Thanks — we’ll send a note when the studio newsletter launches.',
+    'Thanks - we’ll send a note when the studio newsletter launches.',
   )
   const [newsletterError, setNewsletterError] = useState('')
 
   return (
     <footer className="relative z-10 mt-20"
-      style={{ borderTop: '1px solid rgba(167,139,250,0.35)', background: 'linear-gradient(180deg, rgba(109,40,217,0.18) 0%, rgba(76,29,149,0.35) 100%), #EDE9FE' }}
+      style={{ borderTop: '1px solid var(--border)', background: 'var(--surface-sunken)' }}
     >
       <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
         {/* Newsletter */}
@@ -62,7 +62,7 @@ export default function Footer() {
             Updates from the <em className="italic gold-text">studio</em>
           </h3>
           <p className="text-ivory-mute text-sm lg:text-base mb-6">
-            New pieces, studio updates and the occasional discount — sent straight to your inbox. No spam, ever.
+            New pieces, studio updates and the occasional discount - sent straight to your inbox. No spam, ever.
           </p>
           {newsletterSubmitted ? (
             <div
@@ -147,7 +147,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.
+              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts - made by hand in Hyderabad.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <SocialLink href={SOCIAL.instagram} label="Instagram">
@@ -198,7 +198,7 @@ export default function Footer() {
             </SocialLink>
           </div>
 
-          {/* Contact strip — WhatsApp + Email + Phone, all tap-to-action on
+          {/* Contact strip - WhatsApp + Email + Phone, all tap-to-action on
               mobile. Prioritised per audit §7: WhatsApp and Instagram are
               the two most-used contact channels for a handcrafted Indian
               brand, so they sit at the top of the visual hierarchy. */}

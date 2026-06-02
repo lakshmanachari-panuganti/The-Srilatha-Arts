@@ -1,11 +1,11 @@
 /**
  * Razorpay Payment Endpoints
  *
- *   POST /api/razorpay/create-order   — server-priced, creates internal + razorpay orders
- *   POST /api/razorpay/verify          — signature check after Checkout closes
- *   POST /api/razorpay/webhook         — async backup (Razorpay → us), HMAC-verified
+ *   POST /api/razorpay/create-order   - server-priced, creates internal + razorpay orders
+ *   POST /api/razorpay/verify          - signature check after Checkout closes
+ *   POST /api/razorpay/webhook         - async backup (Razorpay → us), HMAC-verified
  *
- * The webhook path is in csrfGuard's SKIP_PATHS — it's signature-verified
+ * The webhook path is in csrfGuard's SKIP_PATHS - it's signature-verified
  * out-of-band so CSRF does not apply. The other two routes are CSRF-checked
  * via the normal enforceCsrf path.
  */
@@ -86,7 +86,7 @@ async function createPaymentOrder(
       }
     }
 
-    // Authoritative price lookup — never trust client-side prices (§13).
+    // Authoritative price lookup - never trust client-side prices (§13).
     let subtotal = 0
     const itemSnapshots: OrderItemSnapshot[] = []
 
@@ -193,7 +193,7 @@ async function createPaymentOrder(
       channel: 'status',
       by: userEmail,
       byRole: userEmail === 'guest' ? 'system' : 'customer',
-      note: 'Order placed — awaiting payment',
+      note: 'Order placed - awaiting payment',
       meta: JSON.stringify({ razorpayOrderId: rzpOrder.id }),
       createdAt: now,
     })
@@ -215,14 +215,14 @@ async function createPaymentOrder(
         order: {
           id: internalOrderId,
           razorpayOrderId: rzpOrder.id,
-          amount: totalAmount,           // paise — what Razorpay Checkout expects
+          amount: totalAmount,           // paise - what Razorpay Checkout expects
           displayTotal,
           currency: rzpOrder.currency || 'INR',
           customerName: body.customerName,
           customerEmail: email,
           customerPhone: body.customerPhone,
         },
-        // Public key id is safe to expose — it's literally rendered in the
+        // Public key id is safe to expose - it's literally rendered in the
         // browser when Checkout opens.
         keyId: getPublicKeyId(),
       },
@@ -288,7 +288,7 @@ async function verifyPayment(
       // user it succeeded but couldn't be confirmed yet.
       context.warn(`verifyPayment: no internal order matched razorpayOrderId=${body.razorpayOrderId}`)
       return jsonResponse(
-        { ok: true, message: 'Payment received — your order will be confirmed shortly.' },
+        { ok: true, message: 'Payment received - your order will be confirmed shortly.' },
         202,
         {},
         origin,
@@ -343,7 +343,7 @@ async function verifyPayment(
           updatedAt: now,
         })
       } catch (indexErr) {
-        // Non-fatal — nightly reconciliation will fix drift.
+        // Non-fatal - nightly reconciliation will fix drift.
         context.warn('verifyPayment: ordersByStatus index update failed', indexErr)
       }
     }
@@ -435,7 +435,7 @@ async function razorpayWebhook(
   const paymentEntity = payload.payload?.payment?.entity
   const refundEntity = payload.payload?.refund?.entity
   if (!event) {
-    return { status: 200, body: 'ignored — no event' }
+    return { status: 200, body: 'ignored - no event' }
   }
 
   const razorpayOrderId = paymentEntity?.order_id
@@ -444,7 +444,7 @@ async function razorpayWebhook(
   // We need either an order_id (payment events) or a payment_id (refund
   // events) to locate our internal order. Anything else we can't act on.
   if (!razorpayOrderId && !razorpayPaymentId) {
-    return { status: 200, body: 'ignored — no order/payment id' }
+    return { status: 200, body: 'ignored - no order/payment id' }
   }
 
   // Lookup our internal order. Today: full table scan.
@@ -456,7 +456,7 @@ async function razorpayWebhook(
   )
   if (!order) {
     context.warn(`razorpayWebhook: no internal order matched (event=${event}, orderId=${razorpayOrderId}, paymentId=${razorpayPaymentId})`)
-    return { status: 200, body: 'ignored — unknown order' }
+    return { status: 200, body: 'ignored - unknown order' }
   }
 
   // Payment idempotency: if we already captured this payment id and the
@@ -466,7 +466,7 @@ async function razorpayWebhook(
     order.paymentStatus === 'CAPTURED' &&
     order.razorpayPaymentId === razorpayPaymentId
   ) {
-    return { status: 200, body: 'ok — already captured' }
+    return { status: 200, body: 'ok - already captured' }
   }
   // Refund idempotency: if we already stamped this exact refund id, no-op.
   if (
@@ -475,7 +475,7 @@ async function razorpayWebhook(
     order.razorpayRefundId === refundEntity.id &&
     order.status === 'REFUNDED'
   ) {
-    return { status: 200, body: 'ok — refund already recorded' }
+    return { status: 200, body: 'ok - refund already recorded' }
   }
 
   const now = new Date().toISOString()
@@ -626,7 +626,7 @@ async function razorpayWebhook(
       }
     }
 
-    return { status: 200, body: 'ok — refund processed' }
+    return { status: 200, body: 'ok - refund processed' }
   }
 
   if (event === 'refund.failed' && refundEntity) {
@@ -652,13 +652,13 @@ async function razorpayWebhook(
       createdAt: now,
     })
 
-    return { status: 200, body: 'ok — refund failure recorded' }
+    return { status: 200, body: 'ok - refund failure recorded' }
   }
 
   // Anything else (refund.created, payment.authorized, settlement.*, etc.)
-  // — accept and log. Razorpay only retries non-2xx responses, so we want
+  // - accept and log. Razorpay only retries non-2xx responses, so we want
   // to return 200 here even though we don't act on the payload.
-  return { status: 200, body: `ok — ignored event ${event}` }
+  return { status: 200, body: `ok - ignored event ${event}` }
 }
 
 // ─── Route registrations ─────────────────────────────────────

@@ -82,7 +82,7 @@ function GeneralSection() {
         <FieldRow label="Contact email"     defaultValue="studio@srilatha.art" type="email" />
         <FieldRow label="WhatsApp number"   defaultValue="+91 91332 66754" type="tel" />
         <p className="text-xs text-ink-mute">
-          (These fields aren&apos;t wired to a backend yet — they&apos;re for layout only.)
+          (These fields aren&apos;t wired to a backend yet - they&apos;re for layout only.)
         </p>
       </div>
     </section>
@@ -200,7 +200,7 @@ function ShippingSection() {
           <>
             <p className="text-sm text-ink-soft mb-5 leading-relaxed">
               The <strong>standard charge</strong> is what we say is the regular delivery price.
-              The <strong>discounted charge</strong> is what customers actually pay — if it&apos;s lower than the standard,
+              The <strong>discounted charge</strong> is what customers actually pay - if it&apos;s lower than the standard,
               the cart will show the strike-through pricing automatically. Set both to the same value to remove the discount.
               Orders above the <strong>free-shipping threshold</strong> always ship free, regardless of either charge.
             </p>
@@ -217,7 +217,7 @@ function ShippingSection() {
                 label="Discounted charge (₹)"
                 value={effective}
                 onChange={setEffective}
-                hint={discountActive ? `Customers pay this — saves ₹${savingsRupees} per order.` : 'Equal to standard = no discount.'}
+                hint={discountActive ? `Customers pay this - saves ₹${savingsRupees} per order.` : 'Equal to standard = no discount.'}
                 min={0}
               />
               <NumberField

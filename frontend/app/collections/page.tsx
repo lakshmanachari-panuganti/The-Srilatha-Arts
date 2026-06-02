@@ -9,7 +9,7 @@ export default function CollectionsPage() {
       eyebrow="Coming soon"
       title="Themed gift sets"
       goldWord="gift sets"
-      description="We're putting together themed sets — Diwali picks, housewarming gifts and more. Check back soon, or browse all our pieces in the meantime."
+      description="We're putting together themed sets - Diwali picks, housewarming gifts and more. Check back soon, or browse all our pieces in the meantime."
     />
   )
 }

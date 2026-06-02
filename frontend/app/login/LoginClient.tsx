@@ -256,7 +256,7 @@ export default function LoginClient() {
           </p>
         </div>
 
-        {/* Pending-intent banner — tells the user WHY they're on the
+        {/* Pending-intent banner - tells the user WHY they're on the
             login page and what we'll do once they sign in. Cleared by
             consumePendingIntent() inside the post-auth handlers. */}
         {queuedIntent && (

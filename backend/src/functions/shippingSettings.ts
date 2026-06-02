@@ -1,9 +1,9 @@
 /**
- * Shipping settings — admin-configurable delivery charge + threshold.
+ * Shipping settings - admin-configurable delivery charge + threshold.
  *
- *   GET   /api/shipping-settings        public  — cart / checkout read
- *   GET   /api/admin/shipping-settings  admin   — read for the form
- *   PATCH /api/admin/shipping-settings  admin   — save the form
+ *   GET   /api/shipping-settings        public  - cart / checkout read
+ *   GET   /api/admin/shipping-settings  admin   - read for the form
+ *   PATCH /api/admin/shipping-settings  admin   - save the form
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
@@ -12,7 +12,7 @@ import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { getShippingConfig, setShippingConfig, ShippingConfig } from '../services/shippingConfig'
 
-// Public — the cart and checkout pages read this on every render to
+// Public - the cart and checkout pages read this on every render to
 // price shipping correctly. Short cache so admin changes propagate
 // within a minute.
 async function getPublicShippingSettings(
@@ -30,7 +30,7 @@ async function getPublicShippingSettings(
   }
 }
 
-// Admin — read the same config, no caching.
+// Admin - read the same config, no caching.
 async function adminGetShippingSettings(
   request: HttpRequest,
   context: InvocationContext,
@@ -50,7 +50,7 @@ async function adminGetShippingSettings(
   }
 }
 
-// Admin — save the form. Input validation lives here so the service
+// Admin - save the form. Input validation lives here so the service
 // stays a pure data layer.
 async function adminUpdateShippingSettings(
   request: HttpRequest,
@@ -90,7 +90,7 @@ async function adminUpdateShippingSettings(
     if (typeof body.discountLabel === 'string' && body.discountLabel.length > 80) {
       return errorResponse('discountLabel must be 80 characters or less', 400, origin)
     }
-    // Light upper bound — catches data-entry mistakes like ₹99000 vs ₹990.
+    // Light upper bound - catches data-entry mistakes like ₹99000 vs ₹990.
     const MAX_PAISE = 100_000_00 // ₹1,00,000
     if (
       (body.baseCharge as number) > MAX_PAISE ||

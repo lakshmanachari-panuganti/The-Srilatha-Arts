@@ -1,17 +1,17 @@
 /**
- * Azure OpenAI GPT-4o Vision — product content generation.
+ * Azure OpenAI GPT-4o Vision - product content generation.
  *
  * Returns SEO-friendly e-commerce copy for a product image. The single
- * function below talks to Azure OpenAI via raw fetch (no SDK — the
+ * function below talks to Azure OpenAI via raw fetch (no SDK - the
  * single chat-completions call doesn't justify the extra package weight
  * in the Functions zip).
  *
  * Errors are surfaced as a typed AiContentError carrying:
- *   - `code`: one of AiErrorCode — used to pick a precise user message
+ *   - `code`: one of AiErrorCode - used to pick a precise user message
  *     on the client AND to drive the structured server log.
  *   - `status`: the HTTP status the route handler should return.
- *   - `azureStatus`: Azure's own status (when applicable) — log-only.
- *   - `details`: short technical detail string — log-only, never shown.
+ *   - `azureStatus`: Azure's own status (when applicable) - log-only.
+ *   - `details`: short technical detail string - log-only, never shown.
  *
  * The handler logs the full set; the client only ever sees the code +
  * a fixed user-facing message.
@@ -32,8 +32,8 @@ export interface AiProductContent {
  */
 export type AiErrorCode =
   | 'MISSING_CONFIG'             // env vars not set
-  | 'AUTH_ERROR'                 // Azure 401 — bad/expired API key
-  | 'DEPLOYMENT_NOT_FOUND'       // Azure 404 — deployment name wrong
+  | 'AUTH_ERROR'                 // Azure 401 - bad/expired API key
+  | 'DEPLOYMENT_NOT_FOUND'       // Azure 404 - deployment name wrong
   | 'RATE_LIMIT'                 // Azure 429
   | 'SERVICE_UNAVAILABLE'        // Azure 5xx
   | 'TIMEOUT'                    // our AbortController fired
@@ -81,11 +81,11 @@ const PROMPT = [
   '',
   'Rules:',
   '- Create an SEO-friendly product title (under 80 characters).',
-  '- shortDescription must be under 160 characters — a single line, suitable for product cards.',
+  '- shortDescription must be under 160 characters - a single line, suitable for product cards.',
   '- description should be a detailed ecommerce product description (2–4 short paragraphs).',
   '- material: suggest likely materials used (e.g. "MDF · resin · gold leaf").',
   '- careInstructions: practical guidance for the buyer (avoid sunlight, dust with soft cloth, etc.).',
-  '- Return JSON only — no markdown fences, no commentary, no leading or trailing prose.',
+  '- Return JSON only - no markdown fences, no commentary, no leading or trailing prose.',
 ].join('\n')
 
 export interface GenerateResult {
@@ -132,7 +132,7 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
   // Detect by hostname so the same env var accepts either form. This
   // matters because the Foundry UI's "Call this model" sample shows
   // the services.ai.azure.com form, while the "Azure OpenAI endpoint"
-  // field shows the openai.azure.com form — both reach the same
+  // field shows the openai.azure.com form - both reach the same
   // deployment, but the URL shapes are not interchangeable.
   const trimmed = endpoint.replace(/\/+$/, '')
   const isFoundryV1 = /\.services\.ai\.azure\.com\b/i.test(trimmed)
@@ -141,7 +141,7 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
   let modelInBody: boolean
   if (isFoundryV1) {
     // Accept either bare host OR …/openai/v1[/] OR even
-    // …/openai/v1/chat/completions — strip back to the host and append
+    // …/openai/v1/chat/completions - strip back to the host and append
     // `/openai/v1/chat/completions` ourselves.
     const host = trimmed.replace(/(\.services\.ai\.azure\.com)\/.*$/i, '$1')
     url = `${host}/openai/v1/chat/completions`
@@ -166,7 +166,7 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
       headers: {
         'Content-Type': 'application/json',
         // Foundry v1 surface (services.ai.azure.com) is OpenAI-SDK-shaped
-        // and authenticates via `Authorization: Bearer <key>` — same as
+        // and authenticates via `Authorization: Bearer <key>` - same as
         // the Python sample in the Foundry portal. The classic Azure
         // surface (*.openai.azure.com) uses its own `api-key` header.
         // Sending the wrong header on the wrong surface gets a 401, so
@@ -213,27 +213,27 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
     const bodyLower = rawBody.toLowerCase()
     const detail = `Azure ${azureStatus}: ${rawBody.slice(0, 500)}`
 
-    // 401 — bad/expired API key. Azure returns 401 even when the
+    // 401 - bad/expired API key. Azure returns 401 even when the
     // deployment is wrong + the key is wrong, but key issues are
     // overwhelmingly more common; the deployment-not-found case is
     // matched by 404 below.
     if (azureStatus === 401) {
       throw new AiContentError('AUTH_ERROR', { status: 401, azureStatus, details: detail })
     }
-    // 404 — deployment name typo or wrong API version (Azure uses
+    // 404 - deployment name typo or wrong API version (Azure uses
     // DeploymentNotFound in the error body for the former).
     if (azureStatus === 404 || bodyLower.includes('deploymentnotfound') || bodyLower.includes('deployment not found')) {
       throw new AiContentError('DEPLOYMENT_NOT_FOUND', { status: 404, azureStatus, details: detail })
     }
-    // 429 — rate limit / quota exhausted.
+    // 429 - rate limit / quota exhausted.
     if (azureStatus === 429) {
       throw new AiContentError('RATE_LIMIT', { status: 429, azureStatus, details: detail })
     }
-    // 5xx — Azure service hiccup.
+    // 5xx - Azure service hiccup.
     if (azureStatus >= 500) {
       throw new AiContentError('SERVICE_UNAVAILABLE', { status: 503, azureStatus, details: detail })
     }
-    // 400 with image-related complaint — Azure couldn't fetch / decode
+    // 400 with image-related complaint - Azure couldn't fetch / decode
     // the image at the URL we passed. Recognisable patterns:
     //   "Could not download image"
     //   "image_url"
@@ -253,7 +253,7 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
         details: detail,
       })
     }
-    // Any other 4xx — bucket as internal so the user sees the catch-all
+    // Any other 4xx - bucket as internal so the user sees the catch-all
     // and we surface the real reason in logs.
     throw new AiContentError('INTERNAL_ERROR', {
       status: 502,
@@ -262,7 +262,7 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
     })
   }
 
-  // Successful HTTP — now validate the body shape.
+  // Successful HTTP - now validate the body shape.
   let payload: { choices?: { message?: { content?: string } }[] }
   try {
     payload = (await response.json()) as typeof payload

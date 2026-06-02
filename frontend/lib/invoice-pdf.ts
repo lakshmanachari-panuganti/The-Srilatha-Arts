@@ -1,7 +1,7 @@
 // Real, downloadable, text-searchable invoice PDF.
 //
 // Built with jsPDF + jspdf-autotable. Lazy-imported by callers so the
-// ~150KB library only loads when the customer actually clicks Download —
+// ~150KB library only loads when the customer actually clicks Download -
 // not on every page that links to an invoice. Mirrors the on-screen
 // layout from InvoiceClient.tsx (header / billing-shipping / items table
 // / totals / footer) so customers see the same document they download.
@@ -51,7 +51,7 @@ function fmtDate(iso: string): string {
 
 // formatINR returns "₹ 1,234" with the rupee glyph. jsPDF's default Helvetica
 // font has no glyph for U+20B9, so it renders as a tofu box. We swap to "Rs."
-// for the PDF — clearer in print and universally renderable. Could be replaced
+// for the PDF - clearer in print and universally renderable. Could be replaced
 // later by embedding a Unicode font, but that adds ~300KB.
 function fmtMoney(rs: number): string {
   return formatINR(rs).replace(/^\s*₹\s*/, 'Rs. ')
@@ -79,11 +79,14 @@ export async function downloadInvoicePdf(
   const pageW = doc.internal.pageSize.getWidth()
   const margin = 42
 
-  // ── Brand colours (deep purple ink + lavender accent — matches site theme).
-  const ink: [number, number, number] = [42, 30, 60]
-  const inkSoft: [number, number, number] = [110, 100, 130]
-  const inkMute: [number, number, number] = [150, 145, 165]
-  const rule: [number, number, number] = [225, 220, 235]
+  // ── Brand colours (espresso ink + ochre gold accent - matches site theme).
+  const ink: [number, number, number] = [34, 27, 18]
+  const inkSoft: [number, number, number] = [67, 57, 46]
+  const inkMute: [number, number, number] = [138, 126, 110]
+  const rule: [number, number, number] = [225, 219, 207]
+  // Gold for the INVOICE eyebrow - --accent-strong #8A6A1A (passes AA on
+  // ivory paper). Lighter ochre is reserved for display-size words only.
+  const lavender: [number, number, number] = [138, 106, 26]
 
   // ── Header row: brand on the left, invoice meta on the right ─────────
   let y = margin
@@ -93,22 +96,34 @@ export async function downloadInvoicePdf(
   doc.setFontSize(22)
   doc.text('Srilatha Art', margin, y + 18)
 
+  // Brand contacts - one per line with labels. The earlier single-line
+  // form (`email · phone`) was hard to scan; labelled rows match how the
+  // studio prefers to read its own letterhead.
   doc.setFontSize(9)
   doc.setTextColor(...inkMute)
-  doc.text(WEBSITE_URL.replace(/^https?:\/\//, ''), margin, y + 34)
-  doc.text(`${STUDIO_EMAIL}  ·  ${PHONE_DISPLAY}`, margin, y + 47)
+  const website = WEBSITE_URL.replace(/^https?:\/\//, '').replace(/^www\./i, '')
+  doc.text(`www.${website}`, margin, y + 34)
+  doc.text(`email: ${STUDIO_EMAIL}`, margin, y + 47)
+  doc.text(`call/WhatsApp: ${PHONE_DISPLAY}`, margin, y + 60)
 
-  doc.setFontSize(9)
-  doc.setTextColor(...inkMute)
-  doc.text('INVOICE', pageW - margin, y + 14, { align: 'right' })
+  // INVOICE eyebrow - large, bold, lavender. No charSpace: jsPDF's
+  // right-alignment ignores per-character spacing when computing the
+  // anchor, so any positive charSpace pushes the last character past
+  // the right margin and makes the eyebrow look mis-aligned against
+  // the order ID and date underneath it.
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(20)
+  doc.setTextColor(...lavender)
+  doc.text('INVOICE', pageW - margin, y + 18, { align: 'right' })
+  doc.setFont('helvetica', 'normal')
 
-  doc.setFontSize(15)
+  doc.setFontSize(14)
   doc.setTextColor(...ink)
-  doc.text(order.id, pageW - margin, y + 32, { align: 'right' })
+  doc.text(order.id, pageW - margin, y + 38, { align: 'right' })
 
   doc.setFontSize(9)
   doc.setTextColor(...inkMute)
-  doc.text(`Dated ${fmtDate(order.createdAt)}`, pageW - margin, y + 46, {
+  doc.text(`Dated ${fmtDate(order.createdAt)}`, pageW - margin, y + 52, {
     align: 'right',
   })
 
@@ -120,9 +135,9 @@ export async function downloadInvoicePdf(
     order.paymentStatus === 'PAID' ? 65 : 7,
   )
   doc.setFontSize(8)
-  doc.text(paidLabel, pageW - margin, y + 60, { align: 'right' })
+  doc.text(paidLabel, pageW - margin, y + 66, { align: 'right' })
 
-  y += 80
+  y += 86
   drawRule(doc, margin, pageW - margin, y, rule)
   y += 18
 
@@ -161,16 +176,21 @@ export async function downloadInvoicePdf(
   if (addr.country) shipLines.push(addr.country)
   if (addr.phone) shipLines.push(addr.phone)
 
+  // Flatten source lines through splitTextToSize FIRST so we have a single
+  // ordered list of visual rows, then paint each at its own y. The old code
+  // indexed by source line which collided when a long street wrapped onto
+  // two visual rows - the second wrapped row landed on top of the next
+  // source line (city/pincode), producing the overlapping smear bug.
   doc.setTextColor(...inkSoft)
   doc.setFontSize(9)
-  shipLines.forEach((line, i) => {
-    const wrapped = doc.splitTextToSize(line, colW)
-    wrapped.forEach((wl: string, j: number) => {
-      doc.text(wl, shipX, y + 30 + (i + j) * 12)
-    })
+  const shipVisualLines: string[] = shipLines.flatMap((line) =>
+    doc.splitTextToSize(line, colW) as string[],
+  )
+  shipVisualLines.forEach((line, i) => {
+    doc.text(line, shipX, y + 30 + i * 12)
   })
 
-  const colRows = Math.max(billLines.length, shipLines.length) + 1
+  const colRows = Math.max(billLines.length, shipVisualLines.length) + 1
   y += 30 + colRows * 12 + 8
   drawRule(doc, margin, pageW - margin, y, rule)
   y += 14
@@ -219,7 +239,7 @@ export async function downloadInvoicePdf(
       cell: { x: number; y: number; height: number }
       row: { index: number }
     }) => {
-      // Bottom border per body row — matches the divide-y on screen.
+      // Bottom border per body row - matches the divide-y on screen.
       if (data.section === 'body' && data.column.index === 0) {
         const { y: cy, height } = data.cell
         doc.setDrawColor(...rule)

@@ -30,7 +30,7 @@ const reviews = [
 export default function Testimonials() {
   return (
     <section className="relative px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
-      {/* No ambient glow orb — visual restraint per audit §1.6. The hero
+      {/* No ambient glow orb - visual restraint per audit §1.6. The hero
           slideshow is the page's single moment of "atmospheric" decoration. */}
 
       <div className="relative z-10">
@@ -75,7 +75,7 @@ function ReviewCard({
 }) {
   return (
     <article className="card w-[80vw] sm:w-96 lg:w-auto shrink-0 snap-start p-7 lg:p-8 flex flex-col">
-      {/* Lavender-pastel stars first — the rating is the strongest credibility signal,
+      {/* Lavender-pastel stars first - the rating is the strongest credibility signal,
           so it leads the card. */}
       <div className="flex items-center gap-1 mb-4" aria-label={`Rated ${rating} out of 5`}>
         {Array.from({ length: rating }).map((_, i) => (

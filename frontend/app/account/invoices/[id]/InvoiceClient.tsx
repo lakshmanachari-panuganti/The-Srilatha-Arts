@@ -11,7 +11,7 @@ import { formatINR } from '@/lib/format'
 import { STUDIO_EMAIL, PHONE_DISPLAY, WEBSITE_URL } from '@/lib/site-config'
 import { downloadInvoicePdf } from '@/lib/invoice-pdf'
 
-// Shapes mirrored from the orders.ts toApi() — kept minimal to what the
+// Shapes mirrored from the orders.ts toApi() - kept minimal to what the
 // invoice actually renders. Unknown fields ride along untouched.
 interface ShippingAddress {
   fullName?: string
@@ -61,7 +61,7 @@ export default function InvoiceClient() {
   const user = useUserAuth((s) => s.user)
 
   // Same shell pattern as OrderDetailClient: read id from window.location
-  // after mount. Pathname: /account/orders/<id>/invoice/  → parts[2] = id.
+  // after mount. Pathname: /account/invoices/<id>/  → parts[2] = id.
   const [id, setId] = useState<string | null>(null)
   const [autoPrint, setAutoPrint] = useState(false)
   const [autoDownload, setAutoDownload] = useState(false)
@@ -108,7 +108,7 @@ export default function InvoiceClient() {
     if (id && id !== '__shell__' && !user) {
       router.replace(
         '/login?next=' +
-          encodeURIComponent(`/account/orders/${id}/invoice`),
+          encodeURIComponent(`/account/invoices/${id}`),
       )
       return
     }
@@ -141,7 +141,7 @@ export default function InvoiceClient() {
     }
   }, [order, items])
 
-  // Optional ?auto=download — used by links that want to fire the save
+  // Optional ?auto=download - used by links that want to fire the save
   // dialog as soon as the order data resolves (e.g. a future "email me
   // my invoice" flow). Triggered exactly once per page load.
   const [autoFired, setAutoFired] = useState(false)
@@ -167,7 +167,7 @@ export default function InvoiceClient() {
           <h2 className="font-serif text-2xl text-ink mb-2">Your session expired</h2>
           <p className="text-sm text-ink-soft mb-5">Please sign in again to see this invoice.</p>
           <Link
-            href={`/login?next=${encodeURIComponent(`/account/orders/${id}/invoice`)}`}
+            href={`/login?next=${encodeURIComponent(`/account/invoices/${id}`)}`}
             className="btn-dark"
           >
             Sign in
@@ -209,7 +209,7 @@ export default function InvoiceClient() {
 
   return (
     <main className="max-w-3xl mx-auto px-5 py-8 lg:py-12 invoice-root">
-      {/* On-screen action bar — hidden when printing */}
+      {/* On-screen action bar - hidden when printing */}
       <div className="flex items-center justify-between gap-3 mb-6 invoice-actions flex-wrap">
         <Link
           href={`/account/orders/${order.id}`}
@@ -247,17 +247,20 @@ export default function InvoiceClient() {
         </div>
       )}
 
-      {/* Invoice sheet — the only part printed */}
+      {/* Invoice sheet - the only part printed */}
       <article className="invoice-sheet bg-white text-ink rounded-2xl border border-ink/10 shadow-sm p-6 sm:p-10">
         {/* Header: studio brand block + invoice meta */}
         <header className="flex items-start justify-between gap-6 pb-6 border-b border-ink/10">
-          <div className="flex items-center gap-3">
-            <div className="relative w-14 h-14 shrink-0">
+          <div className="flex items-center gap-3 lg:gap-5">
+            {/* Logo intentionally larger on desktop where there's room - keeps
+                mobile compact so the meta block on the right still fits next
+                to it without wrapping. */}
+            <div className="relative w-14 h-14 lg:w-24 lg:h-24 shrink-0">
               <Image
                 src="/Logos/logo.png"
                 alt=""
                 fill
-                sizes="56px"
+                sizes="(min-width: 1024px) 96px, 56px"
                 className="object-contain"
               />
             </div>
@@ -270,7 +273,11 @@ export default function InvoiceClient() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-ink-mute">Invoice</p>
+            {/* INVOICE eyebrow - discreet 11px muted on mobile, large bold
+                lavender on desktop. Matches the PDF rendering of the same
+                label so the on-screen and downloaded artefacts feel like
+                one document at a glance. */}
+            <p className="text-[11px] uppercase tracking-[0.18em] text-ink-mute lg:text-2xl lg:tracking-[0.22em] lg:font-semibold lg:text-lavender lg:mb-1">Invoice</p>
             <p className="font-serif text-xl text-ink tabular-nums">{order.id}</p>
             <p className="text-xs text-ink-mute mt-1">Dated {formatDate(order.createdAt)}</p>
             <p className="text-[11px] uppercase tracking-[0.15em] mt-2">
@@ -406,7 +413,7 @@ export default function InvoiceClient() {
         </footer>
       </article>
 
-      {/* Print styles — keep them scoped to this page so other routes are
+      {/* Print styles - keep them scoped to this page so other routes are
           unaffected. The action bar hides; the sheet flattens to plain paper. */}
       <style jsx global>{`
         @media print {

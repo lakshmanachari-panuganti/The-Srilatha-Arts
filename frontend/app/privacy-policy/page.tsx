@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <em className="italic gold-text">Privacy</em> policy
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-10">
-        Your privacy is important to us. Here&apos;s what we collect, why we collect it, and what we do with it — in plain English.
+        Your privacy is important to us. Here&apos;s what we collect, why we collect it, and what we do with it - in plain English.
       </p>
 
       <Section title="What we collect">
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
           <li>Your shipping address(es)</li>
           <li>Your order history with us</li>
         </ul>
-        <p className="mt-3">We do <strong>not</strong> store your card or UPI details — those go straight to our payment partner Razorpay, which is a regulated, secure provider.</p>
+        <p className="mt-3">We do <strong>not</strong> store your card or UPI details - those go straight to our payment partner Razorpay, which is a regulated, secure provider.</p>
       </Section>
 
       <Section title="Why we collect it">
@@ -32,16 +32,16 @@ export default function PrivacyPage() {
           <li>To process your order and ship it to you</li>
           <li>To send order updates (placed, packed, shipped, delivered)</li>
           <li>To answer your questions if you contact us</li>
-          <li>To send the occasional update about new pieces — only if you opt in</li>
+          <li>To send the occasional update about new pieces - only if you opt in</li>
         </ul>
       </Section>
 
       <Section title="Who we share it with">
         We share only what&apos;s necessary, only with the services that help us run the business:
         <ul className="mt-2 space-y-1 ml-5 list-disc">
-          <li><strong>Razorpay</strong> — to process payments securely</li>
-          <li><strong>Courier partners</strong> — to deliver your order</li>
-          <li><strong>Email and SMS providers</strong> — to send order updates</li>
+          <li><strong>Razorpay</strong> - to process payments securely</li>
+          <li><strong>Courier partners</strong> - to deliver your order</li>
+          <li><strong>Email and SMS providers</strong> - to send order updates</li>
         </ul>
         We never sell your information to anyone.
       </Section>
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Security">
-        We use industry-standard security — HTTPS everywhere, hashed passwords, and signed sessions. Payments run through Razorpay&apos;s PCI-DSS-compliant systems.
+        We use industry-standard security - HTTPS everywhere, hashed passwords, and signed sessions. Payments run through Razorpay&apos;s PCI-DSS-compliant systems.
       </Section>
 
       <Section title="Contact">

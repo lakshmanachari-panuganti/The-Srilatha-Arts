@@ -1,5 +1,5 @@
 /**
- * Centralised brand contact info — change here, not in 12 places.
+ * Centralised brand contact info - change here, not in 12 places.
  *
  * Updated 2026-05-26 with the canonical srilatha.art brand handles
  * supplied by the studio. Replaces the legacy `thesrilathaarts`

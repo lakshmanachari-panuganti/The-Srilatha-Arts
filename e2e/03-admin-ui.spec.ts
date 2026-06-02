@@ -1,5 +1,5 @@
 /**
- * 3. Admin UI Tests — login + all wired admin pages render without errors.
+ * 3. Admin UI Tests - login + all wired admin pages render without errors.
  */
 import { test, expect, Page } from '@playwright/test'
 
@@ -76,7 +76,7 @@ test.describe('Admin pages (logged in)', () => {
     await page.goto(`${BASE}/admin/orders/`)
     await page.waitForLoadState('networkidle')
     const body = await page.textContent('body')
-    // Either shows orders or empty state — no error
+    // Either shows orders or empty state - no error
     expect(body).not.toContain('Application error')
     expect(body?.toLowerCase()).toMatch(/order|empty|no orders/i)
   })

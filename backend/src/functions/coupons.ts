@@ -2,8 +2,8 @@
  * Coupon Endpoints (§6).
  *
  * Public:
- *   GET   /api/coupons/active      — currently valid codes
- *   POST  /api/coupons/validate    — validate a code (rate-limited)
+ *   GET   /api/coupons/active      - currently valid codes
+ *   POST  /api/coupons/validate    - validate a code (rate-limited)
  *
  * Admin:
  *   GET   /api/admin/coupons
@@ -33,7 +33,7 @@ import { getShippingConfig, computeShippingAmount } from '../services/shippingCo
 import { randomUUID } from 'crypto'
 
 // Supported types have full discount calculation logic.
-// BUY_X_GET_Y is defined in the type system but not yet implemented —
+// BUY_X_GET_Y is defined in the type system but not yet implemented -
 // coupon creation is rejected with a clear error rather than silently
 // saving a record that would always apply a zero discount (M-10).
 const VALID_COUPON_TYPES = ['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_SHIPPING', 'BUY_X_GET_Y'] as const
@@ -104,7 +104,7 @@ async function validateCoupon(
     const code = body.code.toUpperCase().trim()
 
     // Per-user / first-time-only checks must run against the authenticated
-    // session — previously this trusted a `userId` field from the request
+    // session - previously this trusted a `userId` field from the request
     // body, which let any client claim to be a different user (or "no user")
     // to bypass these limits.
     const authedUser = requireUser(request)
@@ -172,7 +172,7 @@ async function validateCoupon(
       }
     }
 
-    // First-time-only coupons must require a logged-in user — anonymous
+    // First-time-only coupons must require a logged-in user - anonymous
     // visitors cannot claim them. Previously, omitting userId from the body
     // silently passed this check.
     if (coupon.firstTimeOnly) {
@@ -231,7 +231,7 @@ async function validateCoupon(
         break
       case 'FREE_SHIPPING':
         // The discount must equal whatever shipping would have been
-        // charged on this cart — looking that up dynamically so it
+        // charged on this cart - looking that up dynamically so it
         // matches the admin-configured rate (including any active
         // shipping discount and the free-threshold rule).
         {
@@ -241,9 +241,9 @@ async function validateCoupon(
         }
         break
       default:
-        // BUY_X_GET_Y or any unknown type — creation is blocked by admin validation,
+        // BUY_X_GET_Y or any unknown type - creation is blocked by admin validation,
         // but existing rows with this type should not silently grant a discount.
-        context.warn(`validateCoupon: coupon "${code}" has unsupported type "${coupon.type}" — treating as invalid`)
+        context.warn(`validateCoupon: coupon "${code}" has unsupported type "${coupon.type}" - treating as invalid`)
         return jsonResponse(
           { valid: false, reason: 'INVALID', message: 'This coupon type is not currently supported' },
           200,
