@@ -420,7 +420,7 @@ export default function CheckoutClient() {
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') ||
         (typeof window !== 'undefined' ? window.location.origin : '')
-      const logoUrl = siteUrl ? `${siteUrl}/Logos/logo.png` : undefined
+      const logoUrl = siteUrl ? `${siteUrl}/Logos/logo.svg` : undefined
 
       const rzp = new window.Razorpay({
         key: res.keyId,

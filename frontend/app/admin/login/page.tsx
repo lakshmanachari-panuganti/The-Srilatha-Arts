@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center justify-center gap-3 mb-2">
             <Image
-              src="/Logos/logo.png"
+              src="/Logos/logo.svg"
               alt="Srilatha Art"
               width={64}
               height={64}

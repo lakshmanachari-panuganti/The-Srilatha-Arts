@@ -88,7 +88,7 @@ export default function MobileDrawer() {
                 className="flex items-center gap-2 min-w-0"
               >
                 <Image
-                  src="/Logos/logo.png"
+                  src="/Logos/logo.svg"
                   alt=""
                   width={56}
                   height={56}

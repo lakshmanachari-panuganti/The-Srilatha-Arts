@@ -257,7 +257,7 @@ export default function InvoiceClient() {
                 to it without wrapping. */}
             <div className="relative w-14 h-14 lg:w-24 lg:h-24 shrink-0">
               <Image
-                src="/Logos/logo.png"
+                src="/Logos/logo.svg"
                 alt=""
                 fill
                 sizes="(min-width: 1024px) 96px, 56px"

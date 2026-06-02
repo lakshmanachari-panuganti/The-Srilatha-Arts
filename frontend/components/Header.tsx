@@ -67,7 +67,7 @@ export default function Header() {
               className="flex items-center gap-2.5 min-w-0"
             >
               <Image
-                src="/Logos/logo.png"
+                src="/Logos/logo.svg"
                 alt="Srilatha Art"
                 width={112}
                 height={112}
