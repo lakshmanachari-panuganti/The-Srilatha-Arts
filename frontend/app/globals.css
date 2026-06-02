@@ -518,6 +518,19 @@
   }
 }
 
+/* Mobile motion trim — perf + battery. The heavy ambient infinite
+   animations (float, glow-pulse, slow-zoom, gentle-rotate) are useful
+   visual interest on desktop but on mid-range Android they spend paint
+   budget that the hero photo needs. Disable them below 769px. */
+@media (max-width: 768px) {
+  .animate-float,
+  .animate-glow-pulse,
+  .animate-slow-zoom,
+  .animate-gentle-rotate {
+    animation: none !important;
+  }
+}
+
 @keyframes hero-ken-burns {
   0%   { transform: scale(1.00); }
   100% { transform: scale(1.06); }
