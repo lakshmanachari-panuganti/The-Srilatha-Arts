@@ -8,7 +8,7 @@ export default function ContactCTA() {
     <section className="px-5 lg:px-8 py-16 sm:py-24 lg:py-32 max-w-7xl mx-auto border-t border-glass-border/30">
       <div className="relative overflow-hidden p-8 sm:p-12 lg:p-20 text-center rounded-4xl bg-gradient-to-br from-ivory via-ivory-soft to-ivory-mute shadow-glass">
         {/* Shimmer overlay decoration */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(167,139,250,0.2),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(200,150,47,0.18),transparent_55%)]" />
 
         <div className="relative z-10 max-w-3xl mx-auto">
           <span className="eyebrow text-lavender-soft justify-center mb-5">

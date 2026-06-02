@@ -130,14 +130,16 @@ export default function HomeHero() {
       })}
 
       {/* Warm ink scrim — diagonal so the photograph still breathes on the
-          right while text on the left/centre stays legible. Ink-toned rather
-          than generic black so it sits inside the ivory/ink palette. */}
+          right while text on the left/centre stays legible, plus a soft
+          top-down wash so the fixed Header's ivory-tinted glyphs have a
+          dark backing while the user is at scroll position 0. Ink-toned
+          rather than generic black so it sits inside the ivory/ink palette. */}
       <div
         aria-hidden
         className="absolute inset-0 z-[2]"
         style={{
           background:
-            'linear-gradient(105deg, rgba(20,16,10,0.78) 0%, rgba(20,16,10,0.55) 35%, rgba(20,16,10,0.25) 65%, transparent 100%), linear-gradient(to top, rgba(20,16,10,0.55) 0%, transparent 50%)',
+            'linear-gradient(180deg, rgba(20,16,10,0.55) 0%, rgba(20,16,10,0.20) 18%, transparent 32%), linear-gradient(105deg, rgba(20,16,10,0.78) 0%, rgba(20,16,10,0.55) 35%, rgba(20,16,10,0.25) 65%, transparent 100%), linear-gradient(to top, rgba(20,16,10,0.55) 0%, transparent 50%)',
         }}
       />
 

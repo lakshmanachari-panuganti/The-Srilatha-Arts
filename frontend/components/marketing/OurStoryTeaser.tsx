@@ -59,7 +59,7 @@ export default function OurStoryTeaser() {
               className="absolute inset-0"
               style={{
                 background:
-                  'linear-gradient(to top, rgba(46,16,90,0.55) 0%, rgba(46,16,90,0.25) 40%, rgba(46,16,90,0.45) 100%)',
+                  'linear-gradient(to top, rgba(20,16,10,0.55) 0%, rgba(20,16,10,0.25) 40%, rgba(20,16,10,0.45) 100%)',
               }}
             />
 
@@ -72,7 +72,7 @@ export default function OurStoryTeaser() {
                          bg-white/15 backdrop-blur-md border border-white/30
                          transition-all duration-500
                          group-hover:bg-white/25 group-hover:scale-105"
-              style={{ boxShadow: '0 0 40px rgba(232,121,249,0.35)' }}
+              style={{ boxShadow: '0 0 40px rgba(200,150,47,0.30)' }}
             >
               <Play
                 className="w-7 h-7 sm:w-8 sm:h-8 text-white"

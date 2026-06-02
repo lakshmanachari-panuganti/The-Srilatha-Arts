@@ -55,7 +55,7 @@ export default function Header() {
             'transition-all duration-500',
             scrolled
               ? 'glass-strong'
-              : 'bg-plum/40 backdrop-blur-sm',
+              : 'bg-plum/85',
           )}
           style={{ borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent' }}
         >

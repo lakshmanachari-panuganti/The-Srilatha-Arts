@@ -19,10 +19,8 @@ export default function CategoryChips() {
       aria-label="Categories"
       className="sticky top-[calc(var(--banner-h)+4rem)] lg:top-[calc(var(--banner-h)+5rem)] z-30"
       style={{
-        background: 'rgba(76,29,149,0.88)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: 'color-mix(in srgb, var(--brand) 96%, transparent)',
+        borderBottom: '1px solid color-mix(in srgb, #ffffff 6%, transparent)',
       }}
     >
       <div className="chip-rail py-3 lg:py-4 max-w-6xl mx-auto lg:px-8">

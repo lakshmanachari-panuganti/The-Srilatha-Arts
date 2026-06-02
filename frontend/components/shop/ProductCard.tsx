@@ -131,8 +131,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                        hover:text-lavender-pastel active:scale-90 transition-all duration-500"
             style={{
               borderRadius: '24px',
-              background: 'color-mix(in srgb, var(--surface-raised) 92%, transparent)',
-              backdropFilter: 'blur(12px)',
+              background: 'var(--surface-raised)',
               border: '1px solid var(--border)',
               boxShadow: '0 2px 10px color-mix(in srgb, var(--text) 10%, transparent)',
             }}

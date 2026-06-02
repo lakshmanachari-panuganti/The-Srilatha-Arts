@@ -32,10 +32,8 @@ export default function StickyCartBar({ product }: { product: Product }) {
     <div
       className="fixed bottom-16 lg:bottom-0 inset-x-0 z-40 safe-pb"
       style={{
-        background: 'rgba(76,29,149,0.92)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        background: 'color-mix(in srgb, var(--brand) 96%, transparent)',
+        borderTop: '1px solid color-mix(in srgb, #ffffff 8%, transparent)',
       }}
     >
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
