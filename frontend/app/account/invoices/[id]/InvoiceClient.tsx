@@ -297,7 +297,7 @@ export default function InvoiceClient() {
                   Srilatha Art
                 </p>
                 <p className="text-[11px] uppercase tracking-[0.22em] text-lavender-pastel mt-2 font-medium">
-                  Handcrafted Art &amp; Custom Creations
+                  Handcrafted Resin · Lippan · Mandala Art
                 </p>
                 <div className="mt-3 space-y-0.5 text-[12px] text-ink-soft leading-relaxed">
                   <p>{WEBSITE_URL.replace(/^https?:\/\//, '')}</p>
@@ -528,8 +528,8 @@ export default function InvoiceClient() {
               Thank you for supporting handcrafted art.
             </p>
             <p className="text-sm text-ink-soft leading-relaxed mt-2 max-w-md">
-              Each piece is individually designed and handmade in our Hyderabad
-              studio.
+              Every piece from Srilatha Art is individually designed and
+              handmade in our Hyderabad studio.
             </p>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-8 gap-y-1 text-[12px]">
