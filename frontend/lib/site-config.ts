@@ -15,7 +15,7 @@ export const PHONE_TEL = '+919133266754'
 
 export const STUDIO_EMAIL = 'studio@srilatha.art'
 
-export const WEBSITE_URL = 'https://srilatha.art'
+export const WEBSITE_URL = 'https://www.srilatha.art'
 
 export const SOCIAL = {
   instagram: 'https://instagram.com/srilatha.art',
