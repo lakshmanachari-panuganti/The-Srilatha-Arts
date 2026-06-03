@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare, ShieldCheck, ArrowRight } from 'lucide-react'
+import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare, ShieldCheck, Gift, Pencil } from 'lucide-react'
 import { CATEGORY_BY_SLUG } from '@/data/categories'
 import { formatINR, discountPct } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
@@ -208,7 +208,46 @@ export default function ProductDetailClient() {
             {category?.title}
           </Link>
 
-          <h1 className="display text-3xl md:text-4xl lg:text-5xl mb-4">{p.title}</h1>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <h1 className="display text-3xl md:text-4xl lg:text-5xl flex-1">{p.title}</h1>
+            <div className="hidden sm:flex flex-col gap-2 shrink-0 pt-1">
+              <Link
+                href={`/custom-order?source=${encodeURIComponent(p.id)}&intent=gift`}
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-full text-xs font-medium transition-all duration-300 hover:-translate-y-px hover:bg-accent/5 active:scale-[0.98] whitespace-nowrap"
+                style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
+              >
+                <Gift className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                Gift this piece
+              </Link>
+              <Link
+                href={`/custom-order?source=${encodeURIComponent(p.id)}`}
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-full text-xs font-medium transition-all duration-300 hover:-translate-y-px hover:bg-accent/5 active:scale-[0.98] whitespace-nowrap"
+                style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
+              >
+                <Pencil className="w-3.5 h-3.5 shrink-0" aria-hidden />
+                Customize this piece
+              </Link>
+            </div>
+          </div>
+          {/* Mobile: gift + customize buttons below title */}
+          <div className="sm:hidden flex gap-2 mb-4">
+            <Link
+              href={`/custom-order?source=${encodeURIComponent(p.id)}&intent=gift`}
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-all duration-300 active:scale-[0.98]"
+              style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
+            >
+              <Gift className="w-3 h-3 shrink-0" aria-hidden />
+              Gift this
+            </Link>
+            <Link
+              href={`/custom-order?source=${encodeURIComponent(p.id)}`}
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-all duration-300 active:scale-[0.98]"
+              style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
+            >
+              <Pencil className="w-3 h-3 shrink-0" aria-hidden />
+              Customize
+            </Link>
+          </div>
 
           {p.rating !== undefined && (
             <div className="flex items-center gap-2 mb-5">
@@ -278,29 +317,6 @@ export default function ProductDetailClient() {
           )}
 
           <p className="text-ink/85 leading-relaxed mb-7 text-base lg:text-lg">{p.description}</p>
-
-          {/* Customise CTA - opens custom-order with this piece as the brief
-              source. Keeps the existing custom-order form schema unchanged;
-              the form just pre-fills initial state from ?source=<id>. */}
-          <Link
-            href={`/custom-order?source=${encodeURIComponent(p.id)}`}
-            className="card-cream flex items-start gap-4 p-4 sm:p-5 mb-7 group
-                       hover:border-lavender/40 transition-colors"
-          >
-            <span className="w-10 h-10 rounded-full bg-lavender/10 text-lavender shrink-0
-                             flex items-center justify-center group-hover:bg-lavender/15 transition-colors">
-              <Sparkles className="w-5 h-5" aria-hidden />
-            </span>
-            <span className="flex-1 min-w-0">
-              <span className="block font-serif text-lg text-ink mb-0.5">Want a custom version?</span>
-              <span className="block text-sm text-ink-soft leading-relaxed">
-                Different size, palette or theme - we can craft one inspired by this piece.
-              </span>
-            </span>
-            <span className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-lavender shrink-0 self-center">
-              Customise <ArrowRight className="w-3.5 h-3.5" aria-hidden />
-            </span>
-          </Link>
 
           <details className="border-t border-ink/10 py-5 group">
             <summary className="cursor-pointer flex items-center justify-between text-ink font-medium font-serif text-lg">

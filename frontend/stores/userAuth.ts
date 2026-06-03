@@ -7,11 +7,15 @@ import { useCart } from '@/stores/cart'
 // Side-effect runner - pulls the server cart + wishlist after auth state
 // is known so the user sees their cross-device saved pieces immediately.
 // Best-effort: network failures don't block sign-in.
-function syncUserDataAfterAuth() {
+// `mergeLocal` is true ONLY for the anonymous→login transition - on page
+// reload it must be false, otherwise the cart's local items (just rehydrated
+// from localStorage) get re-POSTed and the server increments them again.
+function syncUserDataAfterAuth(opts?: { mergeLocal?: boolean }) {
+  const mergeLocal = opts?.mergeLocal === true
   // Defer to next tick so the auth token is in place before the GETs fire.
   setTimeout(() => {
     useWishlist.getState().hydrateFromServer().catch(() => {})
-    useCart.getState().hydrateFromServer().catch(() => {})
+    useCart.getState().hydrateFromServer({ mergeLocal }).catch(() => {})
   }, 0)
 }
 
@@ -67,7 +71,7 @@ export const useUserAuth = create<UserAuthState>()(
             isLoading: false,
             error: null,
           })
-          syncUserDataAfterAuth()
+          syncUserDataAfterAuth({ mergeLocal: true })
           return { needsProfileSetup: res.needsProfileSetup }
         } catch (err) {
           const message = extractErrorMessage(err)
@@ -85,7 +89,7 @@ export const useUserAuth = create<UserAuthState>()(
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
-          syncUserDataAfterAuth()
+          syncUserDataAfterAuth({ mergeLocal: true })
           return true
         } catch (err) {
           set({ isLoading: false, error: extractErrorMessage(err) })
@@ -102,7 +106,7 @@ export const useUserAuth = create<UserAuthState>()(
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
-          syncUserDataAfterAuth()
+          syncUserDataAfterAuth({ mergeLocal: true })
           return true
         } catch (err) {
           set({ isLoading: false, error: extractErrorMessage(err) })
