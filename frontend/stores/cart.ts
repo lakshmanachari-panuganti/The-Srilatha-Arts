@@ -16,8 +16,12 @@ interface CartState {
   close: () => void
   toggle: () => void
   /** Pull the server cart for the authenticated user, replacing local
-   *  state. Anonymous callers (no token) keep their local cart. */
-  hydrateFromServer: () => Promise<void>
+   *  state. Anonymous callers (no token) keep their local cart.
+   *  Pass `{ mergeLocal: true }` ONLY on the anonymous→login transition
+   *  to upload local items into the server cart first. On page-reload
+   *  rehydration the local items already came from the server, so
+   *  re-uploading them would double-count (POST /cart is increment). */
+  hydrateFromServer: (opts?: { mergeLocal?: boolean }) => Promise<void>
   _setHydrated: () => void
 }
 
@@ -121,23 +125,25 @@ export const useCart = create<CartState>()(
       open: () => set({ isOpen: true }),
       close: () => set({ isOpen: false }),
       toggle: () => set((s) => ({ isOpen: !s.isOpen })),
-      hydrateFromServer: async () => {
+      hydrateFromServer: async (opts) => {
         if (_hydrateInFlight) return _hydrateInFlight
+        const mergeLocal = opts?.mergeLocal === true
         _hydrateInFlight = (async () => {
           try {
-            // Upload any local items first so additions made between deploys
-            // (or in an exotic anonymous-cart path) survive sign-in. Server
-            // POST is idempotent on the composite key and increments quantity,
-            // which is the right merge behaviour for cart items.
-            const local = get().items
-            await Promise.all(
-              local.map((it) =>
-                apiFetch('/cart', {
-                  method: 'POST',
-                  body: { productId: it.productId, quantity: it.quantity },
-                }).catch(silenceAuthErrors),
-              ),
-            )
+            if (mergeLocal) {
+              // Anonymous→login merge only. POST /cart is increment, so
+              // running this on plain page-reload rehydration would double
+              // the quantity on every refresh.
+              const local = get().items
+              await Promise.all(
+                local.map((it) =>
+                  apiFetch('/cart', {
+                    method: 'POST',
+                    body: { productId: it.productId, quantity: it.quantity },
+                  }).catch(silenceAuthErrors),
+                ),
+              )
+            }
             const res = await apiFetch<{ items: ServerCartItem[] }>('/cart')
             const items: CartItem[] = (res.items || []).map((it) => ({
               productId: it.productId,
