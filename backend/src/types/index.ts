@@ -74,7 +74,7 @@ export function isValidReturnReason(value: unknown): value is ReturnReasonCode {
 
 export interface OrderEntity {
   partitionKey: string   // userEmail (or 'guest')
-  rowKey: string         // orderId e.g. "TSA-2026-00001"
+  rowKey: string         // orderId/invoiceId e.g. "20260604153045" (YYYYMMDDHHMMSS, IST)
   status: OrderStatus
   paymentStatus: PaymentStatus
   items: string          // JSON of OrderItemSnapshot[]

@@ -83,7 +83,8 @@
       "Bash(git reset *)",
       "Bash(git -c commit.gpgsign=false commit -m \"perf\\(theme\\): drop heavy backdrop-blur from dark nav surfaces + scrub remaining purple rgbas\" -m \"Phase 4 QA cleanup. Per RESTYLE.md §6 perf budget, removed backdrop-filter blur\\(\\) from BottomTabBar, MobileDrawer \\(two layers\\), SearchOverlay, StickyCartBar, CategoryChips, and the ProductCard heart chip - they were the eight components the brief flagged as the biggest mobile paint cost. Bumped the underlying bg opacity so the dark nav surfaces stay opaque enough without the blur. Also: header at scroll=0 promoted to bg-plum/85 \\(was 40 + blur\\) so ink glyphs stay readable; added a top-down ink scrim to the hero so the header has a dark backing while the user is still at the top; replaced the remaining lavender rgbas in ContactCTA, OurStoryTeaser, SectionDivider, and the MobileDrawer logo glow with gold / ink-toned equivalents.\" -m \"Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>\")",
       "Bash(az functionapp *)",
-      "Bash(az account *)"
+      "Bash(az account *)",
+      "Bash(npm test *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\E092721\\AppData\\Local\\Temp",
