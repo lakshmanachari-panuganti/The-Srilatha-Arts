@@ -34,7 +34,7 @@ export function isWhatsAppConfigured(): boolean {
  *   "9133266754"      → "919133266754"  (assumes IN if 10 digits)
  *   "919133266754"    → "919133266754"
  */
-function normalisePhone(raw: string): string {
+export function normalisePhone(raw: string): string {
   const digits = (raw || '').replace(/\D+/g, '')
   if (digits.length === 10) return `91${digits}`
   return digits
@@ -63,6 +63,45 @@ interface SendTemplateOptions {
 
 interface SendTemplateResult {
   messageId: string
+  /** Normalised E.164 phone the message was actually sent to. */
+  toPhone: string
+  /** Rendered preview of the body text after substituting bodyVariables - used as the message log "text" column. */
+  bodyPreview: string
+}
+
+/**
+ * Verify a Meta WhatsApp webhook signature. Meta signs the raw request
+ * body with HMAC-SHA256 using the App Secret and ships the result as
+ * the X-Hub-Signature-256 header (`sha256=<hex>`).
+ *
+ * Returns false on any mismatch / missing config so callers can drop
+ * the request safely. Mirrors the pattern in services/razorpay.ts.
+ */
+export function verifyWebhookSignature(rawBody: string, headerValue: string): boolean {
+  const secret = process.env.WHATSAPP_APP_SECRET
+  if (!secret || !headerValue) return false
+  // Strip the 'sha256=' prefix if present.
+  const provided = headerValue.startsWith('sha256=') ? headerValue.slice(7) : headerValue
+  // Use require to keep the import local; crypto is always available
+  // in the Node runtime so this never adds a dependency miss.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { createHmac, timingSafeEqual } = require('crypto') as typeof import('crypto')
+  const expected = createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex')
+  if (expected.length !== provided.length) return false
+  try {
+    return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(provided, 'hex'))
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Verify the GET-time challenge that Meta sends when a Webhook URL is
+ * (re)configured. Compares against WHATSAPP_WEBHOOK_VERIFY_TOKEN.
+ */
+export function verifyWebhookChallenge(verifyToken: string | null | undefined): boolean {
+  const expected = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || ''
+  return Boolean(expected && verifyToken && expected === verifyToken)
 }
 
 /**
@@ -148,5 +187,11 @@ export async function sendTemplateMessage(
   if (!messageId) {
     throw new Error(`[whatsapp] no message id in response: ${text.slice(0, 200)}`)
   }
-  return { messageId }
+  // Build a previewable string for the message log. Meta doesn't echo
+  // the rendered body back, so we stitch the variables into a deter-
+  // ministic preview: "[template:<name>] var1 | var2 | ...". This is
+  // good enough for the admin inbox; the precise body text lives in
+  // WhatsApp Manager.
+  const bodyPreview = `[template:${opts.templateName}] ${opts.bodyVariables.join(' | ')}`.trim()
+  return { messageId, toPhone: normalisePhone(opts.toPhone), bodyPreview }
 }

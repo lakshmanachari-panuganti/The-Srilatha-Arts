@@ -29,6 +29,9 @@ import {
   appendEmailLog,
   mergeOrder,
   getOrderItems,
+  appendWhatsAppMessage,
+  upsertWhatsAppConversation,
+  getWhatsAppConversation,
 } from '../services/tableStorage'
 import { downloadInvoicePdf } from '../services/blobStorage'
 import { ensureInvoicePdf } from '../services/orderFulfillment'
@@ -41,6 +44,26 @@ interface QueueMessage {
   channel?: 'email' | 'whatsapp' | 'sms' | 'push'
   templateKey?: string
   vars?: Record<string, string>
+}
+
+// Single-line structured marker so App Insights / KQL queries can
+// pivot on these dimensions without parsing freeform text:
+//
+//   traces | where message startswith "[notify]"
+//          | extend ... = extract("orderId=(\\S+)", 1, message)
+//          | summarize count() by channel, outcome
+function notify(
+  context: InvocationContext,
+  level: 'log' | 'warn' | 'error',
+  fields: Record<string, string | number | undefined>,
+): void {
+  const parts: string[] = []
+  for (const [k, v] of Object.entries(fields)) {
+    if (v === undefined || v === null || v === '') continue
+    const str = String(v).replace(/\s+/g, ' ').slice(0, 200)
+    parts.push(`${k}=${/\s|=/.test(str) ? `"${str}"` : str}`)
+  }
+  context[level](`[notify] ${parts.join(' ')}`)
 }
 
 async function processNotification(
@@ -226,7 +249,15 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       meta: JSON.stringify({ messageId: result.messageId, to: recipient }),
       createdAt: now,
     })
-    context.log(`sendOrderConfirmationEmail: sent ${orderId} → ${recipient} (attempt ${attempt})`)
+    notify(context, 'log', {
+      channel: 'email',
+      template: 'order_confirmed',
+      outcome: 'sent',
+      orderId,
+      to: recipient,
+      attempt,
+      messageId: result.messageId,
+    })
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err)
     await appendEmailLog({
@@ -246,6 +277,15 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       emailLastError: errMsg,
       emailAttempts: attempt,
       updatedAt: now,
+    })
+    notify(context, 'warn', {
+      channel: 'email',
+      template: 'order_confirmed',
+      outcome: 'failed',
+      orderId,
+      to: recipient,
+      attempt,
+      error: errMsg,
     })
     // Re-throw so the queue retries (visibility timeout = backoff).
     throw err
@@ -309,6 +349,28 @@ async function sendWhatsAppConfirmation(input: SendWhatsAppInput): Promise<void>
       }),
       createdAt: now,
     })
+
+    // Log the outbound message + bump the conversation rollup so the
+    // admin inbox shows the latest activity.
+    await logOutboundWhatsAppMessage({
+      phone: result.toPhone,
+      waMessageId: result.messageId,
+      templateName: 'order_confirmation_new_artwork',
+      bodyPreview: result.bodyPreview,
+      mediaUrl: invoiceUrl,
+      orderId,
+      customerName,
+      customerEmail: (order.customerEmail as string) || undefined,
+      now,
+    })
+    notify(context, 'log', {
+      channel: 'whatsapp',
+      template: 'order_confirmation_new_artwork',
+      outcome: 'sent',
+      orderId,
+      to: result.toPhone,
+      messageId: result.messageId,
+    })
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err)
     await mergeOrder(order.partitionKey as string, orderId, {
@@ -316,12 +378,73 @@ async function sendWhatsAppConfirmation(input: SendWhatsAppInput): Promise<void>
       whatsappLastError: errMsg,
       updatedAt: now,
     })
+    notify(context, 'warn', {
+      channel: 'whatsapp',
+      template: 'order_confirmation_new_artwork',
+      outcome: 'failed',
+      orderId,
+      to: customerPhone,
+      error: errMsg,
+    })
     // Throw for queue retry. Three retries with backoff is usually
     // enough to absorb transient WhatsApp 5xx; permanent failures
     // (wrong template, banned number) land in the poison queue and
     // require admin intervention.
     throw err
   }
+}
+
+interface LogOutboundInput {
+  phone: string                   // already normalised E.164 (no '+')
+  waMessageId: string
+  templateName: string
+  bodyPreview: string
+  mediaUrl?: string
+  orderId: string
+  customerName?: string
+  customerEmail?: string
+  now: string
+}
+
+async function logOutboundWhatsAppMessage(input: LogOutboundInput): Promise<void> {
+  const { phone, waMessageId, templateName, bodyPreview, mediaUrl, orderId, customerName, customerEmail, now } = input
+
+  // Per-message row. RowKey encodes time + direction + wamid so the
+  // thread is naturally chronological and lookups by wamid stay cheap.
+  await appendWhatsAppMessage({
+    partitionKey: phone,
+    rowKey: `${now}_outbound_${waMessageId}`,
+    direction: 'outbound',
+    waMessageId,
+    type: 'template',
+    templateName,
+    text: bodyPreview,
+    mediaUrl,
+    orderId,
+    invoiceId: orderId,
+    status: 'sent',
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  // Conversation rollup. Preserve any existing unreadCount (admins
+  // clear it explicitly via the view-thread endpoint). createdAt is
+  // only stamped on first insert.
+  const existing = await getWhatsAppConversation(phone)
+  await upsertWhatsAppConversation({
+    partitionKey: 'conv',
+    rowKey: phone,
+    phone,
+    customerName: customerName || existing?.customerName || '',
+    customerEmail: customerEmail || existing?.customerEmail || '',
+    lastMessageAt: now,
+    lastMessagePreview: bodyPreview.slice(0, 240),
+    lastDirection: 'outbound',
+    lastOrderId: orderId,
+    unreadCount: existing?.unreadCount ?? 0,
+    createdAt: existing?.createdAt || now,
+    updatedAt: now,
+  })
 }
 
 function parseAddress(raw: unknown): {

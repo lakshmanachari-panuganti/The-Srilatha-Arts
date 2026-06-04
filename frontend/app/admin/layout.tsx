@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Package, ShoppingBag, LayoutDashboard, Tag, MessageSquare,
   Ticket, Image as ImageIcon, Settings, LogOut, Layers, FolderOpen,
-  Users, BarChart3, Archive,
+  Users, BarChart3, Archive, MessageCircle,
 } from 'lucide-react'
 import { useAdminAuth } from '@/stores/adminAuth'
 
@@ -18,6 +18,7 @@ const navItems = [
   { name: 'Collections', href: '/admin/collections', icon: FolderOpen },
   { name: 'Custom Orders', href: '/admin/custom-orders', icon: ImageIcon },
   { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
+  { name: 'WhatsApp', href: '/admin/whatsapp', icon: MessageCircle },
   { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
   { name: 'Customers', href: '/admin/customers', icon: Users },
   { name: 'Announcements', href: '/admin/announcements', icon: Tag },

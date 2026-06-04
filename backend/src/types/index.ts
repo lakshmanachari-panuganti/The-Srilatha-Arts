@@ -367,6 +367,74 @@ export interface NotificationEntity {
   createdAt: string
 }
 
+// ─── WHATSAPP MESSAGES ───────────────────────────────────────
+// Per-message append-only log. One row per WhatsApp message in either
+// direction. The combination of phone-as-PK and timestamp_id-as-RK
+// gives us per-customer threads sorted by time without a secondary
+// index. Read patterns:
+//   - List a customer's thread:     PartitionKey eq <phone>
+//   - Look up a single message:     PartitionKey eq <phone> and
+//                                    RowKey eq <ts>_<dir>_<wamid>
+//   - Find a message by wamid:      filter waMessageId eq <wamid>
+//                                    (rare path - used by status
+//                                    updates to flip 'sent' → 'delivered')
+
+export type WhatsAppDirection = 'outbound' | 'inbound'
+export type WhatsAppMessageType =
+  | 'template'
+  | 'text'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'document'
+  | 'sticker'
+  | 'location'
+  | 'contacts'
+  | 'interactive'
+  | 'reaction'
+  | 'unknown'
+export type WhatsAppDeliveryStatus = 'sent' | 'delivered' | 'read' | 'failed'
+
+export interface WhatsAppMessageEntity {
+  partitionKey: string      // customer phone, E.164 without '+' (e.g. '919133266754')
+  rowKey: string            // '{ISO-timestamp}_{outbound|inbound}_{wamid}'
+  direction: WhatsAppDirection
+  waMessageId: string       // Meta's wamid.HBgM...
+  contextMessageId?: string // when this is a reply, the wamid being replied to
+  type: WhatsAppMessageType
+  templateName?: string     // outbound templates only
+  text?: string             // body text (templates have rendered template var preview here too)
+  mediaUrl?: string         // document/image link
+  mediaCaption?: string
+  orderId?: string          // linked order, when known
+  invoiceId?: string        // linked invoice (= orderId in this system)
+  status?: WhatsAppDeliveryStatus
+  statusError?: string
+  rawPayload?: string       // JSON dump of the original Meta payload, capped at 32KB
+  createdAt: string
+  updatedAt: string
+}
+
+// ─── WHATSAPP CONVERSATIONS ──────────────────────────────────
+// Per-phone rollup row used by the admin inbox to show the
+// conversation list without scanning every message row. Updated by
+// both the outbound send path and the inbound webhook.
+
+export interface WhatsAppConversationEntity {
+  partitionKey: 'conv'      // fixed bucket so listing is a single-partition scan
+  rowKey: string            // customer phone, E.164 without '+'
+  phone: string
+  customerName?: string
+  customerEmail?: string
+  lastMessageAt: string
+  lastMessagePreview: string
+  lastDirection: WhatsAppDirection
+  lastOrderId?: string
+  unreadCount: number       // inbound msgs since last admin view of the thread
+  createdAt: string
+  updatedAt: string
+}
+
 // ─── EMAIL LOGS ──────────────────────────────────────────────
 // Per-attempt log of outbound transactional emails. One row per send
 // attempt (including retries) so admins can see exactly why a delivery

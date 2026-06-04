@@ -152,7 +152,11 @@ $tableNames = @(
     'wishlist', 'cart', 'reviews', 'customOrders',
     'newsletterSubscribers',
     'addresses', 'notifications',
-    'staff', 'auditLog', 'rateLimits'
+    'staff', 'auditLog', 'rateLimits',
+    # Notification + WhatsApp tables (added 2026-06-04). emailLogs
+    # holds per-attempt SMTP delivery logs; whatsappMessages /
+    # whatsappConversations back the admin Conversation Center.
+    'emailLogs', 'whatsappMessages', 'whatsappConversations'
 )
 
 # ── B.3  Storage queues (per new-backend.md §2.3) ───────────────────
@@ -601,6 +605,49 @@ $appSettings = @{
     # Application Insights.
     'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
     'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
+
+    # ── Notification stack: non-secret defaults (added 2026-06-04) ─
+    # These can be re-applied safely on every run because they're
+    # idempotent / derived from $envCfg / well-known constants. Secrets
+    # are handled by the preserveSecrets pass below to avoid wiping
+    # operator-pasted values.
+    'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
+    'WHATSAPP_API_VERSION'                  = 'v18.0'
+    'WHATSAPP_TEMPLATE_LANGUAGE'            = 'en'
+    'SMTP_HOST'                             = 'smtp.gmail.com'
+    'SMTP_PORT'                             = '587'
+    'SMTP_SECURE'                           = 'false'
+    'SMTP_USER'                             = 'srilatha.art@gmail.com'
+    'SMTP_SENDER_NAME'                      = 'Srilatha Art'
+    'SMTP_SENDER_EMAIL'                     = 'srilatha.art@gmail.com'
+    'SMTP_REPLY_TO'                         = 'studio@srilatha.art'
+}
+
+# ── 6.1a  Secrets / one-shot placeholders ─────────────────────────
+# The keys below are either real secrets (WhatsApp access token, App
+# Secret, SMTP App Password) or operator-supplied strings (verify
+# token, optional logo URL). They MUST NOT be overwritten on a re-run
+# once the operator has pasted the real value. Strategy:
+#   1. Pull the current Function App settings.
+#   2. For each key, only include it in the update payload if it's
+#      missing OR currently empty. Real values are preserved.
+$preserveSecrets = @(
+    'INVOICE_LOGO_URL',
+    'WHATSAPP_ACCESS_TOKEN',
+    'WHATSAPP_PHONE_NUMBER_ID',
+    'WHATSAPP_WABA_ID',
+    'WHATSAPP_WEBHOOK_VERIFY_TOKEN',
+    'WHATSAPP_APP_SECRET',
+    'SMTP_PASS'
+)
+$existingSettings = (Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp) ?? @{}
+foreach ($k in $preserveSecrets) {
+    $currentValue = $existingSettings[$k]
+    if (-not $currentValue) {
+        # Initialise as empty so the key exists in the Function App
+        # config blade (operator can click it and paste the value).
+        $appSettings[$k] = ''
+    }
 }
 
 Update-AzFunctionAppSetting `
