@@ -31,7 +31,7 @@
  */
 
 import { TableClient } from '@azure/data-tables'
-import { DefaultAzureCredential } from '@azure/identity'
+import { AzureCliCredential } from '@azure/identity'
 import { formatOrderNumber } from '../src/services/orderNumber'
 
 const ACCOUNT_NAME = process.env.AZURE_STORAGE_ACCOUNT_NAME || 'stthesrilathaartsdev'
@@ -44,7 +44,10 @@ type Row = Record<string, unknown> & {
   timestamp?: Date
 }
 
-const credential = new DefaultAzureCredential()
+// Migration runs from a developer's box - AzureCliCredential matches
+// what's used in seedAdmin.ts and avoids the EnvironmentCredential
+// path (which fails noisily when stale SP creds linger in env vars).
+const credential = new AzureCliCredential()
 const tc = (name: string) =>
   new TableClient(`https://${ACCOUNT_NAME}.table.core.windows.net`, name, credential)
 

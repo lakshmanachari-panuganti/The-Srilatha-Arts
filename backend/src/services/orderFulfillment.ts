@@ -4,22 +4,25 @@
  *   payment captured
  *        ↓
  *   finalizeOrderAfterPayment(order)
- *        ├─► build invoice PDF (services/invoicePdf)
- *        ├─► upload to Azure Blob 'invoices' container (services/blobStorage)
- *        ├─► stamp branded invoiceUrl on the order row
- *        └─► send WhatsApp 'order_confirmation_new_artwork' template
- *            with the PDF as the document header attachment
+ *        ├─► (idempotent) build invoice PDF + upload to blob + stamp invoiceUrl
+ *        ├─► enqueue WhatsApp notification (order_confirmation_new_artwork)
+ *        └─► enqueue email notification (order_confirmed)
  *
- * Idempotent: a second invocation on an already-fulfilled order short-
- * circuits before regenerating the PDF (checks `invoiceUrl` on the
- * order row). This matters because both the synchronous verify path
- * AND the webhook handler call this function - whichever lands first
- * does the work, the second is a no-op.
+ *   notifications-out queue consumer (functions/notificationsQueue)
+ *        ├─► reads message
+ *        ├─► fetches the SAME PDF from blob (no regeneration)
+ *        └─► sends via the chosen channel
  *
- * The WhatsApp step is a soft failure: if WhatsApp is misconfigured
- * or returns an error, we still keep the invoice URL on the order and
- * append a warning event to the timeline. The customer can still see
- * the invoice in their account; only the push notification is lost.
+ * This is the single source of truth for invoice PDFs in the system.
+ * Every downstream artefact (WhatsApp document, email attachment, the
+ * customer's Download button, the admin's resend action) reads the
+ * exact same blob produced here.
+ *
+ * Idempotency: a second invocation on an already-fulfilled order
+ * short-circuits before regenerating (checks invoiceUrl on the row).
+ * This matters because both the verify path AND the webhook handler
+ * call this function - whichever lands first does the work, the second
+ * is a no-op.
  */
 
 import type { InvocationContext } from '@azure/functions'
@@ -32,46 +35,26 @@ import {
 import { buildInvoicePdf } from './invoicePdf'
 import { uploadInvoicePdf } from './blobStorage'
 import { invoiceUrlFor } from './orderNumber'
-import { isWhatsAppConfigured, sendTemplateMessage } from './whatsapp'
-
-const WHATSAPP_TEMPLATE = 'order_confirmation_new_artwork'
+import { enqueueNotification } from './queue'
 
 /**
- * Generate the invoice + send the WhatsApp message for a paid order.
- * Safe to call multiple times - subsequent calls are a no-op once the
- * order has `invoiceUrl` set.
+ * Build the invoice PDF for an order, upload it to blob, and stamp
+ * invoiceUrl on the order row. Idempotent - returns the existing URL
+ * unchanged if invoiceUrl is already set on the order.
  *
- * Returns the branded invoice URL on success. Throws only on PDF/blob
- * failure (those are recoverable - the next webhook retry will retry).
- * WhatsApp failures are logged via context.warn and an event row but
- * do NOT throw.
+ * Exposed separately from finalizeOrderAfterPayment so the admin
+ * resend endpoint can call it standalone (self-healing) before re-
+ * queuing a delivery.
  */
-export async function finalizeOrderAfterPayment(
+export async function ensureInvoicePdf(
   order: Row,
   context: InvocationContext,
-): Promise<string | null> {
-  // Only run for orders whose payment is actually captured. Belt and
-  // braces - the caller already gates this, but defending in depth
-  // means an accidental call from a future path won't generate an
-  // invoice for an unpaid order.
-  if (order.paymentStatus !== 'CAPTURED') {
-    context.warn(
-      `finalizeOrderAfterPayment: skipped - paymentStatus=${order.paymentStatus} for order ${order.rowKey}`,
-    )
-    return null
-  }
-
-  // Idempotency: if invoice has already been generated, return the
-  // existing URL. This avoids regenerating + re-sending WhatsApp when
-  // the webhook lands after the synchronous verify path already ran.
+): Promise<string> {
+  const orderId = order.rowKey as string
   if (order.invoiceUrl) {
     return order.invoiceUrl as string
   }
 
-  const orderId = order.rowKey as string
-  const now = new Date().toISOString()
-
-  // ── 1. Build the PDF ─────────────────────────────────────────────
   const items = await getOrderItems(orderId)
   const invoiceItems = items.map((i) => ({
     productId: i.rowKey as string,
@@ -97,16 +80,15 @@ export async function finalizeOrderAfterPayment(
       customerPhone: (order.customerPhone as string) || undefined,
       shippingAddress: parseAddress(order.shippingAddress),
       razorpayPaymentId: (order.razorpayPaymentId as string) || undefined,
-      createdAt: (order.createdAt as string) || now,
+      createdAt: (order.createdAt as string) || new Date().toISOString(),
     },
     invoiceItems,
   )
 
-  // ── 2. Upload to blob ────────────────────────────────────────────
   await uploadInvoicePdf(orderId, pdfBuffer)
   const brandedUrl = invoiceUrlFor(orderId)
 
-  // ── 3. Persist invoiceUrl on the order ──────────────────────────
+  const now = new Date().toISOString()
   await mergeOrder(order.partitionKey as string, orderId, {
     invoiceUrl: brandedUrl,
     updatedAt: now,
@@ -122,67 +104,76 @@ export async function finalizeOrderAfterPayment(
     meta: JSON.stringify({ invoiceUrl: brandedUrl }),
     createdAt: now,
   })
-
-  // ── 4. Send WhatsApp confirmation (soft failure) ────────────────
-  await sendWhatsAppConfirmation(order, brandedUrl, context)
+  context.log(`ensureInvoicePdf: generated invoice for ${orderId}`)
 
   return brandedUrl
 }
 
-async function sendWhatsAppConfirmation(
+/**
+ * Final post-payment work: ensure the invoice PDF exists, then enqueue
+ * WhatsApp + email deliveries. Returns the branded invoice URL on
+ * success, or null if the order is not captured / has no contact info.
+ */
+export async function finalizeOrderAfterPayment(
   order: Row,
-  invoiceUrl: string,
   context: InvocationContext,
-): Promise<void> {
+): Promise<string | null> {
+  if (order.paymentStatus !== 'CAPTURED') {
+    context.warn(
+      `finalizeOrderAfterPayment: skipped - paymentStatus=${order.paymentStatus} for order ${order.rowKey}`,
+    )
+    return null
+  }
+
   const orderId = order.rowKey as string
-  const phone = (order.customerPhone as string) || ''
-  if (!phone) {
-    context.warn(`sendWhatsAppConfirmation: no customer phone on order ${orderId}`)
-    return
-  }
-  if (!isWhatsAppConfigured()) {
-    context.warn('sendWhatsAppConfirmation: WhatsApp env vars not set - skipping')
-    return
+  const invoiceUrl = await ensureInvoicePdf(order, context)
+
+  // ── Enqueue WhatsApp ─────────────────────────────────────────────
+  // Soft-skip if no phone or WhatsApp isn't configured at the consumer
+  // side; the queue consumer will record the skip in its event log.
+  if (order.customerPhone) {
+    try {
+      await enqueueNotification({
+        userEmail: (order.customerEmail as string) || (order.partitionKey as string) || '',
+        channel: 'whatsapp',
+        templateKey: 'order_confirmation_new_artwork',
+        vars: {
+          orderId,
+          customerName: (order.customerName as string) || 'Customer',
+          customerPhone: (order.customerPhone as string) || '',
+          invoiceUrl,
+        },
+      })
+    } catch (err) {
+      context.warn('finalizeOrderAfterPayment: WhatsApp enqueue failed', err)
+    }
   }
 
-  const customerName = ((order.customerName as string) || 'Customer').trim()
-  try {
-    const result = await sendTemplateMessage({
-      toPhone: phone,
-      templateName: WHATSAPP_TEMPLATE,
-      bodyVariables: [customerName, orderId],
-      documentHeader: {
-        link: invoiceUrl,
-        filename: `invoice-${orderId}.pdf`,
-      },
-    })
-
-    await appendOrderEvent({
-      partitionKey: orderId,
-      rowKey: `${new Date().toISOString()}_whatsapp`,
-      channel: 'message',
-      by: 'system',
-      byRole: 'system',
-      note: 'Order confirmation sent via WhatsApp',
-      meta: JSON.stringify({
-        template: WHATSAPP_TEMPLATE,
-        waMessageId: result.messageId,
-      }),
-      createdAt: new Date().toISOString(),
-    })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'unknown error'
-    context.warn(`sendWhatsAppConfirmation: ${message}`)
-    await appendOrderEvent({
-      partitionKey: orderId,
-      rowKey: `${new Date().toISOString()}_whatsapp_failed`,
-      channel: 'internal',
-      by: 'system',
-      byRole: 'system',
-      note: `WhatsApp confirmation failed: ${message}`,
-      createdAt: new Date().toISOString(),
-    })
+  // ── Enqueue email ────────────────────────────────────────────────
+  if (order.customerEmail) {
+    try {
+      await enqueueNotification({
+        userEmail: order.customerEmail as string,
+        channel: 'email',
+        templateKey: 'order_confirmed',
+        vars: {
+          orderId,
+          customerName: (order.customerName as string) || 'Customer',
+          invoiceUrl,
+        },
+      })
+      // Optimistic 'pending' status so the admin UI shows that the email
+      // is in flight even before the consumer processes it.
+      await mergeOrder(order.partitionKey as string, orderId, {
+        emailStatus: 'pending',
+        updatedAt: new Date().toISOString(),
+      })
+    } catch (err) {
+      context.warn('finalizeOrderAfterPayment: email enqueue failed', err)
+    }
   }
+
+  return invoiceUrl
 }
 
 function parseAddress(raw: unknown): InvoiceOrderShippingAddress | undefined {

@@ -66,6 +66,16 @@ function toApi(row: Row) {
     razorpayRefundId: row.razorpayRefundId || undefined,
     invoiceUrl: row.invoiceUrl || undefined,
     customerNote: row.customerNote || undefined,
+    // Notification status surfaces in the admin detail page so support
+    // can see at a glance whether the customer was actually notified
+    // (and what to retry if not).
+    emailStatus: row.emailStatus || undefined,
+    emailSentAt: row.emailSentAt || undefined,
+    emailAttempts: row.emailAttempts ?? undefined,
+    emailLastError: row.emailLastError || undefined,
+    whatsappStatus: row.whatsappStatus || undefined,
+    whatsappSentAt: row.whatsappSentAt || undefined,
+    whatsappLastError: row.whatsappLastError || undefined,
     // Return-flow metadata so the admin order detail page can render the
     // customer's reason / comment / photos and any prior decline / refund.
     returnRequestedAt: row.returnRequestedAt || undefined,

@@ -110,6 +110,15 @@ export interface OrderEntity {
   refundFailureReason?: string     // populated if the Razorpay refund call fails
   customerNote?: string
   addressEdited?: boolean
+  // ── Notification status (populated by services/orderFulfillment +
+  // functions/notificationsQueue) ────────────────────────────────────
+  emailStatus?: 'pending' | 'sent' | 'failed'
+  emailSentAt?: string                 // ISO timestamp of the last successful send
+  emailAttempts?: number               // total attempts across queue retries
+  emailLastError?: string              // error from the last failed attempt
+  whatsappStatus?: 'pending' | 'sent' | 'failed'
+  whatsappSentAt?: string
+  whatsappLastError?: string
   createdAt: string
   updatedAt: string
 }
@@ -355,6 +364,24 @@ export interface NotificationEntity {
   vars: string             // JSON
   status: 'sent' | 'failed' | 'queued'
   error?: string
+  createdAt: string
+}
+
+// ─── EMAIL LOGS ──────────────────────────────────────────────
+// Per-attempt log of outbound transactional emails. One row per send
+// attempt (including retries) so admins can see exactly why a delivery
+// failed and when the last retry happened.
+export interface EmailLogEntity {
+  partitionKey: string     // orderId (or 'system' for non-order emails)
+  rowKey: string           // ISO-timestamp_seq
+  orderId?: string
+  to: string               // recipient email
+  subject: string
+  templateKey: string      // e.g. 'order_confirmed'
+  status: 'sent' | 'failed'
+  attempt: number          // 1-indexed; queue retries bump this
+  messageId?: string       // SMTP message id when delivered
+  error?: string           // failure detail when status='failed'
   createdAt: string
 }
 

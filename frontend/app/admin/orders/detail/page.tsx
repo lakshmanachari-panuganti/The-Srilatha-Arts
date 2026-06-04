@@ -80,6 +80,14 @@ interface AdminOrder {
   refundedAt?: string
   refundAmount?: number               // paise
   refundFailureReason?: string
+  invoiceUrl?: string                 // branded blob URL once payment captured
+  emailStatus?: 'pending' | 'sent' | 'failed'
+  emailSentAt?: string
+  emailAttempts?: number
+  emailLastError?: string
+  whatsappStatus?: 'pending' | 'sent' | 'failed'
+  whatsappSentAt?: string
+  whatsappLastError?: string
   createdAt: string
   updatedAt: string
 }
@@ -384,6 +392,10 @@ function OrderDetail() {
               </p>
             )}
           </div>
+
+          {/* Invoice + notifications panel - single source of truth
+              (the PDF on blob storage) for the customer's invoice. */}
+          <NotificationsPanel order={order} onChanged={refresh} />
 
           {/* Quick contact actions */}
           {(order.customerPhone || order.customerEmail) && (
@@ -805,6 +817,181 @@ function AddInternalNote({ orderId, onAdded }: { orderId: string; onAdded: () =>
           {busy ? 'Adding…' : 'Add note'}
         </button>
       </div>
+    </div>
+  )
+}
+
+// ─── Notifications panel (invoice + email + WhatsApp) ─────────────
+// Surfaces delivery status for the order_confirmed email and the
+// order_confirmation_new_artwork WhatsApp template, with resend
+// buttons that round-trip through the notifications queue (which is
+// the single delivery path - admin actions never bypass it).
+
+interface NotificationStatusProps {
+  label: string
+  status?: 'pending' | 'sent' | 'failed'
+  at?: string
+  error?: string
+  attempts?: number
+}
+
+function NotificationStatusRow({ label, status, at, error, attempts }: NotificationStatusProps) {
+  const tone =
+    status === 'sent' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' :
+    status === 'failed' ? 'bg-red-50 text-red-700 ring-red-600/20' :
+    status === 'pending' ? 'bg-amber-50 text-amber-700 ring-amber-600/20' :
+    'bg-zinc-50 text-zinc-600 ring-zinc-600/15'
+  const label2 = status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Not sent'
+  return (
+    <div className="flex items-start justify-between gap-3 text-sm">
+      <div className="text-ink-soft">{label}</div>
+      <div className="text-right">
+        <span className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ring-1 ring-inset ${tone}`}>
+          {label2}{typeof attempts === 'number' && attempts > 1 ? ` · ${attempts} tries` : ''}
+        </span>
+        {at && (
+          <div className="text-[11px] text-ink-mute mt-1">{formatDate(at)}</div>
+        )}
+        {error && (
+          <div className="text-[11px] text-red-600 mt-1 max-w-[16rem] truncate" title={error}>{error}</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function NotificationsPanel({
+  order,
+  onChanged,
+}: {
+  order: AdminOrder
+  onChanged: () => Promise<void> | void
+}) {
+  const [busyEmail, setBusyEmail] = useState(false)
+  const [busyWa, setBusyWa] = useState(false)
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+
+  const isPaid = (order.paymentStatus || '').toUpperCase() === 'CAPTURED'
+  const downloadHref = order.invoiceUrl || `/invoices/${encodeURIComponent(order.id)}.pdf`
+
+  async function resendEmail() {
+    setMsg(null); setBusyEmail(true)
+    try {
+      await apiFetch(`/admin/orders/${encodeURIComponent(order.id)}/resend-email`, {
+        method: 'POST',
+      })
+      setMsg({ kind: 'ok', text: 'Email re-queued. It will go out in a few seconds.' })
+      await onChanged()
+    } catch (e) {
+      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Could not resend email' })
+    } finally {
+      setBusyEmail(false)
+    }
+  }
+
+  async function resendWhatsApp() {
+    setMsg(null); setBusyWa(true)
+    try {
+      await apiFetch(`/admin/orders/${encodeURIComponent(order.id)}/resend-whatsapp`, {
+        method: 'POST',
+      })
+      setMsg({ kind: 'ok', text: 'WhatsApp re-queued. It will go out in a few seconds.' })
+      await onChanged()
+    } catch (e) {
+      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Could not resend WhatsApp' })
+    } finally {
+      setBusyWa(false)
+    }
+  }
+
+  return (
+    <div className="bg-white border border-ink/10 rounded-xl p-4 md:p-6">
+      <h2 className="font-serif text-lg text-ink mb-1">Invoice &amp; notifications</h2>
+      <p className="text-xs text-ink-mute mb-4">
+        One PDF per order — used by Download, email attachment and WhatsApp.
+      </p>
+
+      <div className="space-y-3 mb-5">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-ink-soft">Invoice number</span>
+          <span className="text-ink font-mono">{order.id}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-ink-soft">Invoice PDF</span>
+          {isPaid ? (
+            <div className="flex items-center gap-2">
+              <a
+                href={downloadHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs px-3 py-1.5 rounded-md border border-ink/15 hover:bg-cream-deep inline-flex items-center gap-1.5"
+              >
+                <Mail className="w-3.5 h-3.5" aria-hidden /> View
+              </a>
+              <a
+                href={downloadHref}
+                download={`invoice-${order.id}.pdf`}
+                className="text-xs px-3 py-1.5 rounded-md bg-ink text-white inline-flex items-center gap-1.5"
+              >
+                Download
+              </a>
+            </div>
+          ) : (
+            <span className="text-xs text-ink-mute">Available once payment captured</span>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-ink/10 pt-4 space-y-3">
+        <NotificationStatusRow
+          label="Confirmation email"
+          status={order.emailStatus}
+          at={order.emailSentAt}
+          error={order.emailLastError}
+          attempts={order.emailAttempts}
+        />
+        <NotificationStatusRow
+          label="WhatsApp confirmation"
+          status={order.whatsappStatus}
+          at={order.whatsappSentAt}
+          error={order.whatsappLastError}
+        />
+      </div>
+
+      <div className="border-t border-ink/10 pt-4 mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={resendEmail}
+          disabled={!isPaid || busyEmail || !order.customerEmail}
+          className="text-xs px-3 py-2 rounded-md border border-ink/15 hover:bg-cream-deep inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={!order.customerEmail ? 'No customer email on file' : ''}
+        >
+          {busyEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+          Resend email
+        </button>
+        <button
+          type="button"
+          onClick={resendWhatsApp}
+          disabled={!isPaid || busyWa || !order.customerPhone}
+          className="text-xs px-3 py-2 rounded-md border border-ink/15 hover:bg-cream-deep inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={!order.customerPhone ? 'No customer phone on file' : ''}
+        >
+          {busyWa ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
+          Resend WhatsApp
+        </button>
+      </div>
+
+      {msg && (
+        <div
+          className={`mt-3 text-xs px-3 py-2 rounded-md ${
+            msg.kind === 'ok'
+              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
+          {msg.text}
+        </div>
+      )}
     </div>
   )
 }

@@ -343,27 +343,11 @@ async function verifyPayment(
       }
     }
 
-    if (order.customerEmail) {
-      try {
-        await enqueueNotification({
-          userEmail: order.customerEmail,
-          channel: 'email',
-          templateKey: 'order_confirmed',
-          vars: {
-            customerName: order.customerName,
-            orderId: order.rowKey,
-          },
-        })
-      } catch (notifyErr) {
-        context.warn('verifyPayment: notification enqueue failed (non-fatal)', notifyErr)
-      }
-    }
-
-    // Generate invoice + send WhatsApp confirmation. Idempotent - if
-    // the webhook beats us to it we'll see invoiceUrl already set and
-    // short-circuit. PDF/blob failures throw so the next webhook retry
-    // can try again; WhatsApp failures are absorbed inside the
-    // orchestrator and surfaced as timeline events only.
+    // Generate invoice + enqueue WhatsApp and email confirmations.
+    // Idempotent - if the webhook beats us to it we'll see invoiceUrl
+    // already set and short-circuit. Enqueue (not direct send) means
+    // SMTP / WhatsApp failures don't block this response; the queue
+    // consumer logs + retries them.
     try {
       const refreshed = {
         ...order,

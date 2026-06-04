@@ -627,6 +627,23 @@ export async function logNotification(notification: Row): Promise<void> {
   await client.createEntity(notification as any)
 }
 
+// ─── EMAIL LOGS ──────────────────────────────────────────────
+// Self-healing table - ensure exists since this is a new table and
+// existing dev/prod environments won't have it provisioned yet.
+
+export async function appendEmailLog(entry: Row): Promise<void> {
+  const client = await ensureTable('emailLogs')
+  await client.createEntity(entry as any)
+}
+
+export async function getEmailLogsForOrder(orderId: string): Promise<Row[]> {
+  await ensureTable('emailLogs')
+  const rows = await listAll('emailLogs', odata`PartitionKey eq ${orderId}`)
+  return rows.sort(
+    (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime(),
+  )
+}
+
 // ─── AUDIT LOG ───────────────────────────────────────────────
 
 export async function appendAuditLog(entry: Row): Promise<void> {
