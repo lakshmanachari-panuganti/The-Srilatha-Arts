@@ -5,8 +5,16 @@
  *            override via NOTIFICATIONS_QUEUE_NAME).
  *
  *   Routes by message.channel:
- *     'email'    + templateKey='order_confirmed'              → SMTP + attach PDF
- *     'whatsapp' + templateKey='order_confirmation_new_artwork' → Cloud API + PDF link
+ *     'email'    + 'order_confirmed'                 → SMTP + attach PDF
+ *     'whatsapp' + 'order_confirmation_new_artwork'  → Cloud API + PDF document header
+ *     'whatsapp' + 'order_crafting' | 'order_shipped' |
+ *                  'order_cancelled' | 'order_on_hold' |
+ *                  'order_refunded'                  → Cloud API, text-only
+ *
+ * Status-transition WhatsApp templates dispatch through a single
+ * sendWhatsAppTemplate path keyed by the WA_TEMPLATE_BUILDERS map. Adding a
+ * new template = adding one entry to that map + getting it approved in
+ * Meta Business Manager under the same name.
  *
  * Retry strategy: this handler THROWS on failure so the Azure Functions
  * runtime returns the message to the queue. Storage Queue retries up
@@ -90,15 +98,13 @@ async function processNotification(
     return
   }
 
-  // Self-heal: if the invoice blob is missing (e.g. enqueued before the
-  // upload completed, or the blob was deleted), regenerate it. This is
-  // why every notification carries the orderId, not just the URL - the
-  // URL alone wouldn't tell us how to rebuild.
-  const pdfBuffer = await loadOrRegeneratePdf(orderId, order, context)
-  const invoiceUrl =
-    (vars.invoiceUrl as string) || (order.invoiceUrl as string) || ''
-
   if (channel === 'email' && templateKey === 'order_confirmed') {
+    // PDF is only loaded for templates that actually need it - the email
+    // attaches it, and order_confirmation_new_artwork links to it. The
+    // other status-transition templates are text-only.
+    const pdfBuffer = await loadOrRegeneratePdf(orderId, order, context)
+    const invoiceUrl =
+      (vars.invoiceUrl as string) || (order.invoiceUrl as string) || ''
     await sendOrderConfirmationEmail({
       order,
       orderId,
@@ -110,15 +116,8 @@ async function processNotification(
     return
   }
 
-  if (channel === 'whatsapp' && templateKey === 'order_confirmation_new_artwork') {
-    await sendWhatsAppConfirmation({
-      order,
-      orderId,
-      invoiceUrl,
-      customerName: vars.customerName || (order.customerName as string) || 'Customer',
-      customerPhone: vars.customerPhone || (order.customerPhone as string) || '',
-      context,
-    })
+  if (channel === 'whatsapp' && WA_TEMPLATE_BUILDERS[templateKey]) {
+    await sendWhatsAppTemplate({ order, orderId, templateKey, vars, context })
     return
   }
 
@@ -292,26 +291,123 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
   }
 }
 
-interface SendWhatsAppInput {
+interface WhatsAppTemplateSpec {
+  bodyVariables: string[]
+  documentHeader?: { link: string; filename: string }
+  eventNote: string
+}
+
+// Map of templateKey → builder. Order of bodyVariables MUST match the {{1}},
+// {{2}}, ... slots in the body submitted to Meta Business Manager. The
+// matching template copy lives in docs and in the Meta Manager UI; do not
+// edit one without the other.
+const WA_TEMPLATE_BUILDERS: Record<
+  string,
+  (
+    vars: Record<string, string>,
+    order: Record<string, unknown>,
+    orderId: string,
+  ) => WhatsAppTemplateSpec | null
+> = {
+  // {{1}}=customerName, {{2}}=orderId; DOCUMENT header carries the invoice.
+  order_confirmation_new_artwork: (vars, order, orderId) => {
+    const invoiceUrl = vars.invoiceUrl || (order.invoiceUrl as string) || ''
+    if (!invoiceUrl) return null
+    return {
+      bodyVariables: [vars.customerName || 'Customer', orderId],
+      documentHeader: { link: invoiceUrl, filename: `invoice-${orderId}.pdf` },
+      eventNote: 'Order confirmation sent via WhatsApp',
+    }
+  },
+
+  // {{1}}=customerName, {{2}}=orderId.
+  order_crafting: (vars, _order, orderId) => ({
+    bodyVariables: [vars.customerName || 'Customer', orderId],
+    eventNote: 'Crafting-started update sent via WhatsApp',
+  }),
+
+  // {{1}}=customerName, {{2}}=orderId, {{3}}=courier, {{4}}=tracking.
+  order_shipped: (vars, _order, orderId) => {
+    if (!vars.courier || !vars.tracking) return null
+    return {
+      bodyVariables: [
+        vars.customerName || 'Customer',
+        orderId,
+        vars.courier,
+        vars.tracking,
+      ],
+      eventNote: `Shipped update sent via WhatsApp (${vars.courier} · ${vars.tracking})`,
+    }
+  },
+
+  // {{1}}=customerName, {{2}}=orderId.
+  order_cancelled: (vars, _order, orderId) => ({
+    bodyVariables: [vars.customerName || 'Customer', orderId],
+    eventNote: 'Cancellation notice sent via WhatsApp',
+  }),
+
+  // {{1}}=customerName, {{2}}=orderId.
+  order_on_hold: (vars, _order, orderId) => ({
+    bodyVariables: [vars.customerName || 'Customer', orderId],
+    eventNote: 'On-hold notice sent via WhatsApp',
+  }),
+
+  // {{1}}=customerName, {{2}}=refundAmount (₹, Indian-formatted), {{3}}=orderId.
+  order_refunded: (vars, _order, orderId) => {
+    if (!vars.refundAmount) return null
+    return {
+      bodyVariables: [vars.customerName || 'Customer', vars.refundAmount, orderId],
+      eventNote: `Refund notice sent via WhatsApp (₹${vars.refundAmount})`,
+    }
+  },
+}
+
+interface SendWhatsAppTemplateInput {
   order: Record<string, unknown>
   orderId: string
-  invoiceUrl: string
-  customerName: string
-  customerPhone: string
+  templateKey: string
+  vars: Record<string, string>
   context: InvocationContext
 }
 
-async function sendWhatsAppConfirmation(input: SendWhatsAppInput): Promise<void> {
-  const { order, orderId, invoiceUrl, customerName, customerPhone, context } = input
+async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<void> {
+  const { order, orderId, templateKey, vars, context } = input
+  const customerName = vars.customerName || (order.customerName as string) || 'Customer'
+  const customerPhone = vars.customerPhone || (order.customerPhone as string) || ''
+
   if (!customerPhone) {
-    context.warn(`sendWhatsAppConfirmation: order ${orderId} has no phone - dropping`)
+    context.warn(`sendWhatsAppTemplate(${templateKey}): order ${orderId} has no phone - dropping`)
     return
   }
   if (!isWhatsAppConfigured()) {
-    context.warn('sendWhatsAppConfirmation: WhatsApp env vars not set')
+    context.warn(`sendWhatsAppTemplate(${templateKey}): WhatsApp env vars not set`)
     await mergeOrder(order.partitionKey as string, orderId, {
       whatsappStatus: 'failed',
       whatsappLastError: 'WhatsApp Cloud API not configured',
+      updatedAt: new Date().toISOString(),
+    })
+    return
+  }
+
+  // Self-heal the invoice blob only when the template actually needs it
+  // (DOCUMENT header). Other templates are text-only and skip the blob hop.
+  let invoiceUrlForBuilder = vars.invoiceUrl || (order.invoiceUrl as string) || ''
+  if (templateKey === 'order_confirmation_new_artwork' && !invoiceUrlForBuilder) {
+    await loadOrRegeneratePdf(orderId, order, context)
+    const refreshed = await getOrderById(orderId)
+    invoiceUrlForBuilder = (refreshed?.invoiceUrl as string) || ''
+  }
+
+  const builder = WA_TEMPLATE_BUILDERS[templateKey]
+  const spec = builder ? builder({ ...vars, invoiceUrl: invoiceUrlForBuilder }, order, orderId) : null
+  if (!spec) {
+    // Builder returned null = required variables missing for this template
+    // (e.g. order_shipped enqueued without tracking/courier). Don't retry —
+    // this is a producer bug, not a transient failure.
+    context.warn(`sendWhatsAppTemplate(${templateKey}): missing required vars for ${orderId} - dropping`)
+    await mergeOrder(order.partitionKey as string, orderId, {
+      whatsappStatus: 'failed',
+      whatsappLastError: `Missing required vars for ${templateKey}`,
       updatedAt: new Date().toISOString(),
     })
     return
@@ -321,12 +417,9 @@ async function sendWhatsAppConfirmation(input: SendWhatsAppInput): Promise<void>
   try {
     const result = await sendTemplateMessage({
       toPhone: customerPhone,
-      templateName: 'order_confirmation_new_artwork',
-      bodyVariables: [customerName, orderId],
-      documentHeader: {
-        link: invoiceUrl,
-        filename: `invoice-${orderId}.pdf`,
-      },
+      templateName: templateKey,
+      bodyVariables: spec.bodyVariables,
+      documentHeader: spec.documentHeader,
     })
 
     await mergeOrder(order.partitionKey as string, orderId, {
@@ -338,26 +431,24 @@ async function sendWhatsAppConfirmation(input: SendWhatsAppInput): Promise<void>
 
     await appendOrderEvent({
       partitionKey: orderId,
-      rowKey: `${now}_whatsapp`,
+      rowKey: `${now}_whatsapp_${templateKey}`,
       channel: 'message',
       by: 'system',
       byRole: 'system',
-      note: 'Order confirmation sent via WhatsApp',
+      note: spec.eventNote,
       meta: JSON.stringify({
-        template: 'order_confirmation_new_artwork',
+        template: templateKey,
         waMessageId: result.messageId,
       }),
       createdAt: now,
     })
 
-    // Log the outbound message + bump the conversation rollup so the
-    // admin inbox shows the latest activity.
     await logOutboundWhatsAppMessage({
       phone: result.toPhone,
       waMessageId: result.messageId,
-      templateName: 'order_confirmation_new_artwork',
+      templateName: templateKey,
       bodyPreview: result.bodyPreview,
-      mediaUrl: invoiceUrl,
+      mediaUrl: spec.documentHeader?.link,
       orderId,
       customerName,
       customerEmail: (order.customerEmail as string) || undefined,
@@ -365,7 +456,7 @@ async function sendWhatsAppConfirmation(input: SendWhatsAppInput): Promise<void>
     })
     notify(context, 'log', {
       channel: 'whatsapp',
-      template: 'order_confirmation_new_artwork',
+      template: templateKey,
       outcome: 'sent',
       orderId,
       to: result.toPhone,
@@ -380,7 +471,7 @@ async function sendWhatsAppConfirmation(input: SendWhatsAppInput): Promise<void>
     })
     notify(context, 'warn', {
       channel: 'whatsapp',
-      template: 'order_confirmation_new_artwork',
+      template: templateKey,
       outcome: 'failed',
       orderId,
       to: customerPhone,

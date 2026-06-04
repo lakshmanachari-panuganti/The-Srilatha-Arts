@@ -116,13 +116,18 @@ interface TransitionNotification {
   scheduleReviewRequest?: boolean
 }
 
+// CONFIRMED/OUT_FOR_DELIVERY/DELIVERED carry no customer WhatsApp by design:
+// the order-confirmation WhatsApp+email already fires at PLACED (with the
+// invoice PDF), and OUT_FOR_DELIVERY / DELIVERED are owned by the courier's
+// own SMS/WhatsApp updates. Duplicating those just teaches customers to
+// ignore our messages. DELIVERED still triggers a delayed review request.
 const NOTIFICATIONS: Partial<Record<OrderStatus, TransitionNotification>> = {
-  CONFIRMED:        { customer: ['whatsapp', 'email'], internal: [] },
+  CONFIRMED:        { customer: [],                    internal: [] },
   CRAFTING:         { customer: ['whatsapp'],          internal: [] },
   PACKED:           { customer: [],                    internal: ['email'] },
   SHIPPED:          { customer: ['whatsapp', 'email'], internal: [] },
-  OUT_FOR_DELIVERY: { customer: ['whatsapp', 'push'],  internal: [] },
-  DELIVERED:        { customer: ['whatsapp'],          internal: [], scheduleReviewRequest: true },
+  OUT_FOR_DELIVERY: { customer: ['push'],              internal: [] },
+  DELIVERED:        { customer: [],                    internal: [], scheduleReviewRequest: true },
   CANCELLED:        { customer: ['whatsapp', 'email'], internal: [] },
   ON_HOLD:          { customer: ['whatsapp'],          internal: [] },
   REFUNDED:         { customer: ['whatsapp', 'email'], internal: [] },
