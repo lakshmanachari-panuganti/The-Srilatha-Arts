@@ -571,7 +571,41 @@ foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
 Write-Step "PHASE 6 - Configure Function App"
 
 # ── 6.1  App settings (env vars) ─────────────────────────────────
-$appSettings = @{
+#
+# Strategy: Update-AzFunctionAppSetting replaces the app settings
+# collection with the hashtable it's given. To guarantee we never
+# delete a setting the operator added in the portal (or a value they
+# pasted in for a secret), we ALWAYS read the current settings first
+# and merge into them locally. The cmdlet then receives the full
+# desired state, eliminating any reliance on its implicit merge
+# behaviour.
+#
+# Three categories of keys:
+#
+#   1. ALWAYS-OVERWRITE  — derived from $envCfg / fixed constants
+#      (storage URIs, KV refs, queue names, AppInsights). These must
+#      track infra state on every run.
+#
+#   2. DEFAULT-IF-ABSENT — sensible defaults that an operator might
+#      reasonably tune per environment (template language, SMTP
+#      host/port, sender name, etc). Set on first deploy; left alone
+#      on later runs so portal edits survive.
+#
+#   3. EMPTY-IF-ABSENT   — real secrets and operator-supplied tokens.
+#      Initialise as empty placeholders so the keys exist in the
+#      portal blade for the operator to paste real values into, but
+#      never overwrite a non-empty existing value.
+
+# ── 1. Read existing settings ────────────────────────────────────
+$existingSettings = Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp
+if ($null -eq $existingSettings) { $existingSettings = @{} }
+
+# ── 2. Start the merged hashtable from existing state ────────────
+$mergedSettings = @{}
+foreach ($k in $existingSettings.Keys) { $mergedSettings[$k] = $existingSettings[$k] }
+
+# ── 3. ALWAYS-OVERWRITE: derived / infra-tracked values ─────────
+$alwaysOverwrite = @{
     # MSI-based storage binding for the Functions runtime host -
     # works only AFTER Phase 7 grants the MI 'Storage Blob Data Owner'.
     'AzureWebJobsStorage__accountName'      = $envCfg.StorageAccount
@@ -586,12 +620,13 @@ $appSettings = @{
     # Read by application code via DefaultAzureCredential.
     'AZURE_STORAGE_ACCOUNT_NAME'            = $envCfg.StorageAccount
 
-    # Non-secret settings.
+    # Non-secret settings derived from infra.
     'BLOB_BASE_URL'                         = "https://$($envCfg.StorageAccount).blob.core.windows.net"
     'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
     'COOKIE_DOMAIN'                         = $envCfg.CookieDomain
     'ENVIRONMENT'                           = $Environment
     'FUNCTIONS_WORKER_RUNTIME'              = 'node'
+    'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
 
     # Queue names (new-backend.md §2.3 / §14.3).
     'NOTIFICATIONS_QUEUE_NAME'              = 'notifications-out'
@@ -605,13 +640,11 @@ $appSettings = @{
     # Application Insights.
     'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
     'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
+}
+foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$k] }
 
-    # ── Notification stack: non-secret defaults (added 2026-06-04) ─
-    # These can be re-applied safely on every run because they're
-    # idempotent / derived from $envCfg / well-known constants. Secrets
-    # are handled by the preserveSecrets pass below to avoid wiping
-    # operator-pasted values.
-    'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
+# ── 4. DEFAULT-IF-ABSENT: operator-tunable defaults ─────────────
+$defaultIfAbsent = @{
     'WHATSAPP_API_VERSION'                  = 'v18.0'
     'WHATSAPP_TEMPLATE_LANGUAGE'            = 'en'
     'SMTP_HOST'                             = 'smtp.gmail.com'
@@ -622,16 +655,14 @@ $appSettings = @{
     'SMTP_SENDER_EMAIL'                     = 'srilatha.art@gmail.com'
     'SMTP_REPLY_TO'                         = 'studio@srilatha.art'
 }
+foreach ($k in $defaultIfAbsent.Keys) {
+    if (-not $mergedSettings.ContainsKey($k) -or [string]::IsNullOrEmpty($mergedSettings[$k])) {
+        $mergedSettings[$k] = $defaultIfAbsent[$k]
+    }
+}
 
-# ── 6.1a  Secrets / one-shot placeholders ─────────────────────────
-# The keys below are either real secrets (WhatsApp access token, App
-# Secret, SMTP App Password) or operator-supplied strings (verify
-# token, optional logo URL). They MUST NOT be overwritten on a re-run
-# once the operator has pasted the real value. Strategy:
-#   1. Pull the current Function App settings.
-#   2. For each key, only include it in the update payload if it's
-#      missing OR currently empty. Real values are preserved.
-$preserveSecrets = @(
+# ── 5. EMPTY-IF-ABSENT: operator-pasted secrets + tokens ────────
+$emptyIfAbsent = @(
     'INVOICE_LOGO_URL',
     'WHATSAPP_ACCESS_TOKEN',
     'WHATSAPP_PHONE_NUMBER_ID',
@@ -640,22 +671,17 @@ $preserveSecrets = @(
     'WHATSAPP_APP_SECRET',
     'SMTP_PASS'
 )
-$existingSettings = (Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp) ?? @{}
-foreach ($k in $preserveSecrets) {
-    $currentValue = $existingSettings[$k]
-    if (-not $currentValue) {
-        # Initialise as empty so the key exists in the Function App
-        # config blade (operator can click it and paste the value).
-        $appSettings[$k] = ''
-    }
+foreach ($k in $emptyIfAbsent) {
+    if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
 }
 
+# ── 6. Apply the full merged set ────────────────────────────────
 Update-AzFunctionAppSetting `
     -ResourceGroupName $envCfg.ResourceGroup `
     -Name $envCfg.FunctionApp `
-    -AppSetting $appSettings `
+    -AppSetting $mergedSettings `
     -Force | Out-Null
-Write-Success "Function App settings applied"
+Write-Success "Function App settings applied (merged $($mergedSettings.Count) keys)"
 
 # ── 6.2  Platform CORS on the Function App ───────────────────────
 $resourceId = (Get-AzResource -ResourceGroupName $envCfg.ResourceGroup -ResourceType 'Microsoft.Web/sites' -Name $envCfg.FunctionApp).ResourceId
