@@ -54,7 +54,7 @@ Dear {{1}},
 
 Thank you for placing your order with Srilatha Art.
 
-Your order {{2}} has been successfully confirmed.
+Your order# {{2}} has been successfully confirmed.
 
 📄 Your invoice is attached for reference.
 

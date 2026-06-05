@@ -173,6 +173,9 @@ $blobContainers = @(
     @{ Name = 'products'; PublicAccess = 'Blob' }
     @{ Name = 'categories'; PublicAccess = 'Blob' }
     @{ Name = 'assets'; PublicAccess = 'Blob' }
+    # Public so the WhatsApp Cloud API + email clients can fetch the
+    # letterhead logo referenced by INVOICE_LOGO_URL without auth.
+    @{ Name = 'branding'; PublicAccess = 'Blob' }
     @{ Name = 'invoices'; PublicAccess = 'Off' }
     @{ Name = 'user-uploads'; PublicAccess = 'Off' }
 )
@@ -789,23 +792,6 @@ if (-not $miAssignments) {
         Write-Success 'All required RBAC roles are present. Function App is ready to run.'
     }
 }
-
-$spObjectId = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID).Id
-$rgscope = Get-AzResourceGroup -Name $envCfg.ResourceGroup
-try {
-    New-AzRoleAssignment `
-        -ObjectId $spObjectId `
-        -RoleDefinitionName 'Storage Table Data Contributor' `
-        -Scope $rgscope.ResourceId `
-        -ErrorAction Stop
-} catch {
-    if ($_.Exception.Message -match "RoleAssignmentExists|already exists") {
-        Write-Host "Role Assignment 'Storage Table Data Contributor' already exists for the SP." -ForegroundColor Green
-    } else {
-        throw
-    }
-}
-
 
 # ── Final summary ────────────────────────────────────────────────
 $functionUrl = "https://$($envCfg.FunctionApp).azurewebsites.net"
