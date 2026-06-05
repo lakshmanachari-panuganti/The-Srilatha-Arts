@@ -1,6 +1,6 @@
 /**
  * One-time migration: renumber every existing order from the legacy
- * TSA-YYYY-HEX format to the new YYYYMMDDHHMMSS (IST) format.
+ * TSA-YYYY-HEX format to the new YYYYMMDDHHMMSSFF (IST) format.
  *
  * Why row-copy + delete: Azure Table Storage RowKey is immutable. To
  * change an order's id we have to:
@@ -66,7 +66,10 @@ function isLegacyId(id: string): boolean {
 }
 
 function isNewId(id: string): boolean {
-  return /^\d{14}(\d{3})?$/.test(id)
+  // 14 digits = pre-2026-06-05 new-format IDs that may already exist;
+  // 16 digits = current YYYYMMDDHHMMSSFF format. Both are "already
+  // migrated" from the script's perspective and are skipped by buildIdMap.
+  return /^\d{14}(\d{2})?$/.test(id)
 }
 
 /**

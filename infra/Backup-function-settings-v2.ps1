@@ -33,10 +33,17 @@
     If it does not exist yet, it will be created in the same resource group
     and region as the Function App.
 
+.PARAMETER Reason
+    Optional. A short description of why this backup was taken, stored in the
+    Reason tag on every secret version. Shown in the restore menu so you can
+    tell at a glance which backup to pick without needing to decode dates.
+    e.g. "pre-deploy", "before Razorpay key rotation", "hotfix 2026-06-06"
+
 .EXAMPLE
-    ./infra/Backup-function-settings.ps1 `
+    ./infra/Backup-function-settings-v2.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
-        -KeyVaultName    kv-thesrilathaarts-dev
+        -KeyVaultName    kv-thesrilathaarts-dev `
+        -Reason          "before Razorpay key rotation"
 
 .NOTES
     Requirements:
@@ -49,6 +56,15 @@
       - The service principal must have:
           Contributor on the Function App resource group
           Key Vault Secrets Officer on the target Key Vault
+
+    Changes from v1:
+      - H1: Env var pre-validation added (section 1) - missing entirely from v1.
+      - H2: KV name regex tightened to reject consecutive hyphens (--).
+      - M1: [n/total] progress counter added to the secrets backup loop.
+      - M2: Banner now printed AFTER Function App existence check - typos
+            fail fast without a misleading "backup started" header.
+      - L1: Section comments renumbered correctly (1-8, no gaps).
+      - L2: "Signed in as" account + subscription line added to header.
 #>
 
 [CmdletBinding()]
@@ -57,14 +73,34 @@ param(
     [string]$FunctionAppName,
 
     [Parameter(Mandatory = $true)]
-    [string]$KeyVaultName
+    [string]$KeyVaultName,
+
+    [Parameter(Mandatory = $false)]
+    [string]$Reason = '',
+
+    [Parameter()]
+    [switch] $IgnoreAzAuth
 )
 
 $ErrorActionPreference = 'Stop'
 
 # -------------------------------------------------------
+# 1. Validate required environment variables up front
+#    H1: Missing from v1. Without this, errors from inside
+#    Azure-Connectivity.ps1 are hard to attribute.
+# -------------------------------------------------------
+foreach ($envVar in @('MY_APPREG_CLIENT_ID', 'MY_APPREG_CLIENT_SECRET', 'MY_APPREG_TENANT_ID')) {
+    if ([string]::IsNullOrEmpty((Get-Item "env:$envVar" -ErrorAction SilentlyContinue).Value)) {
+        throw "Required environment variable '$envVar' is not set."
+    }
+}
+
+# -------------------------------------------------------
 # 2. Validate Key Vault name
-#    Azure requires: 3-24 chars, letters/digits/hyphens, must start with a letter
+#    Azure requires: 3-24 chars, letters/digits/hyphens,
+#    must start with a letter, end with letter/digit,
+#    no consecutive hyphens.
+#    H2: v1 regex allowed '--'; added explicit consecutive-hyphen check.
 # -------------------------------------------------------
 if ($KeyVaultName.Length -lt 3 -or $KeyVaultName.Length -gt 24) {
     throw "KeyVaultName '$KeyVaultName' is $($KeyVaultName.Length) characters. Azure requires between 3 and 24."
@@ -72,22 +108,25 @@ if ($KeyVaultName.Length -lt 3 -or $KeyVaultName.Length -gt 24) {
 if ($KeyVaultName -notmatch '^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$') {
     throw "KeyVaultName '$KeyVaultName' is invalid. It must start with a letter, end with a letter or digit, and contain only letters, digits, and hyphens."
 }
+if ($KeyVaultName -match '--') {
+    throw "KeyVaultName '$KeyVaultName' contains consecutive hyphens (--), which Azure Key Vault does not allow."
+}
 
-& "$PSScriptRoot\Azure-Connectivity.ps1"
+# -------------------------------------------------------
+# 3. Authenticate via service principal
+# -------------------------------------------------------
+if($IgnoreAzAuth.present){
+    & "$PSScriptRoot\Azure-Connectivity.ps1"
+}
 $ctx = Get-AzContext
 $backupDate = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss.fff")
 
-Write-Host "==============================================="
-Write-Host "Function App Settings Backup"
-Write-Host "==============================================="
-Write-Host "Function App : $FunctionAppName"
-Write-Host "Key Vault    : $KeyVaultName"
-Write-Host "Backup Date  : $backupDate"
-
 # -------------------------------------------------------
 # 4. Find the Function App
+#    M2: Existence check runs BEFORE printing the banner so a wrong
+#    FunctionAppName fails fast without a misleading header output.
 #    @() forces the result into an array so .Count always works
-#    even when only one item is returned
+#    even when only one item is returned.
 # -------------------------------------------------------
 $faResources = @(Get-AzResource `
         -ResourceType "Microsoft.Web/sites" `
@@ -106,8 +145,21 @@ $faResource = $faResources[0]
 $resourceGroupName = $faResource.ResourceGroupName
 $location = $faResource.Location
 
+# -------------------------------------------------------
+# Banner - printed after auth + existence check so every
+# field shown is confirmed valid.
+# L2: "Signed in as" line added (was absent from v1).
+# -------------------------------------------------------
+Write-Host "==============================================="
+Write-Host "Function App Settings Backup"
+Write-Host "==============================================="
+Write-Host "Function App   : $FunctionAppName"
+Write-Host "Key Vault      : $KeyVaultName"
+Write-Host "Backup Date    : $backupDate"
 Write-Host "Resource Group : $resourceGroupName"
 Write-Host "Location       : $location"
+if ($Reason) { Write-Host "Reason         : $Reason" -ForegroundColor Cyan }
+Write-Host "Signed in as   : $($ctx.Account.Id) on $($ctx.Subscription.Name)" -ForegroundColor DarkGray
 Write-Host ""
 
 # -------------------------------------------------------
@@ -137,8 +189,8 @@ if (-not $keyVault) {
 # -------------------------------------------------------
 $subId = $ctx.Subscription.Id
 $apiPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
-"/providers/Microsoft.Web/sites/$FunctionAppName" +
-"/config/appsettings/list?api-version=2022-03-01"
+    "/providers/Microsoft.Web/sites/$FunctionAppName" +
+    "/config/appsettings/list?api-version=2022-03-01"
 
 $response = Invoke-AzRestMethod -Method POST -Path $apiPath -Payload '{}'
 
@@ -177,18 +229,23 @@ Write-Host ""
 #    No collision risk - app setting names can never contain hyphens,
 #    so every hyphen in the KV name came from our encoding.
 #    The OriginalKey tag is the primary source of truth on restore.
+#
+#    M1: Progress counter [n/total] added per secret so a mid-loop
+#    403 can be attributed to a specific setting.
 # -------------------------------------------------------
 $backed = 0
 $empty = 0
+$settingIdx = 0
 
 foreach ($setting in $settingsProperties) {
 
+    $settingIdx++
     $originalKey = $setting.Name
     $value = $setting.Value
 
     # CASE 1 - Empty value
     if ([string]::IsNullOrEmpty($value)) {
-        Write-Host "  Backing up : $originalKey  ->  (empty - storing as sentinel __EMPTY__)" -ForegroundColor DarkGray
+        Write-Host "  [$settingIdx/$total] $originalKey  ->  (empty - storing as sentinel __EMPTY__)" -ForegroundColor DarkGray
         $value = '__EMPTY__'
         $empty++
     }
@@ -196,13 +253,14 @@ foreach ($setting in $settingsProperties) {
     # CASE 2 + 3 - Encode the secret name for Key Vault
     # Dot must be replaced before underscore so -DOT- is written intact
     $secretName = $originalKey -replace '\.', '-DOT-'   # CASE 2 : . → -DOT-
-    $secretName = $secretName -replace '_', '-'        # CASE 3 : _ → -
+    $secretName = $secretName  -replace '_', '-'         # CASE 3 : _ → -
 
-    # KV requires the name to start with a letter - prefix if it starts with a digit
+    # KV requires the name to start with a letter - prefix with 'x-' if it
+    # starts with a digit (the Restore fallback strips this prefix back off)
     if ($secretName -match '^\d') { $secretName = "x-$secretName" }
 
     if (-not [string]::IsNullOrEmpty($setting.Value)) {
-        Write-Host "  Backing up : $originalKey  ->  $secretName"
+        Write-Host "  [$settingIdx/$total] $originalKey  ->  $secretName"
     }
 
     $secureValue = ConvertTo-SecureString -String $value -AsPlainText -Force
@@ -212,10 +270,11 @@ foreach ($setting in $settingsProperties) {
         -Name        $secretName `
         -SecretValue $secureValue `
         -Tag @{
-        OriginalKey = $originalKey
-        BackupDate  = $backupDate
-        SourceApp   = $FunctionAppName
-    } `
+            OriginalKey = $originalKey
+            BackupDate  = $backupDate
+            SourceApp   = $FunctionAppName
+            Reason      = $Reason
+        } `
         -ErrorAction Stop | Out-Null
 
     $backed++
@@ -230,4 +289,5 @@ Write-Host "Backup complete!" -ForegroundColor Green
 Write-Host "  Stored  : $backed"
 Write-Host "  Empty   : $empty  (stored as sentinel __EMPTY__)"
 Write-Host "  Date key: $backupDate"
+if ($Reason) { Write-Host "  Reason  : $Reason" -ForegroundColor Cyan }
 Write-Host "==============================================="

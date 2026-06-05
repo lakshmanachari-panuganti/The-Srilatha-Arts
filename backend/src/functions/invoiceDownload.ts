@@ -16,7 +16,7 @@
  * way to honour the branded path without exposing raw blob URLs to
  * customers or shipping every invoice through SAS.
  *
- * Public path note: order IDs are timestamps (YYYYMMDDHHMMSS) which
+ * Public path note: order IDs are timestamps (YYYYMMDDHHMMSSFF) which
  * are somewhat guessable. The WhatsApp Cloud API needs to fetch the
  * URL from its own network to attach the PDF, so the URL has to be
  * reachable without authentication. We accept the casual-scraping
@@ -43,9 +43,10 @@ async function downloadInvoice(
   // Also strip a leading slash if the wildcard happened to include it.
   const name = raw.replace(/^\/+/, '').replace(/\.pdf$/i, '')
 
-  // Defence: only YYYYMMDDHHMMSS-shaped IDs (or with the short ms
-  // suffix used by generateOrderNumber's pathological fallback). Bare
-  // alphanumeric to keep things compatible with any future ID scheme.
+  // Defence: only YYYYMMDDHHMMSSFF-shaped IDs (16 digits) or the
+  // earlier 14-digit YYYYMMDDHHMMSS variant. Bare alphanumeric pattern
+  // keeps the route compatible with the legacy TSA-YYYY-HEX format
+  // (for orders that pre-date the migration) and any future ID scheme.
   if (!/^[A-Za-z0-9_-]{4,32}$/.test(name)) {
     return { status: 400, body: 'Invalid invoice id' }
   }

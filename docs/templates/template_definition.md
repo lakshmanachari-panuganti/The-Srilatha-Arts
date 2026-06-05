@@ -69,7 +69,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 ```
 
 ### Variables sent at runtime
@@ -77,7 +77,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `order.rowKey` (Order/Invoice ID) | `20260604153045` |
+| `{{2}}` | `order.rowKey` (Order/Invoice ID) | `2026060415304578` |
 
 ### Header document at runtime
 
@@ -127,7 +127,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 ```
 
 ### Variables sent at runtime
@@ -135,7 +135,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `order.rowKey` | `20260604153045` |
+| `{{2}}` | `order.rowKey` | `2026060415304578` |
 
 ### Where it's enqueued
 
@@ -179,7 +179,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 {{3}} = DTDC
 {{4}} = DTDC-9912-AB
 ```
@@ -189,7 +189,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `order.rowKey` | `20260604153045` |
+| `{{2}}` | `order.rowKey` | `2026060415304578` |
 | `{{3}}` | `body.courier` (admin input on status patch) | `DTDC` |
 | `{{4}}` | `body.tracking` (admin input on status patch) | `DTDC-9912-AB` |
 
@@ -235,7 +235,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 {{3}} = Customer changed their mind
 ```
 
@@ -244,7 +244,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `order.rowKey` | `20260604153045` |
+| `{{2}}` | `order.rowKey` | `2026060415304578` |
 | `{{3}}` | `body.cancelReason` (admin input on status patch) | `Customer changed their mind` |
 
 ### Where it's enqueued
@@ -287,7 +287,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 {{3}} = We're verifying your shipping address before we dispatch.
 ```
 
@@ -296,7 +296,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `order.rowKey` | `20260604153045` |
+| `{{2}}` | `order.rowKey` | `2026060415304578` |
 | `{{3}}` | `body.holdReason` (admin input on status patch) | `We're verifying your shipping address before we dispatch.` |
 
 ### Where it's enqueued
@@ -338,7 +338,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 {{3}} = 4,349
 ```
 
@@ -347,7 +347,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `order.rowKey` | `20260604153045` |
+| `{{2}}` | `order.rowKey` | `2026060415304578` |
 | `{{3}}` | `body.refundAmount / 100`, formatted `en-IN` | `4,349` |
 
 ### Where it's enqueued
@@ -390,7 +390,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 {{3}} = The piece was reported damaged beyond our return-window policy of 7 days.
 ```
 
@@ -399,7 +399,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `order.rowKey` | `20260604153045` |
+| `{{2}}` | `order.rowKey` | `2026060415304578` |
 | `{{3}}` | `body.declineReason` (admin input on return-decline endpoint) | `The piece was reported damaged beyond our return-window policy of 7 days.` |
 
 ### Where it's enqueued
@@ -443,7 +443,7 @@ Srilatha Art
 **Body — sample variable values**
 ```
 {{1}} = Sunita Devi
-{{2}} = 20260604153045
+{{2}} = 2026060415304578
 ```
 
 ### Variables sent at runtime
@@ -451,7 +451,7 @@ Srilatha Art
 | Position | Source | Example |
 |---|---|---|
 | `{{1}}` | `order.customerName` | `Sunita Devi` |
-| `{{2}}` | `orderId` (the order whose delivery scheduled the request) | `20260604153045` |
+| `{{2}}` | `orderId` (the order whose delivery scheduled the request) | `2026060415304578` |
 
 ### Where it's enqueued
 
