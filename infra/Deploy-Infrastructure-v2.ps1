@@ -808,6 +808,12 @@ $alwaysOverwrite = @{
     'REVIEW_QUEUE_NAME'                     = 'review-requests'
     'INVOICE_CONTAINER'                     = 'invoices'
     'USER_UPLOAD_CONTAINER'                 = 'user-uploads'
+    # Direct Function-App URL used to build the WhatsApp / email
+    # "view invoice" link. Bypasses the SWA in front of
+    # PUBLIC_SITE_URL, which on the Free tier cannot proxy /api/* to
+    # the linked backend and silently returns the SPA's index.html —
+    # which WhatsApp Cloud then caches as the "document".
+    'INVOICE_PUBLIC_URL_BASE'               = "https://$($envCfg.FunctionApp).azurewebsites.net/api/invoices"
     'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
     'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
 }
@@ -815,8 +821,8 @@ foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$
 
 # DEFAULT-IF-ABSENT
 $defaultIfAbsent = @{
-    'WHATSAPP_API_VERSION'       = 'v18.0'
-    'WHATSAPP_TEMPLATE_LANGUAGE' = 'en'
+    'WHATSAPP_API_VERSION'       = 'v23.0'
+    'WHATSAPP_TEMPLATE_LANGUAGE' = 'en_US'
     'SMTP_HOST'                  = 'smtp.gmail.com'
     'SMTP_PORT'                  = '587'
     'SMTP_SECURE'                = 'false'
@@ -1039,8 +1045,8 @@ Write-Step "PHASE 9 - GitHub Actions CI Service Principal (OIDC)"
 
 # 9.0  Repo + per-environment subject claims
 $GitHubOwner = 'lakshmanachari-panuganti'
-$GitHubRepo  = 'The-Srilatha-Arts'
-$ciSpName    = "sp-github-actions-$AppSlug-$($Environment.ToLower())"
+$GitHubRepo = 'The-Srilatha-Arts'
+$ciSpName = "sp-github-actions-$AppSlug-$($Environment.ToLower())"
 
 $federatedSubjects = if ($Environment -eq 'PRD') {
     @(@{
@@ -1123,7 +1129,7 @@ $ciRoleOutcome = Assign-AzRoleIfMissing `
 
 # 9.5  Print the values to paste into GitHub repo secrets
 $tenantId = $context.Tenant.Id
-$subId    = $context.Subscription.Id
+$subId = $context.Subscription.Id
 $envUpper = $Environment.ToUpper()
 
 Write-Host ''
@@ -1187,12 +1193,12 @@ $liveJson = az functionapp config appsettings list `
     --resource-group $envCfg.ResourceGroup `
     --output         json 2>$null
 
-$emptyKeys = if ($liveJson) {
-    ($liveJson | ConvertFrom-Json) |
-        Where-Object { [string]::IsNullOrEmpty($_.value) } |
-        Select-Object -ExpandProperty name |
-        Sort-Object
-} else { @() }
+$emptyKeys = @(if ($liveJson) {
+        ($liveJson | ConvertFrom-Json) |
+            Where-Object { [string]::IsNullOrEmpty($_.value) } |
+            Select-Object -ExpandProperty name |
+            Sort-Object
+    })
 
 if ($emptyKeys.Count -gt 0) {
     Write-Host ''
