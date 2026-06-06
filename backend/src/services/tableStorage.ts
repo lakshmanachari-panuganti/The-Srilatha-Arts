@@ -627,6 +627,89 @@ export async function logNotification(notification: Row): Promise<void> {
   await client.createEntity(notification as any)
 }
 
+// ─── EMAIL LOGS ──────────────────────────────────────────────
+// Self-healing table - ensure exists since this is a new table and
+// existing dev/prod environments won't have it provisioned yet.
+
+export async function appendEmailLog(entry: Row): Promise<void> {
+  const client = await ensureTable('emailLogs')
+  await client.createEntity(entry as any)
+}
+
+export async function getEmailLogsForOrder(orderId: string): Promise<Row[]> {
+  await ensureTable('emailLogs')
+  const rows = await listAll('emailLogs', odata`PartitionKey eq ${orderId}`)
+  return rows.sort(
+    (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime(),
+  )
+}
+
+// ─── WHATSAPP MESSAGES ───────────────────────────────────────
+// Per-message append-only log + per-phone conversation rollup.
+// Both tables self-heal via ensureTable until the infra script
+// runs in dev/prd. Once Deploy-Infrastructure.ps1 lists them in
+// $tableNames the ensureTable cache short-circuits.
+
+export async function appendWhatsAppMessage(entry: Row): Promise<void> {
+  const client = await ensureTable('whatsappMessages')
+  await client.createEntity(entry as any)
+}
+
+export async function listWhatsAppMessagesForPhone(phone: string): Promise<Row[]> {
+  await ensureTable('whatsappMessages')
+  const rows = await listAll('whatsappMessages', odata`PartitionKey eq ${phone}`)
+  return rows.sort(
+    (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime(),
+  )
+}
+
+export async function findWhatsAppMessageByWamid(wamid: string): Promise<Row | null> {
+  await ensureTable('whatsappMessages')
+  const rows = await listAll('whatsappMessages', odata`waMessageId eq ${wamid}`)
+  return rows[0] ?? null
+}
+
+export async function updateWhatsAppMessageStatus(
+  phone: string,
+  rowKey: string,
+  status: string,
+  statusError?: string,
+): Promise<void> {
+  const client = await ensureTable('whatsappMessages')
+  const patch: Row = {
+    partitionKey: phone,
+    rowKey,
+    status,
+    updatedAt: new Date().toISOString(),
+  }
+  if (statusError) patch.statusError = statusError
+  await client.updateEntity(patch as any, 'Merge')
+}
+
+export async function upsertWhatsAppConversation(row: Row): Promise<void> {
+  const client = await ensureTable('whatsappConversations')
+  await client.upsertEntity(row as any, 'Merge')
+}
+
+export async function getWhatsAppConversation(phone: string): Promise<Row | null> {
+  await ensureTable('whatsappConversations')
+  try {
+    const client = await ensureTable('whatsappConversations')
+    return (await client.getEntity('conv', phone)) as Row
+  } catch (error: any) {
+    if (error.statusCode === 404) return null
+    throw error
+  }
+}
+
+export async function listWhatsAppConversations(): Promise<Row[]> {
+  await ensureTable('whatsappConversations')
+  const rows = await listAll('whatsappConversations', odata`PartitionKey eq 'conv'`)
+  return rows.sort(
+    (a, b) => new Date(b.lastMessageAt ?? 0).getTime() - new Date(a.lastMessageAt ?? 0).getTime(),
+  )
+}
+
 // ─── AUDIT LOG ───────────────────────────────────────────────
 
 export async function appendAuditLog(entry: Row): Promise<void> {

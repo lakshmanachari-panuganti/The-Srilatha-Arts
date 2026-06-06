@@ -169,7 +169,12 @@ export default function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [scriptReady, setScriptReady] = useState(false)
-  const [success, setSuccess] = useState<{ orderId: string } | null>(null)
+  const [success, setSuccess] = useState<{
+    orderId: string
+    firstName: string
+    email: string
+    phone: string
+  } | null>(null)
 
   const [addresses, setAddresses] = useState<SavedAddress[] | null>(null)
   const [selectedId, setSelectedId] = useState<string>(NEW_ADDRESS_ID)
@@ -497,7 +502,14 @@ export default function CheckoutClient() {
               },
             })
             clear()
-            setSuccess({ orderId: res.order.id })
+            const fullName = (res.order.customerName || user?.name || '').trim()
+            const firstName = fullName.split(/\s+/)[0] || ''
+            setSuccess({
+              orderId: res.order.id,
+              firstName,
+              email: (res.order.customerEmail || user?.email || '').trim(),
+              phone: (res.order.customerPhone || user?.phone || '').trim(),
+            })
           } catch (verr) {
             const msg = verr instanceof Error ? verr.message : 'We received your payment but could not confirm it. Please contact support.'
             setError(msg)
@@ -540,12 +552,16 @@ export default function CheckoutClient() {
           <ShieldCheck className="w-6 h-6" aria-hidden />
         </div>
         <h1 className="display text-4xl mb-3">
-          Thank you - your order is <em className="italic">confirmed</em>
+          {success.firstName ? <>Thank you, {success.firstName}!</> : <>Thank you!</>}{' '}
+          Your order is <em className="italic">confirmed</em>.
         </h1>
         <p className="text-ink-soft mb-2">Order number</p>
         <p className="font-serif text-2xl mb-8">{success.orderId}</p>
         <p className="text-ink-soft mb-8 text-sm">
-          We&apos;ve sent the order details to your email. You can also track it any time from your account.
+          Details sent to your email
+          {success.email ? <>: <span className="text-ink">{success.email}</span></> : null}
+          {success.phone ? <> and WhatsApp: <span className="text-ink">{success.phone}</span></> : null}
+          .
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/account" className="btn-dark">View my orders <ArrowRight className="w-4 h-4" aria-hidden /></Link>

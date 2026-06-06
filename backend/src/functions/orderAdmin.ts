@@ -35,7 +35,7 @@ import {
   nextValidStates,
   statusLabel,
 } from '../services/orderState'
-import { enqueueNotification } from '../services/queue'
+import { enqueueNotification, enqueueReviewRequest } from '../services/queue'
 import type { OrderStatus } from '../types'
 import type { TransitionPayload } from '../services/orderState'
 
@@ -66,6 +66,16 @@ function toApi(row: Row) {
     razorpayRefundId: row.razorpayRefundId || undefined,
     invoiceUrl: row.invoiceUrl || undefined,
     customerNote: row.customerNote || undefined,
+    // Notification status surfaces in the admin detail page so support
+    // can see at a glance whether the customer was actually notified
+    // (and what to retry if not).
+    emailStatus: row.emailStatus || undefined,
+    emailSentAt: row.emailSentAt || undefined,
+    emailAttempts: row.emailAttempts ?? undefined,
+    emailLastError: row.emailLastError || undefined,
+    whatsappStatus: row.whatsappStatus || undefined,
+    whatsappSentAt: row.whatsappSentAt || undefined,
+    whatsappLastError: row.whatsappLastError || undefined,
     // Return-flow metadata so the admin order detail page can render the
     // customer's reason / comment / photos and any prior decline / refund.
     returnRequestedAt: row.returnRequestedAt || undefined,
@@ -387,8 +397,14 @@ async function adminUpdateStatus(
     })
 
     // 5. Enqueue customer notification if requested
+    const notifications = getTransitionNotifications(to)
     if (body.notifyCustomer !== false && order.customerEmail) {
-      const notifications = getTransitionNotifications(to)
+      // refundAmount lives in paise on the order row; render as rupees for
+      // the template (₹{{n}} formatted with Indian thousands separator).
+      const refundRupees =
+        typeof body.refundAmount === 'number' && body.refundAmount > 0
+          ? (body.refundAmount / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })
+          : ''
       for (const channel of notifications.customer) {
         await enqueueNotification({
           userEmail: order.customerEmail,
@@ -400,8 +416,36 @@ async function adminUpdateStatus(
             status: statusLabel(to),
             tracking: body.tracking || '',
             courier: body.courier || '',
+            customerPhone: order.customerPhone || '',
+            refundAmount: refundRupees,
+            cancelReason: body.cancelReason || '',
+            holdReason: body.holdReason || '',
           },
         })
+      }
+    }
+
+    // 5b. Schedule a delayed review request (72h via queue visibility timeout)
+    if (
+      body.notifyCustomer !== false &&
+      notifications.scheduleReviewRequest &&
+      order.customerEmail
+    ) {
+      try {
+        const items = await getOrderItems(orderId)
+        await enqueueReviewRequest({
+          orderId,
+          userEmail: order.customerEmail,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone || '',
+          items: items.map((i) => ({
+            title: (i.title as string) || '',
+            productId: i.rowKey as string,
+          })),
+        })
+      } catch (reviewErr) {
+        // Non-fatal: the order transition itself must still succeed.
+        context.warn('adminUpdateStatus: review request enqueue failed', reviewErr)
       }
     }
 

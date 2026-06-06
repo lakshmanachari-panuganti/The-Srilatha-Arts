@@ -43,13 +43,13 @@
 
 .EXAMPLE
     # Interactive - pick a backup from the menu
-    ./infra/Restore-function-settings.ps1 `
+    ./infra/Restore-function-settings-v2.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
         -KeyVaultName    kv-thesrilathaarts-dev
 
 .EXAMPLE
     # Non-interactive - pass the backup date directly
-    ./infra/Restore-function-settings.ps1 `
+    ./infra/Restore-function-settings-v2.ps1 `
         -FunctionAppName func-thesrilathaarts-dev `
         -KeyVaultName    kv-thesrilathaarts-dev `
         -BackupDate      "2026-05-31T23:02:08.266"
@@ -66,6 +66,19 @@
       - The service principal must have:
           Contributor on the Function App resource group
           Key Vault Secrets User (or higher) on the Key Vault
+
+    Changes from v1:
+      - H1: Disabled KV secret versions are now filtered out so stale /
+            explicitly-disabled backup versions cannot pollute a restore.
+      - H2: Fallback decode comment corrected ('x-' prefix, not "digit prefix").
+      - M1: Post-restore read-back verification added (step 13) - catches
+            partial ARM writes that return HTTP 200 but miss some keys.
+      - M2: [int]::TryParse used instead of [int]$selection - prevents
+            OverflowException when user pastes a very large number.
+      - L1: Section 2 comment updated to reflect Azure-Connectivity.ps1 usage.
+      - L2: BackupDate error message now shows expected format and an example
+            from the available dates list.
+      - L3: [n/total] progress counter shown while reading KV secret versions.
 #>
 
 [CmdletBinding()]
@@ -77,7 +90,10 @@ param(
     [string]$KeyVaultName,
 
     [Parameter(Mandatory = $false)]
-    [string]$BackupDate
+    [string]$BackupDate,
+
+    [Parameter()]
+    [switch] $IgnoreAzAuth
 )
 
 $ErrorActionPreference = 'Stop'
@@ -92,10 +108,13 @@ foreach ($envVar in @('MY_APPREG_CLIENT_ID', 'MY_APPREG_CLIENT_SECRET', 'MY_APPR
 }
 
 # -------------------------------------------------------
-# 2. Sign in using the service principal
+# 2. Authenticate via Azure-Connectivity.ps1
+#    L1: Comment updated - v1 said "Sign in using the service principal"
+#    but the code delegates entirely to Azure-Connectivity.ps1.
 # -------------------------------------------------------
-
-& "$PSScriptRoot\Azure-Connectivity.ps1"
+if($IgnoreAzAuth.present){
+    & "$PSScriptRoot\Azure-Connectivity.ps1"
+}
 $ctx = Get-AzContext
 
 Write-Host "==============================================="
@@ -140,6 +159,10 @@ if (-not $keyVault) {
 
 # -------------------------------------------------------
 # 5. Read all secret versions from the Key Vault
+#    H1: Filter out disabled secret versions so stale / corrupted backup
+#    versions that were explicitly disabled cannot pollute the restore.
+#    L3: [n/total] progress counter shown per secret - a vault with many
+#    secrets can take time and was previously completely silent.
 # -------------------------------------------------------
 Write-Host "Reading backup secrets from Key Vault..." -ForegroundColor DarkGray
 
@@ -149,8 +172,6 @@ if ($secretNames.Count -eq 0) {
     throw "No secrets found in Key Vault '$KeyVaultName'. Has Backup-function-settings.ps1 been run against this vault?"
 }
 
-# HIGH: Filter out disabled secret versions so stale / corrupted backup
-# versions that were explicitly disabled cannot pollute the restore.
 $allVersions = [System.Collections.Generic.List[object]]::new()
 $secretIdx = 0
 foreach ($secretName in $secretNames) {
@@ -163,6 +184,8 @@ foreach ($secretName in $secretNames) {
 
 # -------------------------------------------------------
 # 6. Build the list of available backup dates from the tags
+#    Also collect the Reason tag per date so it can be shown
+#    in the menu alongside each timestamp.
 # -------------------------------------------------------
 $backupDates = @(
     $allVersions |
@@ -170,6 +193,18 @@ $backupDates = @(
         ForEach-Object { $_.Tags["BackupDate"] } |
         Sort-Object -Unique
 )
+
+# Map each date to its Reason (all secrets in one run share the same tag;
+# take the first non-empty value found for each date)
+$dateReasons = @{}
+foreach ($v in $allVersions) {
+    if (-not $v.Tags) { continue }
+    $d = $v.Tags["BackupDate"]
+    if (-not $d) { continue }
+    if ($dateReasons.ContainsKey($d)) { continue }   # already captured
+    $r = if ($v.Tags.ContainsKey("Reason")) { $v.Tags["Reason"] } else { '' }
+    $dateReasons[$d] = $r
+}
 
 if ($backupDates.Count -eq 0) {
     throw "No tagged backup versions found. The secrets in '$KeyVaultName' may not have been created by Backup-function-settings.ps1."
@@ -182,10 +217,13 @@ if ($backupDates.Count -eq 0) {
 if ($BackupDate) {
 
     if ($backupDates -notcontains $BackupDate) {
-        # LOW: Show the expected format (ISO-8601 with milliseconds as produced
-        # by Backup-function-settings.ps1) alongside available dates.
+        # L2: Show the expected format alongside available dates so the
+        # caller knows exactly what string to pass next time.
         Write-Host "Available backup dates (format: yyyy-MM-ddTHH:mm:ss.fff):"
-        $backupDates | ForEach-Object { Write-Host "  $_" }
+        $backupDates | ForEach-Object {
+            $r = $dateReasons[$_]
+            Write-Host "  $_$(if ($r) { "  ($r)" })"
+        }
         Write-Host ""
         throw "BackupDate '$BackupDate' was not found in Key Vault '$KeyVaultName'. Dates must match exactly (e.g. '$($backupDates[-1])')."
     }
@@ -197,15 +235,18 @@ if ($BackupDate) {
     Write-Host "Available backup versions:"
     Write-Host ""
     for ($i = 0; $i -lt $backupDates.Count; $i++) {
-        Write-Host "  [$($i + 1)]  $($backupDates[$i])"
+        $d = $backupDates[$i]
+        $r = $dateReasons[$d]
+        $label = if ($r) { "$d  ($r)" } else { $d }
+        Write-Host "  [$($i + 1)]  $label"
     }
     Write-Host ""
 
     $selection = Read-Host "Enter the number of the backup to restore"
 
-    # MEDIUM: [int]::TryParse avoids an OverflowException when the user
-    # pastes a very large number, which [int]$selection would throw before
-    # the range guard is even evaluated.
+    # M2: [int]::TryParse avoids an OverflowException when the user pastes
+    # a very large number - [int]$selection would throw before the range
+    # guard is even evaluated under Set-StrictMode.
     $selInt = 0
     if (-not [int]::TryParse($selection, [ref]$selInt) -or $selInt -lt 1 -or $selInt -gt $backupDates.Count) {
         throw "Invalid selection '$selection'. Please enter a number between 1 and $($backupDates.Count)."
@@ -214,8 +255,9 @@ if ($BackupDate) {
     $selectedDate = $backupDates[$selInt - 1]
 }
 
+$selectedReason = $dateReasons[$selectedDate]
 Write-Host ""
-Write-Host "Selected backup : $selectedDate"
+Write-Host "Selected backup : $selectedDate$(if ($selectedReason) { "  ($selectedReason)" })"
 Write-Host ""
 
 # -------------------------------------------------------
@@ -267,10 +309,11 @@ foreach ($version in $selectedVersions) {
         # Order matters: decode -DOT- first, then single hyphens
         # CASE 2 : -DOT-  →  .
         # CASE 3 : -      →  _
+        # H2: Comment corrected from v1 ("strip digit prefix" was wrong).
         $originalKey = $version.Name
         $originalKey = $originalKey -replace '-DOT-', '.'   # CASE 2
-        $originalKey = $originalKey -replace '^x-', ''    # strip 'x-' prefix added when original name started with a digit (KV names cannot begin with a digit)
-        $originalKey = $originalKey -replace '-', '_'  # CASE 3
+        $originalKey = $originalKey -replace '^x-', ''      # strip 'x-' prefix added when original name started with a digit (KV names cannot begin with a digit)
+        $originalKey = $originalKey -replace '-', '_'        # CASE 3
         Write-Warning "Secret '$($version.Name)' has no OriginalKey tag - decoded fallback: '$originalKey'. Verify after restore."
     }
 
@@ -295,8 +338,8 @@ Write-Host ""
 # -------------------------------------------------------
 $subId = $ctx.Subscription.Id
 $getPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
-"/providers/Microsoft.Web/sites/$FunctionAppName" +
-"/config/appsettings/list?api-version=2022-03-01"
+    "/providers/Microsoft.Web/sites/$FunctionAppName" +
+    "/config/appsettings/list?api-version=2022-03-01"
 
 $getResponse = Invoke-AzRestMethod -Method POST -Path $getPath -Payload '{}'
 
@@ -313,9 +356,9 @@ $currentSettings = ($getResponse.Content | ConvertFrom-Json).properties
 #     [SAME]             - exists and value is already correct
 #     [NOT IN BACKUP]    - exists in live app but not in backup
 # -------------------------------------------------------
-$toCreate = [System.Collections.Generic.List[string]]::new()
+$toCreate    = [System.Collections.Generic.List[string]]::new()
 $toOverwrite = [System.Collections.Generic.List[string]]::new()
-$same = [System.Collections.Generic.List[string]]::new()
+$same        = [System.Collections.Generic.List[string]]::new()
 
 Write-Host "Checking each setting against the live app:"
 Write-Host ""
@@ -389,8 +432,8 @@ foreach ($key in $backupSettings.Keys) {
 $putBody = @{ properties = $mergedSettings } | ConvertTo-Json -Depth 10 -Compress
 
 $putPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
-"/providers/Microsoft.Web/sites/$FunctionAppName" +
-"/config/appsettings?api-version=2022-03-01"
+    "/providers/Microsoft.Web/sites/$FunctionAppName" +
+    "/config/appsettings?api-version=2022-03-01"
 
 $putResponse = Invoke-AzRestMethod -Method PUT -Path $putPath -Payload $putBody
 
@@ -400,7 +443,7 @@ if ($putResponse.StatusCode -notin @(200, 201)) {
 
 # -------------------------------------------------------
 # 13. Verify - read back and diff to catch partial ARM writes
-#     A timeout/retry during the PUT can produce HTTP 200 but still
+#     M1: A timeout/retry during the PUT can produce HTTP 200 but still
 #     leave some keys unwritten. HTTP status alone is not sufficient.
 # -------------------------------------------------------
 Write-Host ""
@@ -432,9 +475,10 @@ if ($verifyResponse.StatusCode -ne 200) {
 Write-Host ""
 Write-Host "==============================================="
 Write-Host "Restore complete!" -ForegroundColor Green
-Write-Host "  Created    : $($toCreate.Count)"
-Write-Host "  Overwritten: $($toOverwrite.Count)"
-Write-Host "  Same       : $($same.Count)  (untouched)"
+Write-Host "  Created       : $($toCreate.Count)"
+Write-Host "  Overwritten   : $($toOverwrite.Count)"
+Write-Host "  Same          : $($same.Count)  (untouched)"
 Write-Host "  Not in backup : $($untouched.Count)  (untouched)"
-Write-Host "  Backup     : $selectedDate"
+Write-Host "  Backup        : $selectedDate"
+if ($selectedReason) { Write-Host "  Reason        : $selectedReason" -ForegroundColor Cyan }
 Write-Host "==============================================="

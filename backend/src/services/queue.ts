@@ -58,13 +58,21 @@ export async function enqueueReviewRequest(message: {
   orderId: string
   userEmail: string
   customerName: string
+  customerPhone?: string
   items: { title: string; productId: string }[]
 }): Promise<void> {
-  // Delay 72 hours (259200 seconds) so the customer has time with the product.
+  // Delay configurable via REVIEW_REQUEST_DELAY_SECONDS — default 72h so the
+  // customer has time with the product. Storage Queue caps at 7 days; we
+  // clamp defensively to keep that contract.
+  const configured = Number(process.env.REVIEW_REQUEST_DELAY_SECONDS)
+  const delay = Math.min(
+    Number.isFinite(configured) && configured > 0 ? configured : 259200,
+    7 * 24 * 60 * 60,
+  )
   const client = queueServiceClient.getQueueClient(REVIEW_QUEUE)
   const encoded = Buffer.from(JSON.stringify(message)).toString('base64')
   await client.sendMessage(encoded, {
-    visibilityTimeout: 259200,  // 72 hours
+    visibilityTimeout: delay,
     messageTimeToLive: -1,
   })
 }

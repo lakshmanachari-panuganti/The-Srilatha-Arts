@@ -74,7 +74,7 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: ${{ github.event_name == 'pull_request' && 'upload' || 'upload' }}
+          action: upload
           # When `skip_app_build: true`, the SWA action ignores `output_location`
           # and treats `app_location` itself as the artifact folder. So we point
           # straight at Next.js's static export output (`frontend/out/`).

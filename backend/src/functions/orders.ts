@@ -38,7 +38,7 @@ import {
   type OrderItemSnapshot,
   type ReturnReasonCode,
 } from '../types'
-import { randomBytes } from 'crypto'
+import { generateOrderNumber } from '../services/orderNumber'
 
 // Photo URLs on return requests must live on our own blob domain - same
 // rule we apply to review photos. Stops customers (or scripted clients)
@@ -64,15 +64,6 @@ function sanitiseReturnPhotos(input: unknown): string[] {
       }
     })
     .slice(0, 6)
-}
-
-// 5-digit Math.random() collision space was 100K - a year of orders would
-// have measurable collisions, and an attacker could simply guess IDs.
-// Switch to crypto.randomBytes for 10 hex chars of entropy.
-function generateOrderId(): string {
-  const year = new Date().getFullYear()
-  const seq = randomBytes(5).toString('hex').toUpperCase()
-  return `TSA-${year}-${seq}`
 }
 
 function toApi(row: Row) {
@@ -192,7 +183,7 @@ async function createNewOrder(
     const totalAmount = subtotal + shippingAmount
     const displayTotal = totalAmount / 100
 
-    const orderId = generateOrderId()
+    const orderId = await generateOrderNumber()
     const now = new Date().toISOString()
     const email = body.customerEmail?.toLowerCase() || (userEmail !== 'guest' ? userEmail : '')
 

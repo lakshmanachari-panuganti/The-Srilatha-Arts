@@ -16,6 +16,7 @@ env:
   NODE_VERSION: '22'
   WORKING_DIRECTORY: backend
   AZURE_FUNCTIONAPP_NAME: func-thesrilathaarts-prd
+  AZURE_RESOURCE_GROUP: rg-thesrilathaarts-prd
 
 jobs:
   build-and-deploy:
@@ -25,6 +26,7 @@ jobs:
       name: production
     permissions:
       contents: read
+      id-token: write   # required for azure/login OIDC token exchange
 
     steps:
       - name: Checkout
@@ -37,6 +39,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -53,9 +57,26 @@ jobs:
           npm run build
           npm prune --omit=dev
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
+      - name: Package backend as zip
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: zip -r -q "$RUNNER_TEMP/deploy.zip" . -x ".git/*" ".github/*"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
         with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.WORKING_DIRECTORY }}
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PRD }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID_PRD }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Functions (az CLI zipdeploy)
+        # OIDC-authenticated deploy via the Azure CLI. Replaces the publish-
+        # profile + Kudu basic-auth path, removing the long-lived secret
+        # entirely. Federated credential on the SP grants a short-lived
+        # token scoped to this repo + the `main` branch.
+        run: |
+          set -euo pipefail
+          az functionapp deployment source config-zip \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_FUNCTIONAPP_NAME" \
+            --src "$RUNNER_TEMP/deploy.zip"
+          echo "Deploy succeeded"

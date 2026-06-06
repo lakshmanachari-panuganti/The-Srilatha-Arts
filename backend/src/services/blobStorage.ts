@@ -89,3 +89,55 @@ export async function deleteBlob(containerName: string, blobName: string): Promi
   const blob = containerClient.getBlockBlobClient(blobName)
   await blob.deleteIfExists()
 }
+
+/**
+ * Download the invoice PDF for an order. Returns null if the blob
+ * doesn't exist (so callers can decide to regenerate). Used by the
+ * notifications queue consumer to attach the same PDF every channel
+ * delivers.
+ */
+export async function downloadInvoicePdf(invoiceNumber: string): Promise<Buffer | null> {
+  const container = process.env.INVOICE_CONTAINER || 'invoices'
+  const containerClient = blobServiceClient.getContainerClient(container)
+  const blob = containerClient.getBlockBlobClient(`${invoiceNumber}.pdf`)
+  const exists = await blob.exists()
+  if (!exists) return null
+  const download = await blob.download()
+  if (!download.readableStreamBody) return null
+  const chunks: Buffer[] = []
+  for await (const chunk of download.readableStreamBody as AsyncIterable<Buffer>) {
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
+}
+
+/**
+ * Upload an invoice PDF to the `invoices` container (or the value of
+ * INVOICE_CONTAINER) and return the direct blob URL. The branded
+ * /invoices/{id}.pdf URL is constructed by orderNumber.invoiceUrlFor()
+ * for customer-facing use; this function returns the underlying blob
+ * URL for diagnostic / admin paths.
+ *
+ * Idempotent - re-uploading the same `{InvoiceNumber}.pdf` overwrites
+ * the existing blob, which is the correct behaviour if an invoice is
+ * regenerated (e.g. after a refund-amount correction).
+ */
+export async function uploadInvoicePdf(
+  invoiceNumber: string,
+  pdfBuffer: Buffer,
+): Promise<string> {
+  const container = process.env.INVOICE_CONTAINER || 'invoices'
+  const containerClient = blobServiceClient.getContainerClient(container)
+  const blobName = `${invoiceNumber}.pdf`
+  const blob = containerClient.getBlockBlobClient(blobName)
+  await blob.upload(pdfBuffer, pdfBuffer.length, {
+    blobHTTPHeaders: {
+      blobContentType: 'application/pdf',
+      // No long cache - invoices can be regenerated. The SWA route in
+      // front handles its own caching headers if needed.
+      blobCacheControl: 'no-cache, max-age=0',
+      blobContentDisposition: `inline; filename="invoice-${invoiceNumber}.pdf"`,
+    },
+  })
+  return `${blobBaseUrl}/${container}/${blobName}`
+}

@@ -12,6 +12,10 @@
     {
       "route": "/account/orders/*",
       "rewrite": "/account/orders/__shell__/index.html"
+    },
+    {
+      "route": "/invoices/*",
+      "rewrite": "/api/invoices/*"
     }
   ],
   "navigationFallback": {

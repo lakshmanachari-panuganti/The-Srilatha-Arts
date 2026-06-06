@@ -10,7 +10,8 @@
       - live mode -> rzp_live_xxx + matching secret (PRD)
 
     Rotating either one alone leaves the other side broken, so this
-    script writes BOTH in a single Update-AzFunctionAppSetting call.
+    script writes BOTH in a single 'az functionapp config appsettings set'
+    call.
 
     Existing values are overwritten unconditionally.
 
@@ -31,8 +32,8 @@
     to put a 'rzp_live_' key on dev or a 'rzp_test_' key on prd.
 
 .EXAMPLE
-    # Connect first
-    . ./docs/Azure-Connectivity.ps1
+    # Ensure you are logged in first
+    az login
 
     # Rotate DEV (test) keys
     ./infra/Rotate-RazorpayApiKeys.ps1 -Environment dev `
@@ -47,18 +48,17 @@
 
 .NOTES
     Requires:
-      - Az.Accounts + Az.Functions modules installed
-      - An active Az session (run docs/Azure-Connectivity.ps1 first)
-        for a principal with Contributor or higher on the target
-        Function App's resource group.
+      - Azure CLI installed (https://aka.ms/installazurecliwindows)
+      - An active az session ('az login') for a principal with Contributor
+        or higher on the target Function App's resource group.
 
     Authoring notes:
       - The KeyId is only safe to print to the console (it's the value
         the browser sees when Razorpay Checkout opens). The KeySecret
         is NEVER printed; the script only logs its length after the
         Function App accepts the write.
-      - Update-AzFunctionAppSetting merges with existing settings, so
-        no other env vars are disturbed.
+      - 'az functionapp config appsettings set' merges with existing
+        settings, so no other env vars are disturbed.
 #>
 
 [CmdletBinding()]
@@ -81,7 +81,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# ─── Environment → Azure resource mapping ──────────────────────────────────
+# ─── Environment → Azure resource mapping ─────────────────────────────────
 $AppSlug = 'thesrilathaarts'
 $envMap = @{
     'dev' = @{
@@ -96,31 +96,14 @@ $envMap = @{
         FunctionAppName = "func-$AppSlug-prd"
         ExpectedPrefix  = 'rzp_live_'
         RazorpayMode    = 'LIVE mode'
-        KeyVaultName    = "kv-$AppSlug-dev"
+        KeyVaultName    = "kv-$AppSlug-prd"
     }
 }
 
 $envCfg = $envMap[$Environment]
 
-try {
-    & "$PSScriptRoot\Backup-function-settings.ps1" `
-        -KeyVaultName $envCfg.KeyVaultName `
-        -FunctionAppName $envCfg.FunctionAppName
-    Write-Host "Function app setting backed up successfully"
-} catch {
-    throw "Unable to back up function app settings for '$($envCfg.FunctionAppName)'. Error: $($_.Exception.Message)"
-}
-
-Write-Host ''
-Write-Host "Target environment : $Environment" -ForegroundColor Cyan
-Write-Host "Resource group     : $($envCfg.ResourceGroup)"
-Write-Host "Function App       : $($envCfg.FunctionApp)"
-Write-Host "Razorpay mode      : $($envCfg.RazorpayMode)"
-Write-Host "Expected key prefix: $($envCfg.ExpectedPrefix)"
-Write-Host ''
-
-# ─── Validate inputs ───────────────────────────────────────────────────────
-$trimmedKeyId = $KeyId.Trim()
+# ─── Validate inputs BEFORE taking the backup ─────────────────────────────
+$trimmedKeyId     = $KeyId.Trim()
 $trimmedKeySecret = $KeySecret.Trim()
 
 if ($trimmedKeyId.Length -lt 16) {
@@ -139,67 +122,131 @@ if (-not $trimmedKeyId.StartsWith($envCfg.ExpectedPrefix)) {
     }
 }
 
-# ─── Az session ─────────────────────────────────────────
-$securePassword = ConvertTo-SecureString $env:MY_APPREG_CLIENT_SECRET -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential ($env:MY_APPREG_CLIENT_ID, $securePassword)
-Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential $credential | Out-Null
-
-# ─── Confirm the target Function App exists ────────────────────────────────
-Import-Module Az.Functions -ErrorAction Stop -WarningAction SilentlyContinue
-$fn = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionAppName -ErrorAction SilentlyContinue
-if (-not $fn) {
-    throw "Function App '$($envCfg.FunctionApp)' not found in '$($envCfg.ResourceGroup)'."
+# ─── Pin az CLI to the correct subscription ───────────────────────────────
+# MEDIUM: Prevents all az calls silently targeting the wrong subscription
+# when the operator has multiple subscriptions and the wrong one is active.
+$subJson = az account show --output json 2>$null
+if ($subJson) {
+    $currentSubId = ($subJson | ConvertFrom-Json).id
+    az account set --subscription $currentSubId --output none
+    Write-Host "az CLI subscription pinned: $currentSubId" -ForegroundColor DarkGray
 }
 
-# ─── Inspect current state for the log ─────────────────────────────────────
-$current = (Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp).GetEnumerator() |
-    Where-Object { $_.Key -in @('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') }
+# ─── PRD gate ─────────────────────────────────────────────────────────────
+# MEDIUM: Require explicit confirmation before overwriting live Razorpay keys.
+if ($Environment -eq 'prd') {
+    Write-Host "`n  ⚠  You are about to rotate LIVE Razorpay keys on PRODUCTION." -ForegroundColor Red
+    $prdConfirm = Read-Host "  Type 'yes' to continue"
+    if ($prdConfirm -ne 'yes') { Write-Host "Aborted by operator." -ForegroundColor Yellow; exit 0 }
+}
+
+# ─── Confirm the target Function App exists (BEFORE backup) ───────────────
+# HIGH: Moved before the backup so a wrong environment / typo fails fast
+# rather than triggering a spurious backup first.
+# HIGH: az functionapp show exits 3 when the app is missing. PS7.4+'s
+# $PSNativeCommandUseErrorActionPreference (default $true) would convert
+# that non-zero exit into a terminating error under $ErrorActionPreference
+# = 'Stop', so we toggle it off and handle the code explicitly.
+$savedNativePref = $PSNativeCommandUseErrorActionPreference
+$PSNativeCommandUseErrorActionPreference = $false
+try {
+    $fnJson = az functionapp show `
+        --resource-group $envCfg.ResourceGroup `
+        --name           $envCfg.FunctionAppName `
+        --output         json 2>$null
+    $showExit = $LASTEXITCODE
+} finally {
+    $PSNativeCommandUseErrorActionPreference = $savedNativePref
+}
+
+if ($showExit -ne 0) {
+    throw "Function App '$($envCfg.FunctionAppName)' not found in resource group '$($envCfg.ResourceGroup)' (az exit $showExit)."
+}
+
+# ─── Backup (after validation + existence check, so no backup on bad input) ─
+try {
+    & "$PSScriptRoot\Backup-function-settings.ps1" -KeyVaultName $envCfg.KeyVaultName -FunctionAppName $envCfg.FunctionAppName
+    Write-Host "Function app settings backed up successfully." -ForegroundColor DarkGray
+} catch {
+    throw "Unable to back up function app settings for '$($envCfg.FunctionAppName)'. Error: $($_.Exception.Message)"
+}
+
+Write-Host ''
+Write-Host "Target environment : $Environment" -ForegroundColor Cyan
+Write-Host "Resource group     : $($envCfg.ResourceGroup)"
+Write-Host "Function App       : $($envCfg.FunctionAppName)"
+Write-Host "Razorpay mode      : $($envCfg.RazorpayMode)"
+Write-Host "Expected key prefix: $($envCfg.ExpectedPrefix)"
+Write-Host ''
+
+# ─── Inspect current state for the log ────────────────────────────────────
+$settingsJson = az functionapp config appsettings list `
+    --resource-group $envCfg.ResourceGroup `
+    --name $envCfg.FunctionAppName `
+    2>$null
+
+$current = if ($settingsJson) {
+    ($settingsJson | ConvertFrom-Json) | Where-Object { $_.name -in @('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') }
+} else {
+    @()
+}
 
 if ($current) {
     Write-Host 'Existing Razorpay settings on this Function App:' -ForegroundColor Yellow
-    foreach ($s in $current | Sort-Object Key) {
-        if ($s.Key -eq 'RAZORPAY_KEY_ID') {
+    foreach ($s in $current | Sort-Object name) {
+        if ($s.name -eq 'RAZORPAY_KEY_ID') {
             # Safe to show - the key id is public anyway.
-            Write-Host ("  {0} = {1}  (will overwrite)" -f $s.Key, $s.Value)
+            Write-Host ("  {0} = {1}  (will overwrite)" -f $s.name, $s.value)
         } else {
             # Don't print the secret - just the length.
-            Write-Host ("  {0} = ******** ({1} chars, will overwrite)" -f $s.Key, $s.Value.Length)
+            Write-Host ("  {0} = ******** ({1} chars, will overwrite)" -f $s.name, $s.value.Length)
         }
     }
 } else {
-    Write-Host 'No existing Razorpay key settings - adding new.' -ForegroundColor Yellow
+    Write-Host 'No existing Razorpay key settings found - adding new.' -ForegroundColor Yellow
 }
 Write-Host ''
 
-# ─── Apply ──────────────────────────────────────────────────────────────────
-Write-Host "Updating $($envCfg.FunctionApp) RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET ..." -ForegroundColor Yellow
-Update-AzFunctionAppSetting `
-    -ResourceGroupName $envCfg.ResourceGroup `
-    -Name $envCfg.FunctionAppName `
-    -AppSetting @{
-    'RAZORPAY_KEY_ID'     = $trimmedKeyId
-    'RAZORPAY_KEY_SECRET' = $trimmedKeySecret
-} `
-    -Force -ErrorAction Stop | Out-Null
+# ─── Apply ─────────────────────────────────────────────────────────────────
+Write-Host "Updating $($envCfg.FunctionAppName) RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET ..." -ForegroundColor Yellow
+
+az functionapp config appsettings set `
+    --resource-group $envCfg.ResourceGroup `
+    --name $envCfg.FunctionAppName `
+    --settings "RAZORPAY_KEY_ID=$trimmedKeyId" "RAZORPAY_KEY_SECRET=$trimmedKeySecret" `
+    --output none
+
+if ($LASTEXITCODE -ne 0) {
+    throw "az functionapp config appsettings set failed with exit code $LASTEXITCODE."
+}
 
 # ─── Verify ────────────────────────────────────────────────────────────────
-$applied = (Get-AzFunctionAppSetting -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp).GetEnumerator() |
-    Where-Object { $_.Key -in @('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') } |
-    Sort-Object Key
+$appliedJson = az functionapp config appsettings list `
+    --resource-group $envCfg.ResourceGroup `
+    --name $envCfg.FunctionAppName `
+    2>$null
 
-$appliedKeyId = ($applied | Where-Object { $_.Key -eq 'RAZORPAY_KEY_ID' }).Value
-$appliedKeySecret = ($applied | Where-Object { $_.Key -eq 'RAZORPAY_KEY_SECRET' }).Value
+if (-not $appliedJson) {
+    throw "Verification failed - could not retrieve settings from '$($envCfg.FunctionAppName)' after update."
+}
+
+$applied = ($appliedJson | ConvertFrom-Json) |
+    Where-Object { $_.name -in @('RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET') } |
+    Sort-Object name
+
+$appliedKeyId     = ($applied | Where-Object { $_.name -eq 'RAZORPAY_KEY_ID' }).value
+$appliedKeySecret = ($applied | Where-Object { $_.name -eq 'RAZORPAY_KEY_SECRET' }).value
 
 if ($appliedKeyId -ne $trimmedKeyId) {
     throw "Verification failed - RAZORPAY_KEY_ID on the Function App does not match what we sent."
 }
-if ($appliedKeySecret.Length -ne $trimmedKeySecret.Length) {
-    throw "Verification failed - RAZORPAY_KEY_SECRET length on the Function App differs from what we sent."
+if ($appliedKeySecret -ne $trimmedKeySecret) {
+    throw "Verification failed - RAZORPAY_KEY_SECRET on the Function App does not match what we sent."
 }
 
 Write-Host ''
 Write-Host '──────────────────────────────────────────────────────────────────────' -ForegroundColor Magenta
-Write-Host "OK. $($envCfg.FunctionApp) is now using:" -ForegroundColor Green
+Write-Host "OK. $($envCfg.FunctionAppName) is now using:" -ForegroundColor Green
 Write-Host ''
 Write-Host "  RAZORPAY_KEY_ID     = $appliedKeyId" -ForegroundColor White
 Write-Host ("  RAZORPAY_KEY_SECRET = ******** ({0} chars)" -f $appliedKeySecret.Length) -ForegroundColor White

@@ -16,6 +16,7 @@ import { errorResponse } from '../utils/response'
 const SKIP_PATHS = [
   '/api/razorpay/webhook',
   '/api/courier/webhook',
+  '/api/webhooks/whatsapp',
 ]
 
 // Routes that must accept POST without a prior CSRF cookie. These either

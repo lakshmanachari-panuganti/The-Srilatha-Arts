@@ -1,0 +1,1069 @@
+<#
+.SYNOPSIS
+    Deploy Azure Infrastructure for Srilatha Art (DEV or PRD).
+
+.DESCRIPTION
+    Creates and configures a complete environment for the Srilatha Art
+    backend. Fully idempotent - re-runs are safe and only apply diffs.
+
+    ── TABLE OF CONTENTS ─────────────────────────────────────────────
+       PART A.  Script parameters + connection
+       PART B.  Configuration (all environment values, in one place)
+       PART C.  Helper functions
+       PART D.  Execution (numbered phases)
+         Phase 1  Prerequisites
+         Phase 2  Create core resources
+         Phase 3  Bootstrap SP RBAC (minimal - enables phases 4–6)
+         Phase 4  Provision storage (tables, queues, blobs, CORS)
+         Phase 5  Seed Key Vault secrets
+         Phase 6  Configure Function App (app settings + CORS)
+         Phase 7  Function App MI runtime RBAC
+         Phase 8  Verify RBAC + summary
+    ──────────────────────────────────────────────────────────────────
+
+    Idempotency guarantees per phase:
+      Phase 1   Checks only - no writes.
+      Phase 2   Existence-check before every create. MI assign is
+                skipped if the identity is already enabled.
+                Key Vault RBAC-mode is validated on existing vaults.
+                AppInsights ConnectionString + InstrumentationKey are
+                always refreshed from a full GET if the resource exists.
+      Phase 3   Role assignments are checked before write.
+                RBAC propagation sleep is skipped if all roles already
+                existed (no new assignments were made).
+      Phase 4   Tables + queues + containers - existence check per item.
+                Blob CORS - current rules are read and compared; the
+                remove+set pair is only executed if they differ.
+                Public-blob-access flag uses -ne $true (handles $null).
+      Phase 5   Each KV secret checked before write.
+      Phase 6   Existing Function App settings are read and merged in;
+                no portal-added key is ever deleted.
+                Function App CORS - read current, set only if different.
+      Phase 7   Role assignments checked before write. RBAC propagation
+                sleep is skipped when all roles already existed.
+      Phase 8   Read-only verification pass.
+
+    The role-assignment design (Phase 3 + Phase 7 combined):
+
+      ▸ Deployer Service Principal
+          • Key Vault Secrets Officer        → rotate secrets
+          • Storage Blob Data Contributor    → read/write blobs
+          • Storage Table Data Contributor   → seed / patch data
+          • Storage Queue Data Contributor   → drain queues
+
+      ▸ Function App System-Assigned Managed Identity
+          • Key Vault Secrets User           → resolve KV refs
+          • Storage Blob Data Owner          → identity-based
+                                               AzureWebJobsStorage
+          • Storage Table Data Contributor   → app data
+          • Storage Queue Data Contributor   → queues
+          • Monitoring Metrics Publisher     → App Insights
+
+    The script also REMOVES any legacy 'Key Vault Administrator'
+    assignment that earlier versions mis-scoped to the Function App
+    resource.
+
+.PARAMETER Environment
+    Target environment: DEV or PRD.
+
+.EXAMPLE
+    ./infra/Deploy-Infrastructure-v2.ps1 -Environment DEV
+
+.NOTES
+    Prerequisites
+      - PowerShell 7+
+      - Az module: Install-Module Az -Scope CurrentUser
+        Sub-modules used: Az.Accounts, Az.Resources, Az.Storage,
+        Az.KeyVault, Az.Websites, Az.ApplicationInsights
+        (Az.Functions is deliberately NOT required - all Function App
+        operations use az CLI to avoid the v4.3.2 GetRuntimeName bug)
+      - Azure CLI (az) on PATH
+      - Env vars MY_APPREG_CLIENT_ID / MY_APPREG_CLIENT_SECRET /
+        MY_APPREG_TENANT_ID for an SP with on the subscription:
+          Contributor + Key Vault Administrator + User Access
+          Administrator (UAA is required to grant RBAC)
+
+    Changes from v1:
+      - Az.Functions removed from $requiredModules (never used; all FA
+        ops go through az CLI).
+      - Phase 2.3: AppInsights ConnectionString / InstrumentationKey
+        explicitly fetched via full GET on existing resource.
+      - Phase 2.5: Existing Key Vault validated for RBAC-mode; hard
+        error if it is in Access Policy mode (would silently 403 later).
+      - Phase 2.6: MI identity assign skipped when already enabled
+        (no unnecessary API write on re-runs).
+      - Phase 3 / 7: RBAC propagation sleep skipped when all roles
+        already existed ($newlyAssigned = 0, no propagation needed).
+      - Phase 4.3: AllowBlobPublicAccess check uses -ne $true
+        (handles $null correctly; -eq $false was wrong for $null).
+      - Phase 4.4: Existing containers now print "already exists"
+        (was silent, gave no re-run visibility).
+      - Phase 4.5: Blob CORS read-before-write comparison; the
+        Remove + Set pair is only executed when rules differ (was
+        unconditional on every run — caused a brief CORS outage window).
+      - Phase 5.3: RandomNumberGenerator.Fill() (replaces deprecated
+        RandomNumberGenerator.Create().GetBytes() pattern).
+      - Phase 6.2: Function App CORS read-before-write; Set-AzResource
+        only called when the current config differs from desired.
+#>
+
+# ═══════════════════════════════════════════════════════════════════
+#  PART A.  Script parameters + connection
+# ═══════════════════════════════════════════════════════════════════
+
+[CmdletBinding()]
+param(
+    [Parameter()]
+    [ValidateSet('DEV', 'PRD')]
+    [string]$Environment = 'DEV'
+)
+
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+& "$PSScriptRoot\Azure-Connectivity.ps1"
+
+# ═══════════════════════════════════════════════════════════════════
+#  PART B.  Configuration (all environment-dependent values here)
+# ═══════════════════════════════════════════════════════════════════
+
+$AppSlug = 'thesrilathaarts'
+
+# ── B.1  Per-environment resource names ─────────────────────────────
+$config = @{
+    DEV = @{
+        ResourceGroup  = "rg-$AppSlug-dev"
+        Location       = "centralindia"
+        StorageAccount = "st$($AppSlug)dev"
+        FunctionApp    = "func-$AppSlug-dev"
+        StaticWebApp   = "swa-$AppSlug-dev"
+        KeyVault       = "kv-$AppSlug-dev"
+        AppInsights    = "appi-$AppSlug-dev"
+        CorsOrigins    = @(
+            'http://localhost:3000',
+            'https://delightful-mushroom-062e18100.7.azurestaticapps.net',
+            'https://www.lucky1.online'
+        )
+        CookieDomain   = ''
+        WebsiteUrl     = 'delightful-mushroom-062e18100.7.azurestaticapps.net'
+    }
+    PRD = @{
+        ResourceGroup  = "rg-$AppSlug-prd"
+        Location       = "centralindia"
+        StorageAccount = "st$($AppSlug)prd"
+        FunctionApp    = "func-$AppSlug-prd"
+        StaticWebApp   = "swa-$AppSlug-prd"
+        KeyVault       = "kv-$AppSlug-prd"
+        AppInsights    = "appi-$AppSlug-prd"
+        CorsOrigins    = @(
+            'https://www.srilatha.art',
+            'https://srilatha.art',
+            'https://salmon-wave-01c7b8300.7.azurestaticapps.net'
+        )
+        CookieDomain   = '.srilatha.art'
+        WebsiteUrl     = 'www.srilatha.art'
+    }
+}
+$envCfg = $config[$Environment]
+
+# ── B.2  Storage tables ─────────────────────────────────────────────
+$tableNames = @(
+    'products', 'orders', 'orderItems', 'users', 'admins', 'config',
+    'orderEvents', 'ordersByStatus',
+    'coupons', 'couponRedemptions',
+    'announcements',
+    'wishlist', 'cart', 'reviews', 'customOrders',
+    'newsletterSubscribers',
+    'addresses', 'notifications',
+    'staff', 'auditLog', 'rateLimits',
+    'emailLogs', 'whatsappMessages', 'whatsappConversations'
+)
+
+# ── B.3  Storage queues ─────────────────────────────────────────────
+$queueNames = @(
+    'notifications-out',
+    'webhooks-in',
+    'review-requests'
+)
+
+# ── B.4  Blob containers ─────────────────────────────────────────────
+$blobContainers = @(
+    @{ Name = 'products'; PublicAccess = 'Blob' }
+    @{ Name = 'categories'; PublicAccess = 'Blob' }
+    @{ Name = 'assets'; PublicAccess = 'Blob' }
+    @{ Name = 'branding'; PublicAccess = 'Blob' }   # logo for invoices / WhatsApp
+    @{ Name = 'invoices'; PublicAccess = 'Off' }
+    @{ Name = 'user-uploads'; PublicAccess = 'Off' }
+)
+
+# ── B.5  Required PowerShell modules ────────────────────────────────
+# Az.Functions is deliberately absent — all Function App operations
+# use az CLI to avoid the Az.Functions v4.3.2 GetRuntimeName.ContainsKey()
+# null-key bug that crashes on Linux Consumption apps.
+$requiredModules = @(
+    'Az.Accounts', 'Az.Resources', 'Az.Storage', 'Az.KeyVault',
+    'Az.Websites', 'Az.ApplicationInsights'
+)
+
+# ── B.6  RBAC role plan ─────────────────────────────────────────────
+$sp_BootstrapRoles = @(
+    @{ Resource = 'storage'; Role = 'Storage Blob Data Contributor'; Why = 'Create blob containers + CORS in Phase 4' }
+    @{ Resource = 'storage'; Role = 'Storage Table Data Contributor'; Why = 'Create tables in Phase 4' }
+    @{ Resource = 'storage'; Role = 'Storage Queue Data Contributor'; Why = 'Create queues in Phase 4' }
+    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets Officer'; Why = 'Write secrets in Phase 5' }
+)
+
+$sp_RuntimeRoles = @(
+    @{ Resource = 'storage'; Role = 'Storage Blob Data Contributor'; Why = 'Deploy-time read/write of blobs' }
+    @{ Resource = 'storage'; Role = 'Storage Table Data Contributor'; Why = 'Deploy-time data seed / patch' }
+    @{ Resource = 'storage'; Role = 'Storage Queue Data Contributor'; Why = 'Deploy-time queue inspection / drain' }
+    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets Officer'; Why = 'Rotate secrets on subsequent runs' }
+)
+
+# Storage Blob Data OWNER (not Contributor) is required for the
+# identity-based AzureWebJobsStorage connection — the Functions host
+# needs Owner to manage internal state (lease blobs, locks, host secrets).
+# Ref: https://learn.microsoft.com/azure/azure-functions/functions-reference#configure-an-identity-based-connection
+$mi_RuntimeRoles = @(
+    @{ Resource = 'keyvault'; Role = 'Key Vault Secrets User'; Why = 'Resolve @Microsoft.KeyVault(...) refs at startup' }
+    @{ Resource = 'storage'; Role = 'Storage Blob Data Owner'; Why = 'Identity-based AzureWebJobsStorage - host internal state' }
+    @{ Resource = 'storage'; Role = 'Storage Table Data Contributor'; Why = 'App data (orders, products, ...)' }
+    @{ Resource = 'storage'; Role = 'Storage Queue Data Contributor'; Why = 'Notifications, webhook ingest, review request queues' }
+    @{ Resource = 'appinsights'; Role = 'Monitoring Metrics Publisher'; Why = 'AAD-based AI telemetry path' }
+)
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  PART C.  Helper functions
+# ═══════════════════════════════════════════════════════════════════
+
+function Write-Step { param([string]$Message)
+    Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "▶ $Message" -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+}
+function Write-Success { param([string]$Message); Write-Host "  ✓ $Message" -ForegroundColor Green }
+function Write-Info { param([string]$Message); Write-Host "  ℹ $Message" -ForegroundColor Yellow }
+function Write-Err { param([string]$Message); Write-Host "  ✗ $Message" -ForegroundColor Red }
+function Write-Skip { param([string]$Message); Write-Host "  – $Message" -ForegroundColor DarkGray }
+
+# Idempotent role assignment. Returns 'assigned' | 'existed' | 'failed'.
+function Assign-AzRoleIfMissing {
+    param(
+        [Parameter(Mandatory)] [string]$ObjectId,
+        [Parameter(Mandatory)] [string]$RoleDefinitionName,
+        [Parameter(Mandatory)] [string]$Scope,
+        [Parameter(Mandatory)] [string]$ScopeLabel
+    )
+    $existing = Get-AzRoleAssignment `
+        -ObjectId           $ObjectId `
+        -RoleDefinitionName $RoleDefinitionName `
+        -Scope              $Scope `
+        -ErrorAction        SilentlyContinue
+    if ($existing) {
+        Write-Skip "Already assigned : $RoleDefinitionName on $ScopeLabel"
+        return 'existed'
+    }
+    try {
+        New-AzRoleAssignment `
+            -ObjectId           $ObjectId `
+            -RoleDefinitionName $RoleDefinitionName `
+            -Scope              $Scope `
+            -ErrorAction        Stop | Out-Null
+        Write-Success "Assigned         : $RoleDefinitionName on $ScopeLabel"
+        return 'assigned'
+    } catch {
+        Write-Err "Could not assign : $RoleDefinitionName on $ScopeLabel - $($_.Exception.Message.Split([Environment]::NewLine)[0])"
+        return 'failed'
+    }
+}
+
+function Resolve-RoleScope {
+    param(
+        [Parameter(Mandatory)] [string]$ResourceKey,
+        [Parameter(Mandatory)] $StorageAccount,
+        [Parameter(Mandatory)] $KeyVault,
+        [Parameter(Mandatory)] $AppInsights
+    )
+    switch ($ResourceKey) {
+        'storage' { return @{ Id = $StorageAccount.Id; Label = "Storage  [$($StorageAccount.StorageAccountName)]" } }
+        'keyvault' { return @{ Id = $KeyVault.ResourceId; Label = "KeyVault [$($KeyVault.VaultName)]" } }
+        'appinsights' { return @{ Id = $AppInsights.Id; Label = "AppInsights [$($AppInsights.Name)]" } }
+        default { throw "Unknown role-plan resource key: '$ResourceKey'" }
+    }
+}
+
+# Returns count of newly-assigned roles (not counting 'existed' or 'failed').
+# Callers use this to decide whether to wait for RBAC propagation.
+function Apply-RolePlan {
+    param(
+        [Parameter(Mandatory)] [string]$ObjectId,
+        [Parameter(Mandatory)] [object[]]$Plan,
+        [Parameter(Mandatory)] $StorageAccount,
+        [Parameter(Mandatory)] $KeyVault,
+        [Parameter(Mandatory)] $AppInsights
+    )
+    $newCount = 0
+    $failCount = 0
+    foreach ($entry in $Plan) {
+        $scope = Resolve-RoleScope `
+            -ResourceKey    $entry.Resource `
+            -StorageAccount $StorageAccount `
+            -KeyVault       $KeyVault `
+            -AppInsights    $AppInsights
+        $result = Assign-AzRoleIfMissing `
+            -ObjectId           $ObjectId `
+            -RoleDefinitionName $entry.Role `
+            -Scope              $scope.Id `
+            -ScopeLabel         $scope.Label
+        if ($result -eq 'assigned') { $newCount++ }
+        if ($result -eq 'failed') { $failCount++ }
+    }
+    return @{ New = $newCount; Failed = $failCount }
+}
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  PART D.  Execution
+# ═══════════════════════════════════════════════════════════════════
+
+Write-Host @"
+
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║       Srilatha Art - Infrastructure Deployment v2             ║
+║       (Fully idempotent - safe to re-run)                     ║
+║                                                               ║
+║       Environment: $($Environment.PadRight(43))║
+║       Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')                               ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+"@ -ForegroundColor Magenta
+
+if ($Environment -eq 'PRD') {
+    Write-Host "`n  ⚠  You are about to modify PRODUCTION infrastructure." -ForegroundColor Red
+    $confirm = Read-Host "  Type 'yes' to continue"
+    if ($confirm -ne 'yes') { Write-Info "Aborted by operator."; exit 0 }
+}
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 1.  Prerequisites
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 1 - Prerequisites"
+
+foreach ($mod in $requiredModules) {
+    if (-not (Get-Module -ListAvailable -Name $mod)) {
+        Write-Err "Missing module: $mod  →  Run: Install-Module Az -Scope CurrentUser"
+        exit 1
+    }
+    Write-Success "Module available : $mod"
+}
+
+if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
+    Write-Err "Missing 'az' CLI on PATH  →  https://aka.ms/installazurecli"
+    exit 1
+}
+Write-Success "az CLI available"
+
+$context = Get-AzContext
+if (-not $context) {
+    Write-Err "Not logged in. Run: Connect-AzAccount"
+    exit 1
+}
+Write-Success "Logged in as      : $($context.Account.Id)"
+Write-Success "Subscription      : $($context.Subscription.Name) ($($context.Subscription.Id))"
+
+# Pin az CLI to the same subscription as Az PowerShell so every
+# az functionapp call targets the correct subscription.
+az account set --subscription $context.Subscription.Id --output none
+if ($LASTEXITCODE -ne 0) {
+    Write-Err "Failed to pin az CLI to subscription $($context.Subscription.Id)."
+    exit 1
+}
+Write-Success "az CLI sub pinned : $($context.Subscription.Id)"
+
+foreach ($var in @('MY_APPREG_CLIENT_ID', 'MY_APPREG_CLIENT_SECRET', 'MY_APPREG_TENANT_ID')) {
+    if ([string]::IsNullOrEmpty([System.Environment]::GetEnvironmentVariable($var))) {
+        Write-Err "Required environment variable missing: $var"
+        exit 1
+    }
+}
+Write-Success "SP env vars       : all present"
+
+$spObjectId = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID).Id
+if (-not $spObjectId) {
+    Write-Err "Could not resolve SP object ID for client ID '$env:MY_APPREG_CLIENT_ID'. Verify the app registration exists in this tenant."
+    exit 1
+}
+Write-Success "Deployer SP       : $spObjectId"
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 2.  Create core resources
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 2 - Create core resources"
+
+# ── 2.1  Resource Group ──────────────────────────────────────────
+$rg = Get-AzResourceGroup -Name $envCfg.ResourceGroup -ErrorAction SilentlyContinue
+if ($rg) {
+    Write-Skip "Resource Group exists        : $($envCfg.ResourceGroup)"
+} else {
+    Write-Info "Creating Resource Group      : $($envCfg.ResourceGroup)"
+    New-AzResourceGroup -Name $envCfg.ResourceGroup -Location $envCfg.Location -Tag @{
+        project   = $AppSlug
+        env       = $Environment.ToLower()
+        managedBy = 'Deploy-Infrastructure-v2.ps1'
+    } | Out-Null
+    Write-Success "Resource Group created       : $($envCfg.ResourceGroup)"
+}
+
+# ── 2.2  Storage Account ─────────────────────────────────────────
+$storageAccount = Get-AzStorageAccount `
+    -ResourceGroupName $envCfg.ResourceGroup `
+    -Name              $envCfg.StorageAccount `
+    -ErrorAction       SilentlyContinue
+if ($storageAccount) {
+    Write-Skip "Storage Account exists       : $($envCfg.StorageAccount)"
+} else {
+    Write-Info "Creating Storage Account     : $($envCfg.StorageAccount)"
+    $storageAccount = New-AzStorageAccount `
+        -ResourceGroupName      $envCfg.ResourceGroup `
+        -Name                   $envCfg.StorageAccount `
+        -Location               $envCfg.Location `
+        -SkuName                'Standard_LRS' `
+        -Kind                   'StorageV2' `
+        -AccessTier             'Hot' `
+        -AllowBlobPublicAccess  $true `
+        -EnableHttpsTrafficOnly $true
+    Write-Success "Storage Account created      : $($envCfg.StorageAccount)"
+}
+
+# ── 2.3  Application Insights ────────────────────────────────────
+# Always use a full GET so ConnectionString + InstrumentationKey are
+# guaranteed populated whether the resource is new or existing.
+# Get-AzApplicationInsights on an existing resource does return them,
+# but we explicitly refresh in case of a stale object from a prior run.
+$appInsights = Get-AzApplicationInsights `
+    -ResourceGroupName $envCfg.ResourceGroup `
+    -Name              $envCfg.AppInsights `
+    -ErrorAction       SilentlyContinue
+if ($appInsights) {
+    Write-Skip "Application Insights exists  : $($envCfg.AppInsights)"
+    # Re-fetch with full detail to guarantee ConnectionString is populated
+    $appInsights = Get-AzApplicationInsights `
+        -ResourceGroupName $envCfg.ResourceGroup `
+        -Name              $envCfg.AppInsights
+} else {
+    Write-Info "Creating Application Insights: $($envCfg.AppInsights)"
+    $appInsights = New-AzApplicationInsights `
+        -ResourceGroupName $envCfg.ResourceGroup `
+        -Name              $envCfg.AppInsights `
+        -Location          $envCfg.Location `
+        -Kind              'web' `
+        -ApplicationType   'web'
+    Write-Success "Application Insights created : $($envCfg.AppInsights)"
+}
+if (-not $appInsights.ConnectionString) {
+    throw "Application Insights '$($envCfg.AppInsights)' has no ConnectionString. The resource may still be provisioning - wait 30s and re-run."
+}
+
+# ── 2.4  Function App (Linux Consumption, Node 22) ───────────────
+# All Function App operations use az CLI.
+# Az.Functions v4.3.2 has a GetRuntimeName.ContainsKey() null-key bug
+# that crashes on Linux Consumption apps.
+#
+# az functionapp show exits 3 (ResourceNotFoundError) when the app
+# does not exist. PS7.4+ $PSNativeCommandUseErrorActionPreference=$true
+# (default) turns any non-zero exit into a terminating error under
+# $ErrorActionPreference='Stop'. Toggle it off, check explicitly.
+$functionApp = $null
+$savedNativePref = $PSNativeCommandUseErrorActionPreference
+$PSNativeCommandUseErrorActionPreference = $false
+try {
+    $functionAppJson = az functionapp show `
+        --name           $envCfg.FunctionApp `
+        --resource-group $envCfg.ResourceGroup `
+        --output         json 2>$null
+    $showExit = $LASTEXITCODE
+} finally {
+    $PSNativeCommandUseErrorActionPreference = $savedNativePref
+}
+
+if ($showExit -eq 0 -and $functionAppJson) {
+    $functionApp = $functionAppJson | ConvertFrom-Json
+    Write-Skip "Function App exists          : $($envCfg.FunctionApp)"
+} elseif ($showExit -ne 0 -and $showExit -ne 3) {
+    throw "az functionapp show exited with code $showExit - check subscription / RG access."
+} else {
+    Write-Info "Creating Function App        : $($envCfg.FunctionApp)"
+    $functionAppJson = az functionapp create `
+        --name                      $envCfg.FunctionApp `
+        --resource-group            $envCfg.ResourceGroup `
+        --storage-account           $envCfg.StorageAccount `
+        --consumption-plan-location $envCfg.Location `
+        --runtime                   node `
+        --runtime-version           22 `
+        --functions-version         4 `
+        --os-type                   Linux `
+        --app-insights              $envCfg.AppInsights `
+        --output                    json
+    if ($LASTEXITCODE -ne 0) { throw "Failed to create Function App via az CLI." }
+    $functionApp = $functionAppJson | ConvertFrom-Json
+    Write-Success "Function App created         : $($envCfg.FunctionApp)"
+}
+
+# ── 2.5  Key Vault ───────────────────────────────────────────────
+$keyVault = Get-AzKeyVault `
+    -ResourceGroupName $envCfg.ResourceGroup `
+    -VaultName         $envCfg.KeyVault `
+    -ErrorAction       SilentlyContinue
+if ($keyVault) {
+    Write-Skip "Key Vault exists             : $($envCfg.KeyVault)"
+    # Validate RBAC mode on existing vault. If it was created in Access
+    # Policy mode, all Key Vault Secrets Officer / Secrets User RBAC
+    # assignments below are silently ignored on data-plane ops → 403.
+    if (-not $keyVault.EnableRbacAuthorization) {
+        Write-Err "Key Vault '$($envCfg.KeyVault)' is in Access Policy mode, not RBAC mode."
+        Write-Err "RBAC role assignments (Secrets Officer / Secrets User) will be silently ignored."
+        Write-Err "To fix: az keyvault update --name $($envCfg.KeyVault) --enable-rbac-authorization true"
+        throw "Existing Key Vault is not in RBAC authorization mode. Fix it then re-run."
+    }
+    Write-Success "Key Vault RBAC mode          : confirmed"
+} else {
+    Write-Info "Creating Key Vault           : $($envCfg.KeyVault)"
+    $kvParams = @{
+        Name                    = $envCfg.KeyVault
+        ResourceGroupName       = $envCfg.ResourceGroup
+        Location                = $envCfg.Location
+        Sku                     = 'Standard'
+        EnableRbacAuthorization = $true
+    }
+    if ($Environment -eq 'PRD') {
+        $kvParams['EnablePurgeProtection'] = $true
+        Write-Info "PRD: purge protection enabled on Key Vault"
+    }
+    $keyVault = New-AzKeyVault @kvParams
+    Write-Success "Key Vault created            : $($envCfg.KeyVault)"
+}
+
+# ── 2.6  Function App System-Assigned Managed Identity ───────────
+# az functionapp identity assign is safe to call unconditionally, but
+# it triggers a needless API write on every re-run. Check first.
+$identityJson = az functionapp identity show `
+    --name           $envCfg.FunctionApp `
+    --resource-group $envCfg.ResourceGroup `
+    --output         json 2>$null
+$existingIdentity = if ($identityJson) { $identityJson | ConvertFrom-Json } else { $null }
+
+if ($existingIdentity -and $existingIdentity.principalId) {
+    $principalId = $existingIdentity.principalId
+    Write-Skip "Function App MI already enabled: principalId=$principalId"
+} else {
+    Write-Info "Enabling Function App Managed Identity..."
+    $assignedJson = az functionapp identity assign `
+        --name           $envCfg.FunctionApp `
+        --resource-group $envCfg.ResourceGroup `
+        --output         json
+    if ($LASTEXITCODE -ne 0) { throw "Failed to enable Function App Managed Identity via az CLI." }
+    $principalId = ($assignedJson | ConvertFrom-Json).principalId
+    if (-not $principalId) {
+        throw "principalId missing from 'az functionapp identity assign' output. Re-run in 30s."
+    }
+    Write-Success "Function App MI enabled      : principalId=$principalId"
+}
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 3.  Bootstrap deployer-SP RBAC
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 3 - Bootstrap deployer-SP RBAC (data plane access)"
+
+$bootstrapResult = Apply-RolePlan `
+    -ObjectId       $spObjectId `
+    -Plan           $sp_BootstrapRoles `
+    -StorageAccount $storageAccount `
+    -KeyVault       $keyVault `
+    -AppInsights    $appInsights
+
+if ($bootstrapResult.Failed -gt 0) {
+    Write-Err "$($bootstrapResult.Failed) bootstrap role(s) failed to assign. Phases 4/5 may 403 - check SP permissions, then re-run."
+}
+
+# Only wait if new assignments were actually made. If all roles
+# already existed, propagation already happened on a prior run.
+if ($bootstrapResult.New -gt 0) {
+    Write-Info "Waiting 30s for RBAC propagation ($($bootstrapResult.New) new assignment(s))..."
+    Start-Sleep -Seconds 30
+} else {
+    Write-Skip "All bootstrap roles already existed - skipping propagation wait"
+}
+
+$storageCtx = New-AzStorageContext -StorageAccountName $envCfg.StorageAccount -UseConnectedAccount
+Write-Success "Storage context ready (AAD-based)"
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 4.  Provision storage
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 4 - Provision storage"
+
+# ── 4.1  Tables ──────────────────────────────────────────────────
+Write-Info "Tables ($($tableNames.Count) desired)..."
+$tablesCreated = 0
+foreach ($t in $tableNames) {
+    if (Get-AzStorageTable -Name $t -Context $storageCtx -ErrorAction SilentlyContinue) {
+        Write-Skip "Table exists  : $t"
+    } else {
+        New-AzStorageTable -Name $t -Context $storageCtx | Out-Null
+        Write-Success "Created table : $t"
+        $tablesCreated++
+    }
+}
+Write-Info "Tables: $tablesCreated created, $($tableNames.Count - $tablesCreated) already existed"
+
+# ── 4.2  Queues ──────────────────────────────────────────────────
+Write-Info "Queues ($($queueNames.Count) desired)..."
+$queuesCreated = 0
+foreach ($q in $queueNames) {
+    if (Get-AzStorageQueue -Name $q -Context $storageCtx -ErrorAction SilentlyContinue) {
+        Write-Skip "Queue exists  : $q"
+    } else {
+        New-AzStorageQueue -Name $q -Context $storageCtx | Out-Null
+        Write-Success "Created queue : $q"
+        $queuesCreated++
+    }
+}
+Write-Info "Queues: $queuesCreated created, $($queueNames.Count - $queuesCreated) already existed"
+
+# ── 4.3  Public blob access flag ─────────────────────────────────
+# Re-read the storage account to get the current flag value.
+# Use -ne $true (not -eq $false) — handles $null correctly.
+$storageAccount = Get-AzStorageAccount `
+    -ResourceGroupName $envCfg.ResourceGroup `
+    -Name              $envCfg.StorageAccount
+if ($storageAccount.AllowBlobPublicAccess -ne $true) {
+    Set-AzStorageAccount `
+        -ResourceGroupName    $envCfg.ResourceGroup `
+        -Name                 $envCfg.StorageAccount `
+        -AllowBlobPublicAccess $true | Out-Null
+    Write-Success "Public blob access enabled"
+} else {
+    Write-Skip "Public blob access already enabled"
+}
+
+# ── 4.4  Blob containers ─────────────────────────────────────────
+Write-Info "Blob containers ($($blobContainers.Count) desired)..."
+$containersCreated = 0
+foreach ($c in $blobContainers) {
+    if (Get-AzStorageContainer -Name $c.Name -Context $storageCtx -ErrorAction SilentlyContinue) {
+        Write-Skip "Container exists  : $($c.Name)  ($($c.PublicAccess))"
+    } else {
+        New-AzStorageContainer -Name $c.Name -Context $storageCtx -Permission $c.PublicAccess | Out-Null
+        Write-Success "Created container : $($c.Name)  ($($c.PublicAccess))"
+        $containersCreated++
+    }
+}
+Write-Info "Containers: $containersCreated created, $($blobContainers.Count - $containersCreated) already existed"
+
+# ── 4.5  Blob CORS rules ─────────────────────────────────────────
+# Read existing rules before writing. Remove+Set every run (v1) caused
+# a brief CORS outage window; now we only write when the config differs.
+$desiredCors = @(@{
+        AllowedOrigins  = $envCfg.CorsOrigins
+        AllowedMethods  = @('GET', 'HEAD', 'OPTIONS')
+        AllowedHeaders  = @('*')
+        ExposedHeaders  = @('*')
+        MaxAgeInSeconds = 3600
+    })
+
+$currentCorsRules = @(Get-AzStorageCORSRule -ServiceType Blob -Context $storageCtx -ErrorAction SilentlyContinue)
+$currentOrigins = if ($currentCorsRules) { @($currentCorsRules[0].AllowedOrigins | Sort-Object) } else { @() }
+$desiredOrigins = @($envCfg.CorsOrigins | Sort-Object)
+$corsNeedsUpdate = ($currentCorsRules.Count -eq 0) -or
+(Compare-Object $currentOrigins $desiredOrigins)
+
+if ($corsNeedsUpdate) {
+    Remove-AzStorageCORSRule -ServiceType Blob -Context $storageCtx
+    Set-AzStorageCORSRule    -ServiceType Blob -Context $storageCtx -CorsRules $desiredCors
+    Write-Success "Blob CORS updated for: $($envCfg.CorsOrigins -join ', ')"
+} else {
+    Write-Skip "Blob CORS already correct - no update needed"
+}
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 5.  Seed Key Vault secrets
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 5 - Seed Key Vault secrets"
+
+# ── 5.1  JwtSecret ───────────────────────────────────────────────
+if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'JwtSecret' -ErrorAction SilentlyContinue) {
+    Write-Skip "JwtSecret already present - left as-is"
+} else {
+    $jwt = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
+    Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'JwtSecret' `
+        -SecretValue (ConvertTo-SecureString $jwt -AsPlainText -Force) | Out-Null
+    Write-Success "Stored secret : JwtSecret (newly generated, 64 chars)"
+}
+
+# ── 5.2  CsrfSigningKey ──────────────────────────────────────────
+if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'CsrfSigningKey' -ErrorAction SilentlyContinue) {
+    Write-Skip "CsrfSigningKey already present - left as-is"
+} else {
+    $csrf = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
+    Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'CsrfSigningKey' `
+        -SecretValue (ConvertTo-SecureString $csrf -AsPlainText -Force) | Out-Null
+    Write-Success "Stored secret : CsrfSigningKey (newly generated, 64 chars)"
+}
+
+# ── 5.3  RazorpayWebhookSecret ───────────────────────────────────
+# We choose this value; same string goes into the Razorpay Dashboard.
+# First deploy generates + prints it; later deploys leave it alone.
+if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RazorpayWebhookSecret' -ErrorAction SilentlyContinue) {
+    Write-Skip "RazorpayWebhookSecret already present - left as-is"
+} else {
+    # RandomNumberGenerator.Fill() replaces the deprecated Create().GetBytes() pattern
+    $bytes = [byte[]]::new(32)
+    [System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+    $whValue = [Convert]::ToBase64String($bytes)
+    Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RazorpayWebhookSecret' `
+        -SecretValue (ConvertTo-SecureString $whValue -AsPlainText -Force) | Out-Null
+    Write-Success "Stored secret : RazorpayWebhookSecret (newly generated - paste into Razorpay dashboard)"
+    Write-Info "Webhook secret value: $whValue"
+}
+
+# ── 5.4  Razorpay key placeholders ───────────────────────────────
+foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
+    if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name -ErrorAction SilentlyContinue) {
+        Write-Skip "$name already present - left as-is"
+    } else {
+        Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name `
+            -SecretValue (ConvertTo-SecureString 'replace-me' -AsPlainText -Force) | Out-Null
+        Write-Success "Stored placeholder : $name  (use Rotate-RazorpayApiKeys-v2.ps1 to set the real value)"
+    }
+}
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 6.  Configure Function App
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 6 - Configure Function App"
+
+# ── 6.1  App settings ────────────────────────────────────────────
+#
+# Three categories of keys (applied in order):
+#
+#   ALWAYS-OVERWRITE  — infra-derived values (storage URIs, KV refs,
+#     AppInsights). Must track infra state on every run.
+#
+#   DEFAULT-IF-ABSENT — operator-tunable defaults (SMTP, WhatsApp
+#     template language). Set on first deploy; left alone thereafter
+#     so portal edits survive re-runs.
+#
+#   EMPTY-IF-ABSENT   — operator-pasted secrets. Added as empty
+#     placeholders so the keys exist in the portal blade; never
+#     overwrite a non-empty existing value.
+#
+# Strategy: read all existing settings first, merge into them locally,
+# then send the full merged set. No existing key is ever deleted.
+
+$existingJson = az functionapp config appsettings list `
+    --name           $envCfg.FunctionApp `
+    --resource-group $envCfg.ResourceGroup `
+    --output         json
+if ($LASTEXITCODE -ne 0) { throw "Failed to read existing Function App settings via az CLI." }
+
+$mergedSettings = @{}
+if ($existingJson) {
+    foreach ($item in ($existingJson | ConvertFrom-Json)) {
+        $mergedSettings[$item.name] = $item.value
+    }
+}
+
+# ALWAYS-OVERWRITE
+$alwaysOverwrite = @{
+    'AzureWebJobsStorage__accountName'      = $envCfg.StorageAccount
+    'AzureWebJobsStorage__blobServiceUri'   = "https://$($envCfg.StorageAccount).blob.core.windows.net"
+    'AzureWebJobsStorage__queueServiceUri'  = "https://$($envCfg.StorageAccount).queue.core.windows.net"
+    'AzureWebJobsStorage__tableServiceUri'  = "https://$($envCfg.StorageAccount).table.core.windows.net"
+    'JWT_SECRET'                            = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=JwtSecret)"
+    'CSRF_SIGNING_KEY'                      = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=CsrfSigningKey)"
+    'AZURE_STORAGE_ACCOUNT_NAME'            = $envCfg.StorageAccount
+    'BLOB_BASE_URL'                         = "https://$($envCfg.StorageAccount).blob.core.windows.net"
+    'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
+    'COOKIE_DOMAIN'                         = $envCfg.CookieDomain
+    'ENVIRONMENT'                           = $Environment
+    'FUNCTIONS_WORKER_RUNTIME'              = 'node'
+    'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
+    'NOTIFICATIONS_QUEUE_NAME'              = 'notifications-out'
+    'WEBHOOKS_QUEUE_NAME'                   = 'webhooks-in'
+    'REVIEW_QUEUE_NAME'                     = 'review-requests'
+    'INVOICE_CONTAINER'                     = 'invoices'
+    'USER_UPLOAD_CONTAINER'                 = 'user-uploads'
+    'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
+    'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
+}
+foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$k] }
+
+# DEFAULT-IF-ABSENT
+$defaultIfAbsent = @{
+    'WHATSAPP_API_VERSION'       = 'v18.0'
+    'WHATSAPP_TEMPLATE_LANGUAGE' = 'en'
+    'SMTP_HOST'                  = 'smtp.gmail.com'
+    'SMTP_PORT'                  = '587'
+    'SMTP_SECURE'                = 'false'
+    'SMTP_USER'                  = 'srilatha.art@gmail.com'
+    'SMTP_SENDER_NAME'           = 'Srilatha Art'
+    'SMTP_SENDER_EMAIL'          = 'srilatha.art@gmail.com'
+    'SMTP_REPLY_TO'              = 'studio@srilatha.art'
+}
+foreach ($k in $defaultIfAbsent.Keys) {
+    if (-not $mergedSettings.ContainsKey($k) -or [string]::IsNullOrEmpty($mergedSettings[$k])) {
+        $mergedSettings[$k] = $defaultIfAbsent[$k]
+    }
+}
+
+# EMPTY-IF-ABSENT
+$emptyIfAbsent = @(
+    'INVOICE_LOGO_URL',
+    'WHATSAPP_ACCESS_TOKEN',
+    'WHATSAPP_PHONE_NUMBER_ID',
+    'WHATSAPP_WABA_ID',
+    'WHATSAPP_WEBHOOK_VERIFY_TOKEN',
+    'WHATSAPP_APP_SECRET',
+    'SMTP_PASS'
+)
+foreach ($k in $emptyIfAbsent) {
+    if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
+}
+
+# Apply via ARM REST API (Invoke-AzRestMethod + JSON body).
+#
+# WHY NOT az functionapp config appsettings set --settings:
+#   az CLI receives KEY=VALUE pairs as separate shell arguments.
+#   On Windows, values that contain @, (, ), ; or embedded = signs —
+#   such as @Microsoft.KeyVault(VaultName=kv-xxx;SecretName=JwtSecret)
+#   — are mangled by the Windows argument parser before az CLI sees
+#   them, producing a non-zero exit code.
+#
+# The ARM REST PUT replaces the full properties block, so we always
+# send the complete merged set. Keys we did not touch are still
+# included because $mergedSettings was seeded from the existing live
+# settings at the top of Phase 6 — nothing is ever deleted.
+$subId = $context.Subscription.Id
+$putPath = "/subscriptions/$subId/resourceGroups/$($envCfg.ResourceGroup)" +
+"/providers/Microsoft.Web/sites/$($envCfg.FunctionApp)" +
+"/config/appsettings?api-version=2022-03-01"
+
+$putBody = @{ properties = $mergedSettings } | ConvertTo-Json -Depth 5 -Compress
+
+$putResponse = Invoke-AzRestMethod -Method PUT -Path $putPath -Payload $putBody
+
+if ($putResponse.StatusCode -notin @(200, 201)) {
+    throw "Failed to apply Function App settings via ARM REST (HTTP $($putResponse.StatusCode)): $($putResponse.Content)"
+}
+Write-Success "Function App settings applied ($($mergedSettings.Count) keys merged)"
+
+# ── 6.2  Platform CORS on the Function App ───────────────────────
+# Read the current CORS config before writing; only call Set-AzResource
+# when the desired origins differ from the current ones.
+$faResource = Get-AzResource `
+    -ResourceGroupName $envCfg.ResourceGroup `
+    -ResourceType      'Microsoft.Web/sites' `
+    -Name              $envCfg.FunctionApp
+
+$currentCorsConfig = (Get-AzResource `
+        -ResourceId   "$($faResource.ResourceId)/config/web" `
+        -ApiVersion   '2022-03-01' `
+        -ErrorAction  SilentlyContinue).Properties.cors
+
+$currentFaCorsOrigins = if ($currentCorsConfig -and $currentCorsConfig.allowedOrigins) {
+    @($currentCorsConfig.allowedOrigins | Sort-Object)
+} else { @() }
+$desiredFaCorsOrigins = @($envCfg.CorsOrigins | Sort-Object)
+
+$faCorsNeedsUpdate = $currentFaCorsOrigins.Count -eq 0 -or
+(Compare-Object $currentFaCorsOrigins $desiredFaCorsOrigins)
+
+if ($faCorsNeedsUpdate) {
+    Set-AzResource `
+        -ResourceId  "$($faResource.ResourceId)/config/web" `
+        -Properties  @{ cors = @{ allowedOrigins = $envCfg.CorsOrigins; supportCredentials = $true } } `
+        -ApiVersion  '2022-03-01' `
+        -Force | Out-Null
+    Write-Success "Function App CORS updated for: $($envCfg.CorsOrigins -join ', ')"
+} else {
+    Write-Skip "Function App CORS already correct - no update needed"
+}
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 7.  Function App MI + runtime RBAC
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 7 - Function App Managed Identity runtime RBAC"
+
+Write-Success "Function App MI principalId : $principalId"
+
+# Remove any mis-scoped legacy 'Key Vault Administrator' assignment
+# that earlier versions of this script placed on the Function App resource.
+Get-AzRoleAssignment -ObjectId $spObjectId -Scope $faResource.ResourceId -ErrorAction SilentlyContinue |
+    Where-Object { $_.RoleDefinitionName -eq 'Key Vault Administrator' } |
+    ForEach-Object {
+        Remove-AzRoleAssignment `
+            -ObjectId           $spObjectId `
+            -RoleDefinitionName $_.RoleDefinitionName `
+            -Scope              $_.Scope `
+            -ErrorAction        SilentlyContinue
+        Write-Info "Removed mis-scoped legacy role: $($_.RoleDefinitionName) at $($_.Scope)"
+    }
+
+# Grant the Function App MI its runtime roles
+Write-Info "Applying Function App MI runtime roles..."
+$miResult = Apply-RolePlan `
+    -ObjectId       $principalId `
+    -Plan           $mi_RuntimeRoles `
+    -StorageAccount $storageAccount `
+    -KeyVault       $keyVault `
+    -AppInsights    $appInsights
+if ($miResult.Failed -gt 0) {
+    Write-Err "$($miResult.Failed) MI runtime role(s) failed - Function App may not start correctly. Check Phase 8."
+}
+
+# Re-assert deployer SP durable roles
+Write-Info "Re-asserting deployer SP durable roles..."
+$spResult = Apply-RolePlan `
+    -ObjectId       $spObjectId `
+    -Plan           $sp_RuntimeRoles `
+    -StorageAccount $storageAccount `
+    -KeyVault       $keyVault `
+    -AppInsights    $appInsights
+if ($spResult.Failed -gt 0) {
+    Write-Err "$($spResult.Failed) SP runtime role(s) failed - secret rotation and deploy-time ops may fail."
+}
+
+# Only wait if new assignments were actually made this run.
+$totalNew = $miResult.New + $spResult.New
+if ($totalNew -gt 0) {
+    Write-Info "Waiting 30s for RBAC propagation ($totalNew new assignment(s))..."
+    Start-Sleep -Seconds 30
+} else {
+    Write-Skip "All MI + SP roles already existed - skipping propagation wait"
+}
+
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 8.  Verify RBAC + summary
+# ─────────────────────────────────────────────────────────────────
+Write-Step "PHASE 8 - Verify RBAC on Function App MI"
+
+$miAssignments = Get-AzRoleAssignment -ObjectId $principalId -ErrorAction SilentlyContinue
+if (-not $miAssignments) {
+    Write-Err "No role assignments visible on the Function App MI. RBAC propagation may still be in flight - re-run this script in a minute, or check the Portal."
+} else {
+    Write-Success "Function App MI currently holds:"
+    Write-Host ''
+    "{0,-40} {1}" -f 'Role', 'Scope (shortened)' | Write-Host -ForegroundColor DarkGray
+    "{0,-40} {1}" -f ('─' * 38), ('─' * 60) | Write-Host -ForegroundColor DarkGray
+    foreach ($a in $miAssignments | Sort-Object Scope, RoleDefinitionName) {
+        $scopeShort = $a.Scope `
+            -replace '^/subscriptions/[^/]+/resourceGroups/', 'rg:' `
+            -replace '/providers/Microsoft\.', '/'
+        "{0,-40} {1}" -f $a.RoleDefinitionName, $scopeShort | Write-Host
+    }
+    Write-Host ''
+
+    $required = @(
+        @{ Role = 'Key Vault Secrets User'; ScopeContains = $envCfg.KeyVault }
+        @{ Role = 'Storage Blob Data Owner'; ScopeContains = $envCfg.StorageAccount }
+        @{ Role = 'Storage Table Data Contributor'; ScopeContains = $envCfg.StorageAccount }
+        @{ Role = 'Storage Queue Data Contributor'; ScopeContains = $envCfg.StorageAccount }
+    )
+    $missing = @()
+    foreach ($r in $required) {
+        $hit = $miAssignments | Where-Object {
+            $_.RoleDefinitionName -eq $r.Role -and $_.Scope -like "*$($r.ScopeContains)*"
+        }
+        if (-not $hit) { $missing += "$($r.Role) on *$($r.ScopeContains)*" }
+    }
+    if ($missing.Count -gt 0) {
+        Write-Err 'Function App MI is MISSING these REQUIRED roles:'
+        $missing | ForEach-Object { Write-Err "   • $_" }
+        Write-Err 'Re-run this script - RBAC reads sometimes lag even when the assignment already exists.'
+    } else {
+        Write-Success 'All required RBAC roles are present. Function App is ready to run.'
+    }
+}
+
+# ── Final summary ────────────────────────────────────────────────
+$functionUrl = "https://$($envCfg.FunctionApp).azurewebsites.net"
+
+Write-Host @"
+
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║                   DEPLOYMENT COMPLETE ✓                       ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+Environment          : $Environment
+Resource Group       : $($envCfg.ResourceGroup)
+Storage Account      : $($envCfg.StorageAccount)
+Function App         : $($envCfg.FunctionApp)
+Application Insights : $($envCfg.AppInsights)
+Key Vault            : $($envCfg.KeyVault)
+Function App URL     : $functionUrl
+
+📦 Tables      ($($tableNames.Count))     : $($tableNames -join ', ')
+📬 Queues      ($($queueNames.Count))     : $($queueNames -join ', ')
+🗂️  Containers ($($blobContainers.Count)) : $(($blobContainers | ForEach-Object { "$($_.Name)[$($_.PublicAccess)]" }) -join ', ')
+
+🔐 Key Vault Secrets
+   • JwtSecret              (auto-generated once, never overwritten on re-run)
+   • CsrfSigningKey         (auto-generated once, never overwritten on re-run)
+   • RazorpayWebhookSecret  (auto-generated once - paste into Razorpay dashboard)
+   • RazorpayKeyId          (placeholder - set via infra/Rotate-RazorpayApiKeys-v2.ps1)
+   • RazorpayKeySecret      (placeholder - set via infra/Rotate-RazorpayApiKeys-v2.ps1)
+
+📋 Next Steps
+   1. Deploy backend code             : func azure functionapp publish $($envCfg.FunctionApp)
+   2. Create Static Web App via Portal: connect to GitHub repo for CI/CD
+   3. After SWA exists                : re-run this script or update CORS_ORIGIN manually
+   4. Sign vendors                    : Razorpay + Shiprocket + Meta WhatsApp
+                                        then run infra/Rotate-RazorpayApiKeys-v2.ps1
+
+🛡️ Untouched (legacy)
+   ✗ rg-tsa-dev   - left alone
+   ✗ rg-tsa-prd   - left alone
+
+"@ -ForegroundColor Green
+
+Write-Host "Deployment completed: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
+
+# ── Empty app settings ───────────────────────────────────────────
+# Read the live settings back and list every key whose value is empty
+# so the operator knows exactly what still needs to be filled in.
+$liveJson = az functionapp config appsettings list `
+    --name           $envCfg.FunctionApp `
+    --resource-group $envCfg.ResourceGroup `
+    --output         json 2>$null
+
+$emptyKeys = if ($liveJson) {
+    ($liveJson | ConvertFrom-Json) |
+        Where-Object { [string]::IsNullOrEmpty($_.value) } |
+        Select-Object -ExpandProperty name |
+        Sort-Object
+} else { @() }
+
+if ($emptyKeys.Count -gt 0) {
+    Write-Host ''
+    Write-Host "  ⚠  $($emptyKeys.Count) app setting(s) with empty values — operator action required:" -ForegroundColor Yellow
+    foreach ($key in $emptyKeys) {
+        Write-Host "       • $key" -ForegroundColor Yellow
+    }
+    Write-Host ''
+} else {
+    Write-Host ''
+    Write-Host "  ✓ All app settings have values." -ForegroundColor Green
+    Write-Host ''
+}

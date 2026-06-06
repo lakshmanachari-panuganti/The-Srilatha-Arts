@@ -86,15 +86,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
-
-# Azure connection - uses the deployer service principal whose creds
-# are exposed as env vars (see docs/Azure-Connectivity.ps1 for the
-# same pattern used outside this script).
-$securePassword = ConvertTo-SecureString $env:MY_APPREG_CLIENT_SECRET -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential ($env:MY_APPREG_CLIENT_ID, $securePassword)
-Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential $credential | Out-Null
-
-
+& "$PSScriptRoot\Azure-Connectivity.ps1"
 # ═══════════════════════════════════════════════════════════════════
 #  PART B.  Configuration (all environment-dependent values here)
 # ═══════════════════════════════════════════════════════════════════
@@ -152,7 +144,11 @@ $tableNames = @(
     'wishlist', 'cart', 'reviews', 'customOrders',
     'newsletterSubscribers',
     'addresses', 'notifications',
-    'staff', 'auditLog', 'rateLimits'
+    'staff', 'auditLog', 'rateLimits',
+    # Notification + WhatsApp tables (added 2026-06-04). emailLogs
+    # holds per-attempt SMTP delivery logs; whatsappMessages /
+    # whatsappConversations back the admin Conversation Center.
+    'emailLogs', 'whatsappMessages', 'whatsappConversations'
 )
 
 # ── B.3  Storage queues (per new-backend.md §2.3) ───────────────────
@@ -169,6 +165,9 @@ $blobContainers = @(
     @{ Name = 'products'; PublicAccess = 'Blob' }
     @{ Name = 'categories'; PublicAccess = 'Blob' }
     @{ Name = 'assets'; PublicAccess = 'Blob' }
+    # Public so the WhatsApp Cloud API + email clients can fetch the
+    # letterhead logo referenced by INVOICE_LOGO_URL without auth.
+    @{ Name = 'branding'; PublicAccess = 'Blob' }
     @{ Name = 'invoices'; PublicAccess = 'Off' }
     @{ Name = 'user-uploads'; PublicAccess = 'Off' }
 )
@@ -318,6 +317,13 @@ Write-Host @"
 
 "@ -ForegroundColor Magenta
 
+# BUG4: Require explicit confirmation before touching production.
+if ($Environment -eq 'PRD') {
+    Write-Host "`n  ⚠  You are about to modify PRODUCTION infrastructure." -ForegroundColor Red
+    $confirm = Read-Host "  Type 'yes' to continue"
+    if ($confirm -ne 'yes') { Write-Info "Aborted by operator."; exit 0 }
+}
+
 # ─────────────────────────────────────────────────────────────────
 #  PHASE 1.  Prerequisites
 # ─────────────────────────────────────────────────────────────────
@@ -331,6 +337,14 @@ foreach ($mod in $requiredModules) {
     Write-Success "Module available: $mod"
 }
 
+# az CLI is required for the Phase 6.1 Function App settings I/O
+# workaround (see the connection block at the top of the script).
+if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
+    Write-Err "Missing 'az' CLI on PATH  →  https://aka.ms/installazurecli"
+    exit 1
+}
+Write-Success "az CLI available"
+
 $context = Get-AzContext
 if (-not $context) {
     Write-Err "Not logged in. Run: Connect-AzAccount"
@@ -339,10 +353,37 @@ if (-not $context) {
 Write-Success "Logged in as  : $($context.Account.Id)"
 Write-Success "Subscription  : $($context.Subscription.Name) ($($context.Subscription.Id))"
 
+# Pin the az CLI session to the SAME subscription as Az PowerShell.
+# Otherwise az defaults to whatever the SP's first subscription is,
+# which may not be where the resources live - causing every
+# `az functionapp show / config / identity` call to miss with
+# ResourceNotFound and the script to wrongly fall through to create.
+az account set --subscription $context.Subscription.Id --output none
+if ($LASTEXITCODE -ne 0) {
+    Write-Err "Failed to pin az CLI to subscription $($context.Subscription.Id)."
+    exit 1
+}
+Write-Success "az CLI sub set: $($context.Subscription.Id)"
+
+# BUG2: Validate required SP environment variables before any Az calls.
+# Missing vars cause cryptic null-reference errors deep in Phase 3 under
+# Set-StrictMode -Version Latest.
+foreach ($var in @('MY_APPREG_CLIENT_ID', 'MY_APPREG_CLIENT_SECRET', 'MY_APPREG_TENANT_ID')) {
+    if ([string]::IsNullOrEmpty([System.Environment]::GetEnvironmentVariable($var))) {
+        Write-Err "Required environment variable missing: $var"
+        exit 1
+    }
+}
+Write-Success "SP env vars   : all present (MY_APPREG_CLIENT_ID, MY_APPREG_CLIENT_SECRET, MY_APPREG_TENANT_ID)"
+
 # Resolve the deployer SP's object id once - used by both Phase 3 and
 # Phase 7. The Get-Az call requires Directory.Read for the SP itself,
 # which the env-var SP has implicitly as a directory member.
 $spObjectId = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID).Id
+if (-not $spObjectId) {
+    Write-Err "Could not resolve SP object ID for client ID: $env:MY_APPREG_CLIENT_ID - verify the app registration exists in this tenant."
+    exit 1
+}
 Write-Success "Deployer SP   : $spObjectId"
 
 
@@ -399,21 +440,57 @@ if ($appInsights) {
 }
 
 # ── 2.4  Function App (consumption, Linux, Node 22) ──────────────
-$functionApp = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp -ErrorAction SilentlyContinue
+#       Done via az CLI - Get/New/Update-AzFunctionApp in
+#       Az.Functions v4.3.2 all hit the GetRuntimeName.ContainsKey()
+#       null-key bug on Linux Consumption apps (see top of file).
+#
+#       `az functionapp show` exits 3 (ResourceNotFoundError) when
+#       the app doesn't exist. PowerShell 7.4+'s
+#       $PSNativeCommandUseErrorActionPreference (default $true) would
+#       turn that into a terminating error under our
+#       $ErrorActionPreference='Stop' setting, so we toggle it off
+#       around the call. After the call we explicitly distinguish:
+#         exit 0  → exists, parse JSON
+#         exit 3  → not found, fall through to create
+#         other   → real error, surface it loudly
+$functionApp = $null
+$savedNativePref = $PSNativeCommandUseErrorActionPreference
+$PSNativeCommandUseErrorActionPreference = $false
+try {
+    $functionAppJson = az functionapp show `
+        --name           $envCfg.FunctionApp `
+        --resource-group $envCfg.ResourceGroup `
+        --output         json 2>$null
+    $showExit = $LASTEXITCODE
+} finally {
+    $PSNativeCommandUseErrorActionPreference = $savedNativePref
+}
+
+if ($showExit -eq 0 -and $functionAppJson) {
+    $functionApp = $functionAppJson | ConvertFrom-Json
+} elseif ($showExit -ne 0 -and $showExit -ne 3) {
+    throw "az functionapp show exited with code $showExit - check subscription / RG access."
+}
+
 if ($functionApp) {
     Write-Success "Function App exists         : $($envCfg.FunctionApp)"
 } else {
     Write-Info "Creating Function App       : $($envCfg.FunctionApp)"
-    $functionApp = New-AzFunctionApp `
-        -ResourceGroupName $envCfg.ResourceGroup `
-        -Name $envCfg.FunctionApp `
-        -StorageAccountName $envCfg.StorageAccount `
-        -Location $envCfg.Location `
-        -Runtime 'Node' `
-        -RuntimeVersion '22' `
-        -FunctionsVersion '4' `
-        -OSType 'Linux' `
-        -ApplicationInsightsName $envCfg.AppInsights
+    $functionAppJson = az functionapp create `
+        --name                      $envCfg.FunctionApp `
+        --resource-group            $envCfg.ResourceGroup `
+        --storage-account           $envCfg.StorageAccount `
+        --consumption-plan-location $envCfg.Location `
+        --runtime                   node `
+        --runtime-version           22 `
+        --functions-version         4 `
+        --os-type                   Linux `
+        --app-insights              $envCfg.AppInsights `
+        --output                    json
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to create Function App via az CLI."
+    }
+    $functionApp = $functionAppJson | ConvertFrom-Json
     Write-Success "Function App created        : $($envCfg.FunctionApp)"
 }
 
@@ -423,13 +500,46 @@ if ($keyVault) {
     Write-Success "Key Vault exists            : $($envCfg.KeyVault)"
 } else {
     Write-Info "Creating Key Vault          : $($envCfg.KeyVault)"
-    $keyVault = New-AzKeyVault `
-        -Name              $envCfg.KeyVault `
-        -ResourceGroupName $envCfg.ResourceGroup `
-        -Location          $envCfg.Location `
-        -Sku               Standard
+    # BUG1: Must create in RBAC authorization mode, not the default
+    # Vault Access Policy mode. All role assignments in this script
+    # (Key Vault Secrets Officer / Key Vault Secrets User) are RBAC
+    # assignments and are silently ignored on access-policy vaults.
+    # M3: Enable purge protection for PRD (one-way door - prevents
+    # accidental permanent deletion of secrets).
+    $kvParams = @{
+        Name                    = $envCfg.KeyVault
+        ResourceGroupName       = $envCfg.ResourceGroup
+        Location                = $envCfg.Location
+        Sku                     = 'Standard'
+        EnableRbacAuthorization = $true
+    }
+    if ($Environment -eq 'PRD') {
+        $kvParams['EnablePurgeProtection'] = $true
+        Write-Info "PRD: purge protection enabled on Key Vault"
+    }
+    $keyVault = New-AzKeyVault @kvParams
     Write-Success "Key Vault created           : $($envCfg.KeyVault)"
 }
+
+# ── 2.6  Enable Function App System-Assigned Managed Identity ────
+# BUG3 / M5: Enabled HERE (before Phase 6 settings and any code
+# deployment) so the MI exists as soon as the app does. If code is
+# deployed between Phase 6 and Phase 7, the KV refs will already
+# resolve correctly. az functionapp identity assign is idempotent -
+# safe on an app that already has an MI; returns the existing id.
+Write-Info "Enabling Function App System-Assigned Managed Identity..."
+$identityJson = az functionapp identity assign `
+    --name           $envCfg.FunctionApp `
+    --resource-group $envCfg.ResourceGroup `
+    --output         json
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to enable Function App Managed Identity via az CLI."
+}
+$principalId = ($identityJson | ConvertFrom-Json).principalId
+if (-not $principalId) {
+    throw "principalId missing from 'az functionapp identity assign' output. Re-run in 30s if the MI was just created."
+}
+Write-Success "Function App MI enabled     : principalId=$principalId"
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -444,15 +554,20 @@ if ($keyVault) {
 
 Write-Step "PHASE 3 - Bootstrap deployer-SP RBAC (data plane access)"
 
-[void] (Apply-RolePlan `
-        -ObjectId $spObjectId `
-        -Plan $sp_BootstrapRoles `
-        -StorageAccount $storageAccount `
-        -KeyVault $keyVault `
-        -AppInsights $appInsights)
+# M6: capture count so a partial failure is surfaced loudly rather
+# than silently swallowed - callers own the fatality decision.
+$bootstrapOk = Apply-RolePlan `
+    -ObjectId       $spObjectId `
+    -Plan           $sp_BootstrapRoles `
+    -StorageAccount $storageAccount `
+    -KeyVault       $keyVault `
+    -AppInsights    $appInsights
+if ($bootstrapOk -lt $sp_BootstrapRoles.Count) {
+    Write-Err "Only $bootstrapOk / $($sp_BootstrapRoles.Count) bootstrap roles assigned. Phases 4/5 may 403 - check SP permissions, then re-run."
+}
 
-Write-Info "Waiting 15s for RBAC propagation before data-plane ops..."
-Start-Sleep -Seconds 15
+Write-Info "Waiting 30s for RBAC propagation before data-plane ops..."
+Start-Sleep -Seconds 30
 
 # Storage context - AAD-based, no shared keys. This call validates
 # the bootstrap RBAC above; if it fails the next phases would
@@ -567,7 +682,57 @@ foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
 Write-Step "PHASE 6 - Configure Function App"
 
 # ── 6.1  App settings (env vars) ─────────────────────────────────
-$appSettings = @{
+#
+# Strategy: Update-AzFunctionAppSetting replaces the app settings
+# collection with the hashtable it's given. To guarantee we never
+# delete a setting the operator added in the portal (or a value they
+# pasted in for a secret), we ALWAYS read the current settings first
+# and merge into them locally. The cmdlet then receives the full
+# desired state, eliminating any reliance on its implicit merge
+# behaviour.
+#
+# Three categories of keys:
+#
+#   1. ALWAYS-OVERWRITE  — derived from $envCfg / fixed constants
+#      (storage URIs, KV refs, queue names, AppInsights). These must
+#      track infra state on every run.
+#
+#   2. DEFAULT-IF-ABSENT — sensible defaults that an operator might
+#      reasonably tune per environment (template language, SMTP
+#      host/port, sender name, etc). Set on first deploy; left alone
+#      on later runs so portal edits survive.
+#
+#   3. EMPTY-IF-ABSENT   — real secrets and operator-supplied tokens.
+#      Initialise as empty placeholders so the keys exist in the
+#      portal blade for the operator to paste real values into, but
+#      never overwrite a non-empty existing value.
+
+# ── 1. Read existing settings (via az CLI) ──────────────────────
+#       Get-AzFunctionAppSetting in Az.Functions v4.3.2 throws
+#       'Value cannot be null. (Parameter "key")' inside
+#       GetRuntimeName.ContainsKey() on Linux Consumption Function
+#       Apps. `az` is unaffected, so we shell out for this single
+#       read. Format: an array of {name, value, slotSetting} objects.
+$existingJson = az functionapp config appsettings list `
+    --name           $envCfg.FunctionApp `
+    --resource-group $envCfg.ResourceGroup `
+    --output         json
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to read existing Function App settings via az CLI."
+}
+$existingSettings = @{}
+if ($existingJson) {
+    foreach ($item in ($existingJson | ConvertFrom-Json)) {
+        $existingSettings[$item.name] = $item.value
+    }
+}
+
+# ── 2. Start the merged hashtable from existing state ────────────
+$mergedSettings = @{}
+foreach ($k in $existingSettings.Keys) { $mergedSettings[$k] = $existingSettings[$k] }
+
+# ── 3. ALWAYS-OVERWRITE: derived / infra-tracked values ─────────
+$alwaysOverwrite = @{
     # MSI-based storage binding for the Functions runtime host -
     # works only AFTER Phase 7 grants the MI 'Storage Blob Data Owner'.
     'AzureWebJobsStorage__accountName'      = $envCfg.StorageAccount
@@ -582,12 +747,13 @@ $appSettings = @{
     # Read by application code via DefaultAzureCredential.
     'AZURE_STORAGE_ACCOUNT_NAME'            = $envCfg.StorageAccount
 
-    # Non-secret settings.
+    # Non-secret settings derived from infra.
     'BLOB_BASE_URL'                         = "https://$($envCfg.StorageAccount).blob.core.windows.net"
     'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
     'COOKIE_DOMAIN'                         = $envCfg.CookieDomain
     'ENVIRONMENT'                           = $Environment
     'FUNCTIONS_WORKER_RUNTIME'              = 'node'
+    'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
 
     # Queue names (new-backend.md §2.3 / §14.3).
     'NOTIFICATIONS_QUEUE_NAME'              = 'notifications-out'
@@ -602,13 +768,67 @@ $appSettings = @{
     'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
     'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
 }
+foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$k] }
 
-Update-AzFunctionAppSetting `
-    -ResourceGroupName $envCfg.ResourceGroup `
-    -Name $envCfg.FunctionApp `
-    -AppSetting $appSettings `
-    -Force | Out-Null
-Write-Success "Function App settings applied"
+# ── 4. DEFAULT-IF-ABSENT: operator-tunable defaults ─────────────
+$defaultIfAbsent = @{
+    'WHATSAPP_API_VERSION'                  = 'v23.0'
+    'WHATSAPP_TEMPLATE_LANGUAGE'            = 'en_US'
+    'SMTP_HOST'                             = 'smtp.gmail.com'
+    'SMTP_PORT'                             = '587'
+    'SMTP_SECURE'                           = 'false'
+    'SMTP_USER'                             = 'srilatha.art@gmail.com'
+    'SMTP_SENDER_NAME'                      = 'Srilatha Art'
+    'SMTP_SENDER_EMAIL'                     = 'srilatha.art@gmail.com'
+    'SMTP_REPLY_TO'                         = 'studio@srilatha.art'
+}
+foreach ($k in $defaultIfAbsent.Keys) {
+    if (-not $mergedSettings.ContainsKey($k) -or [string]::IsNullOrEmpty($mergedSettings[$k])) {
+        $mergedSettings[$k] = $defaultIfAbsent[$k]
+    }
+}
+
+# ── 5. EMPTY-IF-ABSENT: operator-pasted secrets + tokens ────────
+$emptyIfAbsent = @(
+    'INVOICE_LOGO_URL',
+    'WHATSAPP_ACCESS_TOKEN',
+    'WHATSAPP_PHONE_NUMBER_ID',
+    'WHATSAPP_WABA_ID',
+    'WHATSAPP_WEBHOOK_VERIFY_TOKEN',
+    'WHATSAPP_APP_SECRET',
+    'SMTP_PASS'
+)
+foreach ($k in $emptyIfAbsent) {
+    if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
+}
+
+# ── 6. Apply the full merged set (via az CLI) ───────────────────
+#       `az functionapp config appsettings set --settings` is
+#       additive at the service: keys we don't send are preserved.
+#       We send the full merged set anyway so the script remains the
+#       authoritative source of state for every key it knows about.
+#
+#       Values are passed as KEY=VALUE strings. az CLI splits on the
+#       first '=', so subsequent '=' / ';' / '(' / ')' inside Key
+#       Vault references like
+#         @Microsoft.KeyVault(VaultName=...;SecretName=...)
+#       are preserved verbatim. PowerShell 7's native command
+#       argument passing quotes any element containing spaces (e.g.
+#       SMTP_SENDER_NAME='Srilatha Art'), so no manual escaping is
+#       required.
+$settingsArgs = @()
+foreach ($k in $mergedSettings.Keys) {
+    $settingsArgs += "$k=$($mergedSettings[$k])"
+}
+az functionapp config appsettings set `
+    --name           $envCfg.FunctionApp `
+    --resource-group $envCfg.ResourceGroup `
+    --settings       $settingsArgs `
+    --output         none
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to apply Function App settings via az CLI."
+}
+Write-Success "Function App settings applied (merged $($mergedSettings.Count) keys)"
 
 # ── 6.2  Platform CORS on the Function App ───────────────────────
 $resourceId = (Get-AzResource -ResourceGroupName $envCfg.ResourceGroup -ResourceType 'Microsoft.Web/sites' -Name $envCfg.FunctionApp).ResourceId
@@ -633,17 +853,20 @@ Write-Success "Platform CORS configured (with credentials) for: $($envCfg.CorsOr
 
 Write-Step "PHASE 7 - Function App Managed Identity + runtime RBAC"
 
-# ── 7.1  Enable the System-Assigned MI on the Function App ───────
-Update-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp -IdentityType SystemAssigned -Force | Out-Null
-$functionApp = Get-AzFunctionApp -ResourceGroupName $envCfg.ResourceGroup -Name $envCfg.FunctionApp
-$principalId = $functionApp.IdentityPrincipalId
-Write-Success "Function App MI enabled - principalId: $principalId"
+# ── 7.1  Managed Identity (already enabled in Phase 2.6) ─────────
+# MI was enabled in Phase 2.6 so it exists before settings are applied
+# and before any code is deployed. $principalId is already set.
+Write-Success "Function App MI principalId : $principalId"
 
 # ── 7.2  Clean up any mis-scoped legacy assignment ───────────────
 # Earlier versions of this script mis-scoped 'Key Vault Administrator'
 # to the Function App resource. Remove it so the only visible vault
 # assignment for the SP is the clean Phase 7 one below.
-$badScope = $functionApp.Id
+# M4: Use Az PowerShell canonical resource ID (proper casing) rather
+# than the all-lowercase ID in `az functionapp show` JSON, which can
+# cause Get-AzRoleAssignment's internal scope prefix match to miss.
+$faResource = Get-AzResource -ResourceGroupName $envCfg.ResourceGroup -ResourceType 'Microsoft.Web/sites' -Name $envCfg.FunctionApp -ErrorAction SilentlyContinue
+$badScope = if ($faResource) { $faResource.ResourceId } else { $functionApp.id }
 Get-AzRoleAssignment -ObjectId $spObjectId -Scope $badScope -ErrorAction SilentlyContinue |
     Where-Object { $_.RoleDefinitionName -eq 'Key Vault Administrator' } |
     ForEach-Object {
@@ -653,24 +876,30 @@ Get-AzRoleAssignment -ObjectId $spObjectId -Scope $badScope -ErrorAction Silentl
 
 # ── 7.3  Grant Function App MI its runtime roles ─────────────────
 Write-Info "Applying Function App MI runtime roles..."
-[void] (Apply-RolePlan `
-        -ObjectId $principalId `
-        -Plan $mi_RuntimeRoles `
-        -StorageAccount $storageAccount `
-        -KeyVault $keyVault `
-        -AppInsights $appInsights)
+$miRoleOk = Apply-RolePlan `
+    -ObjectId       $principalId `
+    -Plan           $mi_RuntimeRoles `
+    -StorageAccount $storageAccount `
+    -KeyVault       $keyVault `
+    -AppInsights    $appInsights
+if ($miRoleOk -lt $mi_RuntimeRoles.Count) {
+    Write-Err "Only $miRoleOk / $($mi_RuntimeRoles.Count) MI runtime roles assigned - Function App may fail to start. Check Phase 8 output."
+}
 
 # ── 7.4  Re-assert deployer SP durable roles ─────────────────────
 Write-Info "Re-asserting deployer SP durable roles..."
-[void] (Apply-RolePlan `
-        -ObjectId $spObjectId `
-        -Plan $sp_RuntimeRoles `
-        -StorageAccount $storageAccount `
-        -KeyVault $keyVault `
-        -AppInsights $appInsights)
+$spRoleOk = Apply-RolePlan `
+    -ObjectId       $spObjectId `
+    -Plan           $sp_RuntimeRoles `
+    -StorageAccount $storageAccount `
+    -KeyVault       $keyVault `
+    -AppInsights    $appInsights
+if ($spRoleOk -lt $sp_RuntimeRoles.Count) {
+    Write-Err "Only $spRoleOk / $($sp_RuntimeRoles.Count) SP runtime roles assigned - secret rotation and deploy-time ops may fail."
+}
 
-Write-Info "Waiting 15s for RBAC propagation..."
-Start-Sleep -Seconds 15
+Write-Info "Waiting 30s for RBAC propagation..."
+Start-Sleep -Seconds 30
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -716,23 +945,6 @@ if (-not $miAssignments) {
         Write-Success 'All required RBAC roles are present. Function App is ready to run.'
     }
 }
-
-$spObjectId = (Get-AzADServicePrincipal -ApplicationId $env:MY_APPREG_CLIENT_ID).Id
-$rgscope = Get-AzResourceGroup -Name $envCfg.ResourceGroup
-try {
-    New-AzRoleAssignment `
-        -ObjectId $spObjectId `
-        -RoleDefinitionName 'Storage Table Data Contributor' `
-        -Scope $rgscope.ResourceId `
-        -ErrorAction Stop
-} catch {
-    if ($_.Exception.Message -match "RoleAssignmentExists|already exists") {
-        Write-Host "Role Assignment 'Storage Table Data Contributor' already exists for the SP." -ForegroundColor Green
-    } else {
-        throw
-    }
-}
-
 
 # ── Final summary ────────────────────────────────────────────────
 $functionUrl = "https://$($envCfg.FunctionApp).azurewebsites.net"

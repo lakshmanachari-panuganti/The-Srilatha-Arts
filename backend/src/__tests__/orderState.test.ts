@@ -180,10 +180,9 @@ describe('validateTransitionPayload', () => {
 // ─── getTransitionNotifications ───────────────────────────────────────────────
 
 describe('getTransitionNotifications', () => {
-  it('CONFIRMED notifies customer via whatsapp + email', () => {
+  it('CONFIRMED is silent (customer was already notified at PLACED)', () => {
     const n = getTransitionNotifications('CONFIRMED')
-    expect(n.customer).toContain('whatsapp')
-    expect(n.customer).toContain('email')
+    expect(n.customer).toEqual([])
   })
 
   it('SHIPPED notifies customer via whatsapp + email', () => {
@@ -192,9 +191,21 @@ describe('getTransitionNotifications', () => {
     expect(n.customer).toContain('email')
   })
 
-  it('DELIVERED schedules a review request', () => {
+  it('OUT_FOR_DELIVERY does not send WhatsApp (courier owns that touchpoint)', () => {
+    const n = getTransitionNotifications('OUT_FOR_DELIVERY')
+    expect(n.customer).not.toContain('whatsapp')
+  })
+
+  it('DELIVERED does not send a WhatsApp but schedules a review request', () => {
     const n = getTransitionNotifications('DELIVERED')
+    expect(n.customer).not.toContain('whatsapp')
     expect(n.scheduleReviewRequest).toBe(true)
+  })
+
+  it('CANCELLED, ON_HOLD, REFUNDED still notify customer via whatsapp', () => {
+    expect(getTransitionNotifications('CANCELLED').customer).toContain('whatsapp')
+    expect(getTransitionNotifications('ON_HOLD').customer).toContain('whatsapp')
+    expect(getTransitionNotifications('REFUNDED').customer).toContain('whatsapp')
   })
 
   it('PLACED (no entry in map) returns empty customer array', () => {

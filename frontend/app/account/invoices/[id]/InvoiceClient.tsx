@@ -9,7 +9,6 @@ import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 import { STUDIO_EMAIL, PHONE_DISPLAY, WEBSITE_URL } from '@/lib/site-config'
-import { downloadInvoicePdf } from '@/lib/invoice-pdf'
 
 // Shapes mirrored from the orders.ts toApi() - kept minimal to what the
 // invoice actually renders. Unknown fields ride along untouched.
@@ -37,6 +36,7 @@ interface Order {
   customerPhone?: string
   shippingAddress?: ShippingAddress
   razorpayPaymentId?: string
+  invoiceUrl?: string         // branded blob-backed URL once payment is captured
   createdAt: string
   updatedAt?: string
 }
@@ -143,22 +143,44 @@ export default function InvoiceClient() {
     return () => clearTimeout(t)
   }, [autoPrint, order])
 
+  // Single source of truth: the PDF lives in Azure Blob and is served
+  // through the branded /invoices/{id}.pdf path. We don't regenerate
+  // anything client-side - the same bytes the customer downloads are
+  // the bytes attached to their email and sent via WhatsApp.
   const handleDownload = useCallback(async () => {
     if (!order) return
     setDownloadErr('')
     setDownloading(true)
     try {
-      await downloadInvoicePdf(order, items)
+      const url = order.invoiceUrl || `/invoices/${encodeURIComponent(order.id)}.pdf`
+      const res = await fetch(url, { credentials: 'include' })
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error('Invoice is being generated. Please refresh in a moment.')
+        }
+        throw new Error(`Server returned ${res.status}`)
+      }
+      const blob = await res.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = objectUrl
+      a.download = `invoice-${order.id}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      // Revoke the object URL on the next tick so the browser has time
+      // to start the download.
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
     } catch (e) {
       setDownloadErr(
         e instanceof Error
-          ? `Could not generate the PDF: ${e.message}`
-          : 'Could not generate the PDF.',
+          ? `Could not download the PDF: ${e.message}`
+          : 'Could not download the PDF.',
       )
     } finally {
       setDownloading(false)
     }
-  }, [order, items])
+  }, [order])
 
   // Optional ?auto=download - used by links that want to fire the save
   // dialog as soon as the order data resolves (e.g. a future "email me

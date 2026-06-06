@@ -57,7 +57,7 @@
 param(
     [Parameter()]
     [ValidateSet('dev', 'prd')]
-    [string]$Environment = 'prd',
+    [string]$Environment = 'dev',
 
     [Parameter()]
     [string]$WebhookSecret

@@ -11,7 +11,6 @@
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
-import { randomBytes } from 'crypto'
 import {
   createRazorpayOrder,
   verifyPaymentSignature,
@@ -37,13 +36,9 @@ import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/res
 import { canTransition } from '../services/orderState'
 import { enqueueNotification } from '../services/queue'
 import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
+import { generateOrderNumber } from '../services/orderNumber'
+import { finalizeOrderAfterPayment } from '../services/orderFulfillment'
 import type { OrderItemSnapshot, OrderStatus } from '../types'
-
-function generateOrderId(): string {
-  const year = new Date().getFullYear()
-  const seq = randomBytes(5).toString('hex').toUpperCase()
-  return `TSA-${year}-${seq}`
-}
 
 // ─── POST /api/razorpay/create-order ─────────────────────────
 
@@ -119,7 +114,7 @@ async function createPaymentOrder(
     const totalAmount = subtotal + shippingAmount
     const displayTotal = totalAmount / 100
 
-    const internalOrderId = generateOrderId()
+    const internalOrderId = await generateOrderNumber()
     const now = new Date().toISOString()
     const email = body.customerEmail?.toLowerCase() || (userEmail !== 'guest' ? userEmail : '')
 
@@ -348,20 +343,23 @@ async function verifyPayment(
       }
     }
 
-    if (order.customerEmail) {
-      try {
-        await enqueueNotification({
-          userEmail: order.customerEmail,
-          channel: 'email',
-          templateKey: 'order_confirmed',
-          vars: {
-            customerName: order.customerName,
-            orderId: order.rowKey,
-          },
-        })
-      } catch (notifyErr) {
-        context.warn('verifyPayment: notification enqueue failed (non-fatal)', notifyErr)
+    // Generate invoice + enqueue WhatsApp and email confirmations.
+    // Idempotent - if the webhook beats us to it we'll see invoiceUrl
+    // already set and short-circuit. Enqueue (not direct send) means
+    // SMTP / WhatsApp failures don't block this response; the queue
+    // consumer logs + retries them.
+    try {
+      const refreshed = {
+        ...order,
+        paymentStatus: 'CAPTURED',
+        razorpayPaymentId: body.razorpayPaymentId,
+        status: toStatus,
+        updatedAt: now,
       }
+      await finalizeOrderAfterPayment(refreshed, context)
+    } catch (invErr) {
+      // Don't block the verify response - the webhook will retry.
+      context.error('verifyPayment: finalizeOrderAfterPayment failed', invErr)
     }
 
     return jsonResponse({ ok: true, orderId: order.rowKey, status: toStatus }, 200, {}, origin)
@@ -522,6 +520,25 @@ async function razorpayWebhook(
       } catch (indexErr) {
         context.warn('razorpayWebhook: ordersByStatus index update failed', indexErr)
       }
+    }
+
+    // Same orchestration as the verify path - idempotent on invoiceUrl.
+    try {
+      await finalizeOrderAfterPayment(
+        {
+          ...order,
+          paymentStatus: 'CAPTURED',
+          razorpayPaymentId,
+          status: toStatus,
+          updatedAt: now,
+        },
+        context,
+      )
+    } catch (invErr) {
+      // Returning non-200 makes Razorpay retry the webhook - which is
+      // what we want for transient blob/PDF failures.
+      context.error('razorpayWebhook: finalizeOrderAfterPayment failed', invErr)
+      return { status: 500, body: 'invoice generation failed - will retry' }
     }
 
     return { status: 200, body: 'ok' }
