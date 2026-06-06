@@ -55,9 +55,26 @@ jobs:
           npm run build
           npm prune --omit=dev
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.WORKING_DIRECTORY }}
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PRD }}
+      - name: Package backend as zip
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: zip -r -q "$RUNNER_TEMP/deploy.zip" . -x ".git/*" ".github/*"
+
+      - name: Deploy to Azure Functions (Kudu zipdeploy)
+        # Replaces Azure/functions-action@v1 — GitHub disabled the action's
+        # repo on 2026-06-05 after a supply-chain incident. We POST the zip
+        # to Kudu's /api/zipdeploy endpoint directly, using the MSDeploy
+        # credentials embedded in the publish profile.
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PRD }}
+          APP_NAME: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        run: |
+          set -euo pipefail
+          user=$(echo "$PUBLISH_PROFILE" | xmllint --xpath 'string(//publishProfile[@publishMethod="MSDeploy"]/@userName)' -)
+          pass=$(echo "$PUBLISH_PROFILE" | xmllint --xpath 'string(//publishProfile[@publishMethod="MSDeploy"]/@userPWD)' -)
+          [ -n "$user" ] && [ -n "$pass" ] || { echo "Failed to parse MSDeploy creds from publish profile" >&2; exit 1; }
+          curl -sS -fL --max-time 600 \
+            -u "$user:$pass" \
+            -H "Content-Type: application/zip" \
+            --data-binary "@$RUNNER_TEMP/deploy.zip" \
+            "https://${APP_NAME}.scm.azurewebsites.net/api/zipdeploy"
+          echo "Deploy succeeded"
