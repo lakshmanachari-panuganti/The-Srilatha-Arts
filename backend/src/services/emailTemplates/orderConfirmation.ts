@@ -196,7 +196,7 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
                 <tr>
                   <td style="vertical-align:middle;">
                     <div style="font-size:22px;font-weight:700;letter-spacing:0.04em;color:${COLOR.ink};">Srilatha Art</div>
-                    <div style="font-size:12px;color:${COLOR.inkMute};margin-top:2px;">Handcrafted in Hyderabad</div>
+                    <div style="font-size:12px;color:${COLOR.inkMute};margin-top:2px;">Handcrafted with passion</div>
                   </td>
                   <td style="vertical-align:middle;text-align:right;">
                     ${paymentPillHtml(vars.paymentStatus)}

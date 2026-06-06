@@ -19,6 +19,7 @@
          Phase 6  Configure Function App (app settings + CORS)
          Phase 7  Function App MI runtime RBAC
          Phase 8  Verify RBAC + summary
+         Phase 9  GitHub Actions CI Service Principal (OIDC federated)
     ──────────────────────────────────────────────────────────────────
 
     Idempotency guarantees per phase:
@@ -58,6 +59,12 @@
           • Storage Table Data Contributor   → app data
           • Storage Queue Data Contributor   → queues
           • Monitoring Metrics Publisher     → App Insights
+
+      ▸ GitHub Actions CI Service Principal
+        (sp-github-actions-<slug>-<env>, federated via OIDC)
+          • Website Contributor on Function App → az functionapp
+            deployment source config-zip from the CI workflow,
+            without a long-lived secret or publish profile.
 
     The script also REMOVES any legacy 'Key Vault Administrator'
     assignment that earlier versions mis-scoped to the Function App
@@ -801,6 +808,12 @@ $alwaysOverwrite = @{
     'REVIEW_QUEUE_NAME'                     = 'review-requests'
     'INVOICE_CONTAINER'                     = 'invoices'
     'USER_UPLOAD_CONTAINER'                 = 'user-uploads'
+    # Direct Function-App URL used to build the WhatsApp / email
+    # "view invoice" link. Bypasses the SWA in front of
+    # PUBLIC_SITE_URL, which on the Free tier cannot proxy /api/* to
+    # the linked backend and silently returns the SPA's index.html —
+    # which WhatsApp Cloud then caches as the "document".
+    'INVOICE_PUBLIC_URL_BASE'               = "https://$($envCfg.FunctionApp).azurewebsites.net/api/invoices"
     'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
     'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
 }
@@ -808,8 +821,8 @@ foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$
 
 # DEFAULT-IF-ABSENT
 $defaultIfAbsent = @{
-    'WHATSAPP_API_VERSION'       = 'v18.0'
-    'WHATSAPP_TEMPLATE_LANGUAGE' = 'en'
+    'WHATSAPP_API_VERSION'       = 'v23.0'
+    'WHATSAPP_TEMPLATE_LANGUAGE' = 'en_US'
     'SMTP_HOST'                  = 'smtp.gmail.com'
     'SMTP_PORT'                  = '587'
     'SMTP_SECURE'                = 'false'
@@ -995,6 +1008,138 @@ if (-not $miAssignments) {
     }
 }
 
+
+# ─────────────────────────────────────────────────────────────────
+#  PHASE 9.  GitHub Actions CI Service Principal (OIDC federated)
+# ─────────────────────────────────────────────────────────────────
+#
+# Provisions a dedicated service principal used by the
+# `Deploy Backend · {ENV}` GitHub Actions workflow to push the
+# function code via:
+#     az functionapp deployment source config-zip ...
+#
+# Auth flow: GitHub mints a short-lived OIDC token, presents it to
+# Entra; Entra exchanges it for an AAD access token IF a matching
+# federated credential exists on the app reg. No long-lived secret,
+# no publish profile, no Kudu basic auth.
+#
+# Components per environment:
+#   App Registration : sp-github-actions-<slug>-<env>
+#   Service Principal: linked to the above in this tenant
+#   Federated cred(s):
+#     DEV  → repo:<owner>/<repo>:ref:refs/heads/develop
+#     PRD  → repo:<owner>/<repo>:environment:production
+#            (the prd workflow gates on a GitHub Environment, so
+#             GitHub mints the token with the env-scoped sub claim;
+#             branch-based subjects are NEVER presented in that mode)
+#   RBAC : Website Contributor on the Function App resource
+#          (minimal role for zipdeploy; avoids RG-wide Contributor)
+#
+# Prerequisites for the DEPLOYER SP running THIS script:
+#   - Application.ReadWrite.OwnedBy (Graph) — to create the app reg.
+#     Alternative: Application Administrator role in Entra.
+#   - User Access Administrator (already a documented prereq) —
+#     to grant Website Contributor in 9.4.
+
+Write-Step "PHASE 9 - GitHub Actions CI Service Principal (OIDC)"
+
+# 9.0  Repo + per-environment subject claims
+$GitHubOwner = 'lakshmanachari-panuganti'
+$GitHubRepo = 'The-Srilatha-Arts'
+$ciSpName = "sp-github-actions-$AppSlug-$($Environment.ToLower())"
+
+$federatedSubjects = if ($Environment -eq 'PRD') {
+    @(@{
+            Name    = 'github-actions-environment-production'
+            Subject = "repo:$GitHubOwner/$GitHubRepo`:environment:production"
+        })
+} else {
+    @(@{
+            Name    = 'github-actions-develop'
+            Subject = "repo:$GitHubOwner/$GitHubRepo`:ref:refs/heads/develop"
+        })
+}
+
+# 9.1  App Registration
+$ciAppRaw = az ad app list --display-name $ciSpName --query "[0]" --output json 2>$null
+$ciAppExisted = -not [string]::IsNullOrWhiteSpace($ciAppRaw) -and $ciAppRaw -ne 'null'
+if ($ciAppExisted) {
+    $ciApp = $ciAppRaw | ConvertFrom-Json
+    Write-Skip "App Registration exists  : $ciSpName"
+} else {
+    Write-Info "Creating App Registration: $ciSpName"
+    az ad app create --display-name $ciSpName --sign-in-audience AzureADMyOrg --output none
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to create app registration '$ciSpName'. The deployer SP needs Application.ReadWrite.OwnedBy on Microsoft Graph (or an Entra role such as Application Administrator)."
+    }
+    $ciApp = az ad app list --display-name $ciSpName --query "[0]" --output json | ConvertFrom-Json
+    Write-Success "App Registration created : $ciSpName"
+}
+
+# 9.2  Service Principal
+$ciSpRaw = az ad sp list --filter "appId eq '$($ciApp.appId)'" --query "[0]" --output json 2>$null
+$ciSpExisted = -not [string]::IsNullOrWhiteSpace($ciSpRaw) -and $ciSpRaw -ne 'null'
+if ($ciSpExisted) {
+    $ciSp = $ciSpRaw | ConvertFrom-Json
+    Write-Skip "Service Principal exists : $ciSpName"
+} else {
+    Write-Info "Creating Service Principal: $ciSpName"
+    az ad sp create --id $ciApp.appId --output none
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to create service principal for app '$ciSpName' (appId=$($ciApp.appId))."
+    }
+    $ciSp = az ad sp list --filter "appId eq '$($ciApp.appId)'" --query "[0]" --output json | ConvertFrom-Json
+    Write-Success "Service Principal created: $ciSpName"
+    # Newly-created SPs aren't immediately visible to RBAC reads in
+    # some regions; tiny pause prevents a transient
+    # "PrincipalNotFound" in Phase 9.4.
+    Start-Sleep -Seconds 10
+}
+
+# 9.3  Federated credential(s)
+$existingFedRaw = az ad app federated-credential list --id $ciApp.id --output json 2>$null
+$existingFed = if ([string]::IsNullOrWhiteSpace($existingFedRaw)) { @() } else { $existingFedRaw | ConvertFrom-Json }
+
+foreach ($fc in $federatedSubjects) {
+    $match = $existingFed | Where-Object { $_.subject -eq $fc.Subject }
+    if ($match) {
+        Write-Skip "Federated credential exists: $($fc.Name) ($($fc.Subject))"
+        continue
+    }
+    Write-Info "Adding federated credential : $($fc.Name)"
+    $params = @{
+        name      = $fc.Name
+        issuer    = 'https://token.actions.githubusercontent.com'
+        subject   = $fc.Subject
+        audiences = @('api://AzureADTokenExchange')
+    } | ConvertTo-Json -Compress
+    az ad app federated-credential create --id $ciApp.id --parameters $params --output none
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to add federated credential '$($fc.Name)' on $ciSpName."
+    }
+    Write-Success "Federated credential added : $($fc.Name)"
+}
+
+# 9.4  RBAC: minimal role for zipdeploy on the Function App resource
+$ciRoleOutcome = Assign-AzRoleIfMissing `
+    -ObjectId           $ciSp.id `
+    -RoleDefinitionName 'Website Contributor' `
+    -Scope              $faResource.ResourceId `
+    -ScopeLabel         "Function App [$($envCfg.FunctionApp)]"
+
+# 9.5  Print the values to paste into GitHub repo secrets
+$tenantId = $context.Tenant.Id
+$subId = $context.Subscription.Id
+$envUpper = $Environment.ToUpper()
+
+Write-Host ''
+Write-Host "  → Paste into GitHub repo Settings → Secrets and variables → Actions" -ForegroundColor Cyan
+Write-Host "       AZURE_CLIENT_ID_$envUpper = $($ciApp.appId)" -ForegroundColor White
+Write-Host "       AZURE_TENANT_ID        = $tenantId" -ForegroundColor White
+Write-Host "       AZURE_SUBSCRIPTION_ID  = $subId" -ForegroundColor White
+Write-Host ''
+
+
 # ── Final summary ────────────────────────────────────────────────
 $functionUrl = "https://$($envCfg.FunctionApp).azurewebsites.net"
 
@@ -1048,12 +1193,12 @@ $liveJson = az functionapp config appsettings list `
     --resource-group $envCfg.ResourceGroup `
     --output         json 2>$null
 
-$emptyKeys = if ($liveJson) {
-    ($liveJson | ConvertFrom-Json) |
-        Where-Object { [string]::IsNullOrEmpty($_.value) } |
-        Select-Object -ExpandProperty name |
-        Sort-Object
-} else { @() }
+$emptyKeys = @(if ($liveJson) {
+        ($liveJson | ConvertFrom-Json) |
+            Where-Object { [string]::IsNullOrEmpty($_.value) } |
+            Select-Object -ExpandProperty name |
+            Sort-Object
+    })
 
 if ($emptyKeys.Count -gt 0) {
     Write-Host ''

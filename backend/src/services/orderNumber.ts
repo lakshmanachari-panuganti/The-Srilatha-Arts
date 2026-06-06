@@ -93,10 +93,31 @@ export async function generateOrderNumber(now: Date = new Date()): Promise<strin
 }
 
 /**
- * Format the public invoice URL for an order number. The path is
- * proxied to Azure Blob by the SWA route in staticwebapp.config.json.
+ * Format the public invoice URL for an order number.
+ *
+ * Two modes, in priority order:
+ *
+ *   1. INVOICE_PUBLIC_URL_BASE (preferred when set) — the URL is
+ *      `${INVOICE_PUBLIC_URL_BASE}/{orderNumber}.pdf`. Point this at
+ *      the Function App's `/api/invoices` route to bypass any
+ *      intermediate proxy. Required when the SWA in front of
+ *      PUBLIC_SITE_URL is on the Free tier — Free SWA cannot proxy
+ *      `/api/*` to a linked backend, so the `${PUBLIC_SITE_URL}/invoices/{id}.pdf`
+ *      path silently falls through to the SPA's navigationFallback
+ *      and returns 200 + text/html. WhatsApp Cloud then caches that
+ *      HTML as the "document" attached to the order-confirmation
+ *      template, which lands on the customer's phone as
+ *      `invoice-<id>.pdf.html` instead of a real PDF.
+ *
+ *   2. Fallback to `${PUBLIC_SITE_URL}/invoices/{orderNumber}.pdf`
+ *      for Standard-tier SWA setups where the rewrite to the linked
+ *      Function backend actually works.
  */
 export function invoiceUrlFor(orderNumber: string): string {
+  const explicit = process.env.INVOICE_PUBLIC_URL_BASE
+  if (explicit) {
+    return `${explicit.replace(/\/+$/, '')}/${orderNumber}.pdf`
+  }
   const base = process.env.PUBLIC_SITE_URL || 'https://www.srilatha.art'
   return `${base.replace(/\/+$/, '')}/invoices/${orderNumber}.pdf`
 }

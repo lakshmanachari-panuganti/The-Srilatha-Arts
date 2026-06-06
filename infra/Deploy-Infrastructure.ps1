@@ -764,6 +764,13 @@ $alwaysOverwrite = @{
     'INVOICE_CONTAINER'                     = 'invoices'
     'USER_UPLOAD_CONTAINER'                 = 'user-uploads'
 
+    # Direct Function-App URL used to build the WhatsApp / email
+    # "view invoice" link. Bypasses the SWA in front of
+    # PUBLIC_SITE_URL, which on the Free tier cannot proxy /api/* to
+    # the linked backend and silently returns the SPA's index.html —
+    # which WhatsApp Cloud then caches as the "document".
+    'INVOICE_PUBLIC_URL_BASE'               = "https://$($envCfg.FunctionApp).azurewebsites.net/api/invoices"
+
     # Application Insights.
     'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
     'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
