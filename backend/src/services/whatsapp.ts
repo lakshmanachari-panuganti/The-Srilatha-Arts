@@ -18,8 +18,8 @@
  * a payment failure to the customer).
  */
 
-const WA_API_VERSION = process.env.WHATSAPP_API_VERSION || 'v18.0'
-const WA_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en'
+const WA_API_VERSION = process.env.WHATSAPP_API_VERSION || 'v23.0'
+const WA_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en_US'
 
 export function isWhatsAppConfigured(): boolean {
   return Boolean(
@@ -57,6 +57,10 @@ interface SendTemplateOptions {
   bodyVariables: string[]
   /** Optional DOCUMENT header (used to attach the invoice PDF). */
   documentHeader?: { link: string; filename: string }
+  /** Optional URL-button parameter. When the template was approved with a
+   *  dynamic URL button (e.g. /orders/{{1}}), Meta requires the variable
+   *  to be supplied in the send payload — omitting it fails the send. */
+  urlButton?: { parameter: string; index?: string }
   /** Optional language override - defaults to WHATSAPP_TEMPLATE_LANGUAGE. */
   languageCode?: string
 }
@@ -141,10 +145,19 @@ export async function sendTemplateMessage(
       parameters: opts.bodyVariables.map((v) => ({ type: 'text', text: v })),
     })
   }
+  if (opts.urlButton) {
+    components.push({
+      type: 'button',
+      sub_type: 'url',
+      index: opts.urlButton.index || '0',
+      parameters: [{ type: 'text', text: opts.urlButton.parameter }],
+    })
+  }
 
   const url = `https://graph.facebook.com/${WA_API_VERSION}/${phoneNumberId}/messages`
   const payload = {
     messaging_product: 'whatsapp',
+    recipient_type: 'individual',
     to: normalisePhone(opts.toPhone),
     type: 'template',
     template: {

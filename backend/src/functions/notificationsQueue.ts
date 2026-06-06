@@ -294,6 +294,9 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
 interface WhatsAppTemplateSpec {
   bodyVariables: string[]
   documentHeader?: { link: string; filename: string }
+  /** When the template was approved with a dynamic URL button, Meta requires
+   *  the {{1}} substitution to be supplied in the send. */
+  urlButton?: { parameter: string; index?: string }
   eventNote: string
 }
 
@@ -309,13 +312,15 @@ const WA_TEMPLATE_BUILDERS: Record<
     orderId: string,
   ) => WhatsAppTemplateSpec | null
 > = {
-  // {{1}}=customerName, {{2}}=orderId; DOCUMENT header carries the invoice.
+  // {{1}}=customerName, {{2}}=orderId; DOCUMENT header carries the invoice;
+  // URL button {{1}}=orderId for the "View order" link.
   order_confirmation_new_artwork: (vars, order, orderId) => {
     const invoiceUrl = vars.invoiceUrl || (order.invoiceUrl as string) || ''
     if (!invoiceUrl) return null
     return {
       bodyVariables: [vars.customerName || 'Customer', orderId],
       documentHeader: { link: invoiceUrl, filename: `invoice-${orderId}.pdf` },
+      urlButton: { parameter: orderId, index: '0' },
       eventNote: 'Order confirmation sent via WhatsApp',
     }
   },
@@ -420,6 +425,7 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
       templateName: templateKey,
       bodyVariables: spec.bodyVariables,
       documentHeader: spec.documentHeader,
+      urlButton: spec.urlButton,
     })
 
     await mergeOrder(order.partitionKey as string, orderId, {

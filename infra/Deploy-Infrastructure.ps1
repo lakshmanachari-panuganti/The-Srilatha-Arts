@@ -772,8 +772,8 @@ foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$
 
 # ── 4. DEFAULT-IF-ABSENT: operator-tunable defaults ─────────────
 $defaultIfAbsent = @{
-    'WHATSAPP_API_VERSION'                  = 'v18.0'
-    'WHATSAPP_TEMPLATE_LANGUAGE'            = 'en'
+    'WHATSAPP_API_VERSION'                  = 'v23.0'
+    'WHATSAPP_TEMPLATE_LANGUAGE'            = 'en_US'
     'SMTP_HOST'                             = 'smtp.gmail.com'
     'SMTP_PORT'                             = '587'
     'SMTP_SECURE'                           = 'false'
