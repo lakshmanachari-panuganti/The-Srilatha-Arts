@@ -16,6 +16,7 @@ env:
   NODE_VERSION: '22'
   WORKING_DIRECTORY: backend
   AZURE_FUNCTIONAPP_NAME: func-thesrilathaarts-prd
+  AZURE_RESOURCE_GROUP: rg-thesrilathaarts-prd
 
 jobs:
   build-and-deploy:
@@ -25,6 +26,7 @@ jobs:
       name: production
     permissions:
       contents: read
+      id-token: write   # required for azure/login OIDC token exchange
 
     steps:
       - name: Checkout
@@ -59,22 +61,22 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: zip -r -q "$RUNNER_TEMP/deploy.zip" . -x ".git/*" ".github/*"
 
-      - name: Deploy to Azure Functions (Kudu zipdeploy)
-        # Replaces Azure/functions-action@v1 — GitHub disabled the action's
-        # repo on 2026-06-05 after a supply-chain incident. We POST the zip
-        # to Kudu's /api/zipdeploy endpoint directly, using the MSDeploy
-        # credentials embedded in the publish profile.
-        env:
-          PUBLISH_PROFILE: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PRD }}
-          APP_NAME: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_PRD }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Functions (az CLI zipdeploy)
+        # OIDC-authenticated deploy via the Azure CLI. Replaces the publish-
+        # profile + Kudu basic-auth path, removing the long-lived secret
+        # entirely. Federated credential on the SP grants a short-lived
+        # token scoped to this repo + the `main` branch.
         run: |
           set -euo pipefail
-          user=$(echo "$PUBLISH_PROFILE" | xmllint --xpath 'string(//publishProfile[@publishMethod="MSDeploy"]/@userName)' -)
-          pass=$(echo "$PUBLISH_PROFILE" | xmllint --xpath 'string(//publishProfile[@publishMethod="MSDeploy"]/@userPWD)' -)
-          [ -n "$user" ] && [ -n "$pass" ] || { echo "Failed to parse MSDeploy creds from publish profile" >&2; exit 1; }
-          curl -sS -fL --max-time 600 \
-            -u "$user:$pass" \
-            -H "Content-Type: application/zip" \
-            --data-binary "@$RUNNER_TEMP/deploy.zip" \
-            "https://${APP_NAME}.scm.azurewebsites.net/api/zipdeploy"
+          az functionapp deployment source config-zip \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_FUNCTIONAPP_NAME" \
+            --src "$RUNNER_TEMP/deploy.zip"
           echo "Deploy succeeded"
