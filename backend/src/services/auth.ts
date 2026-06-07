@@ -46,17 +46,16 @@ export function extractTokenFromCookie(cookieHeader?: string | null): string | n
   return null
 }
 
+// Host-only cookie: no Domain= attribute. The API and the SPA live on
+// different registrable domains in prd (azurewebsites.net vs srilatha.art),
+// so a Domain= attribute pinned to the SPA would be rejected by the browser
+// per RFC 6265 §5.3. The Authorization: Bearer fallback in lib/api.ts is the
+// cross-origin auth path; this cookie covers same-origin navigations only.
 export function buildAuthCookie(token: string, isAdmin = false): string {
   const maxAge = isAdmin ? 24 * 60 * 60 : 7 * 24 * 60 * 60
-  const cookieDomain = process.env.COOKIE_DOMAIN || ''
-  const domain = cookieDomain ? `; Domain=${cookieDomain}` : ''
-  // SameSite=Lax keeps the cookie attached for top-level navigations,
-  // Secure is required by browsers for SameSite=None and recommended otherwise.
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}${domain}`
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`
 }
 
 export function buildClearCookie(): string {
-  const cookieDomain = process.env.COOKIE_DOMAIN || ''
-  const domain = cookieDomain ? `; Domain=${cookieDomain}` : ''
-  return `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0${domain}`
+  return `${COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`
 }

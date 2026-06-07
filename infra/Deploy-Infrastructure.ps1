@@ -113,7 +113,6 @@ $config = @{
             'https://delightful-mushroom-062e18100.7.azurestaticapps.net',
             'https://www.lucky1.online'
         )
-        CookieDomain   = ''
         WebsiteUrl     = 'delightful-mushroom-062e18100.7.azurestaticapps.net'
     }
     PRD = @{
@@ -129,7 +128,6 @@ $config = @{
             'https://srilatha.art',
             'https://salmon-wave-01c7b8300.7.azurestaticapps.net'
         )
-        CookieDomain   = '.srilatha.art'
         WebsiteUrl     = 'www.srilatha.art'
     }
 }
@@ -653,6 +651,17 @@ if (-not (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'CsrfSigningKey
     Write-Info "CsrfSigningKey already present - left as-is"
 }
 
+# ── 5.2b InvoiceSigningKey - HMAC key for public invoice ?token=.
+#        Distinct from JwtSecret so an auth-incident rotation does not
+#        invalidate every invoice link already mailed / WhatsApp'd.
+if (-not (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'InvoiceSigningKey' -ErrorAction SilentlyContinue)) {
+    $invKey = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
+    Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'InvoiceSigningKey' -SecretValue (ConvertTo-SecureString $invKey -AsPlainText -Force) | Out-Null
+    Write-Success "Stored secret : InvoiceSigningKey (newly generated, 64 chars)"
+} else {
+    Write-Info "InvoiceSigningKey already present - left as-is"
+}
+
 # ── 5.3  RazorpayWebhookSecret - we choose this; same value goes into
 #        the Razorpay Dashboard webhook config. First deploy generates
 #        + prints; later deploys leave it alone.
@@ -743,6 +752,7 @@ $alwaysOverwrite = @{
     # Key Vault references - resolved at app startup using the MI.
     'JWT_SECRET'                            = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=JwtSecret)"
     'CSRF_SIGNING_KEY'                      = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=CsrfSigningKey)"
+    'INVOICE_SIGNING_KEY'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=InvoiceSigningKey)"
 
     # Read by application code via DefaultAzureCredential.
     'AZURE_STORAGE_ACCOUNT_NAME'            = $envCfg.StorageAccount
@@ -750,7 +760,6 @@ $alwaysOverwrite = @{
     # Non-secret settings derived from infra.
     'BLOB_BASE_URL'                         = "https://$($envCfg.StorageAccount).blob.core.windows.net"
     'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
-    'COOKIE_DOMAIN'                         = $envCfg.CookieDomain
     'ENVIRONMENT'                           = $Environment
     'FUNCTIONS_WORKER_RUNTIME'              = 'node'
     'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
@@ -807,6 +816,36 @@ $emptyIfAbsent = @(
 )
 foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
+}
+
+# ── 5b. REMOVE: obsolete settings left over from prior deploys ───
+#        Azure's appsettings PATCH does not delete unmentioned keys,
+#        so we issue an explicit `delete` for keys the app no longer
+#        reads. Without this, COOKIE_DOMAIN=.srilatha.art lingers on
+#        the prd Function App from the pre-host-only-cookie era and
+#        keeps the audit-2026-06-07 finding #1 alive.
+$removeIfPresent = @(
+    'COOKIE_DOMAIN'  # security audit 2026-06-07: cookies are host-only.
+)
+$settingsToDelete = @()
+foreach ($k in $removeIfPresent) {
+    if ($mergedSettings.ContainsKey($k)) {
+        $mergedSettings.Remove($k) | Out-Null
+        $settingsToDelete += $k
+    }
+}
+if ($settingsToDelete.Count -gt 0) {
+    Write-Info "Removing obsolete app settings: $($settingsToDelete -join ', ')"
+    az functionapp config appsettings delete `
+        --name           $envCfg.FunctionApp `
+        --resource-group $envCfg.ResourceGroup `
+        --setting-names  $settingsToDelete `
+        --output         none
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Failed to delete obsolete app settings - continuing with merge anyway."
+    } else {
+        Write-Success "Removed $($settingsToDelete.Count) obsolete app setting(s)."
+    }
 }
 
 # ── 6. Apply the full merged set (via az CLI) ───────────────────
@@ -979,6 +1018,7 @@ Function App URL   : $functionUrl
 🔐 Key Vault Secrets
    • JwtSecret              (auto-generated, 64 chars)
    • CsrfSigningKey         (auto-generated, 64 chars)
+   • InvoiceSigningKey      (auto-generated, 64 chars)
    • RazorpayWebhookSecret  (auto-generated - paste into Razorpay dashboard)
    • RazorpayKeyId          (placeholder - set via infra/Rotate-RazorpayApiKeys.ps1)
    • RazorpayKeySecret      (placeholder - set via infra/Rotate-RazorpayApiKeys.ps1)

@@ -16,16 +16,20 @@
  * way to honour the branded path without exposing raw blob URLs to
  * customers or shipping every invoice through SAS.
  *
- * Public path note: order IDs are timestamps (YYYYMMDDHHMMSSFF) which
- * are somewhat guessable. The WhatsApp Cloud API needs to fetch the
- * URL from its own network to attach the PDF, so the URL has to be
- * reachable without authentication. We accept the casual-scraping
- * risk; a future hardening pass can add an HMAC token to the URL.
+ * Access control: order IDs are timestamps (YYYYMMDDHHMMSSFF) which are
+ * guessable, so post-cutover invoices must carry an HMAC token in the
+ * `?token=...` query string. The WhatsApp Cloud API fetches the URL
+ * from its own network to attach the PDF — the token rides along in
+ * the query string so the URL stays anonymously fetchable without
+ * leaking PII via enumeration. Legacy IDs and invoices issued before
+ * the cutover (see INVOICE_TOKEN_CUTOVER in services/orderNumber)
+ * bypass the check so previously mailed/WhatsApp'd links keep working.
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { DefaultAzureCredential } from '@azure/identity'
+import { invoiceRequiresToken, verifyInvoiceToken } from '../services/orderNumber'
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
 const credential = new DefaultAzureCredential()
@@ -49,6 +53,19 @@ async function downloadInvoice(
   // (for orders that pre-date the migration) and any future ID scheme.
   if (!/^[A-Za-z0-9_-]{4,32}$/.test(name)) {
     return { status: 400, body: 'Invalid invoice id' }
+  }
+
+  // HMAC gate: post-cutover 16-digit IDs must carry a valid ?token=.
+  // Legacy non-16-digit IDs and pre-cutover IDs are grandfathered.
+  if (invoiceRequiresToken(name)) {
+    const url = new URL(request.url)
+    const token = url.searchParams.get('token')
+    if (!verifyInvoiceToken(name, token)) {
+      // 404 (not 401/403) so an attacker brute-forcing IDs cannot
+      // distinguish "this ID exists but you don't have the token" from
+      // "this ID does not exist" — same response in both cases.
+      return { status: 404, body: 'Invoice not found' }
+    }
   }
 
   const container = process.env.INVOICE_CONTAINER || 'invoices'

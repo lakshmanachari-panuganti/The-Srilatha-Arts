@@ -150,7 +150,6 @@ $config = @{
             'https://delightful-mushroom-062e18100.7.azurestaticapps.net',
             'https://www.lucky1.online'
         )
-        CookieDomain   = ''
         WebsiteUrl     = 'delightful-mushroom-062e18100.7.azurestaticapps.net'
     }
     PRD = @{
@@ -166,7 +165,6 @@ $config = @{
             'https://srilatha.art',
             'https://salmon-wave-01c7b8300.7.azurestaticapps.net'
         )
-        CookieDomain   = '.srilatha.art'
         WebsiteUrl     = 'www.srilatha.art'
     }
 }
@@ -724,6 +722,20 @@ if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'CsrfSigningKey' -Err
     Write-Success "Stored secret : CsrfSigningKey (newly generated, 64 chars)"
 }
 
+# ── 5.2b  InvoiceSigningKey ──────────────────────────────────────
+# Signs the ?token= HMAC on public invoice URLs. Kept distinct from
+# JwtSecret so a rotation triggered by an auth incident does not
+# invalidate every invoice link already mailed / WhatsApp'd, and vice
+# versa.
+if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'InvoiceSigningKey' -ErrorAction SilentlyContinue) {
+    Write-Skip "InvoiceSigningKey already present - left as-is"
+} else {
+    $invKey = ([guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N'))
+    Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'InvoiceSigningKey' `
+        -SecretValue (ConvertTo-SecureString $invKey -AsPlainText -Force) | Out-Null
+    Write-Success "Stored secret : InvoiceSigningKey (newly generated, 64 chars)"
+}
+
 # ── 5.3  RazorpayWebhookSecret ───────────────────────────────────
 # We choose this value; same string goes into the Razorpay Dashboard.
 # First deploy generates + prints it; later deploys leave it alone.
@@ -796,10 +808,10 @@ $alwaysOverwrite = @{
     'AzureWebJobsStorage__tableServiceUri'  = "https://$($envCfg.StorageAccount).table.core.windows.net"
     'JWT_SECRET'                            = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=JwtSecret)"
     'CSRF_SIGNING_KEY'                      = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=CsrfSigningKey)"
+    'INVOICE_SIGNING_KEY'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=InvoiceSigningKey)"
     'AZURE_STORAGE_ACCOUNT_NAME'            = $envCfg.StorageAccount
     'BLOB_BASE_URL'                         = "https://$($envCfg.StorageAccount).blob.core.windows.net"
     'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
-    'COOKIE_DOMAIN'                         = $envCfg.CookieDomain
     'ENVIRONMENT'                           = $Environment
     'FUNCTIONS_WORKER_RUNTIME'              = 'node'
     'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
@@ -849,6 +861,40 @@ $emptyIfAbsent = @(
 )
 foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
+}
+
+# REMOVE — settings that are still present from older deploys but the
+# app no longer reads. Plain dictionary removal here drops them from the
+# locally merged set; the explicit `az config appsettings delete` below
+# is what actually evicts them from the Function App. The merged-set
+# pipe later in this script writes only the keys that survive merging,
+# but Azure's PATCH semantics leave unmentioned keys in place — that
+# is why deletion needs its own call.
+$removeIfPresent = @(
+    'COOKIE_DOMAIN'  # security audit 2026-06-07: cookies are host-only
+                     # (azurewebsites.net vs srilatha.art is not a
+                     # subdomain relationship; any Domain= we set is
+                     # rejected by the browser per RFC 6265 §5.3).
+)
+$settingsToDelete = @()
+foreach ($k in $removeIfPresent) {
+    if ($mergedSettings.ContainsKey($k)) {
+        $mergedSettings.Remove($k) | Out-Null
+        $settingsToDelete += $k
+    }
+}
+if ($settingsToDelete.Count -gt 0) {
+    Write-Info "Removing obsolete app settings: $($settingsToDelete -join ', ')"
+    az functionapp config appsettings delete `
+        --name           $envCfg.FunctionApp `
+        --resource-group $envCfg.ResourceGroup `
+        --setting-names  $settingsToDelete `
+        --output         none
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Failed to delete obsolete app settings - continuing with merge anyway."
+    } else {
+        Write-Success "Removed $($settingsToDelete.Count) obsolete app setting(s)."
+    }
 }
 
 # Apply via ARM REST API (Invoke-AzRestMethod + JSON body).
@@ -1166,6 +1212,7 @@ Function App URL     : $functionUrl
 🔐 Key Vault Secrets
    • JwtSecret              (auto-generated once, never overwritten on re-run)
    • CsrfSigningKey         (auto-generated once, never overwritten on re-run)
+   • InvoiceSigningKey      (auto-generated once, never overwritten on re-run)
    • RazorpayWebhookSecret  (auto-generated once - paste into Razorpay dashboard)
    • RazorpayKeyId          (placeholder - set via infra/Rotate-RazorpayApiKeys-v2.ps1)
    • RazorpayKeySecret      (placeholder - set via infra/Rotate-RazorpayApiKeys-v2.ps1)

@@ -14,14 +14,7 @@ import {
 import { getAdmin, updateAdmin, getAllAdmins, createAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
-
-function getClientIp(request: HttpRequest): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
+import { getClientIp } from '../utils/clientIp'
 
 // ─── POST /api/auth/admin/login ──────────────────────────────
 

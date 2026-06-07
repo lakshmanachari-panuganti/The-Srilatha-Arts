@@ -203,15 +203,18 @@ describe('buildAuthCookie', () => {
     expect(cookie).toContain(encodeURIComponent(token))
   })
 
-  it('includes Domain when COOKIE_DOMAIN is set', () => {
-    process.env.COOKIE_DOMAIN = 'srilathaarts.com'
-    expect(buildAuthCookie('tok')).toContain('Domain=srilathaarts.com')
-    delete process.env.COOKIE_DOMAIN
+  // Host-only cookie: Domain= is never emitted, regardless of env. The API
+  // and the SPA are on different registrable domains, so any Domain= we set
+  // would be rejected by the browser per RFC 6265 §5.3 and the cookie would
+  // be silently dropped.
+  it('never emits Domain= (host-only cookie)', () => {
+    expect(buildAuthCookie('tok')).not.toContain('Domain=')
   })
 
-  it('omits Domain when COOKIE_DOMAIN is not set', () => {
-    delete process.env.COOKIE_DOMAIN
+  it('ignores COOKIE_DOMAIN env var (legacy setting, host-only now)', () => {
+    process.env.COOKIE_DOMAIN = 'srilathaarts.com'
     expect(buildAuthCookie('tok')).not.toContain('Domain=')
+    delete process.env.COOKIE_DOMAIN
   })
 })
 
