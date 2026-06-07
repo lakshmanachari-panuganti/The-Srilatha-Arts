@@ -818,6 +818,36 @@ foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
 }
 
+# ── 5b. REMOVE: obsolete settings left over from prior deploys ───
+#        Azure's appsettings PATCH does not delete unmentioned keys,
+#        so we issue an explicit `delete` for keys the app no longer
+#        reads. Without this, COOKIE_DOMAIN=.srilatha.art lingers on
+#        the prd Function App from the pre-host-only-cookie era and
+#        keeps the audit-2026-06-07 finding #1 alive.
+$removeIfPresent = @(
+    'COOKIE_DOMAIN'  # security audit 2026-06-07: cookies are host-only.
+)
+$settingsToDelete = @()
+foreach ($k in $removeIfPresent) {
+    if ($mergedSettings.ContainsKey($k)) {
+        $mergedSettings.Remove($k) | Out-Null
+        $settingsToDelete += $k
+    }
+}
+if ($settingsToDelete.Count -gt 0) {
+    Write-Info "Removing obsolete app settings: $($settingsToDelete -join ', ')"
+    az functionapp config appsettings delete `
+        --name           $envCfg.FunctionApp `
+        --resource-group $envCfg.ResourceGroup `
+        --setting-names  $settingsToDelete `
+        --output         none
+    if ($LASTEXITCODE -ne 0) {
+        Write-Err "Failed to delete obsolete app settings - continuing with merge anyway."
+    } else {
+        Write-Success "Removed $($settingsToDelete.Count) obsolete app setting(s)."
+    }
+}
+
 # ── 6. Apply the full merged set (via az CLI) ───────────────────
 #       `az functionapp config appsettings set --settings` is
 #       additive at the service: keys we don't send are preserved.
