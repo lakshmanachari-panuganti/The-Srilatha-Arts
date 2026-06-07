@@ -27,9 +27,78 @@
  * 16 digits.
  */
 
+import { createHmac, timingSafeEqual } from 'crypto'
 import { getOrderById } from './tableStorage'
 
 const IST_TZ = 'Asia/Kolkata'
+
+// Read lazily inside the helpers below so the module still imports cleanly
+// in dev / unit tests where the signing key may legitimately be unset (and
+// only the URL builder cares). The download handler validates the key was
+// present when it tries to verify a token.
+function getInvoiceSigningKey(): string | null {
+  return process.env.INVOICE_SIGNING_KEY || null
+}
+
+/**
+ * Cutover boundary for the invoice-URL HMAC requirement.
+ *
+ * Order IDs are zero-padded YYYYMMDDHHMMSSFF in IST, so a 16-digit string
+ * compare is also a chronological compare. Anything *strictly less than*
+ * this value was issued before the HMAC roll-out and is grandfathered in
+ * (no token required) so that links already mailed / WhatsApp'd to
+ * customers continue to work.
+ *
+ * Set to a moment safely after the deploy window: 2026-06-08 00:00:00 IST.
+ * Orders placed at or after this instant are required to carry a valid
+ * token. Anything older — and any non-16-digit legacy ID (TSA-YYYY-HEX
+ * format from before the migration) — bypasses the check.
+ */
+export const INVOICE_TOKEN_CUTOVER = '20260608000000' + '00'
+
+/**
+ * Returns true if this invoice ID must carry a valid HMAC token to be
+ * downloaded, false if it is grandfathered in (legacy format or issued
+ * before the cutover).
+ */
+export function invoiceRequiresToken(invoiceNumber: string): boolean {
+  if (!/^\d{16}$/.test(invoiceNumber)) return false
+  return invoiceNumber >= INVOICE_TOKEN_CUTOVER
+}
+
+/**
+ * Truncated HMAC-SHA256 of the invoice number. 16 bytes (32 hex chars)
+ * matches the security level of the CSRF token; full SHA-256 would be
+ * 64 hex chars which is overkill in a URL.
+ *
+ * Returns null when the signing key isn't configured — callers should
+ * treat that as "skip token generation" (URL stays unsigned). The
+ * download handler refuses to validate against a missing key, so an
+ * unsigned URL is rejected for any post-cutover invoice in prd.
+ */
+export function generateInvoiceToken(invoiceNumber: string): string | null {
+  const key = getInvoiceSigningKey()
+  if (!key) return null
+  const full = createHmac('sha256', key).update(invoiceNumber).digest('hex')
+  return full.slice(0, 32)
+}
+
+/**
+ * Constant-time compare of a caller-supplied token against the expected
+ * HMAC for this invoice. Returns false if the signing key is unset, the
+ * supplied token is malformed, or the values do not match.
+ */
+export function verifyInvoiceToken(invoiceNumber: string, supplied: string | null | undefined): boolean {
+  if (!supplied) return false
+  const expected = generateInvoiceToken(invoiceNumber)
+  if (!expected) return false
+  if (supplied.length !== expected.length) return false
+  try {
+    return timingSafeEqual(Buffer.from(supplied, 'utf8'), Buffer.from(expected, 'utf8'))
+  } catch {
+    return false
+  }
+}
 
 /**
  * Format a Date as YYYYMMDDHHMMSSFF in IST. Exported for the migration
@@ -115,9 +184,10 @@ export async function generateOrderNumber(now: Date = new Date()): Promise<strin
  */
 export function invoiceUrlFor(orderNumber: string): string {
   const explicit = process.env.INVOICE_PUBLIC_URL_BASE
-  if (explicit) {
-    return `${explicit.replace(/\/+$/, '')}/${orderNumber}.pdf`
-  }
-  const base = process.env.PUBLIC_SITE_URL || 'https://www.srilatha.art'
-  return `${base.replace(/\/+$/, '')}/invoices/${orderNumber}.pdf`
+  const base = explicit
+    ? explicit.replace(/\/+$/, '')
+    : `${(process.env.PUBLIC_SITE_URL || 'https://www.srilatha.art').replace(/\/+$/, '')}/invoices`
+  const token = generateInvoiceToken(orderNumber)
+  const query = token ? `?token=${token}` : ''
+  return `${base}/${orderNumber}.pdf${query}`
 }

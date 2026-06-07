@@ -62,6 +62,11 @@ export function verifyCsrfToken(token: string): boolean {
  * any cross-site fetch - including the POST/PATCH/DELETE that this cookie
  * exists to validate - so every mutating call fails with "Missing CSRF token".
  *
+ * Host-only cookie: no Domain= attribute. The API host (azurewebsites.net)
+ * is not a subdomain of the SPA host (srilatha.art), so per RFC 6265 §5.3
+ * any Domain= we set is rejected by the browser and the cookie is silently
+ * dropped — breaking the double-submit check for every mutating request.
+ *
  * Security note: the value carried by this cookie is the *public* CSRF
  * token (not a session). Its only job is to be compared against the
  * X-CSRF-Token header sent by JS. Letting it ride cross-site is fine; the
@@ -69,10 +74,9 @@ export function verifyCsrfToken(token: string): boolean {
  * stay Lax - the app uses Authorization: Bearer for cross-origin auth.
  */
 export function buildCsrfCookie(token: string): string {
-  const domain = process.env.COOKIE_DOMAIN ? `; Domain=${process.env.COOKIE_DOMAIN}` : ''
   // NOT HttpOnly - JS needs to read this from JSON (cross-origin can't read
   // the cookie itself; the JSON value is the fallback channel).
-  return `${CSRF_COOKIE_NAME}=${token}; Secure; SameSite=None; Path=/; Max-Age=${CSRF_TTL_SECONDS}${domain}`
+  return `${CSRF_COOKIE_NAME}=${token}; Secure; SameSite=None; Path=/; Max-Age=${CSRF_TTL_SECONDS}`
 }
 
 /**

@@ -151,15 +151,18 @@ describe('buildCsrfCookie', () => {
     expect(buildCsrfCookie('tok')).toMatch(/^tsa_csrf=/)
   })
 
-  it('includes Domain attribute when COOKIE_DOMAIN is set', () => {
-    process.env.COOKIE_DOMAIN = 'example.com'
-    expect(buildCsrfCookie('tok')).toContain('Domain=example.com')
-    delete process.env.COOKIE_DOMAIN
+  // Host-only cookie: the API host (azurewebsites.net) is not a subdomain
+  // of the SPA host (srilatha.art), so any Domain= we set is rejected by
+  // the browser per RFC 6265 §5.3 — silently dropping the cookie and
+  // breaking the double-submit check on every mutating request.
+  it('never emits Domain= (host-only cookie)', () => {
+    expect(buildCsrfCookie('tok')).not.toContain('Domain=')
   })
 
-  it('omits Domain attribute when COOKIE_DOMAIN is not set', () => {
-    delete process.env.COOKIE_DOMAIN
+  it('ignores COOKIE_DOMAIN env var (legacy setting, host-only now)', () => {
+    process.env.COOKIE_DOMAIN = 'example.com'
     expect(buildCsrfCookie('tok')).not.toContain('Domain=')
+    delete process.env.COOKIE_DOMAIN
   })
 })
 

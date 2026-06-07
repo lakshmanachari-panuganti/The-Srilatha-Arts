@@ -19,18 +19,11 @@ import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/res
 import { checkAndIncrement } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
 import { enforceCsrf } from '../middleware/csrfGuard'
+import { getClientIp } from '../utils/clientIp'
 
 // No default fallback - validated at call time so Google sign-in can be disabled
 // simply by not setting this env var rather than causing a startup failure.
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
-
-function getClientIp(request: HttpRequest): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 // ─── POST /api/auth/register ─────────────────────────────────
 
