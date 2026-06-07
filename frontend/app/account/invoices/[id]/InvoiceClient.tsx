@@ -61,7 +61,7 @@ function formatDate(iso: string): string {
 type BadgeTone = 'amber' | 'emerald' | 'slate'
 function statusBadge(paymentStatus: string): { label: string; tone: BadgeTone } {
   const s = (paymentStatus || '').toUpperCase()
-  if (s === 'PAID') return { label: 'Paid', tone: 'emerald' }
+  if (s === 'PAID' || s === 'CAPTURED' || s === 'COD') return { label: 'Paid', tone: 'emerald' }
   if (s === 'REFUNDED') return { label: 'Refunded', tone: 'slate' }
   return { label: 'Payment pending', tone: 'amber' }
 }
@@ -231,6 +231,32 @@ export default function InvoiceClient() {
         </div>
       </main>
     )
+  }
+
+  // No invoice exists until the payment is actually captured (or the order
+  // is COD). PENDING/FAILED — including orders cancelled before payment
+  // cleared — must not surface an invoice document.
+  {
+    const ps = (order.paymentStatus || '').toUpperCase()
+    if (ps === 'PENDING' || ps === 'FAILED' || ps === '') {
+      return (
+        <main className="max-w-3xl mx-auto px-5 py-12 lg:py-20">
+          <Link
+            href={`/account/orders/${order.id}`}
+            className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-lavender mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to order
+          </Link>
+          <div className="card p-6">
+            <h2 className="font-serif text-2xl text-ink mb-2">Invoice not available</h2>
+            <p className="text-sm text-ink-soft">
+              No invoice has been issued for this order because payment was not completed.
+              Invoices are generated only once payment is captured.
+            </p>
+          </div>
+        </main>
+      )
+    }
   }
 
   const addr = order.shippingAddress || {}
