@@ -21,7 +21,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Image from 'next/image'
+import PictureImage from '@/components/PictureImage'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Pause, Play } from 'lucide-react'
@@ -113,7 +113,7 @@ export default function HomeHero() {
             style={{ transitionDuration: `${TRANSITION_MS}ms` }}
             aria-hidden={!isActive}
           >
-            <Image
+            <PictureImage
               src={slide.src}
               alt={slide.alt}
               fill

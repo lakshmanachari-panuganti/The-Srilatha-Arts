@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import Image from 'next/image'
+import PictureImage from '@/components/PictureImage'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import { fadeUp, stagger } from '@/lib/motion'
@@ -94,7 +94,7 @@ export default function ShopByArtForm() {
               <div>
                 {/* Image Frame */}
                 <div className="relative aspect-[4/3] overflow-hidden mb-6 bg-plum-light/20 rounded-2xl border border-glass-border">
-                  <Image
+                  <PictureImage
                     src={item.image}
                     alt={item.title}
                     fill
