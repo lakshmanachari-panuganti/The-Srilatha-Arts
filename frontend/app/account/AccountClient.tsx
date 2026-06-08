@@ -481,7 +481,7 @@ function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
       className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
     >
       <FileText className="w-4 h-4" aria-hidden />
-      Invoice
+      Receipt
     </Link>
   )
 }

@@ -51,6 +51,22 @@ export async function ensureInvoicePdf(
   context: InvocationContext,
 ): Promise<string> {
   const orderId = order.rowKey as string
+
+  // Defence-in-depth: never generate a receipt for an order where money
+  // never changed hands. The verify + webhook paths already gate on
+  // CAPTURED before calling us, but admin "resend email/whatsapp"
+  // endpoints route here without that check — so guard at the source.
+  // COD is intentionally included so cash-on-delivery orders still get
+  // a receipt at fulfillment time even though paymentStatus isn't
+  // CAPTURED. REFUNDED is also allowed because the original receipt
+  // remains a valid record of the historical transaction.
+  const ps = (order.paymentStatus as string || '').toUpperCase()
+  if (ps !== 'CAPTURED' && ps !== 'COD' && ps !== 'REFUNDED') {
+    throw new Error(
+      `ensureInvoicePdf refused: paymentStatus="${ps}" for order ${orderId} is not eligible for a receipt`,
+    )
+  }
+
   if (order.invoiceUrl) {
     return order.invoiceUrl as string
   }

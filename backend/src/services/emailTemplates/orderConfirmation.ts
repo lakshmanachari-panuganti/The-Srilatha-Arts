@@ -179,7 +179,7 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
 </head>
 <body style="margin:0;padding:0;background:${COLOR.paperDeep};font-family:'Helvetica Neue',Arial,sans-serif;color:${COLOR.ink};">
   <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;opacity:0;">
-    Your order ${escapeHtml(vars.orderId)} has been confirmed. Your invoice is attached.
+    Your order ${escapeHtml(vars.orderId)} has been confirmed. Your receipt is attached.
   </div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${COLOR.paperDeep};padding:24px 12px;">
     <tr>
@@ -223,7 +223,7 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
                 <tr>
                   <td style="padding:14px 0;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:${COLOR.inkMute};">Order</td>
                   <td style="padding:14px 0;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:${COLOR.inkMute};">Date</td>
-                  <td style="padding:14px 0;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:${COLOR.inkMute};">Invoice</td>
+                  <td style="padding:14px 0;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:${COLOR.inkMute};">Receipt</td>
                 </tr>
                 <tr>
                   <td style="padding:0 0 14px 0;font-size:14px;color:${COLOR.ink};font-weight:600;">${escapeHtml(vars.orderId)}</td>
@@ -291,20 +291,20 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
               <div style="font-size:12px;color:${COLOR.inkMute};">Payment reference: ${escapeHtml(vars.razorpayPaymentId)}</div>
             </td>
           </tr>` : ''}
-          <!-- Invoice CTA -->
+          <!-- Receipt CTA -->
           <tr>
             <td style="padding:28px 36px 28px 36px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td style="padding-right:8px;">
-                    <a href="${escapeHtml(viewInvoiceUrl)}" style="display:inline-block;background:${COLOR.ink};color:${COLOR.paper};text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.04em;padding:12px 22px;border-radius:999px;">View invoice</a>
+                    <a href="${escapeHtml(viewInvoiceUrl)}" style="display:inline-block;background:${COLOR.ink};color:${COLOR.paper};text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.04em;padding:12px 22px;border-radius:999px;">View receipt</a>
                   </td>
                   <td>
                     <a href="${escapeHtml(viewInvoiceUrl)}" style="display:inline-block;background:transparent;color:${COLOR.ink};text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.04em;padding:12px 22px;border:1px solid ${COLOR.ink};border-radius:999px;">Download PDF</a>
                   </td>
                 </tr>
               </table>
-              <div style="font-size:12px;color:${COLOR.inkMute};margin-top:14px;">A copy of the same invoice is also attached to this email.</div>
+              <div style="font-size:12px;color:${COLOR.inkMute};margin-top:14px;">A copy of the same receipt is also attached to this email.</div>
             </td>
           </tr>
           <!-- Footer -->
@@ -353,7 +353,7 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
       : '',
     `Total:     ${fmtMoney(vars.displayTotal)}`,
     ``,
-    `Invoice:   ${viewInvoiceUrl}`,
+    `Receipt:   ${viewInvoiceUrl}`,
     `Account:   ${accountOrderUrl}`,
     ``,
     `Questions? Reply to this email or write to studio@srilatha.art.`,
