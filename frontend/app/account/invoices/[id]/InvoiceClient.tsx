@@ -156,7 +156,7 @@ export default function InvoiceClient() {
       const res = await fetch(url, { credentials: 'include' })
       if (!res.ok) {
         if (res.status === 404) {
-          throw new Error('Invoice is being generated. Please refresh in a moment.')
+          throw new Error('Receipt is being generated. Please refresh in a moment.')
         }
         throw new Error(`Server returned ${res.status}`)
       }
@@ -164,7 +164,7 @@ export default function InvoiceClient() {
       const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = objectUrl
-      a.download = `invoice-${order.id}.pdf`
+      a.download = `receipt-${order.id}.pdf`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -196,7 +196,7 @@ export default function InvoiceClient() {
     return (
       <main className="max-w-3xl mx-auto px-5 py-12 lg:py-20">
         <div className="flex items-center gap-2 text-sm text-ink-mute">
-          <Loader2 className="w-4 h-4 animate-spin" /> Preparing invoice…
+          <Loader2 className="w-4 h-4 animate-spin" /> Preparing receipt…
         </div>
       </main>
     )
@@ -206,7 +206,7 @@ export default function InvoiceClient() {
       <main className="max-w-3xl mx-auto px-5 py-12 lg:py-20">
         <div className="card p-8 text-center">
           <h2 className="font-serif text-2xl text-ink mb-2">Your session expired</h2>
-          <p className="text-sm text-ink-soft mb-5">Please sign in again to see this invoice.</p>
+          <p className="text-sm text-ink-soft mb-5">Please sign in again to see this receipt.</p>
           <Link
             href={`/login?next=${encodeURIComponent(`/account/invoices/${id}`)}`}
             className="btn-dark"
@@ -248,10 +248,10 @@ export default function InvoiceClient() {
             <ArrowLeft className="w-4 h-4" /> Back to order
           </Link>
           <div className="card p-6">
-            <h2 className="font-serif text-2xl text-ink mb-2">Invoice not available</h2>
+            <h2 className="font-serif text-2xl text-ink mb-2">Receipt not available</h2>
             <p className="text-sm text-ink-soft">
-              No invoice has been issued for this order because payment was not completed.
-              Invoices are generated only once payment is captured.
+              No receipt has been issued for this order because payment was not completed.
+              Receipts are generated only once payment is captured.
             </p>
           </div>
         </main>
@@ -359,14 +359,14 @@ export default function InvoiceClient() {
                 className="font-serif text-4xl lg:text-[56px] leading-none text-ink"
                 style={{ letterSpacing: '0.08em' }}
               >
-                INVOICE
+                RECEIPT
               </p>
               {/* Single-line metadata: label : value, label dimmed.
                   Tabular-nums on the value keeps the ID/date columns
                   optically clean. */}
               <div className="mt-3 space-y-1 text-sm">
                 <p className="text-ink">
-                  <span className="text-ink-mute">Invoice No:</span>{' '}
+                  <span className="text-ink-mute">Receipt No:</span>{' '}
                   <span className="tabular-nums">{order.id}</span>
                 </p>
                 <p className="text-ink">
@@ -588,7 +588,7 @@ export default function InvoiceClient() {
             </div>
 
             <p className="text-[10px] uppercase tracking-[0.2em] text-ink-mute mt-8">
-              This invoice is generated electronically and is valid without
+              This receipt is generated electronically and is valid without
               signature.
             </p>
           </footer>

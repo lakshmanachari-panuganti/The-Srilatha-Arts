@@ -201,7 +201,7 @@ export async function buildInvoicePdf(
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(34)
   doc.setTextColor(...INK)
-  doc.text('INVOICE', pageW - margin, y + 18, {
+  doc.text('RECEIPT', pageW - margin, y + 18, {
     align: 'right',
     charSpace: 2.6,
   })
@@ -220,7 +220,7 @@ export async function buildInvoicePdf(
   doc.text(idText, pageW - margin, metaLabelY, { align: 'right' })
   const idW = doc.getTextWidth(idText)
   doc.setTextColor(...INK_MUTE)
-  doc.text('Invoice No:', pageW - margin - idW - 4, metaLabelY, { align: 'right' })
+  doc.text('Receipt No:', pageW - margin - idW - 4, metaLabelY, { align: 'right' })
 
   doc.setTextColor(...INK)
   const dateText = fmtDate(order.createdAt)
@@ -490,7 +490,7 @@ export async function buildInvoicePdf(
   doc.setFontSize(7.5)
   doc.setTextColor(...INK_MUTE)
   doc.text(
-    'This invoice is generated electronically and is valid without signature.',
+    'This receipt is generated electronically and is valid without signature.',
     margin,
     y,
     { charSpace: 0.6 },
