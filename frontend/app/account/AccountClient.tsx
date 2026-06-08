@@ -399,7 +399,7 @@ function OrderCard({
           {order.cancelReason && (
             <p>Reason: <strong>{order.cancelReason}</strong></p>
           )}
-          {order.paymentStatus === 'PAID' && (
+          {(order.paymentStatus === 'CAPTURED' || order.paymentStatus === 'PAID') && (
             <p className="text-xs mt-1.5">
               If your payment was already captured, any refund will be processed within 5–7 working days.
             </p>
@@ -469,10 +469,12 @@ function OrderCard({
 // ─── Invoice link ────────────────────────────────────────────
 // Opens the invoice page where the customer can view the invoice on screen
 // and trigger a real PDF download (jsPDF) via the Download button on that
-// page. Hidden for unpaid PLACED orders since there's nothing to bill yet.
+// page. Hidden whenever payment was never captured (PENDING/FAILED) — that
+// covers unpaid PLACED orders AND orders cancelled before payment cleared.
 
 function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
-  if (order.paymentStatus !== 'PAID' && order.status === 'PLACED') return null
+  const ps = (order.paymentStatus || '').toUpperCase()
+  if (ps === 'PENDING' || ps === 'FAILED' || ps === '') return null
   return (
     <Link
       href={`/account/invoices/${order.id}`}
