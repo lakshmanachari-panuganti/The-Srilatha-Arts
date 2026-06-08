@@ -22,6 +22,11 @@ interface CartState {
    *  rehydration the local items already came from the server, so
    *  re-uploading them would double-count (POST /cart is increment). */
   hydrateFromServer: (opts?: { mergeLocal?: boolean }) => Promise<void>
+  /** Re-fetch the live product price for every line item and update the
+   *  store in place. Returns the list of items whose price changed so the
+   *  caller can surface a notice. Anonymous users see this too — server
+   *  is the authoritative price source even before login. */
+  refreshPrices: () => Promise<{ productId: string; title: string; oldPrice: number; newPrice: number }[]>
   _setHydrated: () => void
 }
 
@@ -170,6 +175,36 @@ export const useCart = create<CartState>()(
           }
         })()
         return _hydrateInFlight
+      },
+      refreshPrices: async () => {
+        const items = get().items
+        if (items.length === 0) return []
+        // One product fetch per line item. At cart size <10 (typical for
+        // handcrafted single-piece carts) this is cheaper than building a
+        // batched endpoint. Sequential errors are swallowed — a single
+        // network blip shouldn't blow away the user's cart UI.
+        const changes: { productId: string; title: string; oldPrice: number; newPrice: number }[] = []
+        const fresh = await Promise.all(
+          items.map(async (it) => {
+            try {
+              const { product } = await apiFetch<{ product: Product }>(`/products/${encodeURIComponent(it.productId)}`)
+              if (typeof product.price === 'number' && product.price !== it.price) {
+                changes.push({
+                  productId: it.productId,
+                  title: it.title,
+                  oldPrice: it.price,
+                  newPrice: product.price,
+                })
+                return { ...it, price: product.price, compareAtPrice: product.compareAtPrice }
+              }
+              return it
+            } catch {
+              return it
+            }
+          }),
+        )
+        if (changes.length > 0) set({ items: fresh })
+        return changes
       },
       _setHydrated: () => set({ hydrated: true }),
     }),

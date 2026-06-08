@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import PictureImage from '@/components/PictureImage'
 import { ArrowRight, Play } from 'lucide-react'
 
 /**
@@ -45,7 +45,7 @@ export default function OurStoryTeaser() {
             style={{ borderRadius: '24px' }}
           >
             {/* Backdrop - one of Srilatha's actual pieces, not a logo. */}
-            <Image
+            <PictureImage
               src={VIDEO_THUMBNAIL}
               alt="A glimpse of work in the Hyderabad studio"
               fill

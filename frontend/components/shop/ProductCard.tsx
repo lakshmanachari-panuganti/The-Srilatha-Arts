@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import Image from 'next/image'
+import PictureImage from '@/components/PictureImage'
 import { Heart, Plus } from 'lucide-react'
 import type { Product } from '@/types'
 import { formatINR, discountPct } from '@/lib/format'
@@ -54,7 +54,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
                         group-hover:shadow-lavender-glow"
              style={{ borderRadius: '24px' }}
         >
-          <Image
+          <PictureImage
             src={product.images[0]}
             alt={product.title}
             fill
