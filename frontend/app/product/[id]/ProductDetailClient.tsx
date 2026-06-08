@@ -175,8 +175,51 @@ export default function ProductDetailClient() {
 
   const pct = discountPct(p.price, p.compareAtPrice)
 
+  // Per-product Product + Offer JSON-LD. Injected only after data resolves
+  // so the fields reflect real stock + price. Googlebot executes the page's
+  // JS on subsequent crawls and picks this up; static-HTML-only crawlers
+  // (Bing, social previews) see nothing here today — that's the trade-off
+  // of running the catalog through a __shell__ SPA on SWA Free.
+  const SITE = 'https://www.srilatha.art'
+  const productLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: p.title,
+    description: p.shortDescription || p.description,
+    sku: p.id,
+    category: category?.title || p.category,
+    image: (p.images.length > 0 ? p.images : ['/Logos/logo.png']).map((src) =>
+      src.startsWith('http') ? src : `${SITE}${src}`,
+    ),
+    brand: { '@type': 'Brand', name: 'Srilatha Art' },
+    ...(typeof p.rating === 'number' && p.reviewCount && p.reviewCount > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: p.rating,
+            reviewCount: p.reviewCount,
+          },
+        }
+      : {}),
+    offers: {
+      '@type': 'Offer',
+      url: `${SITE}/product/${p.id}`,
+      priceCurrency: 'INR',
+      price: p.price.toFixed(2),
+      availability: p.inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: { '@type': 'Organization', name: 'Srilatha Art' },
+    },
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
+      />
       <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-14 lg:px-8 lg:pt-10">
         {/* Gallery */}
         <div className="lg:sticky lg:top-28 lg:self-start">

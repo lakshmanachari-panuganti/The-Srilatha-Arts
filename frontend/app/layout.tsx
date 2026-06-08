@@ -36,7 +36,7 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://srilatha.art'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.srilatha.art'),
   title: {
     default: 'Srilatha Art - Handcrafted with Heart & Soul',
     template: '%s · Srilatha Art',
@@ -68,18 +68,21 @@ export const metadata: Metadata = {
     description:
       'Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives - made one piece at a time.',
     images: [
-      { url: '/Logos/logo.png', width: 1200, height: 630, alt: 'Srilatha Art' },
+      { url: '/Logos/og-cover.jpg', width: 1200, height: 630, alt: 'Srilatha Art' },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Srilatha Art',
     description: 'Handcrafted with Heart & Soul',
-    images: ['/Logos/logo.png'],
+    images: ['/Logos/og-cover.jpg'],
   },
   icons: {
-    icon: '/Logos/logo.png',
-    apple: '/Logos/logo.png',
+    icon: [
+      { url: '/Logos/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/Logos/pwa-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: { url: '/Logos/favicon-180.png', sizes: '180x180', type: 'image/png' },
   },
   manifest: '/manifest.webmanifest',
 }
@@ -100,7 +103,67 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${cormorant.variable} ${dmSans.variable}`}
     >
       <head>
+        {/* Fontshare hosts the Pramukh wordmark face. Open the TLS+TCP +
+            DNS connection eagerly so the render-blocking stylesheet
+            request below doesn't pay full connection setup on first paint. */}
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
         <link href="https://api.fontshare.com/v2/css?f[]=pramukh-rounded@800&display=swap" rel="stylesheet" />
+
+        {/* Organization + WebSite structured data. Tells Google "this is a
+            brand site that sells things and has a search function" — improves
+            knowledge-panel eligibility and sitelinks search box. Per-product
+            Product+Offer JSON-LD is injected separately in ProductDetailClient
+            once product data resolves. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': 'https://www.srilatha.art/#organization',
+                  name: 'Srilatha Art',
+                  url: 'https://www.srilatha.art',
+                  logo: 'https://www.srilatha.art/Logos/pwa-512.png',
+                  description:
+                    'Handcrafted resin art, lippan art, dot mandala, kolam art and wedding decoratives — made by hand in Hyderabad, India.',
+                  address: {
+                    '@type': 'PostalAddress',
+                    addressLocality: 'Hyderabad',
+                    addressRegion: 'Telangana',
+                    addressCountry: 'IN',
+                  },
+                  contactPoint: {
+                    '@type': 'ContactPoint',
+                    contactType: 'customer service',
+                    email: 'studio@srilatha.art',
+                    telephone: '+91-91332-66754',
+                    areaServed: 'IN',
+                    availableLanguage: ['en', 'hi', 'te'],
+                  },
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://www.srilatha.art/#website',
+                  url: 'https://www.srilatha.art',
+                  name: 'Srilatha Art',
+                  publisher: { '@id': 'https://www.srilatha.art/#organization' },
+                  inLanguage: 'en-IN',
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: {
+                      '@type': 'EntryPoint',
+                      urlTemplate: 'https://www.srilatha.art/shop?q={search_term_string}',
+                    },
+                    'query-input': 'required name=search_term_string',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body>
         <a

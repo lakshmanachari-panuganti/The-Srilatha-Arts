@@ -37,7 +37,26 @@ export default function CartPage() {
   const items = useCart((s) => s.items)
   const setQty = useCart((s) => s.setQty)
   const remove = useCart((s) => s.remove)
+  const refreshPrices = useCart((s) => s.refreshPrices)
   const user = useUserAuth((s) => s.user)
+
+  // Price-freshness check. Cart items are persisted to localStorage on add,
+  // so a price update between add-to-cart and cart-page-load goes unnoticed
+  // until checkout (where the backend re-prices anyway). Refreshing on
+  // cart open + surfacing a notice lets the customer review the new total
+  // before they commit, instead of being surprised at payment.
+  const [priceChanges, setPriceChanges] = useState<
+    { productId: string; title: string; oldPrice: number; newPrice: number }[]
+  >([])
+  useEffect(() => {
+    let cancelled = false
+    refreshPrices()
+      .then((changes) => {
+        if (!cancelled) setPriceChanges(changes)
+      })
+      .catch(() => { /* offline / 5xx — keep stored prices */ })
+    return () => { cancelled = true }
+  }, [refreshPrices])
 
   const [couponInput, setCouponInput] = useState('')
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null)
@@ -152,6 +171,24 @@ export default function CartPage() {
         <h1 className="display text-4xl lg:text-5xl mb-2">
           {items.length} {items.length === 1 ? 'piece' : 'pieces'}
         </h1>
+
+        {priceChanges.length > 0 && (
+          <div
+            role="status"
+            className="mt-6 rounded-2xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm text-ink"
+          >
+            <p className="font-semibold mb-1">Prices were updated</p>
+            <ul className="space-y-0.5 text-ink-soft">
+              {priceChanges.map((c) => (
+                <li key={c.productId}>
+                  <span className="text-ink">{c.title}</span> —{' '}
+                  <span className="line-through tabular-nums">{formatINR(c.oldPrice)}</span>{' '}
+                  <span className="tabular-nums">{formatINR(c.newPrice)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <ul className="divide-y divide-ink/10 mt-8">
           {items.map((item) => (
