@@ -173,6 +173,57 @@ export async function deleteBlob(containerName: string, blobName: string): Promi
   await blob.deleteIfExists()
 }
 
+// Parse a product image URL back into (container, blobName). Only matches
+// URLs that point at our storage account (either via BLOB_BASE_URL - which
+// may be a CDN host - or directly at the blob endpoint). An external URL
+// returns null so the caller silently skips it instead of guessing.
+function parseOwnedBlobUrl(url: string): { container: string; blobName: string } | null {
+  const prefixes = [blobBaseUrl, `https://${accountName}.blob.core.windows.net`]
+  for (const prefix of prefixes) {
+    if (!prefix) continue
+    if (url.startsWith(prefix + '/')) {
+      const rest = url.slice(prefix.length + 1)
+      const slash = rest.indexOf('/')
+      if (slash <= 0) return null
+      return { container: rest.slice(0, slash), blobName: rest.slice(slash + 1) }
+    }
+  }
+  return null
+}
+
+// Given the full-image blob name, return the candidate thumb names for
+// both naming schemes used by uploadProductImage:
+//   - SEO:    `{dir}{base}.webp`     →  `{dir}{base}-thumb.webp`
+//   - legacy: `{dir}{id}.webp`       →  `{dir}thumb-{id}.webp`
+// We can't tell from the name alone which scheme produced it, so we try
+// both with deleteIfExists.
+function productThumbCandidates(blobName: string): string[] {
+  const lastSlash = blobName.lastIndexOf('/')
+  const dir = lastSlash >= 0 ? blobName.slice(0, lastSlash + 1) : ''
+  const file = blobName.slice(lastSlash + 1)
+  const dotIdx = file.lastIndexOf('.')
+  const base = dotIdx >= 0 ? file.slice(0, dotIdx) : file
+  const ext = dotIdx >= 0 ? file.slice(dotIdx) : '.webp'
+  return [`${dir}${base}-thumb${ext}`, `${dir}thumb-${base}${ext}`]
+}
+
+/**
+ * Delete a product image (full + thumb companion) given its public URL.
+ * No-ops on URLs that don't belong to our storage account. deleteIfExists
+ * means a missing blob is not an error - useful since we always try both
+ * thumb naming schemes and only one will hit.
+ */
+export async function deleteProductImageByUrl(url: string): Promise<void> {
+  const parsed = parseOwnedBlobUrl(url)
+  if (!parsed) return
+  const { container, blobName } = parsed
+  const containerClient = blobServiceClient.getContainerClient(container)
+  await containerClient.getBlockBlobClient(blobName).deleteIfExists()
+  for (const thumb of productThumbCandidates(blobName)) {
+    await containerClient.getBlockBlobClient(thumb).deleteIfExists()
+  }
+}
+
 /**
  * Download the invoice PDF for an order. Returns null if the blob
  * doesn't exist (so callers can decide to regenerate). Used by the

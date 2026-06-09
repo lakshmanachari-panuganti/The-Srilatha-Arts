@@ -4,6 +4,7 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
 import { upsertProduct, deleteProduct, getProduct, appendAuditLog, Row } from '../services/tableStorage'
+import { deleteProductImageByUrl } from '../services/blobStorage'
 import { requireAdmin } from '../middleware/adminGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '../utils/response'
@@ -157,7 +158,43 @@ async function adminDeleteProduct(
 
   try {
     const category = id.slice(0, -9)   // e.g. 'dot-mandala-f55f2641' → 'dot-mandala'
+
+    // Read the row before deleting so we can clean up its image blobs
+    // after the table delete succeeds. If it's already gone, skip blob
+    // cleanup and let deleteProduct's 404 surface as the existing error.
+    const existing = await getProduct(category, id)
+
     await deleteProduct(category, id)
+
+    if (existing) {
+      const imageUrls: string[] = []
+      if (typeof existing.imageUrl === 'string' && existing.imageUrl) {
+        imageUrls.push(existing.imageUrl)
+      }
+      const extra = existing.additionalImages
+      if (typeof extra === 'string' && extra) {
+        try {
+          const arr = JSON.parse(extra)
+          if (Array.isArray(arr)) {
+            for (const u of arr) {
+              if (typeof u === 'string' && u) imageUrls.push(u)
+            }
+          }
+        } catch {
+          // Malformed JSON - nothing to clean up for the extras.
+        }
+      }
+      // Best-effort: the table row is already gone, so a blob delete
+      // failure just leaves an orphan (recoverable). Log and continue.
+      const results = await Promise.allSettled(
+        imageUrls.map((u) => deleteProductImageByUrl(u)),
+      )
+      results.forEach((r, i) => {
+        if (r.status === 'rejected') {
+          context.warn(`product.delete: blob cleanup failed for ${imageUrls[i]}`, r.reason)
+        }
+      })
+    }
 
     await appendAuditLog({
       partitionKey: 'admin',
