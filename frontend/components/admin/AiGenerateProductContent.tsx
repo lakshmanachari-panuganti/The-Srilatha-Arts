@@ -16,13 +16,6 @@ export interface AiProductContent {
   careInstructions: string
 }
 
-export interface AiUploadedImage {
-  url: string
-  thumbnailUrl: string
-  fileName: string
-  size: number
-}
-
 // Stable error codes returned by the backend in the JSON body alongside
 // HTTP status. Keep in sync with AiErrorCode in
 // backend/src/services/aiContentGenerator.ts - each new code MUST get a
@@ -89,21 +82,20 @@ function messageForError(err: unknown): string {
 }
 
 /**
- * What the AI button operates on. Two shapes:
- *   - `file`: a still-local File picked by the admin and not yet
- *     uploaded. The button sends it to the combined
- *     /ai-generate-upload endpoint, which optimises it to WebP,
- *     analyses it, and stores it under an SEO-friendly filename
- *     derived from the AI title. The parent gets both the content
- *     AND the resulting blob URL.
- *   - `url`: an image already living in blob storage (typical on the
- *     edit page where the image came from the product record). Uses
- *     the URL-only /ai-generate endpoint. The blob is NOT renamed -
- *     keeping the stored URL stable matters for product pages already
- *     referencing it.
+ * What the AI button operates on. Two shapes - both return content
+ * only; no blob is ever written by the AI button:
+ *   - `file`: a still-local File. Bytes are sent inline to the
+ *     analyse-from-file endpoint (no blob produced).
+ *   - `url`: an image already living in blob storage (edit page,
+ *     when the admin re-runs AI on a saved product). Goes via the
+ *     URL-only endpoint.
+ *
+ * The actual blob write happens later at form submit, via
+ * /api/admin/upload?title=..., so it lands in the FINAL chosen
+ * category folder and never silently falls back to `general/`.
  */
 export type AiSource =
-  | { kind: 'file'; file: File; category: string }
+  | { kind: 'file'; file: File }
   | { kind: 'url'; url: string }
 
 interface Props {
@@ -115,10 +107,6 @@ interface Props {
   /** Called with the AI-generated content once the admin has agreed to
    *  apply it. Parent owns the form state. */
   onGenerated: (content: AiProductContent) => void
-  /** Only fires for the `file` source - lets the parent replace the
-   *  local File-backed preview with the stored blob URL once the
-   *  combined endpoint has written it. */
-  onUploaded?: (image: AiUploadedImage) => void
 }
 
 type Status = 'idle' | 'confirming' | 'loading' | 'success' | 'error'
@@ -137,7 +125,6 @@ export default function AiGenerateProductContent({
   source,
   current,
   onGenerated,
-  onUploaded,
 }: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState('')
@@ -155,10 +142,10 @@ export default function AiGenerateProductContent({
 
   // Multipart path - bypass apiFetch (JSON-only) and attach CSRF /
   // Authorization manually, matching the regular /admin/upload path.
-  async function callFileApi(file: File, category: string) {
+  // Note: no blob is written by this call; we only get content back.
+  async function callFileApi(file: File) {
     const fd = new FormData()
     fd.append('file', file)
-    fd.append('category', category || 'general')
     const headers: Record<string, string> = {}
     if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`
     const csrf = await getCsrfToken()
@@ -179,11 +166,10 @@ export default function AiGenerateProductContent({
         json,
       )
     }
-    const body = json as { content: AiProductContent; image: AiUploadedImage }
-    if (!body?.content || !body?.image) {
+    const body = json as { content: AiProductContent }
+    if (!body?.content) {
       throw new ApiError('Unexpected response from AI endpoint', 502, json)
     }
-    onUploaded?.(body.image)
     onGenerated(body.content)
   }
 
@@ -193,7 +179,7 @@ export default function AiGenerateProductContent({
     setMessage('')
     try {
       if (source.kind === 'file') {
-        await callFileApi(source.file, source.category)
+        await callFileApi(source.file)
       } else {
         await callUrlApi(source.url)
       }

@@ -9,8 +9,8 @@ import { apiFetch, ApiError, getCsrfToken, getApiBase } from '@/lib/api'
 import { useAdminAuth } from '@/stores/adminAuth'
 import AiGenerateProductContent, {
   type AiProductContent,
-  type AiUploadedImage,
 } from '@/components/admin/AiGenerateProductContent'
+import { expectedProductImageFilename } from '@/lib/seoSlug'
 
 /**
  * Image lifecycle on this page:
@@ -79,10 +79,6 @@ export default function AdminNewProductPage() {
     material: '',
     careInstructions: '',
   })
-  // SEO filename produced by /ai-generate-upload. Surfaced in the
-  // Basic Information panel so the admin can see (and copy) the
-  // server-chosen filename without opening the blob URL.
-  const [storedFileName, setStoredFileName] = useState<string | null>(null)
   const updateAiField = <K extends keyof AiProductContent>(key: K, value: string) =>
     setAiFields((s) => ({ ...s, [key]: value }))
   const tokenRef = useRef(token)
@@ -101,29 +97,6 @@ export default function AdminNewProductPage() {
       error: null,
     }))
     setImages((prev) => [...prev, ...newEntries])
-  }
-
-  // The AI button writes the analysed image as the FIRST entry, so we
-  // splice its returned URL into index 0 (or replace whatever's there).
-  const handleAiImageUploaded = (image: AiUploadedImage) => {
-    // image.fileName is `<category>/<slug>-YYYYMMDD.webp` - the admin
-    // only cares about the basename, strip the directory prefix.
-    const basename = image.fileName.split('/').pop() || image.fileName
-    setStoredFileName(basename)
-    setImages((prev) => {
-      if (prev.length === 0) {
-        return [{ preview: image.url, file: null, url: image.url, uploading: false, error: null }]
-      }
-      const first = prev[0]
-      // Revoke the object URL we created in handleFilesSelected so we
-      // don't leak memory; the preview now points at the remote blob.
-      if (first.file && first.preview.startsWith('blob:')) {
-        URL.revokeObjectURL(first.preview)
-      }
-      const next = [...prev]
-      next[0] = { preview: image.url, file: null, url: image.url, uploading: false, error: null }
-      return next
-    })
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -223,16 +196,24 @@ export default function AdminNewProductPage() {
     }
   }
 
-  // Build the source for the AI button. The AI analyses the FIRST
-  // image only; if it's still a local File we use the combined upload+
-  // analyse endpoint, otherwise (already stored) we use the URL path.
+  // The AI button analyses the FIRST image. If it's still a local File
+  // we send the bytes; otherwise (already stored) we hand over the
+  // URL. Either way no blob is written by the AI call - the upload
+  // happens at form submit so the image lands in the final category.
   const aiSource = (() => {
     const first = images[0]
     if (!first) return null
-    if (first.file) return { kind: 'file' as const, file: first.file, category: category || 'general' }
+    if (first.file) return { kind: 'file' as const, file: first.file }
     if (first.url) return { kind: 'url' as const, url: first.url }
     return null
   })()
+
+  // What the blob will be called once the form is submitted. Computed
+  // from the current Title (initially AI-generated, but the admin can
+  // edit it - the label updates live). The server may add a `-2`,
+  // `-3`, … suffix if the slug collides on the same day, but in
+  // practice this is the name 99% of the time.
+  const expectedFileName = expectedProductImageFilename(aiFields.title)
 
   return (
     <div>
@@ -311,19 +292,18 @@ export default function AdminNewProductPage() {
                 source={aiSource}
                 current={aiFields}
                 onGenerated={(c) => setAiFields(c)}
-                onUploaded={handleAiImageUploaded}
               />
             </div>
-            {storedFileName && (
+            {expectedFileName && images.some((i) => i.file || i.url) && (
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-1.5">
-                  Stored filename
+                  Filename when saved
                 </label>
                 <div className="flex items-center gap-2 px-3 h-10 bg-plum/60 border border-ink/10 rounded-lg text-xs font-mono text-ink-soft break-all">
-                  <span className="truncate" title={storedFileName}>{storedFileName}</span>
+                  <span className="truncate" title={expectedFileName}>{expectedFileName}</span>
                 </div>
                 <p className="text-[11px] text-ink-mute mt-1">
-                  SEO-friendly filename generated from the AI title.
+                  SEO-friendly filename derived from the title. Stored under products/{category || '…'}/ on submit.
                 </p>
               </div>
             )}

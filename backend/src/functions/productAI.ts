@@ -22,7 +22,6 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
 import { randomUUID } from 'crypto'
-import sharp from 'sharp'
 import { requireAdmin } from '../middleware/adminGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
@@ -32,7 +31,6 @@ import {
   type AiErrorCode,
   type AiImageSource,
 } from '../services/aiContentGenerator'
-import { uploadProductImage } from '../services/blobStorage'
 
 // Short, neutral hint strings paired with each code. The real user-facing
 // copy lives on the frontend (mapped from `code`) - these strings just
@@ -174,20 +172,21 @@ app.http('aiGenerateProductContent', {
 })
 
 // ─── /api/admin/products/ai-generate-upload ─────────────────────
-// Combined "analyse-and-store" endpoint:
-//   1. accepts the raw uploaded image as multipart/form-data
-//   2. re-encodes it to WebP (preserving quality, stripping metadata)
-//   3. calls Azure OpenAI vision with the WebP bytes (base64 data URL),
-//      so we don't need a public URL for the source image first
-//   4. derives an SEO-friendly filename from the AI-generated title
-//      (`{category}/{slug}-{YYYYMMDD}.webp`) and writes the blob there
-//   5. returns BOTH the stored image record and the AI content in a
-//      single round-trip, so the admin UI can fill the form immediately
+// Analyse a still-local image without writing a blob.
 //
-// This is the only path that produces SEO-named blobs from the AI flow.
-// The classic /api/admin/upload handles ad-hoc uploads without AI (it
-// also takes an optional `title` query param so additional images for
-// the same product share the slug base).
+// The admin UI holds the picked File in state and calls this endpoint
+// to get content suggestions BEFORE the product (and its category) is
+// finalised. The image bytes go straight to Azure OpenAI as a base64
+// data URL; no blob is written here. The real upload happens later, at
+// form submit, against /api/admin/upload?title=... once the admin has
+// committed to a category - that endpoint derives the SEO filename
+// from `title` and writes the blob into the right `products/<category>/`
+// folder.
+//
+// This separation exists because the category dropdown is frequently
+// set AFTER the admin clicks Generate, so coupling the upload to the
+// AI call would silently bucket files into the wrong folder
+// (typically `products/general/`).
 
 const MAX_AI_UPLOAD_FILE_SIZE = 10 * 1024 * 1024 // 10 MB - matches the admin UI's stated limit
 
@@ -205,7 +204,7 @@ function detectImageMime(buf: Buffer): 'image/jpeg' | 'image/png' | 'image/webp'
   return null
 }
 
-async function aiGenerateAndUpload(
+async function aiGenerateFromFile(
   request: HttpRequest,
   context: InvocationContext,
 ): Promise<HttpResponseInit> {
@@ -220,7 +219,6 @@ async function aiGenerateAndUpload(
   const requestId = randomUUID()
 
   let file: { buffer: Buffer; name: string } | null = null
-  let category = 'general'
   try {
     const formData = await request.formData()
     const f = formData.get('file') as File | null
@@ -228,8 +226,6 @@ async function aiGenerateAndUpload(
       const ab = await f.arrayBuffer()
       file = { buffer: Buffer.from(ab), name: f.name }
     }
-    const cat = formData.get('category')
-    if (typeof cat === 'string' && cat.trim()) category = cat.trim()
   } catch {
     logFailure(context, {
       requestId,
@@ -269,47 +265,22 @@ async function aiGenerateAndUpload(
     return errorJson(origin, 400, 'INVALID_INPUT', requestId)
   }
 
-  // Re-encode to WebP up-front. This is the version we both send to AI
-  // and persist - guarantees a consistent representation and gets the
-  // metadata-stripping benefit before the image leaves our process.
-  let webp: Buffer
-  try {
-    webp = await sharp(file.buffer)
-      .rotate()
-      .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 88 })
-      .toBuffer()
-  } catch (err) {
-    logFailure(context, {
-      requestId,
-      adminId: admin.adminId,
-      code: 'IMAGE_PROCESSING_ERROR',
-      details: err instanceof Error ? err.message : 'sharp encode failed',
-    })
-    return errorJson(origin, 400, 'IMAGE_PROCESSING_ERROR', requestId)
-  }
-
-  // Send the WebP bytes to AI inline (base64 data URL). No need to
-  // upload to blob storage first, so we never produce a UUID-named
-  // throwaway file - the only blob write is the SEO-named one below.
-  const source: AiImageSource = { kind: 'buffer', buffer: webp, mimeType: 'image/webp' }
+  // Send the original bytes inline as a base64 data URL. We don't
+  // re-encode to WebP first - the AI service accepts JPG/PNG/WebP
+  // natively and the extra encode would only burn CPU on every call.
+  const source: AiImageSource = { kind: 'buffer', buffer: file.buffer, mimeType: mime }
 
   try {
     const { content, deploymentName } = await generateProductContent(source)
-    // Now we know the AI title - write the blob with an SEO filename
-    // derived from it.
-    const image = await uploadProductImage(file.buffer, category, file.name, {
-      seoTitle: content.title,
-    })
-    context.log('aiGenerateAndUpload: success', {
+    context.log('aiGenerateFromFile: success', {
       requestId,
       adminId: admin.adminId,
       deploymentName,
-      fileName: image.fileName,
+      mime,
       timestamp: new Date().toISOString(),
     })
     return jsonResponse(
-      { content, image },
+      { content },
       200,
       { 'X-Request-Id': requestId },
       origin,
@@ -336,9 +307,9 @@ async function aiGenerateAndUpload(
   }
 }
 
-app.http('aiGenerateAndUploadProductImage', {
+app.http('aiGenerateProductContentFromFile', {
   methods: ['POST', 'OPTIONS'],
   route: 'api/admin/products/ai-generate-upload',
   authLevel: 'anonymous',
-  handler: aiGenerateAndUpload,
+  handler: aiGenerateFromFile,
 })
