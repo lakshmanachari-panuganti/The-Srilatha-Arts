@@ -79,6 +79,10 @@ export default function AdminNewProductPage() {
     material: '',
     careInstructions: '',
   })
+  // SEO filename produced by /ai-generate-upload. Surfaced in the
+  // Basic Information panel so the admin can see (and copy) the
+  // server-chosen filename without opening the blob URL.
+  const [storedFileName, setStoredFileName] = useState<string | null>(null)
   const updateAiField = <K extends keyof AiProductContent>(key: K, value: string) =>
     setAiFields((s) => ({ ...s, [key]: value }))
   const tokenRef = useRef(token)
@@ -102,6 +106,10 @@ export default function AdminNewProductPage() {
   // The AI button writes the analysed image as the FIRST entry, so we
   // splice its returned URL into index 0 (or replace whatever's there).
   const handleAiImageUploaded = (image: AiUploadedImage) => {
+    // image.fileName is `<category>/<slug>-YYYYMMDD.webp` - the admin
+    // only cares about the basename, strip the directory prefix.
+    const basename = image.fileName.split('/').pop() || image.fileName
+    setStoredFileName(basename)
     setImages((prev) => {
       if (prev.length === 0) {
         return [{ preview: image.url, file: null, url: image.url, uploading: false, error: null }]
@@ -306,6 +314,19 @@ export default function AdminNewProductPage() {
                 onUploaded={handleAiImageUploaded}
               />
             </div>
+            {storedFileName && (
+              <div>
+                <label className="block text-sm font-medium text-ink-soft mb-1.5">
+                  Stored filename
+                </label>
+                <div className="flex items-center gap-2 px-3 h-10 bg-plum/60 border border-ink/10 rounded-lg text-xs font-mono text-ink-soft break-all">
+                  <span className="truncate" title={storedFileName}>{storedFileName}</span>
+                </div>
+                <p className="text-[11px] text-ink-mute mt-1">
+                  SEO-friendly filename generated from the AI title.
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1.5">Title</label>
               <input

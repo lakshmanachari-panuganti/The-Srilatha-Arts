@@ -75,6 +75,10 @@ function EditProduct() {
   })
   const updateAiField = <K extends keyof AiProductContent>(key: K, value: string) =>
     setAiFields((s) => ({ ...s, [key]: value }))
+  // SEO filename produced by /ai-generate-upload. Surfaced in the
+  // Basic Information panel so the admin can see (and copy) the
+  // server-chosen filename without opening the blob URL.
+  const [storedFileName, setStoredFileName] = useState<string | null>(null)
 
   const sessionExpired = submitErrorStatus === 401 || submitError === 'Unauthorized'
 
@@ -142,6 +146,8 @@ function EditProduct() {
   // path), splice the returned URL into the first FILE-backed entry -
   // existing stored images at index 0 stay untouched.
   const handleAiImageUploaded = (image: AiUploadedImage) => {
+    const basename = image.fileName.split('/').pop() || image.fileName
+    setStoredFileName(basename)
     setImages((prev) => {
       const idx = prev.findIndex((e) => e.file)
       if (idx === -1) {
@@ -391,6 +397,19 @@ function EditProduct() {
                 onUploaded={handleAiImageUploaded}
               />
             </div>
+            {storedFileName && (
+              <div>
+                <label className="block text-sm font-medium text-ink-soft mb-1.5">
+                  Stored filename
+                </label>
+                <div className="flex items-center gap-2 px-3 h-10 bg-plum/60 border border-ink/10 rounded-lg text-xs font-mono text-ink-soft break-all">
+                  <span className="truncate" title={storedFileName}>{storedFileName}</span>
+                </div>
+                <p className="text-[11px] text-ink-mute mt-1">
+                  SEO-friendly filename generated from the AI title.
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1.5">Title</label>
               <input
