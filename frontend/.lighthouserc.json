@@ -1,0 +1,36 @@
+{
+  "_doc": "Lighthouse CI config. Run locally with `npx @lhci/cli@0.14.x autorun` (after `npm run build` so frontend/out exists). The CI workflow at .github/workflows/lighthouse-ci.yml runs the same thing on every PR.",
+  "ci": {
+    "collect": {
+      "_doc-staticDistDir": "lhci CLI spawns a local static server against this directory, so the URLs below resolve against the actual production build (frontend/out/) - no deploy hop required, no network flake.",
+      "staticDistDir": "./out",
+      "url": [
+        "http://localhost/index.html",
+        "http://localhost/shop/index.html",
+        "http://localhost/our-story/index.html",
+        "http://localhost/contact/index.html"
+      ],
+      "_doc-numberOfRuns": "1 run per URL keeps CI minutes low. Lighthouse scores have ~5pt variance run-to-run; bump to 3 if a flaky regression starts ping-ponging the PR gate.",
+      "numberOfRuns": 1,
+      "settings": {
+        "_doc-preset": "desktop because the studio's primary buyers are gift-shopping on a laptop. Mobile would be more punishing and is worth a follow-up run if you care about the mobile-first index ranking signal.",
+        "preset": "desktop",
+        "_doc-skipAudits": "uses-http2 fires because the local static server is HTTP/1.1; production SWA serves HTTP/2 so this is a false positive.",
+        "skipAudits": ["uses-http2"]
+      }
+    },
+    "upload": {
+      "_doc-target": "temporary-public-storage uploads the run to lhci's public bucket; results URL works for ~7 days, no signup. PR comment includes the link. Switch to filesystem + GH artifacts later if you want longer retention.",
+      "target": "temporary-public-storage"
+    },
+    "assert": {
+      "_doc": "Warn-only on first roll-out so a regression flags in the PR comment but does NOT block the merge. After a couple of weeks of trend data, tighten to 'error' on the perf + a11y categories.",
+      "assertions": {
+        "categories:performance":   ["warn", { "minScore": 0.85 }],
+        "categories:accessibility": ["warn", { "minScore": 0.90 }],
+        "categories:best-practices":["warn", { "minScore": 0.90 }],
+        "categories:seo":           ["warn", { "minScore": 0.90 }]
+      }
+    }
+  }
+}

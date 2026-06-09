@@ -1,0 +1,76 @@
+name: Lighthouse CI
+
+# Runs Lighthouse against a local build of the static export so the audit
+# is deterministic (no deploy race, no remote-server flake). Configured
+# via frontend/.lighthouserc.json — edit there to change URLs or
+# thresholds, not here.
+#
+# Scope is deliberate:
+#   - pull_request only      → no run on every develop push (auto-push
+#                              workflow would burn minutes otherwise)
+#   - workflow_dispatch       → manual trigger from the Actions tab when
+#                              you want a fresh score outside a PR
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/lighthouse-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  WORKING_DIRECTORY: frontend
+
+jobs:
+  lighthouse:
+    name: Audit static export
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          lfs: false
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm ci --no-audit --no-fund
+
+      # Build mirrors deploy-frontend-dev.yml so Lighthouse audits the
+      # exact same artefact that ships to SWA. SITE_URL is set to the
+      # dev SWA hostname so internal absolute URLs in metadata + JSON-LD
+      # match the deploy target (avoids "links point to localhost" noise
+      # in the audit).
+      - name: Build (Next.js static export)
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://func-thesrilathaarts-dev.azurewebsites.net/api
+          NEXT_PUBLIC_SITE_URL: https://www.srilatha.art
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        # 0.14.x = current stable line; pin to a minor so a future major
+        # release doesn't silently change the assertion format.
+        run: |
+          npx --yes @lhci/cli@0.14.x autorun
+        # `autorun` exits non-zero only on hard assertion failures. The
+        # config uses "warn" thresholds, so this step succeeds even when
+        # a score dips — the PR comment still surfaces the regression.
