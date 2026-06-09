@@ -22,6 +22,7 @@
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
 import { randomUUID } from 'crypto'
+import sharp from 'sharp'
 import { requireAdmin } from '../middleware/adminGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
@@ -29,7 +30,9 @@ import {
   generateProductContent,
   AiContentError,
   type AiErrorCode,
+  type AiImageSource,
 } from '../services/aiContentGenerator'
+import { uploadProductImage } from '../services/blobStorage'
 
 // Short, neutral hint strings paired with each code. The real user-facing
 // copy lives on the frontend (mapped from `code`) - these strings just
@@ -168,4 +171,174 @@ app.http('aiGenerateProductContent', {
   route: 'api/admin/products/ai-generate',
   authLevel: 'anonymous',
   handler: aiGenerateContent,
+})
+
+// ─── /api/admin/products/ai-generate-upload ─────────────────────
+// Combined "analyse-and-store" endpoint:
+//   1. accepts the raw uploaded image as multipart/form-data
+//   2. re-encodes it to WebP (preserving quality, stripping metadata)
+//   3. calls Azure OpenAI vision with the WebP bytes (base64 data URL),
+//      so we don't need a public URL for the source image first
+//   4. derives an SEO-friendly filename from the AI-generated title
+//      (`{category}/{slug}-{YYYYMMDD}.webp`) and writes the blob there
+//   5. returns BOTH the stored image record and the AI content in a
+//      single round-trip, so the admin UI can fill the form immediately
+//
+// This is the only path that produces SEO-named blobs from the AI flow.
+// The classic /api/admin/upload handles ad-hoc uploads without AI (it
+// also takes an optional `title` query param so additional images for
+// the same product share the slug base).
+
+const MAX_AI_UPLOAD_FILE_SIZE = 10 * 1024 * 1024 // 10 MB - matches the admin UI's stated limit
+
+function detectImageMime(buf: Buffer): 'image/jpeg' | 'image/png' | 'image/webp' | null {
+  if (buf.length < 12) return null
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg'
+  if (
+    buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47 &&
+    buf[4] === 0x0d && buf[5] === 0x0a && buf[6] === 0x1a && buf[7] === 0x0a
+  ) return 'image/png'
+  if (
+    buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 &&
+    buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50
+  ) return 'image/webp'
+  return null
+}
+
+async function aiGenerateAndUpload(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+  const csrfFail = enforceCsrf(request, origin)
+  if (csrfFail) return csrfFail
+
+  const admin = requireAdmin(request)
+  if (!admin) return errorResponse('Unauthorized', 401, origin)
+
+  const requestId = randomUUID()
+
+  let file: { buffer: Buffer; name: string } | null = null
+  let category = 'general'
+  try {
+    const formData = await request.formData()
+    const f = formData.get('file') as File | null
+    if (f) {
+      const ab = await f.arrayBuffer()
+      file = { buffer: Buffer.from(ab), name: f.name }
+    }
+    const cat = formData.get('category')
+    if (typeof cat === 'string' && cat.trim()) category = cat.trim()
+  } catch {
+    logFailure(context, {
+      requestId,
+      adminId: admin.adminId,
+      code: 'INVALID_INPUT',
+      details: 'multipart parse failed',
+    })
+    return errorJson(origin, 400, 'INVALID_INPUT', requestId)
+  }
+
+  if (!file) {
+    logFailure(context, {
+      requestId,
+      adminId: admin.adminId,
+      code: 'INVALID_INPUT',
+      details: 'file field missing',
+    })
+    return errorJson(origin, 400, 'INVALID_INPUT', requestId)
+  }
+  if (file.buffer.length > MAX_AI_UPLOAD_FILE_SIZE) {
+    logFailure(context, {
+      requestId,
+      adminId: admin.adminId,
+      code: 'INVALID_INPUT',
+      details: `file too large: ${file.buffer.length}`,
+    })
+    return errorJson(origin, 400, 'INVALID_INPUT', requestId)
+  }
+  const mime = detectImageMime(file.buffer)
+  if (!mime) {
+    logFailure(context, {
+      requestId,
+      adminId: admin.adminId,
+      code: 'INVALID_INPUT',
+      details: 'magic-byte check failed',
+    })
+    return errorJson(origin, 400, 'INVALID_INPUT', requestId)
+  }
+
+  // Re-encode to WebP up-front. This is the version we both send to AI
+  // and persist - guarantees a consistent representation and gets the
+  // metadata-stripping benefit before the image leaves our process.
+  let webp: Buffer
+  try {
+    webp = await sharp(file.buffer)
+      .rotate()
+      .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 88 })
+      .toBuffer()
+  } catch (err) {
+    logFailure(context, {
+      requestId,
+      adminId: admin.adminId,
+      code: 'IMAGE_PROCESSING_ERROR',
+      details: err instanceof Error ? err.message : 'sharp encode failed',
+    })
+    return errorJson(origin, 400, 'IMAGE_PROCESSING_ERROR', requestId)
+  }
+
+  // Send the WebP bytes to AI inline (base64 data URL). No need to
+  // upload to blob storage first, so we never produce a UUID-named
+  // throwaway file - the only blob write is the SEO-named one below.
+  const source: AiImageSource = { kind: 'buffer', buffer: webp, mimeType: 'image/webp' }
+
+  try {
+    const { content, deploymentName } = await generateProductContent(source)
+    // Now we know the AI title - write the blob with an SEO filename
+    // derived from it.
+    const image = await uploadProductImage(file.buffer, category, file.name, {
+      seoTitle: content.title,
+    })
+    context.log('aiGenerateAndUpload: success', {
+      requestId,
+      adminId: admin.adminId,
+      deploymentName,
+      fileName: image.fileName,
+      timestamp: new Date().toISOString(),
+    })
+    return jsonResponse(
+      { content, image },
+      200,
+      { 'X-Request-Id': requestId },
+      origin,
+    )
+  } catch (err) {
+    if (err instanceof AiContentError) {
+      logFailure(context, {
+        requestId,
+        adminId: admin.adminId,
+        code: err.code,
+        azureStatus: err.azureStatus,
+        details: err.details,
+        deploymentName: process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
+      })
+      return errorJson(origin, err.status, err.code, requestId)
+    }
+    logFailure(context, {
+      requestId,
+      adminId: admin.adminId,
+      code: 'INTERNAL_ERROR',
+      details: err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+    })
+    return errorJson(origin, 500, 'INTERNAL_ERROR', requestId)
+  }
+}
+
+app.http('aiGenerateAndUploadProductImage', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/admin/products/ai-generate-upload',
+  authLevel: 'anonymous',
+  handler: aiGenerateAndUpload,
 })

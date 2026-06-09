@@ -94,7 +94,24 @@ export interface GenerateResult {
   deploymentName: string
 }
 
-export async function generateProductContent(imageUrl: string): Promise<GenerateResult> {
+/**
+ * Image source for AI content generation. Either a public https URL (the
+ * AI service fetches it directly) or a raw buffer with its mime type (we
+ * encode it as a base64 data URL inline in the request).
+ *
+ * The buffer path exists so we can run AI generation BEFORE writing the
+ * blob - the upload-with-SEO-filename flow needs the AI-generated title
+ * before deciding where to store the image, so there is no public URL to
+ * point Azure at yet.
+ */
+export type AiImageSource =
+  | { kind: 'url'; url: string }
+  | { kind: 'buffer'; buffer: Buffer; mimeType: 'image/jpeg' | 'image/png' | 'image/webp' }
+
+export async function generateProductContent(source: string | AiImageSource): Promise<GenerateResult> {
+  // Back-compat: existing callers pass a bare URL string.
+  const src: AiImageSource =
+    typeof source === 'string' ? { kind: 'url', url: source } : source
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT
   const apiKey = process.env.AZURE_OPENAI_API_KEY
   const deployment = process.env.AZURE_OPENAI_DEPLOYMENT_NAME
@@ -111,11 +128,23 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
       details: `Missing env vars: ${missing}`,
     })
   }
-  if (!imageUrl || !/^https?:\/\//.test(imageUrl)) {
-    throw new AiContentError('INVALID_INPUT', {
-      status: 400,
-      details: 'imageUrl missing or not an http(s) URL',
-    })
+  let imageUrlForRequest: string
+  if (src.kind === 'url') {
+    if (!src.url || !/^https?:\/\//.test(src.url)) {
+      throw new AiContentError('INVALID_INPUT', {
+        status: 400,
+        details: 'imageUrl missing or not an http(s) URL',
+      })
+    }
+    imageUrlForRequest = src.url
+  } else {
+    if (!src.buffer || src.buffer.length === 0) {
+      throw new AiContentError('INVALID_INPUT', {
+        status: 400,
+        details: 'image buffer missing or empty',
+      })
+    }
+    imageUrlForRequest = `data:${src.mimeType};base64,${src.buffer.toString('base64')}`
   }
 
   // Foundry exposes two endpoint surfaces for the same model:
@@ -186,7 +215,7 @@ export async function generateProductContent(imageUrl: string): Promise<Generate
             role: 'user',
             content: [
               { type: 'text', text: PROMPT },
-              { type: 'image_url', image_url: { url: imageUrl } },
+              { type: 'image_url', image_url: { url: imageUrlForRequest } },
             ],
           },
         ],
