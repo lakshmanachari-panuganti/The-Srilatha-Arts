@@ -1,0 +1,22 @@
+1. order_crafting
+
+#Trigger:
+----------
+Order Status:
+CONFIRMED → CRAFTING
+
+Purpose:
+----------
+Inform customer that work on their artwork has started.
+
+#Example:
+#---------#
+
+Hello {{1}},
+
+Your order {{2}} is now being handcrafted by our studio.
+
+We will keep you updated as it progresses.
+
+– Srilatha Art
+Email: studio@srilatha.art

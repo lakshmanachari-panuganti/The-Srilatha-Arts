@@ -1,0 +1,21 @@
+5. order_refunded
+
+Trigger:
+
+Refund processed
+
+Variables:
+
+Customer Name
+Refund Amount
+Order Number
+
+Example:
+
+Hello {{1}},
+
+A refund of ₹{{2}} for order {{3}} has been processed.
+
+The amount will reflect in your account based on your bank's processing timelines.
+
+– Srilatha Art

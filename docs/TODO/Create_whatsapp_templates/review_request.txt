@@ -1,0 +1,39 @@
+Hello {{1}},
+
+We hope your artwork has arrived safely and found a special place in your home.
+
+Your feedback means a lot to our small studio and helps other art lovers discover handmade creations.
+
+If you have a moment, we'd be grateful if you could share your experience:
+
+{{2}}
+
+Thank you for supporting Srilatha Art.
+
+– Srilatha Art
+
+Example Sent to Customer
+Hello Lakshman,
+
+We hope your artwork has arrived safely and found a special place in your home.
+
+Your feedback means a lot to our small studio and helps other art lovers discover handmade creations.
+
+If you have a moment, we'd be grateful if you could share your experience:
+
+https://www.srilatha.art/review/ORD-20260611-001
+
+Thank you for supporting Srilatha Art.
+
+– Srilatha Art
+Meta Template Variables
+{{1}} = Customer Name
+{{2}} = Review Link
+Category
+UTILITY
+Trigger
+Order Status:
+DELIVERED
+
+Delay:
+72 hours

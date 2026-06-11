@@ -1,0 +1,26 @@
+2. order_shipped
+
+#Trigger:
+----------
+Order Status:
+CRAFTING → SHIPPED
+
+#Variables:
+------------
+Customer Name
+Order Number
+Courier Name
+Tracking Number
+
+#Example:
+#-----------#
+Hello {{1}},
+
+Your order {{2}} has been shipped.
+
+Courier: {{3}}
+Tracking Number: {{4}}
+
+Thank you for supporting handmade art.
+
+– Srilatha Art
