@@ -1,0 +1,16 @@
+3. order_delivered
+
+Trigger:
+----------
+Order Status:
+SHIPPED → DELIVERED
+
+#Example:
+#---------#
+Hello {{1}},
+
+Your order {{2}} has been marked as delivered.
+
+We hope it brings joy to your space.
+
+We appreciate your trust and support ❤️

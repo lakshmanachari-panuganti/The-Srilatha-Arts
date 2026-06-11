@@ -1,0 +1,16 @@
+4. order_cancelled
+
+Trigger:
+
+Order Status:
+→ CANCELLED
+
+Example:
+
+Hello {{1}},
+
+Your order {{2}} has been cancelled.
+
+If you have any questions, please contact us.
+
+– Srilatha Art

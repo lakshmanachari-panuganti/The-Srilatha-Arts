@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Upload, X } from 'lucide-react'
-import { getApiBase, getCsrfToken } from '@/lib/api'
+import { getApiBase, getCsrfToken, getAuthToken } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 
 // Customer-photo uploader shared by the custom-order form, return-request
@@ -48,10 +48,14 @@ export default function PhotoUploader({ value, onChange, max = 5, label, hint }:
       const fd = new FormData()
       fd.append('file', file)
       const csrf = await getCsrfToken()
+      const authToken = getAuthToken()
       const res = await fetch(`${getApiBase()}/upload/customer`, {
         method: 'POST',
         credentials: 'include',
-        headers: csrf ? { 'X-CSRF-Token': csrf } : undefined,
+        headers: {
+          ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
         body: fd,
       })
       if (!res.ok) {
