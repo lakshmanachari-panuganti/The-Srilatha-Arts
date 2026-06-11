@@ -3,7 +3,6 @@ import { MessageCircle, FileText, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { whatsappLink } from '@/lib/site-config'
-import { fadeUp } from '@/lib/motion'
 
 export default function ContactCTA() {
   return (

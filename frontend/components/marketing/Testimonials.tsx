@@ -1,3 +1,4 @@
+'use client'
 import { Quote, Star, ChevronRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { stagger, fadeUp } from '@/lib/motion'

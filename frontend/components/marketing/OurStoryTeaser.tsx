@@ -1,3 +1,4 @@
+'use client'
 import Link from 'next/link'
 import PictureImage from '@/components/PictureImage'
 import { ArrowRight } from 'lucide-react'
