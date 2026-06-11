@@ -60,14 +60,16 @@ export default function BottomTabBar() {
                 onClick={() => haptic(8)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-1',
+                  'relative flex flex-col items-center justify-center gap-1',
                   'font-medium transition-all duration-300',
-                  // Active label is full-alpha lavender-pastel; inactive is
-                  // full-alpha lavender-light. Previous `/85` on inactive
-                  // labels was hard to read against the deep-purple bar.
-                  active ? 'text-lavender-pastel' : 'text-plum-warm',
+                  active ? '' : 'text-plum-warm',
                 )}
-                style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}
+                style={{
+                  width: '100%',
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  color: active ? '#E8C25A' : undefined,
+                }}
               >
                 <span
                   className={cn(
@@ -78,9 +80,6 @@ export default function BottomTabBar() {
                   <Icon className="w-[18px] h-[18px]" aria-hidden />
                 </span>
                 <span
-                  // All sizing rules inline so they survive any cache or class
-                  // override. Truncation guarantees the label can never push
-                  // past its column even if a future label is longer than today.
                   style={{
                     display: 'block',
                     width: '100%',
@@ -96,6 +95,14 @@ export default function BottomTabBar() {
                 >
                   {label}
                 </span>
+                {/* Active dot indicator — color-independent signal */}
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full"
+                    style={{ background: 'var(--accent)' }}
+                  />
+                )}
               </Link>
             </li>
           )

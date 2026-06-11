@@ -159,22 +159,22 @@ export default function Header() {
             </div>
 
             {/* Contact links - mobile only, below the icons row */}
-            <div className="flex flex-col items-end gap-0.5 text-[11px] leading-tight lg:hidden">
+            <div className="flex flex-col items-end gap-0.5 text-[10px] leading-tight lg:hidden">
               <a
                 href={`mailto:${STUDIO_EMAIL}`}
                 aria-label={`Email ${STUDIO_EMAIL}`}
                 className="flex items-center gap-1.5 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
               >
-                <Mail className="w-3 h-3 text-lavender" aria-hidden />
-                <span>{STUDIO_EMAIL}</span>
+                <Mail className="w-3 h-3 text-lavender shrink-0" aria-hidden />
+                <span className="truncate max-w-[148px]">{STUDIO_EMAIL}</span>
               </a>
               <a
                 href={`tel:${PHONE_TEL}`}
                 aria-label={`Call ${PHONE_DISPLAY}`}
                 className="flex items-center gap-1.5 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
               >
-                <Phone className="w-3 h-3 text-lavender" aria-hidden />
-                <span>{PHONE_DISPLAY}</span>
+                <Phone className="w-3 h-3 text-lavender shrink-0" aria-hidden />
+                <span className="truncate max-w-[148px]">{PHONE_DISPLAY}</span>
               </a>
             </div>
           </div>

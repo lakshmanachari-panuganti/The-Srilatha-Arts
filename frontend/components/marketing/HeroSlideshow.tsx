@@ -218,8 +218,8 @@ export default function HomeHero() {
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 0.7 }}
             className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center
-                       gap-y-2 sm:gap-x-5 text-[11px] uppercase text-white/70"
-            style={{ letterSpacing: '0.12em' }}
+                       gap-y-2 sm:gap-x-5 text-xs sm:text-[11px] uppercase text-white/70"
+            style={{ letterSpacing: '0.08em' }}
           >
             <span>Painting since 2020</span>
             <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/40" aria-hidden />

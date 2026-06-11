@@ -81,6 +81,12 @@
     --wa-1: #25D366;
     --wa-2: #128C7E;
 
+    /* Terracotta - Indian craft micro-accent. Use for decorative
+       dot elements, section dividers and subtle warm details.
+       NOT for text at small sizes (contrast ratio <3:1 on ivory). */
+    --terracotta:     #C3501A;
+    --terracotta-rgb: 195 80 26;
+
     --banner-h: 0px;
     --header-h: 64px;
     --tab-h: 68px;
@@ -330,8 +336,8 @@
     transition: box-shadow 0.5s ease, transform 0.5s ease, border-color 0.5s ease;
   }
   .card:hover {
-    box-shadow: 0 16px 32px -14px rgba(34,27,18,0.22);
-    border-color: color-mix(in srgb, var(--text) 18%, transparent);
+    box-shadow: 0 16px 32px -14px rgba(200, 150, 47, 0.18);
+    border-color: rgba(200, 150, 47, 0.28);
   }
 
   .card-cream {
@@ -412,6 +418,16 @@
   .glass-strong {
     background: var(--surface-raised);
     border: 1px solid var(--border);
+  }
+
+  /* Desktop-only frosted glass for the scrolled header.
+     Blur is the single biggest mobile paint cost — disable on mobile. */
+  @media (min-width: 1024px) {
+    .glass-strong {
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      background: rgba(251, 248, 242, 0.84) !important;
+    }
   }
 
   /* ───────────── Hover lift (no glow) ───────────── */
