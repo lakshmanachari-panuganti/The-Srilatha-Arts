@@ -36,6 +36,7 @@ import { buildInvoicePdf } from './invoicePdf'
 import { uploadInvoicePdf } from './blobStorage'
 import { invoiceUrlFor } from './orderNumber'
 import { enqueueNotification } from './queue'
+import { recordAlert } from './notificationAlerts'
 
 /**
  * Build the invoice PDF for an order, upload it to blob, and stamp
@@ -71,6 +72,35 @@ export async function ensureInvoicePdf(
     return order.invoiceUrl as string
   }
 
+  try {
+    return await _generateInvoicePdf(order, context)
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err)
+    // Surface invoice failures on the admin dashboard — without an invoice
+    // the customer can't be confirmed via the WhatsApp path (DOCUMENT header
+    // requires the blob) and email order_confirmed loses its attachment.
+    await recordAlert({
+      orderId,
+      channel: 'invoice',
+      operation: 'invoice_generation',
+      customerName: (order.customerName as string) || '',
+      customerContact: (order.customerEmail as string) || (order.customerPhone as string) || '',
+      reason: errMsg,
+      attempt: 1,
+      // Invoice generation isn't queue-backed today, so a single failure is
+      // already "final" from the admin's perspective. They'll see it in the
+      // dashboard, hit Resend on the order, which re-runs ensureInvoicePdf.
+      isFinal: true,
+    })
+    throw err
+  }
+}
+
+async function _generateInvoicePdf(
+  order: Row,
+  context: InvocationContext,
+): Promise<string> {
+  const orderId = order.rowKey as string
   const items = await getOrderItems(orderId)
   const invoiceItems = items.map((i) => ({
     productId: i.rowKey as string,

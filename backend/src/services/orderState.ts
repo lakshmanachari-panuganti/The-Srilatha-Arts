@@ -116,20 +116,36 @@ interface TransitionNotification {
   scheduleReviewRequest?: boolean
 }
 
-// CONFIRMED/OUT_FOR_DELIVERY/DELIVERED carry no customer WhatsApp by design:
-// the order-confirmation WhatsApp+email already fires at PLACED (with the
-// invoice PDF), and OUT_FOR_DELIVERY / DELIVERED are owned by the courier's
-// own SMS/WhatsApp updates. Duplicating those just teaches customers to
-// ignore our messages. DELIVERED still triggers a delayed review request.
+// Dual-channel policy (project_notification_dual_channel): every customer-
+// facing transactional event fires WhatsApp + email in parallel, with the
+// studio CC'd on the email. Channels are independent — failure of one
+// does not block the other.
+//
+// CONFIRMED carries no customer notification because the
+// order_confirmation_new_artwork (WhatsApp) + order_confirmed (email with
+// invoice PDF) already fire from finalizeOrderAfterPayment at the Razorpay
+// capture step. Adding a CONFIRMED transition notification would double-
+// notify on every order.
+//
+// OUT_FOR_DELIVERY previously used a `push` channel that has never had a
+// handler. Dropped — the courier's own SMS/WhatsApp updates cover that
+// window. If we add a customer-facing OUT_FOR_DELIVERY notification later,
+// it goes through the same WhatsApp + email channels.
+//
+// PACKED is internal-only (admin notification, not customer).
+//
+// DELIVERED now fires both customer channels AND schedules the review
+// request. Customer feedback per project decision: confirm delivery
+// explicitly rather than only relying on the courier's own message.
 const NOTIFICATIONS: Partial<Record<OrderStatus, TransitionNotification>> = {
   CONFIRMED:        { customer: [],                    internal: [] },
-  CRAFTING:         { customer: ['whatsapp'],          internal: [] },
+  CRAFTING:         { customer: ['whatsapp', 'email'], internal: [] },
   PACKED:           { customer: [],                    internal: ['email'] },
   SHIPPED:          { customer: ['whatsapp', 'email'], internal: [] },
-  OUT_FOR_DELIVERY: { customer: ['push'],              internal: [] },
-  DELIVERED:        { customer: [],                    internal: [], scheduleReviewRequest: true },
+  OUT_FOR_DELIVERY: { customer: [],                    internal: [] },
+  DELIVERED:        { customer: ['whatsapp', 'email'], internal: [], scheduleReviewRequest: true },
   CANCELLED:        { customer: ['whatsapp', 'email'], internal: [] },
-  ON_HOLD:          { customer: ['whatsapp'],          internal: [] },
+  ON_HOLD:          { customer: ['whatsapp', 'email'], internal: [] },
   REFUNDED:         { customer: ['whatsapp', 'email'], internal: [] },
 }
 

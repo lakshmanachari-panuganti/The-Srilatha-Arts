@@ -2,9 +2,10 @@
 
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ChevronRight } from 'lucide-react'
 import ProductCard from '@/components/shop/ProductCard'
 import { apiFetch } from '@/lib/api'
+import { motion } from 'framer-motion'
 import type { Product } from '@/types'
 
 export default function BestSellers() {
@@ -20,7 +21,13 @@ export default function BestSellers() {
   if (isLoading || products.length === 0) return null
 
   return (
-    <section className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto">
+    <motion.section
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto"
+    >
       <div className="flex items-end justify-between mb-8 sm:mb-12 lg:mb-16">
         <div>
           <p className="eyebrow mb-4">Most loved</p>
@@ -47,12 +54,16 @@ export default function BestSellers() {
           ))}
           <div className="shrink-0 w-2" aria-hidden />
         </div>
+        <p className="mt-3 flex items-center justify-end gap-1 text-[11px] uppercase tracking-widest text-ivory-mute" aria-hidden>
+          Swipe to see more
+          <ChevronRight className="w-3 h-3" />
+        </p>
       </div>
       <div className="hidden lg:grid grid-cols-4 gap-7">
         {products.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}
       </div>
-    </section>
+    </motion.section>
   )
 }

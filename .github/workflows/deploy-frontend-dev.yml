@@ -2,12 +2,16 @@ name: Deploy Frontend · DEV
 
 on:
   push:
-    branches: [develop]
+    branches:
+      - develop
+      - feature/ai-driven
     paths:
       - 'frontend/**'
       - '.github/workflows/deploy-frontend-dev.yml'
   pull_request:
-    branches: [develop]
+    branches:
+      - develop
+      - feature/ai-driven
     paths:
       - 'frontend/**'
   workflow_dispatch:

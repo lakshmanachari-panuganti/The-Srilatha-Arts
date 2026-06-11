@@ -17,7 +17,9 @@ import {
   verifyWebhookSignature,
   isRazorpayConfigured,
   getPublicKeyId,
+  createRefund,
 } from '../services/razorpay'
+import { recordAlert } from '../services/notificationAlerts'
 import {
   createOrder,
   createOrderItem,
@@ -28,6 +30,10 @@ import {
   getOrderById,
   getAllOrders,
   mergeOrder,
+  reserveStock,
+  restoreStock,
+  InsufficientStockError,
+  StockConcurrencyError,
   Row,
 } from '../services/tableStorage'
 import { requireUser } from '../middleware/userGuard'
@@ -35,6 +41,7 @@ import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { canTransition } from '../services/orderState'
 import { enqueueNotification } from '../services/queue'
+import { trackEvent as trackTelemetry, trackException } from '../utils/telemetry'
 import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
 import { generateOrderNumber } from '../services/orderNumber'
 import { finalizeOrderAfterPayment } from '../services/orderFulfillment'
@@ -54,6 +61,29 @@ async function createPaymentOrder(
   if (!isRazorpayConfigured()) {
     context.error('createPaymentOrder: Razorpay env vars not configured')
     return errorResponse('Payment gateway is not available', 503, origin)
+  }
+
+  // ── Reservation tracking, scoped to the entire request lifecycle ─
+  // Declared OUTSIDE the try so the outer catch can run the compensating
+  // restore if anything throws after we reserved. The closure mutates
+  // both the array and its callers; we clear after a successful restore
+  // so any nested rollback call doesn't double-decrement.
+  const reservedItems: { productId: string; qty: number }[] = []
+  const rollbackReservations = async (): Promise<void> => {
+    if (reservedItems.length === 0) return
+    const toRestore = reservedItems.splice(0, reservedItems.length)
+    for (const r of toRestore) {
+      try {
+        await restoreStock(r.productId, r.qty)
+      } catch (restoreErr) {
+        context.error(
+          `createPaymentOrder: compensating restoreStock failed for ${r.productId} qty=${r.qty}`,
+          restoreErr,
+        )
+        // Don't throw — let remaining items try to restore, then rely on
+        // the timer-triggered stale-reservation cleanup to catch leftovers.
+      }
+    }
   }
 
   try {
@@ -107,6 +137,43 @@ async function createPaymentOrder(
       })
     }
 
+    // ── Reserve inventory (optimistic concurrency) ────────────────────
+    // Decrement stockQty on every item BEFORE creating the Razorpay order.
+    // A successful reserve guarantees the inventory is held for this order
+    // through to payment capture. If anything below fails (Razorpay create,
+    // internal order persistence) we restore in a compensating loop so
+    // we never leave reserved-but-uncaptured stock.
+    //
+    // Concurrent purchases of a one-of-one product can race on the read+
+    // write pair; reserveStock uses ETag optimistic concurrency to detect
+    // and retry. After retries are exhausted we surface a clean
+    // "just-sold" error to the customer.
+    //
+    // The compensating restore on failure runs orphan-safe: the timer-
+    // triggered stale-reservation cleanup function sweeps PLACED+PENDING
+    // orders older than the threshold and restores their stock within 10
+    // minutes, covering anything the inline rollback misses.
+    for (const snap of itemSnapshots) {
+      try {
+        await reserveStock(snap.productId, snap.qty)
+        reservedItems.push({ productId: snap.productId, qty: snap.qty })
+      } catch (err) {
+        await rollbackReservations()
+        if (err instanceof InsufficientStockError) {
+          return errorResponse(err.message, 409, origin)
+        }
+        if (err instanceof StockConcurrencyError) {
+          return errorResponse(
+            `${snap.title} just sold — please refresh and try again.`,
+            409,
+            origin,
+          )
+        }
+        context.error('createPaymentOrder: reserveStock failed', err)
+        return errorResponse('Could not reserve inventory. Please try again.', 500, origin)
+      }
+    }
+
     // Shipping is admin-configurable via /admin/settings. computeShippingAmount
     // applies the free-threshold and the effective (possibly discounted) charge.
     const shippingCfg = await getShippingConfig()
@@ -134,6 +201,9 @@ async function createPaymentOrder(
       })
     } catch (err) {
       context.error('createPaymentOrder: razorpay order creation failed', err)
+      // Compensating restore: Razorpay never accepted the order so we
+      // must give the inventory back to the catalog before responding.
+      await rollbackReservations()
       // The thrown message from createRazorpayOrder follows the format:
       //   "[razorpay] order create failed (<status>): <description>"
       // Surface the description to the caller so the failure is diagnosable
@@ -227,9 +297,13 @@ async function createPaymentOrder(
     )
   } catch (err) {
     if (err instanceof SyntaxError) {
+      await rollbackReservations()
       return errorResponse('Invalid request body', 400, origin)
     }
     context.error('createPaymentOrder: unexpected error', err)
+    // Inline best-effort restore. If it itself throws or partially fails,
+    // staleReservationCleanup will sweep anything left over.
+    await rollbackReservations()
     return errorResponse('Failed to create order', 500, origin)
   }
 }
@@ -298,6 +372,92 @@ async function verifyPayment(
 
     const now = new Date().toISOString()
     const fromStatus = order.status as OrderStatus
+
+    // Captured-after-cancellation guard — same shape as the webhook
+    // handler. If the order was cancelled by the stale-reservation
+    // cleanup and the customer's Razorpay verify request lands later,
+    // we auto-refund and skip the confirmation pipeline. See the webhook
+    // handler below for the full rationale.
+    if (fromStatus === 'CANCELLED') {
+      let refundId: string | undefined
+      let refundError: string | undefined
+      try {
+        const refund = await createRefund({
+          paymentId: body.razorpayPaymentId,
+          speed: 'normal',
+          notes: {
+            reason: 'auto-refund: payment captured after order cancellation',
+            orderId: order.rowKey,
+          },
+        })
+        refundId = refund.id
+      } catch (err) {
+        refundError = err instanceof Error ? err.message : String(err)
+        context.error(
+          `verifyPayment: auto-refund failed for orderId=${order.rowKey} paymentId=${body.razorpayPaymentId}`,
+          err,
+        )
+      }
+
+      await mergeOrder(order.partitionKey, order.rowKey, {
+        razorpayPaymentId: body.razorpayPaymentId,
+        paymentStatus: 'CAPTURED',
+        paymentAfterCancel: true,
+        autoRefundInitiated: Boolean(refundId),
+        razorpayRefundId: refundId || (order.razorpayRefundId as string) || '',
+        autoRefundError: refundError || '',
+        updatedAt: now,
+      })
+
+      await appendOrderEvent({
+        partitionKey: order.rowKey,
+        rowKey: `${now}_verify_captured_after_cancel`,
+        channel: 'status',
+        by: 'razorpay-verify',
+        byRole: 'system',
+        note: refundId
+          ? `Payment captured AFTER cancellation (verify path) — auto-refund initiated (refund ${refundId})`
+          : `Payment captured AFTER cancellation (verify path) — auto-refund FAILED: ${refundError || 'unknown'}`,
+        meta: JSON.stringify({
+          razorpayOrderId: body.razorpayOrderId,
+          razorpayPaymentId: body.razorpayPaymentId,
+          refundId,
+          refundError,
+        }),
+        createdAt: now,
+      })
+
+      await recordAlert({
+        orderId: order.rowKey,
+        channel: 'payment',
+        operation: 'payment_after_cancel',
+        customerName: (order.customerName as string) || '',
+        customerContact:
+          (order.customerEmail as string) || (order.customerPhone as string) || '',
+        reason: refundId
+          ? `Late payment received after order cancellation. Auto-refund initiated (refund id ${refundId}). Verify with Razorpay dashboard.`
+          : `Late payment received after order cancellation. Auto-refund FAILED: ${refundError || 'unknown error'}. Manual refund required.`,
+        attempt: 1,
+        isFinal: true,
+      })
+
+      // The customer's Razorpay handler is awaiting this verify response.
+      // Don't tell them "confirmed" — tell them something went sideways
+      // and a refund is on the way. They'll get no confirmation messages.
+      return jsonResponse(
+        {
+          ok: false,
+          orderId: order.rowKey,
+          status: 'cancelled',
+          message:
+            'Your order was cancelled before this payment arrived. A refund has been initiated and should reflect in your account within 5-7 business days.',
+        },
+        200,
+        {},
+        origin,
+      )
+    }
+
     const toStatus: OrderStatus = canTransition(fromStatus, 'CONFIRMED') ? 'CONFIRMED' : fromStatus
 
     await mergeOrder(order.partitionKey, order.rowKey, {
@@ -360,7 +520,19 @@ async function verifyPayment(
     } catch (invErr) {
       // Don't block the verify response - the webhook will retry.
       context.error('verifyPayment: finalizeOrderAfterPayment failed', invErr)
+      trackException(invErr, {
+        stage: 'finalize_after_payment',
+        orderId: order.rowKey,
+        path: 'verify',
+      })
     }
+
+    trackTelemetry('payment.captured', {
+      orderId: order.rowKey,
+      amountPaise: order.totalAmount,
+      method: 'razorpay',
+      path: 'verify',
+    })
 
     return jsonResponse({ ok: true, orderId: order.rowKey, status: toStatus }, 200, {}, origin)
   } catch (err) {
@@ -389,6 +561,10 @@ async function razorpayWebhook(
 
   if (!verifyWebhookSignature(rawBody, signature)) {
     context.warn('razorpayWebhook: signature mismatch')
+    trackTelemetry('webhook.signature_failed', {
+      source: 'razorpay',
+      hasSignature: Boolean(signature),
+    })
     return { status: 400, body: 'Bad signature' }
   }
 
@@ -481,6 +657,111 @@ async function razorpayWebhook(
   if (event === 'payment.captured' && paymentEntity) {
     const entity = paymentEntity
     const fromStatus = order.status as OrderStatus
+
+    // ── Captured-after-cancellation race ────────────────────────────
+    // The customer's order was cancelled (most commonly by the stale-
+    // reservation cleanup at the 30-min mark) but their payment captured
+    // arrives anyway — e.g. they completed Razorpay Checkout at minute 28
+    // and the webhook landed at minute 32 due to network delay. The
+    // inventory has already been restored and we won't be fulfilling the
+    // order, so:
+    //
+    //   1. Record the captured payment id on the row (audit trail)
+    //   2. Auto-refund the captured amount via Razorpay
+    //   3. Stamp paymentAfterCancel + autoRefundInitiated flags
+    //   4. SKIP finalizeOrderAfterPayment (no confirmation, no invoice
+    //      email, no WhatsApp confirmation — customer was never confirmed)
+    //   5. Raise an admin alert on the Notification Alerts dashboard so
+    //      ops can verify the auto-refund landed cleanly with Razorpay
+    //
+    // The 'refund.processed' webhook will fire when Razorpay credits
+    // the refund — the normal refund handler picks it up and stamps
+    // paymentStatus: REFUNDED. No customer notifications fire on either
+    // edge (we explicitly skip them to avoid messaging a customer about
+    // an order they were already told was cancelled).
+    if (fromStatus === 'CANCELLED') {
+      const capturedAmount = entity.amount || 0
+      let refundId: string | undefined
+      let refundError: string | undefined
+      try {
+        if (razorpayPaymentId) {
+          const refund = await createRefund({
+            paymentId: razorpayPaymentId,
+            amountPaise: capturedAmount > 0 ? capturedAmount : undefined,
+            speed: 'normal',
+            notes: {
+              reason: 'auto-refund: payment captured after order cancellation',
+              orderId: order.rowKey,
+            },
+          })
+          refundId = refund.id
+        } else {
+          refundError = 'no razorpayPaymentId on captured event'
+        }
+      } catch (err) {
+        refundError = err instanceof Error ? err.message : String(err)
+        context.error(
+          `razorpayWebhook: auto-refund failed for orderId=${order.rowKey} paymentId=${razorpayPaymentId}`,
+          err,
+        )
+      }
+
+      await mergeOrder(order.partitionKey, order.rowKey, {
+        // Record the captured payment id even though we're refunding it —
+        // the audit trail must show what happened end-to-end.
+        razorpayPaymentId,
+        paymentStatus: 'CAPTURED',
+        paymentAfterCancel: true,
+        autoRefundInitiated: Boolean(refundId),
+        razorpayRefundId: refundId || (order.razorpayRefundId as string) || '',
+        autoRefundError: refundError || '',
+        updatedAt: now,
+      })
+
+      await appendOrderEvent({
+        partitionKey: order.rowKey,
+        rowKey: `${now}_webhook_captured_after_cancel`,
+        channel: 'status',
+        by: 'razorpay-webhook',
+        byRole: 'system',
+        note: refundId
+          ? `Payment captured AFTER cancellation — auto-refund initiated (refund ${refundId})`
+          : `Payment captured AFTER cancellation — auto-refund FAILED: ${refundError || 'unknown'}`,
+        meta: JSON.stringify({
+          razorpayOrderId,
+          razorpayPaymentId,
+          capturedAmountPaise: capturedAmount,
+          refundId,
+          refundError,
+          method: entity.method,
+        }),
+        createdAt: now,
+      })
+
+      // Raise the admin alert. Includes the refund outcome so the admin
+      // immediately knows whether intervention is needed (refund failed)
+      // or just verification (refund pending Razorpay).
+      await recordAlert({
+        orderId: order.rowKey,
+        channel: 'payment',
+        operation: 'payment_after_cancel',
+        customerName: (order.customerName as string) || '',
+        customerContact:
+          (order.customerEmail as string) || (order.customerPhone as string) || '',
+        reason: refundId
+          ? `Late payment received after order cancellation. Auto-refund initiated (refund id ${refundId}). Verify with Razorpay dashboard.`
+          : `Late payment received after order cancellation. Auto-refund FAILED: ${refundError || 'unknown error'}. Manual refund required.`,
+        attempt: 1,
+        isFinal: true,
+      })
+
+      // 200 to Razorpay — we've handled the event. Their retry would
+      // duplicate our refund attempt; the captured-payment idempotency
+      // guard above (already-captured check) protects subsequent webhooks
+      // for the same payment id.
+      return { status: 200, body: 'ok - captured after cancel, auto-refund initiated' }
+    }
+
     const toStatus: OrderStatus = canTransition(fromStatus, 'CONFIRMED') ? 'CONFIRMED' : fromStatus
 
     await mergeOrder(order.partitionKey, order.rowKey, {
@@ -626,20 +907,41 @@ async function razorpayWebhook(
       }
     }
 
+    // Fan out the refund notification on both customer channels per the
+    // dual-channel policy. Each channel enqueued as a separate message so
+    // a transient failure on one doesn't impact the other; the registry
+    // dispatcher applies the studio CC on the email side automatically.
+    const refundRupees = ((refundEntity.amount ?? 0) / 100).toLocaleString('en-IN', {
+      maximumFractionDigits: 2,
+    })
+    const refundVars = {
+      customerName: (order.customerName as string) || 'Customer',
+      orderId: order.rowKey as string,
+      refundAmount: refundRupees,
+    }
+
     if (order.customerEmail) {
       try {
         await enqueueNotification({
-          userEmail: order.customerEmail,
+          userEmail: order.customerEmail as string,
           channel: 'email',
           templateKey: 'refund_processed',
-          vars: {
-            customerName: order.customerName,
-            orderId: order.rowKey,
-            amount: ((refundEntity.amount ?? 0) / 100).toFixed(2),
-          },
+          vars: refundVars,
         })
       } catch (notifyErr) {
-        context.warn('razorpayWebhook(refund.processed): notification enqueue failed (non-fatal)', notifyErr)
+        context.warn('razorpayWebhook(refund.processed): email enqueue failed (non-fatal)', notifyErr)
+      }
+    }
+    if (order.customerPhone) {
+      try {
+        await enqueueNotification({
+          userEmail: (order.customerEmail as string) || '',
+          channel: 'whatsapp',
+          templateKey: 'refund_processed',
+          vars: refundVars,
+        })
+      } catch (notifyErr) {
+        context.warn('razorpayWebhook(refund.processed): whatsapp enqueue failed (non-fatal)', notifyErr)
       }
     }
 

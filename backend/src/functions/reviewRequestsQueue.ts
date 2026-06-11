@@ -7,9 +7,11 @@
  *            timeout of 72h (configurable), so the message becomes visible
  *            here once the customer has had time with the piece.
  *
- *   Sends the `review_request` WhatsApp template to the customer's phone.
- *   Email fallback isn't wired yet — first iteration is WhatsApp-only
- *   because that's the channel customers actually click through from.
+ *   Fans out to BOTH channels per the dual-channel policy by enqueueing
+ *   one message per channel onto the standard notifications-out queue.
+ *   The standard dispatcher then runs the registry-based fan-out with
+ *   studio CC on the email. This keeps a single canonical send path
+ *   instead of duplicating channel-specific logic here.
  *
  * Retry semantics mirror notificationsQueue.ts: this handler throws on
  * transient failure so Storage Queue retries up to maxDequeueCount, then
@@ -17,14 +19,8 @@
  */
 
 import { app, InvocationContext } from '@azure/functions'
-import {
-  getOrderById,
-  appendOrderEvent,
-  appendWhatsAppMessage,
-  upsertWhatsAppConversation,
-  getWhatsAppConversation,
-} from '../services/tableStorage'
-import { sendTemplateMessage, isWhatsAppConfigured } from '../services/whatsapp'
+import { getOrderById, appendOrderEvent } from '../services/tableStorage'
+import { enqueueNotification } from '../services/queue'
 
 interface ReviewRequestMessage {
   orderId: string
@@ -38,7 +34,7 @@ async function processReviewRequest(
   message: ReviewRequestMessage,
   context: InvocationContext,
 ): Promise<void> {
-  const { orderId, customerName } = message
+  const { orderId, customerName, userEmail } = message
   if (!orderId) {
     context.warn('processReviewRequest: missing orderId - dropping')
     return
@@ -57,86 +53,83 @@ async function processReviewRequest(
     return
   }
 
-  const customerPhone = message.customerPhone || (order.customerPhone as string) || ''
-  if (!customerPhone) {
-    context.warn(`processReviewRequest: order ${orderId} has no phone - dropping`)
-    return
-  }
-  if (!isWhatsAppConfigured()) {
-    context.warn('processReviewRequest: WhatsApp env vars not set - dropping')
-    return
-  }
-
-  const now = new Date().toISOString()
   const displayName = customerName || (order.customerName as string) || 'Customer'
+  const customerEmail = userEmail || (order.customerEmail as string) || ''
+  const customerPhone = message.customerPhone || (order.customerPhone as string) || ''
+  const now = new Date().toISOString()
 
-  try {
-    const result = await sendTemplateMessage({
-      toPhone: customerPhone,
-      templateName: 'review_request',
-      // {{1}}=customerName, {{2}}=orderId. The URL button (configured in
-      // Meta Manager) carries the orderId as its own parameter.
-      bodyVariables: [displayName, orderId],
-    })
-
-    await appendOrderEvent({
-      partitionKey: orderId,
-      rowKey: `${now}_review_request`,
-      channel: 'message',
-      by: 'system',
-      byRole: 'system',
-      note: 'Review request sent via WhatsApp',
-      meta: JSON.stringify({
-        template: 'review_request',
-        waMessageId: result.messageId,
-      }),
-      createdAt: now,
-    })
-
-    // Log on the WhatsApp conversation timeline too.
-    await appendWhatsAppMessage({
-      partitionKey: result.toPhone,
-      rowKey: `${now}_outbound_${result.messageId}`,
-      direction: 'outbound',
-      waMessageId: result.messageId,
-      type: 'template',
-      templateName: 'review_request',
-      text: result.bodyPreview,
-      orderId,
-      status: 'sent',
-      createdAt: now,
-      updatedAt: now,
-    })
-
-    const existingConv = await getWhatsAppConversation(result.toPhone)
-    await upsertWhatsAppConversation({
-      partitionKey: 'conv',
-      rowKey: result.toPhone,
-      phone: result.toPhone,
-      customerName: displayName || existingConv?.customerName || '',
-      customerEmail: (order.customerEmail as string) || existingConv?.customerEmail || '',
-      lastMessageAt: now,
-      lastMessagePreview: result.bodyPreview.slice(0, 240),
-      lastDirection: 'outbound',
-      lastOrderId: orderId,
-      unreadCount: existingConv?.unreadCount ?? 0,
-      createdAt: existingConv?.createdAt || now,
-      updatedAt: now,
-    })
-
-    context.log(
-      `[review-request] sent orderId=${orderId} to=${result.toPhone} messageId=${result.messageId}`,
-    )
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : String(err)
-    context.warn(
-      `[review-request] failed orderId=${orderId} to=${customerPhone} error="${errMsg}"`,
-    )
-    // Re-throw so the queue retries (visibility timeout grows on each
-    // attempt per host.json). After maxDequeueCount the message moves to
-    // review-requests-poison.
-    throw err
+  // Fan out via the standard notifications-out queue. The dispatcher reads
+  // the template registry, fires WhatsApp + email in parallel, and CCs the
+  // studio on the email per STUDIO_NOTIFICATION_CC. Each channel runs as
+  // its own queue message so a transient failure on one doesn't retry the
+  // other.
+  const vars = {
+    orderId,
+    customerName: displayName,
+    customerPhone,
   }
+
+  const enqueueErrors: string[] = []
+
+  if (customerPhone) {
+    try {
+      await enqueueNotification({
+        userEmail: customerEmail,
+        channel: 'whatsapp',
+        templateKey: 'review_request',
+        vars,
+      })
+    } catch (err) {
+      enqueueErrors.push(`whatsapp:${err instanceof Error ? err.message : String(err)}`)
+    }
+  } else {
+    context.log(`processReviewRequest: order ${orderId} has no phone - skipping WhatsApp`)
+  }
+
+  if (customerEmail) {
+    try {
+      await enqueueNotification({
+        userEmail: customerEmail,
+        channel: 'email',
+        templateKey: 'review_request',
+        vars,
+      })
+    } catch (err) {
+      enqueueErrors.push(`email:${err instanceof Error ? err.message : String(err)}`)
+    }
+  } else {
+    context.log(`processReviewRequest: order ${orderId} has no email - skipping email channel`)
+  }
+
+  await appendOrderEvent({
+    partitionKey: orderId,
+    rowKey: `${now}_review_request_enqueued`,
+    channel: 'message',
+    by: 'system',
+    byRole: 'system',
+    note: `Review request enqueued (channels: ${customerPhone ? 'whatsapp' : ''}${customerPhone && customerEmail ? '+' : ''}${customerEmail ? 'email' : ''})`,
+    meta: JSON.stringify({
+      template: 'review_request',
+      hasPhone: Boolean(customerPhone),
+      hasEmail: Boolean(customerEmail),
+      enqueueErrors: enqueueErrors.length ? enqueueErrors : undefined,
+    }),
+    createdAt: now,
+  })
+
+  // If BOTH enqueues failed, throw so the review-requests queue retries
+  // this trigger. If only one failed, log but don't retry — the other
+  // channel will deliver.
+  if (
+    enqueueErrors.length > 0 &&
+    enqueueErrors.length === (customerPhone ? 1 : 0) + (customerEmail ? 1 : 0)
+  ) {
+    throw new Error(`processReviewRequest: all enqueues failed (${enqueueErrors.join('; ')})`)
+  }
+
+  context.log(
+    `[review-request] enqueued orderId=${orderId} phone=${Boolean(customerPhone)} email=${Boolean(customerEmail)}`,
+  )
 }
 
 app.storageQueue('processReviewRequests', {

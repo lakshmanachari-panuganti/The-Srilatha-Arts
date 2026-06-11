@@ -24,6 +24,20 @@ const config: Config = {
         // ivory + ink + gold.
         // ─────────────────────────────────────────────────────────
 
+        // ── IMPORTANT: Token name inversion ─────────────────────────
+        // These token NAMES are legacy aliases from the old lavender-plum
+        // theme and are semantically INVERTED from what you'd expect:
+        //
+        //   `plum`    → actually the WARM IVORY SURFACE  (#FBF8F2)
+        //   `ivory`   → actually the DARK ESPRESSO TEXT  (#221B12)
+        //   `lavender`→ actually the DARK INK BRAND COLOR (#221B12)
+        //
+        // This is intentional for back-compat with ~200 call sites.
+        // Do NOT rename without a site-wide find-and-replace.
+        // Use CSS variables (var(--surface), var(--text), var(--brand))
+        // for any new code to avoid ambiguity.
+        // ─────────────────────────────────────────────────────────────
+
         // Surfaces - page, raised cards, sunken alt sections
         plum:            'rgb(var(--surface-rgb) / <alpha-value>)',
         'plum-light':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
