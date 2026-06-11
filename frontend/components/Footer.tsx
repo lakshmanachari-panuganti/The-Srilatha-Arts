@@ -123,8 +123,8 @@ export default function Footer() {
                     borderRadius: '24px',
                     border: '1px solid rgba(255,255,255,0.1)',
                   }}
-                  onFocus={(e) => e.target.style.borderColor = 'rgba(200,182,255,0.4)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(200,150,47,0.50)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(34,27,18,0.12)'}
                 />
               </div>
               <button type="submit" disabled={newsletterBusy} className="btn-dark whitespace-nowrap disabled:opacity-50">

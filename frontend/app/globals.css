@@ -81,9 +81,36 @@
     --wa-1: #25D366;
     --wa-2: #128C7E;
 
+    /* Terracotta - Indian craft micro-accent. Use for decorative
+       dot elements, section dividers and subtle warm details.
+       NOT for text at small sizes (contrast ratio <3:1 on ivory). */
+    --terracotta:     #C3501A;
+    --terracotta-rgb: 195 80 26;
+
     --banner-h: 0px;
     --header-h: 64px;
     --tab-h: 68px;
+
+    /* ── v2 "Studio Vault" exhibition system ──────────────────────
+       Additive tokens for the immersive homepage redesign. Existing
+       components are unaffected; v2 components read from these. */
+
+    /* Gold ramp — display accents, kolam cursor field, editorial rules */
+    --gold-leaf:    #E8C25A;
+    --gold-deep:    #6A4D12;
+    --mandala-stroke: rgba(200,150,47,0.55);
+
+    /* Exhibition curtain — full-bleed scrim during room transitions */
+    --ink-veil:     rgba(20,16,10,0.92);
+
+    /* Motion primitives — every v2 component reads timing from here so
+       the whole site shares a single motion vocabulary. */
+    --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-pour:      cubic-bezier(0.83, 0, 0.17, 1);
+    --ease-gallery:   cubic-bezier(0.65, 0, 0.35, 1);
+    --dur-reveal:     900ms;
+    --dur-pour:      1200ms;
+    --dur-wipe:       700ms;
   }
 
   html {
@@ -330,8 +357,8 @@
     transition: box-shadow 0.5s ease, transform 0.5s ease, border-color 0.5s ease;
   }
   .card:hover {
-    box-shadow: 0 16px 32px -14px rgba(34,27,18,0.22);
-    border-color: color-mix(in srgb, var(--text) 18%, transparent);
+    box-shadow: 0 16px 32px -14px rgba(200, 150, 47, 0.18);
+    border-color: rgba(200, 150, 47, 0.28);
   }
 
   .card-cream {
@@ -414,6 +441,16 @@
     border: 1px solid var(--border);
   }
 
+  /* Desktop-only frosted glass for the scrolled header.
+     Blur is the single biggest mobile paint cost — disable on mobile. */
+  @media (min-width: 1024px) {
+    .glass-strong {
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      background: rgba(251, 248, 242, 0.84) !important;
+    }
+  }
+
   /* ───────────── Hover lift (no glow) ───────────── */
 
   .glow-hover {
@@ -429,6 +466,186 @@
   .kolam-dots {
     background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 14%, transparent) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  /* ───────────── Liquid Resin Material System (v2) ─────────────
+     Strategic gloss primitives for the "Studio Vault" redesign. Apply
+     ONLY to: the hero artwork plate, primary CTAs, collection showcase
+     cards, featured-work displays, the final-invite panel.
+     NEVER on: body text, eyebrows, museum captions, dot pagination,
+     navigation links, or any text-bearing surface — gloss on type
+     reads as cheap. The artwork must always remain the hero.
+
+     This is NOT glassmorphism. There is no backdrop-filter blur. The
+     effect is *specular* — soft white/gold highlight + a thin top-edge
+     sheen + a deep multi-layer drop shadow + an animated diagonal light
+     sweep. The result reads as polished resin catching light, not as a
+     frosted overlay. */
+
+  /* The resin plate — for the featured artwork wrapper. The element
+     itself is a clean container; the gloss lives in ::before (top sheen)
+     and ::after (animated diagonal sweep). The image sits between them
+     in normal flow. */
+  .resin-plate {
+    position: relative;
+    border-radius: 4px;
+    background: var(--surface-raised);
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.45) inset,          /* hairline top edge highlight */
+      0 0 0 1px rgba(34,27,18,0.08),                 /* crisp dark hairline */
+      0 30px 60px -22px rgba(34,27,18,0.40),         /* close shadow — lifts off page */
+      0 60px 120px -40px rgba(34,27,18,0.30);        /* far shadow — depth */
+    isolation: isolate;
+  }
+  .resin-plate::before {
+    /* Top-edge sheen — soft gold highlight that gives the resin its "wet" cap. */
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 40%;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 248, 230, 0.18) 0%,
+      rgba(255, 248, 230, 0.04) 45%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 3;
+    mix-blend-mode: screen;
+  }
+  .resin-plate::after {
+    /* Diagonal slow-sweep light bar — the "light catching the resin" moment.
+       Animated by default; respect reduce-motion below. */
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 35%,
+      rgba(232, 194, 90, 0.18) 48%,
+      rgba(255, 248, 230, 0.10) 52%,
+      transparent 65%
+    );
+    background-size: 220% 220%;
+    background-position: -50% 0;
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+    z-index: 4;
+    animation: resin-sweep 11s linear infinite;
+  }
+  @keyframes resin-sweep {
+    0%   { background-position: -50% 0; }
+    50%  { background-position: 150% 0; }
+    100% { background-position: -50% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .resin-plate::after { animation: none; }
+  }
+
+  /* Cursor-reactive specular — wrap any image and read --rx / --ry
+     (CSS custom properties set from JS in CSS pixels relative to the
+     element) for a soft radial highlight that follows the pointer.
+     Falls back to a static centred highlight when the variables are
+     unset. mix-blend-mode keeps it from washing out the artwork. */
+  .resin-specular {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    background:
+      radial-gradient(
+        260px circle at var(--rx, 50%) var(--ry, 35%),
+        rgba(255, 248, 230, 0.22) 0%,
+        rgba(255, 248, 230, 0.10) 22%,
+        transparent 55%
+      );
+    mix-blend-mode: soft-light;
+    transition: background 600ms var(--ease-editorial);
+  }
+
+  /* Primary resin CTA — solid ink with a glossy top half + animated
+     diagonal sheen on hover. NOT a generic gradient button. */
+  .btn-resin {
+    @apply inline-flex items-center justify-center gap-2 min-h-12 px-8
+           text-sm font-semibold uppercase
+           focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-offset-2 disabled:opacity-50
+           disabled:pointer-events-none;
+    position: relative;
+    color: #ffffff;
+    letter-spacing: 0.08em;
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 50%),
+      var(--brand);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.22),                 /* gloss highlight cap */
+      inset 0 -1px 0 rgba(0,0,0,0.20),                      /* bottom inner shadow */
+      0 14px 32px -14px rgba(34,27,18,0.55),                /* lifted shadow */
+      0 0 0 1px rgba(0,0,0,0.20);
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+      transform 400ms var(--ease-editorial),
+      box-shadow 400ms var(--ease-editorial);
+  }
+  .btn-resin::after {
+    /* Light sweep — travels left→right on hover/focus. */
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.28) 48%,
+      rgba(232, 194, 90, 0.22) 52%,
+      transparent 70%
+    );
+    transform: translateX(-110%);
+    transition: transform 900ms var(--ease-editorial);
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  .btn-resin:hover,
+  .btn-resin:focus-visible {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.30),
+      inset 0 -1px 0 rgba(0,0,0,0.25),
+      0 22px 44px -16px rgba(34,27,18,0.62),
+      0 0 0 1px rgba(200,150,47,0.55);
+  }
+  .btn-resin:hover::after,
+  .btn-resin:focus-visible::after {
+    transform: translateX(110%);
+  }
+  .btn-resin:active {
+    transform: translateY(0);
+  }
+
+  /* Editorial text link with magnetic hover spacing — sibling of btn-link
+     but with no underline by default; the chevron is the affordance. */
+  .btn-editorial {
+    @apply inline-flex items-center gap-3 text-sm font-semibold uppercase
+           transition-all duration-500;
+    color: rgba(255,255,255,0.86);
+    letter-spacing: 0.14em;
+  }
+  .btn-editorial:hover {
+    color: #ffffff;
+    gap: 1.25rem;
+  }
+  .btn-editorial::after {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.7;
+    transition: width 400ms var(--ease-editorial);
+  }
+  .btn-editorial:hover::after {
+    width: 44px;
   }
 
   /* ───────────── Gold display text ─────────────

@@ -82,13 +82,19 @@ async function adminUpload(request: HttpRequest, context: InvocationContext): Pr
 
   try {
     const category = request.query.get('category') || 'general'
+    // Optional `title` query param drives the SEO-friendly filename
+    // (e.g. `personalized-wedding-keepsake-20250609.webp`). When the
+    // admin uploads additional product images after the AI flow has
+    // generated a title, the frontend passes that title here so every
+    // image for the product shares the same slug base.
+    const seoTitle = request.query.get('title') || undefined
     const file = await parseMultipartFile(request)
     if (!file) return errorResponse('No file provided', 400, origin)
     if (!detectImageMime(file.buffer)) {
       return errorResponse('File must be a JPEG, PNG, or WEBP image', 400, origin)
     }
 
-    const result = await uploadProductImage(file.buffer, category, file.name)
+    const result = await uploadProductImage(file.buffer, category, file.name, { seoTitle })
     return jsonResponse({ image: result }, 201, {}, origin)
   } catch (err) {
     context.error('adminUpload failed', err)

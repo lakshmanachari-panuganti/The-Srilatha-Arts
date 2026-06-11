@@ -46,6 +46,16 @@ import { ensureInvoicePdf } from '../services/orderFulfillment'
 import { sendEmail, isEmailConfigured } from '../services/email'
 import { sendTemplateMessage, isWhatsAppConfigured } from '../services/whatsapp'
 import { buildOrderConfirmationEmail } from '../services/emailTemplates/orderConfirmation'
+import {
+  getTemplate,
+  studioCcList,
+  type TransitionEmailInput,
+} from '../services/emailTemplates/registry'
+import { recordAlert, clearAlert } from '../services/notificationAlerts'
+
+// Read from host.json:queues.maxDequeueCount. Hard-coded here as a
+// constant — keep in sync if you change it in host.json.
+const MAX_DEQUEUE_COUNT = 5
 
 interface QueueMessage {
   userEmail?: string
@@ -98,24 +108,64 @@ async function processNotification(
     return
   }
 
-  if (channel === 'email' && templateKey === 'order_confirmed') {
-    // PDF is only loaded for templates that actually need it - the email
-    // attaches it, and order_confirmation_new_artwork links to it. The
-    // other status-transition templates are text-only.
-    const pdfBuffer = await loadOrRegeneratePdf(orderId, order, context)
-    const invoiceUrl =
-      (vars.invoiceUrl as string) || (order.invoiceUrl as string) || ''
-    await sendOrderConfirmationEmail({
-      order,
+  // ── EMAIL CHANNEL ─────────────────────────────────────────────────
+  if (channel === 'email') {
+    const template = getTemplate(templateKey)
+    if (!template) {
+      notify(context, 'warn', {
+        outcome: 'no_registry_entry',
+        channel,
+        template: templateKey,
+        orderId,
+      })
+      return
+    }
+    if (template.category !== 'transactional') {
+      // Auth / marketing / internal templates don't belong on this queue
+      // (and definitely don't get the studio CC). Drop quietly.
+      return
+    }
+
+    // order_confirmed is special: carries the invoice PDF + line items.
+    if (template.carriesInvoicePdf) {
+      const pdfBuffer = await loadOrRegeneratePdf(orderId, order, context)
+      const invoiceUrl =
+        (vars.invoiceUrl as string) || (order.invoiceUrl as string) || ''
+      await sendOrderConfirmationEmail({
+        order,
+        orderId,
+        invoiceUrl,
+        pdfBuffer,
+        dequeueCount: context.triggerMetadata?.dequeueCount as number | undefined,
+        context,
+        studioCc: template.copyStudio ? studioCcList() : undefined,
+      })
+      return
+    }
+
+    // Standard transition emails — registry's emailBuilder + studio CC.
+    if (template.emailBuilder) {
+      await sendTransitionEmail({
+        template,
+        templateKey,
+        vars,
+        order,
+        orderId,
+        context,
+      })
+      return
+    }
+
+    notify(context, 'warn', {
+      outcome: 'no_email_builder',
+      channel,
+      template: templateKey,
       orderId,
-      invoiceUrl,
-      pdfBuffer,
-      dequeueCount: context.triggerMetadata?.dequeueCount as number | undefined,
-      context,
     })
     return
   }
 
+  // ── WHATSAPP CHANNEL ──────────────────────────────────────────────
   if (channel === 'whatsapp' && WA_TEMPLATE_BUILDERS[templateKey]) {
     await sendWhatsAppTemplate({ order, orderId, templateKey, vars, context })
     return
@@ -124,6 +174,150 @@ async function processNotification(
   context.warn(
     `processNotification: no handler for channel=${channel} template=${templateKey}`,
   )
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Standard transition-email send path. Routes through the registry's
+// emailBuilder, logs to emailLog + order events, and CCs the studio
+// when the template's copyStudio is true. Failures throw so the queue
+// retries (visibilityTimeout grows on each attempt per host.json).
+// ────────────────────────────────────────────────────────────────────
+interface SendTransitionEmailInput {
+  template: NonNullable<ReturnType<typeof getTemplate>>
+  templateKey: string
+  vars: Record<string, string>
+  order: Record<string, unknown>
+  orderId: string
+  context: InvocationContext
+}
+
+async function sendTransitionEmail(input: SendTransitionEmailInput): Promise<void> {
+  const { template, templateKey, vars, order, orderId, context } = input
+  const recipient = (order.customerEmail as string) || ''
+  if (!recipient) {
+    notify(context, 'warn', {
+      outcome: 'no_email_address',
+      template: templateKey,
+      orderId,
+    })
+    return
+  }
+  if (!isEmailConfigured()) {
+    notify(context, 'warn', {
+      outcome: 'smtp_not_configured',
+      template: templateKey,
+      orderId,
+    })
+    return
+  }
+
+  const attempt = (context.triggerMetadata?.dequeueCount as number | undefined) ?? 1
+  const siteUrl = process.env.PUBLIC_SITE_URL || 'https://www.srilatha.art'
+
+  const builderInput: TransitionEmailInput = {
+    orderId,
+    customerName: (order.customerName as string) || vars.customerName || 'Customer',
+    customerEmail: recipient,
+    siteUrl,
+    courier: vars.courier,
+    tracking: vars.tracking,
+    trackingUrl: vars.trackingUrl,
+    cancelReason: vars.cancelReason,
+    holdReason: vars.holdReason,
+    refundAmount: vars.refundAmount,
+  }
+
+  const built = template.emailBuilder!(builderInput)
+  const cc = template.copyStudio ? studioCcList() : undefined
+
+  const now = new Date().toISOString()
+  try {
+    const result = await sendEmail({
+      to: recipient,
+      subject: built.subject,
+      html: built.html,
+      text: built.text,
+      cc,
+    })
+
+    await appendEmailLog({
+      partitionKey: orderId,
+      rowKey: `${now}_${templateKey}_${attempt}`,
+      orderId,
+      to: recipient,
+      subject: built.subject,
+      templateKey,
+      status: 'sent',
+      attempt,
+      messageId: result.messageId,
+      createdAt: now,
+    })
+
+    await appendOrderEvent({
+      partitionKey: orderId,
+      rowKey: `${now}_email_${templateKey}_sent`,
+      channel: 'message',
+      by: 'system',
+      byRole: 'system',
+      note: `Email sent (${templateKey}, attempt ${attempt})`,
+      meta: JSON.stringify({
+        messageId: result.messageId,
+        to: recipient,
+        cc: cc?.length ? cc : undefined,
+      }),
+      createdAt: now,
+    })
+
+    notify(context, 'log', {
+      channel: 'email',
+      template: templateKey,
+      outcome: 'sent',
+      orderId,
+      to: recipient,
+      cc: cc?.length ? cc.join(',') : undefined,
+      attempt,
+      messageId: result.messageId,
+    })
+
+    // Clear any open alert — transient failure is now resolved.
+    await clearAlert(orderId, 'email', templateKey)
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err)
+    await appendEmailLog({
+      partitionKey: orderId,
+      rowKey: `${now}_${templateKey}_${attempt}`,
+      orderId,
+      to: recipient,
+      subject: built.subject,
+      templateKey,
+      status: 'failed',
+      attempt,
+      error: errMsg,
+      createdAt: now,
+    })
+    notify(context, 'warn', {
+      channel: 'email',
+      template: templateKey,
+      outcome: 'failed',
+      orderId,
+      to: recipient,
+      attempt,
+      error: errMsg,
+    })
+    await recordAlert({
+      orderId,
+      channel: 'email',
+      operation: templateKey,
+      customerName: (order.customerName as string) || vars.customerName || '',
+      customerContact: recipient,
+      reason: errMsg,
+      attempt,
+      isFinal: attempt >= MAX_DEQUEUE_COUNT,
+    })
+    // Re-throw so the queue retries this specific email message. The
+    // WhatsApp side fires from its own queue message and isn't affected.
+    throw err
+  }
 }
 
 async function loadOrRegeneratePdf(
@@ -149,10 +343,13 @@ interface SendEmailInput {
   pdfBuffer: Buffer
   dequeueCount?: number
   context: InvocationContext
+  /** Studio addresses to CC. Resolved by the dispatcher from the
+   *  notification registry + STUDIO_NOTIFICATION_CC env var. */
+  studioCc?: string[]
 }
 
 async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> {
-  const { order, orderId, invoiceUrl, pdfBuffer, dequeueCount, context } = input
+  const { order, orderId, invoiceUrl, pdfBuffer, dequeueCount, context, studioCc } = input
   const recipient = (order.customerEmail as string) || ''
   if (!recipient) {
     context.warn(`sendOrderConfirmationEmail: order ${orderId} has no customerEmail - dropping`)
@@ -208,6 +405,7 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       subject: built.subject,
       html: built.html,
       text: built.text,
+      cc: studioCc,
       attachments: [
         {
           filename: `invoice-${orderId}.pdf`,
@@ -237,6 +435,10 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       emailLastError: '',
       updatedAt: now,
     })
+
+    // Clear any open alert for this order/channel/template — retry succeeded,
+    // the failure was transient and is no longer actionable.
+    await clearAlert(orderId, 'email', 'order_confirmed')
 
     await appendOrderEvent({
       partitionKey: orderId,
@@ -286,6 +488,20 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       attempt,
       error: errMsg,
     })
+
+    // Record the failure for the admin dashboard. Upserts by composite
+    // key — repeated retries update one row, don't flood the table.
+    await recordAlert({
+      orderId,
+      channel: 'email',
+      operation: 'order_confirmed',
+      customerName: (order.customerName as string) || '',
+      customerContact: recipient,
+      reason: errMsg,
+      attempt,
+      isFinal: attempt >= MAX_DEQUEUE_COUNT,
+    })
+
     // Re-throw so the queue retries (visibility timeout = backoff).
     throw err
   }
@@ -363,6 +579,34 @@ const WA_TEMPLATE_BUILDERS: Record<
     return {
       bodyVariables: [vars.customerName || 'Customer', vars.refundAmount, orderId],
       eventNote: `Refund notice sent via WhatsApp (₹${vars.refundAmount})`,
+    }
+  },
+
+  // {{1}}=customerName, {{2}}=orderId. Customer-explicit delivery
+  // confirmation — fires alongside the courier's own notification so the
+  // customer hears it from us too.
+  order_delivered: (vars, _order, orderId) => ({
+    bodyVariables: [vars.customerName || 'Customer', orderId],
+    eventNote: 'Delivery confirmation sent via WhatsApp',
+  }),
+
+  // {{1}}=customerName, {{2}}=orderId. Sent 72h after delivery via the
+  // review-requests queue's visibility timeout.
+  review_request: (vars, _order, orderId) => ({
+    bodyVariables: [vars.customerName || 'Customer', orderId],
+    eventNote: 'Review request sent via WhatsApp',
+  }),
+
+  // Razorpay refund webhook previously enqueued `refund_processed` for email
+  // only. Now the dispatcher fans both channels per the registry — the
+  // WhatsApp side reuses the `order_refunded` template content (refund
+  // amount + orderId) so customers hear consistent wording from both
+  // admin-initiated and webhook-initiated refunds.
+  refund_processed: (vars, _order, orderId) => {
+    if (!vars.refundAmount) return null
+    return {
+      bodyVariables: [vars.customerName || 'Customer', vars.refundAmount, orderId],
+      eventNote: `Refund webhook notice sent via WhatsApp (₹${vars.refundAmount})`,
     }
   },
 }
@@ -468,8 +712,13 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
       to: result.toPhone,
       messageId: result.messageId,
     })
+
+    // Transient failure resolved — clear the open alert for this
+    // (order, channel, template).
+    await clearAlert(orderId, 'whatsapp', templateKey)
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err)
+    const attempt = (context.triggerMetadata?.dequeueCount as number | undefined) ?? 1
     await mergeOrder(order.partitionKey as string, orderId, {
       whatsappStatus: 'failed',
       whatsappLastError: errMsg,
@@ -481,7 +730,18 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
       outcome: 'failed',
       orderId,
       to: customerPhone,
+      attempt,
       error: errMsg,
+    })
+    await recordAlert({
+      orderId,
+      channel: 'whatsapp',
+      operation: templateKey,
+      customerName: (order.customerName as string) || customerName,
+      customerContact: customerPhone,
+      reason: errMsg,
+      attempt,
+      isFinal: attempt >= MAX_DEQUEUE_COUNT,
     })
     // Throw for queue retry. Three retries with backoff is usually
     // enough to absorb transient WhatsApp 5xx; permanent failures

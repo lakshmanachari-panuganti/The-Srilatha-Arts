@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Sparkles, Loader2 } from 'lucide-react'
-import { apiFetch, ApiError } from '@/lib/api'
+import { apiFetch, ApiError, getApiBase, getCsrfToken } from '@/lib/api'
+import { useAdminAuth } from '@/stores/adminAuth'
 
 // Fields the AI is allowed to write. Mirrors the backend response shape
 // from POST /api/admin/products/ai-generate. Other product fields (price,
@@ -63,34 +64,43 @@ const ERROR_MESSAGES: Record<AiErrorCode, string> = {
 }
 
 function messageForError(err: unknown): string {
-  // Prefer the structured `code` from the backend body. Falls back to
-  // status-based heuristics for older deploys that pre-date the typed
-  // contract, and finally to a generic message.
   if (err instanceof ApiError) {
     const body = err.body as { code?: AiErrorCode } | null | undefined
     if (body?.code && body.code in ERROR_MESSAGES) {
       return ERROR_MESSAGES[body.code]
     }
-    // No typed code from server - fall back on the HTTP status the
-    // server returned (matches what the typed mapping would have done).
     if (err.status === 401) return ERROR_MESSAGES.AUTH_ERROR
     if (err.status === 404) return ERROR_MESSAGES.DEPLOYMENT_NOT_FOUND
     if (err.status === 429) return ERROR_MESSAGES.RATE_LIMIT
     if (err.status === 503) return ERROR_MESSAGES.SERVICE_UNAVAILABLE
     if (err.status === 504) return ERROR_MESSAGES.TIMEOUT
   }
-  // TypeError from fetch usually means the browser couldn't reach the
-  // backend at all (offline, DNS, CORS pre-flight blocked).
   if (err instanceof TypeError && /fetch|network/i.test(err.message)) {
     return ERROR_MESSAGES.NETWORK_ERROR
   }
   return ERROR_MESSAGES.INTERNAL_ERROR
 }
 
+/**
+ * What the AI button operates on. Two shapes - both return content
+ * only; no blob is ever written by the AI button:
+ *   - `file`: a still-local File. Bytes are sent inline to the
+ *     analyse-from-file endpoint (no blob produced).
+ *   - `url`: an image already living in blob storage (edit page,
+ *     when the admin re-runs AI on a saved product). Goes via the
+ *     URL-only endpoint.
+ *
+ * The actual blob write happens later at form submit, via
+ * /api/admin/upload?title=..., so it lands in the FINAL chosen
+ * category folder and never silently falls back to `general/`.
+ */
+export type AiSource =
+  | { kind: 'file'; file: File }
+  | { kind: 'url'; url: string }
+
 interface Props {
-  /** First uploaded image URL - the source the AI analyses. Disable
-   *  state is driven from whether this is set. */
-  imageUrl: string | null
+  /** Image to analyse. `null` disables the button (no source yet). */
+  source: AiSource | null
   /** Current values of the AI-writable fields. Used to decide whether to
    *  prompt the admin before overwriting existing content. */
   current: AiProductContent
@@ -101,9 +111,6 @@ interface Props {
 
 type Status = 'idle' | 'confirming' | 'loading' | 'success' | 'error'
 
-// Returns true if any of the AI-writable fields already contain text.
-// We intentionally do not consider "whitespace-only" as content - an
-// admin who left a stray space deserves a quiet overwrite.
 function hasExistingContent(c: AiProductContent): boolean {
   return Boolean(
     c.title.trim() ||
@@ -114,21 +121,68 @@ function hasExistingContent(c: AiProductContent): boolean {
   )
 }
 
-export default function AiGenerateProductContent({ imageUrl, current, onGenerated }: Props) {
+export default function AiGenerateProductContent({
+  source,
+  current,
+  onGenerated,
+}: Props) {
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState('')
+  const { token: adminToken } = useAdminAuth()
 
-  const disabled = !imageUrl || status === 'loading'
+  const disabled = !source || status === 'loading'
+
+  async function callUrlApi(url: string) {
+    const content = await apiFetch<AiProductContent>('/admin/products/ai-generate', {
+      method: 'POST',
+      body: { imageUrl: url },
+    })
+    onGenerated(content)
+  }
+
+  // Multipart path - bypass apiFetch (JSON-only) and attach CSRF /
+  // Authorization manually, matching the regular /admin/upload path.
+  // Note: no blob is written by this call; we only get content back.
+  async function callFileApi(file: File) {
+    const fd = new FormData()
+    fd.append('file', file)
+    const headers: Record<string, string> = {}
+    if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`
+    const csrf = await getCsrfToken()
+    if (csrf) headers['X-CSRF-Token'] = csrf
+    const res = await fetch(`${getApiBase()}/admin/products/ai-generate-upload`, {
+      method: 'POST',
+      credentials: 'include',
+      headers,
+      body: fd,
+    })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      throw new ApiError(
+        (json && typeof json === 'object' && 'error' in json
+          ? String((json as { error: unknown }).error)
+          : `Request failed (${res.status})`),
+        res.status,
+        json,
+      )
+    }
+    const body = json as { content: AiProductContent }
+    if (!body?.content) {
+      throw new ApiError('Unexpected response from AI endpoint', 502, json)
+    }
+    onGenerated(body.content)
+  }
 
   async function callApi() {
+    if (!source) return
     setStatus('loading')
     setMessage('')
     try {
-      const content = await apiFetch<AiProductContent>('/admin/products/ai-generate', {
-        method: 'POST',
-        body: { imageUrl },
-      })
-      onGenerated(content)
+      if (source.kind === 'file') {
+        await callFileApi(source.file)
+      } else {
+        await callUrlApi(source.url)
+      }
       setStatus('success')
       setMessage('Product details generated successfully.')
     } catch (err) {
@@ -140,8 +194,6 @@ export default function AiGenerateProductContent({ imageUrl, current, onGenerate
   function onClick() {
     if (disabled) return
     if (hasExistingContent(current)) {
-      // Surface inline confirmation instead of a window.confirm so we can
-      // style it consistently with the rest of the admin chrome.
       setStatus('confirming')
       setMessage('')
       return
@@ -156,7 +208,7 @@ export default function AiGenerateProductContent({ imageUrl, current, onGenerate
         onClick={onClick}
         disabled={disabled}
         title={
-          !imageUrl
+          !source
             ? 'Upload at least one product image first'
             : 'Generate title, descriptions, material, and care instructions from the uploaded image'
         }
@@ -209,11 +261,6 @@ export default function AiGenerateProductContent({ imageUrl, current, onGenerate
         <p role="status" className="text-xs text-emerald-700">{message}</p>
       )}
       {status === 'error' && message && (
-        // The mapped messages are two paragraphs separated by a blank
-        // line ("problem.\n\nnext step."); render each line on its own
-        // row so the second line reads as actionable guidance, not a
-        // run-on sentence. Whitespace-pre-line preserves the breaks
-        // without us having to split the string here.
         <div
           role="alert"
           className="text-xs text-rose-700 max-w-sm text-right whitespace-pre-line leading-snug rounded-lg border border-rose-200 bg-rose-50 px-3 py-2"

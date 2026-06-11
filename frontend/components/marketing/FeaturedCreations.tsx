@@ -2,9 +2,10 @@
 
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ChevronRight } from 'lucide-react'
 import ProductCard from '@/components/shop/ProductCard'
 import { apiFetch } from '@/lib/api'
+import { motion } from 'framer-motion'
 import type { Product } from '@/types'
 
 export default function FeaturedCreations() {
@@ -20,10 +21,14 @@ export default function FeaturedCreations() {
   if (isLoading || products.length === 0) return null
 
   return (
-    <section className="relative py-14 sm:py-20 lg:py-32 overflow-hidden">
-      {/* Section background - subtle vertical wash, no glow orb. The hero
-          slideshow already owns the ambient-glow visual; repeating it in
-          every section devalues the effect (audit §1.6). */}
+    <motion.section
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="relative py-14 sm:py-20 lg:py-32 overflow-hidden"
+    >
+      {/* Section background */}
       <div className="absolute inset-0 bg-gradient-to-b from-plum-light/50 via-plum to-plum" aria-hidden />
 
       <div className="relative max-w-6xl mx-auto z-10">
@@ -47,7 +52,7 @@ export default function FeaturedCreations() {
           </Link>
         </div>
 
-        {/* Mobile carousel */}
+        {/* Mobile carousel with swipe hint */}
         <div className="lg:hidden">
           <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 px-5 scrollbar-hide">
             {products.map((p, i) => (
@@ -55,6 +60,10 @@ export default function FeaturedCreations() {
             ))}
             <div className="shrink-0 w-5" aria-hidden />
           </div>
+          <p className="mt-3 px-5 flex items-center justify-end gap-1 text-[11px] uppercase tracking-widest text-ivory-mute" aria-hidden>
+            Swipe to see more
+            <ChevronRight className="w-3 h-3" />
+          </p>
         </div>
 
         {/* Desktop grid */}
@@ -71,6 +80,6 @@ export default function FeaturedCreations() {
           </Link>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }

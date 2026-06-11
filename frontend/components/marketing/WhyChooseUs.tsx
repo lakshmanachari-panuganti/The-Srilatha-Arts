@@ -56,9 +56,9 @@ const processSteps = [
 export default function WhyChooseUs() {
   return (
     <section className="px-5 lg:px-8 py-16 sm:py-24 lg:py-32 max-w-7xl mx-auto border-t border-glass-border/30">
-      <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-start mb-24">
+      <div className="grid md:grid-cols-12 gap-12 lg:gap-16 items-start mb-24">
         {/* Left Side: Why Choose Us */}
-        <div className="lg:col-span-5 lg:sticky lg:top-36">
+        <div className="md:col-span-5 md:sticky md:top-36">
           <span className="eyebrow text-lavender mb-4">Our Quality Promise</span>
           <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
             Why Choose <br />
@@ -84,7 +84,7 @@ export default function WhyChooseUs() {
           whileInView="visible"
           viewport={{ once: true, margin: '-20px' }}
           variants={stagger}
-          className="lg:col-span-7 grid sm:grid-cols-2 gap-6"
+          className="md:col-span-7 grid sm:grid-cols-2 gap-6"
         >
           {differentiators.map((diff) => {
             const Icon = diff.icon

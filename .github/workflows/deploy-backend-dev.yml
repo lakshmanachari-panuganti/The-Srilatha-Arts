@@ -2,12 +2,16 @@ name: Deploy Backend · DEV
 
 on:
   push:
-    branches: [develop]
+    branches:
+      - develop
+      - feature/ai-driven
     paths:
       - 'backend/**'
       - '.github/workflows/deploy-backend-dev.yml'
   pull_request:
-    branches: [develop]
+    branches:
+      - develop
+      - feature/ai-driven
     paths:
       - 'backend/**'
   workflow_dispatch:
@@ -76,7 +80,8 @@ jobs:
         # OIDC-authenticated deploy via the Azure CLI. Replaces the publish-
         # profile + Kudu basic-auth path, removing the long-lived secret
         # entirely. Federated credential on the SP grants a short-lived
-        # token scoped to this repo + the `develop` branch.
+        # token scoped to this repo + the `develop` and `feature/ai-driven`
+        # branches.
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail

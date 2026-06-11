@@ -23,6 +23,13 @@ interface SendEmailInput {
     contentType?: string
   }>
   replyTo?: string
+  /** Additional addresses to CC. Used by the dispatcher to copy the studio
+   *  on every customer-facing transactional email so the studio has a
+   *  complete audit trail of what the customer received. The studio CC
+   *  list itself is centralised via STUDIO_NOTIFICATION_CC (the dispatcher
+   *  reads the registry, decides whether to include the studio, and passes
+   *  the resulting array here). Address transport stays a pure pipe. */
+  cc?: string[]
 }
 
 interface SendEmailResult {
@@ -70,9 +77,19 @@ export async function sendEmail(opts: SendEmailInput): Promise<SendEmailResult> 
   const replyTo =
     opts.replyTo || process.env.SMTP_REPLY_TO || 'studio@srilatha.art'
 
+  // De-dupe CC against the primary `to` so the studio (or any duplicate)
+  // doesn't receive two copies of the same message.
+  const ccUnique = (opts.cc || [])
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0 && c.toLowerCase() !== opts.to.toLowerCase())
+  const cc = Array.from(new Set(ccUnique.map((c) => c.toLowerCase()))).length
+    ? Array.from(new Set(ccUnique))
+    : undefined
+
   const info = await transporter.sendMail({
     from: { name: senderName, address: senderEmail },
     to: opts.to,
+    cc,
     replyTo,
     subject: opts.subject,
     text: opts.text,

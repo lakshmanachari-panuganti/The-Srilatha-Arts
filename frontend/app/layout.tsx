@@ -3,6 +3,7 @@ import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
+import AnalyticsProvider from '@/components/analytics/AnalyticsProvider'
 
 // ── Typography system ──────────────────────────────────────────────
 // Three Google fonts, each with a clear role. next/font self-hosts at
@@ -175,6 +176,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <Providers>
           <ConditionalLayout>{children}</ConditionalLayout>
+          <AnalyticsProvider />
         </Providers>
       </body>
     </html>

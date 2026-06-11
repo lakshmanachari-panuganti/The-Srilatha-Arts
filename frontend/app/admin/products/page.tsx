@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Plus, Search, Filter, Package, Loader2, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
-import { formatINR } from '@/lib/format'
+import { formatINR, formatDate } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
 import type { Product } from '@/types'
 
@@ -120,6 +120,7 @@ export default function AdminProductsPage() {
                 <th className="px-6 py-4">Product</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Price</th>
+                <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -167,6 +168,21 @@ export default function AdminProductsPage() {
                     {product.compareAtPrice && (
                       <span className="text-xs text-ink-mute line-through ml-1.5">{formatINR(product.compareAtPrice)}</span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-ink-soft whitespace-nowrap">
+                    {(() => {
+                      const iso = product.updatedAt || product.createdAt
+                      if (!iso) return <span className="text-ink-mute">—</span>
+                      const edited = product.updatedAt && product.updatedAt !== product.createdAt
+                      return (
+                        <div className="flex flex-col">
+                          <span>{formatDate(iso)}</span>
+                          <span className="text-[11px] text-ink-mute">
+                            {edited ? 'Edited' : 'Added'}
+                          </span>
+                        </div>
+                      )
+                    })()}
                   </td>
                   <td className="px-6 py-4 capitalize">
                     {product.category.replace('-', ' ')}

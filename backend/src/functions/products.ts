@@ -35,6 +35,7 @@ function toApi(row: Row) {
     rating: row.rating ?? undefined,
     reviewCount: row.reviewCount ?? undefined,
     createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   }
 }
 

@@ -77,7 +77,7 @@ export default function ShopByArtForm() {
         whileInView="visible"
         viewport={{ once: true, margin: '-40px' }}
         variants={stagger}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10"
+        className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8 lg:gap-10"
       >
         {styleEntries.map((item, i) => (
           <motion.li
@@ -87,20 +87,20 @@ export default function ShopByArtForm() {
           >
             <Link
               href={item.href}
-              className="group relative flex flex-col justify-between w-full card p-5 sm:p-6
-                         bg-white/80 border border-glass-border hover:border-lavender-pastel/40
-                         transition-all duration-500 hover:shadow-lavender-glow-lg"
+              className="group relative flex flex-col justify-between w-full card p-3 sm:p-5 lg:p-6
+                         bg-[#FEFCF8] border border-glass-border hover:border-lavender-pastel/40
+                         transition-all duration-500 hover:shadow-lavender-glow-lg hover:-translate-y-1"
             >
               <div>
                 {/* Image Frame */}
-                <div className="relative aspect-[4/3] overflow-hidden mb-6 bg-plum-light/20 rounded-2xl border border-glass-border">
+                <div className="relative aspect-[4/3] overflow-hidden mb-3 sm:mb-6 rounded-2xl border border-glass-border">
                   <PictureImage
                     src={item.image}
                     alt={item.title}
                     fill
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 50vw"
                     priority={i < 3}
-                    className="object-contain p-4 transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
+                    className="object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.05]"
                   />
                   {/* Glass floating badge */}
                   <div className="absolute top-3 left-3">

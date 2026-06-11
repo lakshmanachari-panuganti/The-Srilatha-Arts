@@ -11,16 +11,23 @@ import { useAdminAuth } from '@/stores/adminAuth'
 import AiGenerateProductContent, {
   type AiProductContent,
 } from '@/components/admin/AiGenerateProductContent'
+import { expectedProductImageFilename } from '@/lib/seoSlug'
 import type { Product } from '@/types'
 
 interface ImageEntry {
-  preview: string
-  url: string | null
+  preview: string         // remote URL OR local object URL
+  file: File | null       // present until the blob is written
+  url: string | null      // remote blob URL once stored
   uploading: boolean
   error: string | null
 }
 
-async function uploadFile(file: File, category: string, token: string | null): Promise<string> {
+async function uploadFile(
+  file: File,
+  category: string,
+  title: string | undefined,
+  token: string | null,
+): Promise<string> {
   const fd = new FormData()
   fd.append('file', file)
   const headers: Record<string, string> = {}
@@ -30,10 +37,14 @@ async function uploadFile(file: File, category: string, token: string | null): P
   // mutating handler including /api/admin/upload.
   const csrf = await getCsrfToken()
   if (csrf) headers['X-CSRF-Token'] = csrf
-  const res = await fetch(
-    `${getApiBase()}/admin/upload?category=${encodeURIComponent(category || 'general')}`,
-    { method: 'POST', credentials: 'include', headers, body: fd },
-  )
+  const qs = new URLSearchParams({ category: category || 'general' })
+  if (title) qs.set('title', title)
+  const res = await fetch(`${getApiBase()}/admin/upload?${qs.toString()}`, {
+    method: 'POST',
+    credentials: 'include',
+    headers,
+    body: fd,
+  })
   const json = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(json.error || `Upload failed (${res.status})`)
   return (json as { image: { url: string } }).image.url
@@ -75,6 +86,7 @@ function EditProduct() {
           setImages(
             (p.images || []).map((url) => ({
               preview: url,
+              file: null,
               url,
               uploading: false,
               error: null,
@@ -111,33 +123,19 @@ function EditProduct() {
     )
   }
 
-  const handleFilesSelected = async (files: FileList) => {
+  // Defer the upload: hold the File locally so AI can analyse it under
+  // the combined endpoint (SEO-named blob), or so the form submit can
+  // upload it under the typed title's slug. Either path beats writing
+  // a UUID-named blob now and renaming it later.
+  const handleFilesSelected = (files: FileList) => {
     const newEntries: ImageEntry[] = Array.from(files).map((f) => ({
       preview: URL.createObjectURL(f),
+      file: f,
       url: null,
-      uploading: true,
+      uploading: false,
       error: null,
     }))
     setImages((prev) => [...prev, ...newEntries])
-
-    const startIndex = images.length
-    await Promise.all(
-      Array.from(files).map(async (file, i) => {
-        const idx = startIndex + i
-        const category = id?.split('-')[0] || 'general'
-        try {
-          const url = await uploadFile(file, category, tokenRef.current)
-          setImages((prev) =>
-            prev.map((entry, j) => (j === idx ? { ...entry, url, uploading: false } : entry)),
-          )
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Upload failed'
-          setImages((prev) =>
-            prev.map((entry, j) => (j === idx ? { ...entry, uploading: false, error: msg } : entry)),
-          )
-        }
-      }),
-    )
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -145,42 +143,76 @@ function EditProduct() {
     if (!product || !id) return
     setSubmitError(null)
 
-    if (images.some((img) => img.uploading)) {
-      setSubmitError('Please wait for all images to finish uploading.')
-      return
-    }
     if (images.some((img) => img.error)) {
       setSubmitError('Some images failed to upload. Remove them and try again.')
       return
     }
 
-    setIsSubmitting(true)
     const formData = new FormData(e.currentTarget)
-    const priceRupees = Number(formData.get('price')) || 0
-    const body = {
-      title: formData.get('title'),
-      category: formData.get('category'),
-      slug: formData.get('slug'),
-      description: formData.get('description'),
-      shortDescription: formData.get('shortDescription'),
-      price: Math.round(priceRupees * 100),
-      displayPrice: priceRupees,
-      compareAtPrice: Number(formData.get('compareAtPrice')) || undefined,
-      stockQty: Number(formData.get('stockQty')) || 0,
-      size: formData.get('size'),
-      material: formData.get('material'),
-      timeToMake: formData.get('timeToMake'),
-      careInstructions: formData.get('careInstructions'),
-      inStock: formData.get('inStock') === 'on',
-      featured: formData.get('featured') === 'on',
-      isNewArrival: formData.get('newArrival') === 'on',
-      isBestSeller: formData.get('bestSeller') === 'on',
-      isOnSale: formData.get('onSale') === 'on',
-      imageUrl: images[0]?.url ?? '',
-      additionalImages: images.slice(1).map((img) => img.url).filter(Boolean),
+    const title = String(formData.get('title') || '').trim()
+    const submitCategory = String(formData.get('category') || product.category || 'general')
+    if (!title) {
+      setSubmitError('Title is required.')
+      return
     }
 
+    setIsSubmitting(true)
     try {
+      // Upload anything still held locally (newly-added files for which
+      // the admin didn't run AI). Pass the typed title so each new blob
+      // is named under the same SEO slug as the AI-stored ones.
+      const uploadedUrls: string[] = []
+      setImages((prev) =>
+        prev.map((img) => (img.file ? { ...img, uploading: true, error: null } : img)),
+      )
+      for (let i = 0; i < images.length; i++) {
+        const entry = images[i]
+        if (entry.url) {
+          uploadedUrls.push(entry.url)
+          continue
+        }
+        if (!entry.file) continue
+        try {
+          const url = await uploadFile(entry.file, submitCategory, title, tokenRef.current)
+          uploadedUrls.push(url)
+          setImages((prev) =>
+            prev.map((img, j) =>
+              j === i ? { ...img, file: null, url, uploading: false } : img,
+            ),
+          )
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Upload failed'
+          setImages((prev) =>
+            prev.map((img, j) => (j === i ? { ...img, uploading: false, error: msg } : img)),
+          )
+          throw err
+        }
+      }
+
+      const priceRupees = Number(formData.get('price')) || 0
+      const body = {
+        title,
+        category: submitCategory,
+        slug: formData.get('slug'),
+        description: formData.get('description'),
+        shortDescription: formData.get('shortDescription'),
+        price: Math.round(priceRupees * 100),
+        displayPrice: priceRupees,
+        compareAtPrice: Number(formData.get('compareAtPrice')) || undefined,
+        stockQty: Number(formData.get('stockQty')) || 0,
+        size: formData.get('size'),
+        material: formData.get('material'),
+        timeToMake: formData.get('timeToMake'),
+        careInstructions: formData.get('careInstructions'),
+        inStock: formData.get('inStock') === 'on',
+        featured: formData.get('featured') === 'on',
+        isNewArrival: formData.get('newArrival') === 'on',
+        isBestSeller: formData.get('bestSeller') === 'on',
+        isOnSale: formData.get('onSale') === 'on',
+        imageUrl: uploadedUrls[0] ?? '',
+        additionalImages: uploadedUrls.slice(1),
+      }
+
       await apiFetch(`/admin/products/${id}`, { method: 'PATCH', body })
       router.push('/admin/products')
     } catch (err) {
@@ -231,6 +263,25 @@ function EditProduct() {
     router.replace('/admin/login?next=' + encodeURIComponent(`/admin/products/edit?id=${id || ''}`))
   }
 
+  // What the AI button operates on. Prefer a freshly-picked local file
+  // (so AI sees the latest bytes), fall back to the first existing
+  // stored image's URL. No blob is written by the AI call either way -
+  // any newly-picked file uploads at form submit, under the final
+  // category + AI/typed title.
+  const aiSource = (() => {
+    const firstFile = images.find((e) => e.file)
+    if (firstFile?.file) return { kind: 'file' as const, file: firstFile.file }
+    const firstUrl = images[0]?.url
+    if (firstUrl) return { kind: 'url' as const, url: firstUrl }
+    return null
+  })()
+
+  // Filename the next picked image will land under at submit. Only
+  // surfaced when there IS a pending local file - existing stored
+  // images keep their original filenames untouched.
+  const hasPendingFile = images.some((e) => e.file)
+  const expectedFileName = hasPendingFile ? expectedProductImageFilename(aiFields.title) : null
+
   return (
     <div>
       <Link href="/admin/products" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-plum mb-4 transition-colors">
@@ -263,7 +314,7 @@ function EditProduct() {
               />
               <Upload className="w-8 h-8 text-ink-mute mx-auto mb-3" />
               <p className="text-sm font-medium text-ink mb-1">Drop images here or click to upload</p>
-              <p className="text-xs text-ink-mute">PNG, JPG, WebP · max 5 MB each</p>
+              <p className="text-xs text-ink-mute">JPG, PNG, WebP · max 10 MB each · converted to WebP automatically</p>
             </label>
             {images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
@@ -284,7 +335,15 @@ function EditProduct() {
                     {!entry.uploading && (
                       <button
                         type="button"
-                        onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                        onClick={() =>
+                          setImages((prev) => {
+                            const removed = prev[i]
+                            if (removed?.file && removed.preview.startsWith('blob:')) {
+                              URL.revokeObjectURL(removed.preview)
+                            }
+                            return prev.filter((_, idx) => idx !== i)
+                          })
+                        }
                         className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
                       >
                         <X className="w-4 h-4" />
@@ -301,11 +360,24 @@ function EditProduct() {
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <h2 className="font-serif text-lg text-ink">Basic Information</h2>
               <AiGenerateProductContent
-                imageUrl={images[0]?.url ?? null}
+                source={aiSource}
                 current={aiFields}
                 onGenerated={(c) => setAiFields(c)}
               />
             </div>
+            {expectedFileName && (
+              <div>
+                <label className="block text-sm font-medium text-ink-soft mb-1.5">
+                  Filename when saved
+                </label>
+                <div className="flex items-center gap-2 px-3 h-10 bg-plum/60 border border-ink/10 rounded-lg text-xs font-mono text-ink-soft break-all">
+                  <span className="truncate" title={expectedFileName}>{expectedFileName}</span>
+                </div>
+                <p className="text-[11px] text-ink-mute mt-1">
+                  SEO-friendly filename derived from the title. Applied to the newly-added image at save time.
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-ink-soft mb-1.5">Title</label>
               <input
@@ -454,11 +526,11 @@ function EditProduct() {
               </div>
             )}
             <button
-              disabled={isSubmitting || images.some((img) => img.uploading)}
+              disabled={isSubmitting}
               className="btn-dark w-full justify-center text-sm h-11 mt-2 disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-              {isSubmitting ? 'Saving...' : images.some((img) => img.uploading) ? 'Uploading images…' : 'Save Changes'}
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </div>
