@@ -263,6 +263,48 @@ async function submitReview(
   }
 }
 
+// ─── GET /api/reviews/recent ─────────────────────────────────
+//
+// Sitewide approved reviews for the homepage Testimonials carousel and the
+// /reviews page. Replaces the hard-coded mock data that used to ship on those
+// surfaces. Returns most-recent approved reviews across all products,
+// optionally limited via ?limit=N (default 12, max 50).
+//
+// Public, cached briefly (60s) so this doesn't hammer the table on every
+// homepage load. Anonymous — these are public reviews by design.
+
+async function recentReviews(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  try {
+    const limitRaw = parseInt(request.query.get('limit') || '12', 10)
+    const limit = Math.min(Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 12), 50)
+
+    const all = await getAllReviews('approved')
+    // Sort by createdAt desc — most recent first.
+    all.sort((a, b) => {
+      const av = String(a.createdAt || '')
+      const bv = String(b.createdAt || '')
+      return bv.localeCompare(av)
+    })
+    const trimmed = all.slice(0, limit)
+
+    return jsonResponse(
+      { reviews: trimmed.map(toApi), total: trimmed.length },
+      200,
+      { 'Cache-Control': 'public, max-age=60' },
+      origin,
+    )
+  } catch (err) {
+    context.error('recentReviews failed', err)
+    return errorResponse('Failed to load reviews', 500, origin)
+  }
+}
+
 // ─── GET /api/admin/reviews ──────────────────────────────────
 
 async function adminReviews(
@@ -345,6 +387,13 @@ app.http('productReviews', {
   route: 'api/reviews/product/{id}',
   authLevel: 'anonymous',
   handler: productReviews,
+})
+
+app.http('recentReviews', {
+  methods: ['GET', 'OPTIONS'],
+  route: 'api/reviews/recent',
+  authLevel: 'anonymous',
+  handler: recentReviews,
 })
 
 app.http('submitReview', {

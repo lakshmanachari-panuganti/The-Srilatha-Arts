@@ -16,6 +16,7 @@
     "@azure/identity": "^4.4.0",
     "@azure/storage-blob": "^12.17.0",
     "@azure/storage-queue": "^12.16.0",
+    "applicationinsights": "^2.9.8",
     "bcryptjs": "^2.4.3",
     "google-auth-library": "^10.6.2",
     "jsonwebtoken": "^9.0.2",

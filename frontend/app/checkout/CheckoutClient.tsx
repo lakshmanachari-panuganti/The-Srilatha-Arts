@@ -12,6 +12,7 @@ import { apiFetch } from '@/lib/api'
 import { useCart, cartSubtotal } from '@/stores/cart'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
+import { usePinLookup } from '@/hooks/usePinLookup'
 
 // Fallback values until /api/shipping-settings resolves.
 const FALLBACK_SHIPPING_BASE_RS = 99
@@ -181,6 +182,44 @@ export default function CheckoutClient() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<ShippingForm>(emptyShipping)
   const [editBusy, setEditBusy] = useState(false)
+
+  // PIN-touched flags gate autofill so we don't overwrite saved-address
+  // values on initial load. Reset whenever the form context changes
+  // (different saved address selected, edit panel opened/closed).
+  const [pinTouched, setPinTouched] = useState(false)
+  const [editPinTouched, setEditPinTouched] = useState(false)
+
+  // PIN → city / state lookup. The hook debounces, caches, and aborts
+  // stale requests; we autofill below only when the user has actively
+  // edited the PIN field this session.
+  const pinLookup = usePinLookup(form.pincode)
+  const editPinLookup = usePinLookup(editForm.pincode)
+
+  useEffect(() => {
+    if (!pinTouched) return
+    if (!pinLookup.data) return
+    setForm((f) => ({
+      ...f,
+      city: pinLookup.data!.city,
+      state: pinLookup.data!.state,
+    }))
+  }, [pinLookup.data, pinTouched])
+
+  useEffect(() => {
+    if (!editPinTouched) return
+    if (!editPinLookup.data) return
+    setEditForm((f) => ({
+      ...f,
+      city: editPinLookup.data!.city,
+      state: editPinLookup.data!.state,
+    }))
+  }, [editPinLookup.data, editPinTouched])
+
+  // Reset touch-flags when the form context changes — selecting a different
+  // saved address or opening a different edit panel should not be treated
+  // as user input on the PIN field.
+  useEffect(() => { setPinTouched(false) }, [selectedId])
+  useEffect(() => { setEditPinTouched(false) }, [editingId])
 
   // Admin-configurable shipping. Until the API call resolves we use the
   // legacy hardcoded defaults so first paint isn't blank.
@@ -626,7 +665,10 @@ export default function CheckoutClient() {
                           </div>
                           <Field id={`e-city-${a.id}`} label="City" required value={editForm.city} onChange={(v) => setEditForm({ ...editForm, city: v })} />
                           <Field id={`e-state-${a.id}`} label="State" required value={editForm.state} onChange={(v) => setEditForm({ ...editForm, state: v })} />
-                          <Field id={`e-pin-${a.id}`} label="Pincode" required value={editForm.pincode} onChange={(v) => setEditForm({ ...editForm, pincode: v })} inputMode="numeric" maxLength={6} />
+                          <div>
+                            <Field id={`e-pin-${a.id}`} label="Pincode" required value={editForm.pincode} onChange={(v) => { setEditPinTouched(true); setEditForm({ ...editForm, pincode: v }) }} inputMode="numeric" maxLength={6} />
+                            <PinStatus state={editPinLookup} touched={editPinTouched} />
+                          </div>
                         </div>
                         <div className="flex gap-2 mt-4">
                           <button type="button" onClick={saveEdit} disabled={editBusy} className="btn-dark text-sm h-10 px-4 disabled:opacity-60">
@@ -739,7 +781,10 @@ export default function CheckoutClient() {
               </div>
               <Field id="city" label="City" required value={form.city} onChange={(v) => setForm({ ...form, city: v })} autoComplete="address-level2" />
               <Field id="state" label="State" required value={form.state} onChange={(v) => setForm({ ...form, state: v })} autoComplete="address-level1" />
-              <Field id="pincode" label="Pincode" required value={form.pincode} onChange={(v) => setForm({ ...form, pincode: v })} autoComplete="postal-code" inputMode="numeric" maxLength={6} />
+              <div>
+                <Field id="pincode" label="Pincode" required value={form.pincode} onChange={(v) => { setPinTouched(true); setForm({ ...form, pincode: v }) }} autoComplete="postal-code" inputMode="numeric" maxLength={6} />
+                <PinStatus state={pinLookup} touched={pinTouched} />
+              </div>
             </div>
 
             <label className="mt-5 flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
@@ -871,6 +916,55 @@ function Row({ label, value }: { label: string; value: string }) {
       <dt>{label}</dt>
       <dd className="text-ink">{value}</dd>
     </div>
+  )
+}
+
+// Small status line under the Pincode field. Surfaces the PIN lookup
+// result so the customer sees "we found Hyderabad, Telangana for this
+// PIN" and can correct if the lookup picked the wrong sub-locality.
+// Renders nothing until the user has actually typed in the field.
+function PinStatus({
+  state,
+  touched,
+}: {
+  state: ReturnType<typeof usePinLookup>
+  touched: boolean
+}) {
+  if (!touched) return null
+
+  let content: React.ReactNode = null
+  if (state.loading) {
+    content = <span className="text-ink-mute">Looking up your location…</span>
+  } else if (state.error === 'not_found') {
+    content = (
+      <span className="text-amber-600">
+        PIN code not found — please enter city &amp; state manually.
+      </span>
+    )
+  } else if (state.error === 'unavailable') {
+    content = (
+      <span className="text-ink-mute">
+        Couldn’t reach lookup service — please enter city &amp; state manually.
+      </span>
+    )
+  } else if (state.data) {
+    content = (
+      <span className="text-emerald-700">
+        <Check className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" aria-hidden />
+        {state.data.city}, {state.data.state}
+      </span>
+    )
+  }
+
+  if (!content) return null
+  return (
+    <p
+      className="mt-1.5 text-xs"
+      role="status"
+      aria-live="polite"
+    >
+      {content}
+    </p>
   )
 }
 

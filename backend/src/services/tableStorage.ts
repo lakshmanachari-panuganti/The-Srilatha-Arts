@@ -91,6 +91,170 @@ export async function getProductById(productId: string): Promise<Row | null> {
   return getProduct(category, productId)
 }
 
+// ─── INVENTORY RESERVATION ────────────────────────────────────
+//
+// Optimistic-concurrency-controlled stock helpers used by the order flow
+// to prevent over-selling of one-of-one (and limited-edition) artwork.
+//
+// Implementation: read the product row (gets its ETag), compute the new
+// stockQty, and write back with `mode: 'Merge'` + `{ etag }`. If another
+// caller updated the row between our read and write the SDK throws with
+// statusCode 412 and we retry up to MAX_RETRIES times. After exhausting
+// retries we throw an InsufficientStockError so the caller can surface
+// a clean message to the user ("Just sold — please refresh").
+//
+// reserveStock decrements; restoreStock increments. Both are best-effort
+// idempotent on repeated calls only when wrapped in a higher-level
+// reservation token (see payments.ts createPaymentOrder for the
+// reservation lifecycle).
+
+const STOCK_MAX_RETRIES = 4
+const STOCK_RETRY_DELAY_MS = 80
+
+export class InsufficientStockError extends Error {
+  productId: string
+  available: number
+  requested: number
+  constructor(productId: string, available: number, requested: number, productTitle?: string) {
+    super(
+      productTitle
+        ? `Only ${available} of "${productTitle}" available (requested ${requested})`
+        : `Only ${available} units of product ${productId} available (requested ${requested})`,
+    )
+    this.name = 'InsufficientStockError'
+    this.productId = productId
+    this.available = available
+    this.requested = requested
+  }
+}
+
+export class StockConcurrencyError extends Error {
+  productId: string
+  constructor(productId: string) {
+    super(`Stock update for ${productId} failed after ${STOCK_MAX_RETRIES} retries — concurrent updates`)
+    this.name = 'StockConcurrencyError'
+    this.productId = productId
+  }
+}
+
+async function _sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * Atomically decrement stockQty for a product. Throws InsufficientStockError
+ * if not enough stock, StockConcurrencyError if too many concurrent updates
+ * lost the optimistic-concurrency race. Sets inStock=false when stockQty
+ * reaches zero so PDP listings reflect it immediately.
+ *
+ * Returns the post-decrement stockQty on success.
+ */
+export async function reserveStock(productId: string, qty: number): Promise<number> {
+  if (!Number.isInteger(qty) || qty <= 0) {
+    throw new Error(`reserveStock: qty must be a positive integer (got ${qty})`)
+  }
+  const client = getTableClient('products')
+
+  for (let attempt = 1; attempt <= STOCK_MAX_RETRIES; attempt++) {
+    const product = await getProductById(productId)
+    if (!product) throw new Error(`reserveStock: product ${productId} not found`)
+    if (product.inStock === false) {
+      throw new InsufficientStockError(productId, 0, qty, product.title)
+    }
+    // stockQty undefined or null = "unlimited" inventory (legacy products).
+    // Treat as unlimited and skip the decrement entirely so we don't
+    // accidentally clamp them to zero.
+    if (product.stockQty == null) return Number.MAX_SAFE_INTEGER
+
+    const current = Number(product.stockQty)
+    if (current < qty) {
+      throw new InsufficientStockError(productId, current, qty, product.title)
+    }
+
+    const newQty = current - qty
+    const newInStock = newQty > 0
+    const etag = product.etag as string | undefined
+
+    try {
+      await client.updateEntity(
+        {
+          partitionKey: product.partitionKey as string,
+          rowKey: product.rowKey as string,
+          stockQty: newQty,
+          inStock: newInStock,
+        },
+        'Merge',
+        etag ? { etag } : undefined,
+      )
+      return newQty
+    } catch (err: any) {
+      if (err?.statusCode === 412 && attempt < STOCK_MAX_RETRIES) {
+        await _sleep(STOCK_RETRY_DELAY_MS * attempt)
+        continue
+      }
+      if (err?.statusCode === 412) {
+        throw new StockConcurrencyError(productId)
+      }
+      throw err
+    }
+  }
+  throw new StockConcurrencyError(productId)
+}
+
+/**
+ * Increment stockQty by qty. Used to compensate for a failed payment after
+ * a reservation succeeded. Best-effort retry on optimistic-concurrency
+ * loss; an extra retry budget vs reserveStock because restoring inventory
+ * should rarely fail silently — operational data integrity matters more
+ * than throughput here.
+ *
+ * Setting inStock=true is unconditional: any successful restore returns
+ * the product to "for sale" state regardless of the new total.
+ */
+export async function restoreStock(productId: string, qty: number): Promise<void> {
+  if (!Number.isInteger(qty) || qty <= 0) {
+    throw new Error(`restoreStock: qty must be a positive integer (got ${qty})`)
+  }
+  const client = getTableClient('products')
+  const RESTORE_RETRIES = STOCK_MAX_RETRIES + 2
+
+  for (let attempt = 1; attempt <= RESTORE_RETRIES; attempt++) {
+    const product = await getProductById(productId)
+    if (!product) {
+      // Product was deleted between reserve and restore (admin action).
+      // Nothing to restore to — log + drop silently so the caller's
+      // compensating loop completes.
+      return
+    }
+    if (product.stockQty == null) return // unlimited inventory — no-op
+
+    const current = Number(product.stockQty)
+    const newQty = current + qty
+    const etag = product.etag as string | undefined
+
+    try {
+      await client.updateEntity(
+        {
+          partitionKey: product.partitionKey as string,
+          rowKey: product.rowKey as string,
+          stockQty: newQty,
+          inStock: true,
+        },
+        'Merge',
+        etag ? { etag } : undefined,
+      )
+      return
+    } catch (err: any) {
+      if (err?.statusCode === 412 && attempt < RESTORE_RETRIES) {
+        await _sleep(STOCK_RETRY_DELAY_MS * attempt)
+        continue
+      }
+      throw err
+    }
+  }
+  throw new StockConcurrencyError(productId)
+}
+
 export async function getFeaturedProducts(): Promise<Row[]> {
   return (await getAllProducts()).filter((p) => p.featured === true)
 }
@@ -644,6 +808,25 @@ export async function getEmailLogsForOrder(orderId: string): Promise<Row[]> {
   )
 }
 
+/**
+ * Sitewide email-log listing for the admin notifications page. Scans all
+ * partitions because emailLog is partitioned by orderId — there's no
+ * natural date partition. At studio volume (~100 orders/month × ~6
+ * notifications each = ~600 rows/month) this is fine; revisit when
+ * volume grows.
+ */
+export async function listAllEmailLogs(fromIso?: string, toIso?: string): Promise<Row[]> {
+  await ensureTable('emailLogs')
+  const filters: string[] = []
+  if (fromIso) filters.push(odata`createdAt ge ${fromIso}`)
+  if (toIso) filters.push(odata`createdAt lt ${toIso}`)
+  const filter = filters.length ? filters.join(' and ') : undefined
+  const rows = await listAll('emailLogs', filter)
+  return rows.sort(
+    (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime(),
+  )
+}
+
 // ─── WHATSAPP MESSAGES ───────────────────────────────────────
 // Per-message append-only log + per-phone conversation rollup.
 // Both tables self-heal via ensureTable until the infra script
@@ -667,6 +850,23 @@ export async function findWhatsAppMessageByWamid(wamid: string): Promise<Row | n
   await ensureTable('whatsappMessages')
   const rows = await listAll('whatsappMessages', odata`waMessageId eq ${wamid}`)
   return rows[0] ?? null
+}
+
+/**
+ * Sitewide WhatsApp-message listing for the admin notifications page.
+ * Partitioned by phone — no natural date partition — so we scan with a
+ * server-side createdAt filter and sort client-side.
+ */
+export async function listAllWhatsAppMessages(fromIso?: string, toIso?: string): Promise<Row[]> {
+  await ensureTable('whatsappMessages')
+  const filters: string[] = []
+  if (fromIso) filters.push(odata`createdAt ge ${fromIso}`)
+  if (toIso) filters.push(odata`createdAt lt ${toIso}`)
+  const filter = filters.length ? filters.join(' and ') : undefined
+  const rows = await listAll('whatsappMessages', filter)
+  return rows.sort(
+    (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime(),
+  )
 }
 
 export async function updateWhatsAppMessageStatus(
