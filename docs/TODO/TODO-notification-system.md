@@ -6,29 +6,23 @@ surface for the next 12 months of scale.
 
 ## Pre-merge to `develop`
 
-### TODO-N1 · Fix the "Failure rate" calculation on the dashboard
+### TODO-N1 · Fix the "Failure rate" calculation on the dashboard — **DONE**
 
-**Severity:** High (correctness — current metric is misleading)
-**Effort:** ~1 hour
-**Files:**
-- `backend/src/functions/notificationsAdmin.ts` (`activityStats`)
-- `frontend/app/admin/notifications/page.tsx` (`StatCards`)
+Shipped as part of the same `ai-driven1` branch.
 
-**Problem:** today's calc counts every queue retry as a separate failure row. A notification
-that fails twice then succeeds shows as 67% failure rate even though the customer received
-the message. In the user's scenario (100 sent + 2 currently retrying + 0 final failures)
-today's calc returns ~2% when the operationally honest answer is 0%.
-
-**Fix:** display TWO metrics side-by-side:
-- **Delivery attempt success rate** = sent attempts / total attempts (today's calc, surface
-  health of the send infrastructure)
-- **Notification failure rate** = count of `notificationAlerts` rows with `isFinal: true`
-  in the same date range / count of unique `(orderId, channel, templateKey)` groups that
-  fired in the window. Use the notificationAlerts table (already maintained by the
-  dispatcher's recordAlert/clearAlert lifecycle).
-
-Stat card threshold (currently red >5%) should apply to **notification failure rate**, not
-attempt failure rate. The attempt failure rate is informational only.
+**What landed:**
+- `activityStats` now returns `attemptFailureRate` (renamed from the misleading
+  `failureRate`), plus `uniqueNotifications`, `finalFailures`, and `notificationFailureRate`.
+- `notificationFailureRate` = count of `notificationAlerts` with `isFinal: true` whose
+  `lastFailureAt` falls in the window, divided by unique `(orderId, channel, templateKey)`
+  groups in the same window — the operationally honest customer-impact metric.
+- New `countFinalAlertsInRange` helper in `backend/src/services/notificationAlerts.ts`
+  (in-memory filter — alerts table is small, dedup'd by orderId/channel/operation).
+- Dashboard now has 5 stat cards: Total attempts / Successful / Failed / **Notification
+  failure rate** (red >5% threshold lives here) / Attempt failure rate (text-ink-soft,
+  informational, subtitle reads "Send infrastructure (retries count)").
+- Notification failure rate card carries a subtitle "N of M notifications" so the source
+  numbers are visible without expanding anything.
 
 ---
 

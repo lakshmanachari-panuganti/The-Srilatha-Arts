@@ -8,6 +8,34 @@ is dated.
 
 ---
 
+## 2026-06-12 · Notification dashboard — honest failure metric
+
+Follow-up to the 2026-06-11 batch. Resolves TODO-N1 (blocking the merge to `develop`).
+
+### Changed
+
+- **`/admin/notifications` failure metric split into two.** The old single "Failure rate"
+  counted every queue retry as a separate failure — a notification that failed twice then
+  succeeded surfaced as 67% even though the customer received it. Now:
+  - **Notification failure rate** — final, unrecoverable failures (`notificationAlerts`
+    rows with `isFinal: true`) divided by unique `(orderId, channel, templateKey)` groups
+    in the window. This is the customer-impact metric and the only one with the >5% red
+    threshold. Subtitle shows raw "N of M notifications".
+  - **Attempt failure rate** — failed attempts divided by total attempts (the old calc,
+    renamed). Surfaces send-infrastructure health; retries inflate it on purpose; no
+    threshold colouring.
+
+### Added
+
+- **`countFinalAlertsInRange(from?, to?)`** in `backend/src/services/notificationAlerts.ts`.
+  In-memory filter against the alerts table (small — dedup'd by orderId/channel/operation).
+- **New stats fields** on `GET /api/admin/notifications/stats`: `attemptFailureRate`,
+  `uniqueNotifications`, `finalFailures`, `notificationFailureRate`. The old `failureRate`
+  field is replaced (renamed to `attemptFailureRate`) — the only consumer was the admin
+  dashboard, which is updated in the same change.
+
+---
+
 ## 2026-06-11 · Studio Vault, dual-channel notifications, inventory reservation, admin observability
 
 Commits: `7940854`, `f76bef2` · Branch: `ai-driven1`

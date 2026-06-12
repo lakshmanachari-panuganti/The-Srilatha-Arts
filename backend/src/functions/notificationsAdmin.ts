@@ -31,6 +31,7 @@ import {
   getOrderById,
   Row,
 } from '../services/tableStorage'
+import { countFinalAlertsInRange } from '../services/notificationAlerts'
 
 interface ActivityRow {
   id: string                  // stable per-row id for client keys
@@ -248,7 +249,31 @@ async function activityStats(
     }
     const failed = email.failed + whatsapp.failed
     const sent = email.sent + whatsapp.sent
-    const failureRate = total > 0 ? Math.round((failed / total) * 10000) / 100 : 0
+
+    // Two distinct metrics — see docs/TODO/TODO-notification-system.md N1.
+    //
+    //   attemptFailureRate    = failed attempts / total attempts. Health of
+    //                           the send infrastructure. Retries count here,
+    //                           so a notification that fails twice then
+    //                           succeeds shows up as 2 failed attempts —
+    //                           informational only, do not threshold on this.
+    //
+    //   notificationFailureRate = final failures (queue gave up) / unique
+    //                             (orderId, channel, templateKey) groups
+    //                             that fired in the window. This is the
+    //                             customer-impact metric: the count of
+    //                             notifications the customer never received.
+    //                             Threshold colouring lives here.
+    const attemptFailureRate = total > 0 ? Math.round((failed / total) * 10000) / 100 : 0
+
+    const uniqueGroups = new Set<string>()
+    for (const r of emailRows) uniqueGroups.add(`${r.partitionKey || r.orderId || ''}__email__${r.templateKey || ''}`)
+    for (const r of waOutbound) uniqueGroups.add(`${r.orderId || ''}__whatsapp__${r.templateName || ''}`)
+    const uniqueNotifications = uniqueGroups.size
+    const finalFailures = await countFinalAlertsInRange(from, to)
+    const notificationFailureRate = uniqueNotifications > 0
+      ? Math.round((finalFailures / uniqueNotifications) * 10000) / 100
+      : 0
 
     // Per-template breakdown — useful for "which template fails most often?"
     const templateMap = new Map<string, { sent: number; failed: number }>()
@@ -278,7 +303,10 @@ async function activityStats(
         total,
         sent,
         failed,
-        failureRate,
+        attemptFailureRate,
+        uniqueNotifications,
+        finalFailures,
+        notificationFailureRate,
         byChannel: { email, whatsapp },
         byTemplate,
         windowFrom: from,
