@@ -228,7 +228,7 @@ export default function FinalInvite() {
                 <motion.path
                   d={LOTUS_PATH}
                   fill="none"
-                  stroke="#221B12"
+                  stroke="#facc15"
                   strokeWidth={1.4}
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -242,7 +242,7 @@ export default function FinalInvite() {
                   cy={300}
                   r={OUTER_R}
                   fill="none"
-                  stroke="#221B12"
+                  stroke="#facc15"
                   strokeWidth={1.1}
                   style={reduceMotion ? { pathLength: 1 } : { pathLength: outerLength }}
                   vectorEffect="non-scaling-stroke"

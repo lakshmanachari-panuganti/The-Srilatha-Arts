@@ -8,6 +8,89 @@ is dated.
 
 ---
 
+## 2026-06-12 · Premium Obsidian + Cyber Gold theme
+
+Full repaint of the global token system from "Glossy Lavender" → **Premium
+Obsidian + Cyber Gold**, per the 60-30-10 spec the user supplied. Replaces
+the warm ivory + espresso + gold direction the Studio Vault batch was built
+against. Decided after explicit confirmation that the dark theme is wanted
+on this repo (not the sibling `srilatha.art`).
+
+### Changed
+
+- **Token system (`globals.css` `:root`):** Rewritten end-to-end against the
+  Obsidian + Cyber Gold spec.
+  - 60% foundation: `--bg-main: #07080a`, `--bg-surface: #101216`,
+    `--bg-card: #15181e`, `--bg-input: #0d0f12`.
+  - 30% glass: `--glass-bg: rgba(16,18,22,0.65)`, `--glass-border:
+    rgba(255,255,255,0.05)`, `--glass-border-glow: rgba(250,204,21,0.15)`.
+  - 10% accent: `--accent-gold: #facc15`, `--accent-gold-hover: #eab308`,
+    `--ink-dark: #07080a`.
+  - Typography: `--text-primary: #ffffff`, `--text-secondary: #94a3b8`
+    (slate-400), `--text-muted: #64748b` (slate-500).
+  - Glow tiers: `--glow-sm/md/lg` per spec; status: `--ok-glow`,
+    `--danger-glow`.
+- **Legacy custom-properties remapped, not renamed.** `--surface`,
+  `--text`, `--brand`, `--accent`, etc. all alias the new obsidian
+  tokens. ~200 component call sites continue to work without touching
+  each one.
+- **Tailwind aliases (`tailwind.config.ts`):** `plum`, `lavender`, `ivory`,
+  `ink`, `paper`, `cream`, `nav-surface*`, `lavender-glow*` all reroute
+  to the obsidian palette. Build-time alpha modifiers preserved via
+  `rgb(var(--…-rgb) / <alpha-value>)`.
+- **Mobile glass guard.** Every `backdrop-filter: blur()` is now gated
+  behind `@media (min-width: 1024px)`. Mobile (<1024px) renders the
+  solid `--bg-glass-fallback` (`#12141c`) for paint cost. Affects
+  `.card`, `.glass`, `.glass-strong`, `.chip`, `.card-warmglow*`.
+- **Standard glass radius:** all glass primitives now use `border-radius:
+  16px` (was 20–24px on some).
+- **CTA primitives reconverged on the spec:**
+  - `.btn-dark` / `.btn-resin` / `.btn-glow-gold` — gold fill,
+    `--ink-dark` text, baseline `--glow-sm`, hover `translateY(-3px)` +
+    bg → `--accent-gold-hover` + shadow → `--glow-lg`.
+  - `.btn-outline` / `.btn-glow-gold-outline` — transparent fill, 1px
+    `rgba(255,255,255,0.15)` border, hover border → `--accent-gold` +
+    `--glow-sm`.
+- **Typography readability shield:** all `h1–h6` now carry a soft
+  `text-shadow: 0 2px 10px rgba(0,0,0,0.4)` per spec, so headings stay
+  crisp against busy glass backdrops.
+- **Body copy default:** all `<p>` inherits `line-height: 1.65` +
+  `color: var(--text-secondary)` (slate-400) per spec.
+- **Functional colours:** `--ok` → `#22c55e`, `--danger` → `#ef4444`,
+  with new `--ok-glow` and `--danger-glow` semantic shadows.
+- **PWA + browser chrome:** `theme_color` and `background_color` in
+  `manifest.ts` and `viewport.themeColor` in `layout.tsx` updated from
+  `#FBF8F2` → `#07080a` so the browser chrome and PWA splash match.
+- **Razorpay checkout theme:** `theme.color` updated from `#221B12` →
+  `#facc15` so the Razorpay modal matches the cyber-gold accent.
+- **Hero scrim and CTAs (`HeroSlideshow`):** scrim flipped from
+  warm-ink (`rgba(20,16,10,…)`) to obsidian (`rgba(7,8,10,…)`). CTA
+  cluster now uses the canonical `btn-glow-gold` + `btn-glow-gold-outline`
+  primitives directly, dropping the warm focal panel.
+- **KolamCursorField default colours:** dot field default flipped to
+  gold-tinted (`rgba(250,204,21,0.20)`); particle gold updated to match
+  the cyber-gold accent. Applies to `HeroExperience` overrides too.
+- **CustomOrderCTA step cards:** ditched the lavender inline styles;
+  now consume the canonical `.card` primitive. Connecting rule + icon
+  badges flipped to gold.
+- **`.gold-text`, `.lavender-text`, `.kolam-dots`, `.rule`** all
+  redirected to cyber-gold token sources.
+
+### Pending — visual polish on Studio Vault rooms
+
+The v2 marketing components still carry inline `rgba(34,27,18,…)`
+(espresso ink) borders and `rgba(20,16,10,…)` warm scrims tuned for the
+ivory theme. On obsidian those values either disappear (borders) or
+read warmer than the rest of the site (scrims). Compiles fine, no
+broken behaviour — pure cosmetic. Files: `OurStoryTeaser.tsx`,
+`SectionDivider.tsx`, `Footer.tsx`, `AnalyticsProvider.tsx`,
+`v2/CollectionExhibition.tsx`, `v2/ProcessFilm.tsx`,
+`v2/FeaturedWorks.tsx`, `v2/PourTransition.tsx`,
+`StandaloneFilm.tsx`. Worth a focused second pass when the user has
+eyes on the deployed result.
+
+---
+
 ## 2026-06-12 · Notification dashboard — honest failure metric
 
 Follow-up to the 2026-06-11 batch. Resolves TODO-N1 (blocking the merge to `develop`).

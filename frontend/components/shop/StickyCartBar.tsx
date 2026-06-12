@@ -102,8 +102,8 @@ export default function StickyCartBar({ product }: { product: Product }) {
           disabled={!product.inStock}
           className="flex-[1.4] h-10 sm:h-11 rounded-full inline-flex items-center justify-center text-xs sm:text-sm font-semibold disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
           style={{
-            background: 'var(--accent)',
-            color: '#221B12',
+            background: 'var(--accent-gold)',
+            color: 'var(--ink-dark)',
           }}
         >
           {product.inStock ? 'Buy now' : 'Sold out'}

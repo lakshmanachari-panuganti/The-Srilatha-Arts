@@ -64,7 +64,7 @@ export default function CustomOrderCTA() {
               className="hidden md:block absolute top-12 left-[16.6%] right-[16.6%] h-px z-0"
               style={{
                 background:
-                  'linear-gradient(to right, transparent, rgba(176,110,232,0.70) 20%, rgba(251,191,36,0.70) 50%, rgba(176,110,232,0.70) 80%, transparent)',
+                  'linear-gradient(to right, transparent, rgba(250,204,21,0.65) 20%, rgba(250,204,21,0.85) 50%, rgba(250,204,21,0.65) 80%, transparent)',
               }}
             />
             {steps.map((s) => {
@@ -73,14 +73,7 @@ export default function CustomOrderCTA() {
                 <motion.div
                   key={s.step}
                   variants={fadeUp}
-                  className="relative z-10 p-6 sm:p-8 flex flex-col justify-between"
-                  style={{
-                    background: 'rgba(61,26,104,0.85)',
-                    border: '1px solid rgba(255,255,255,0.22)',
-                    borderRadius: '24px',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), 0 16px 40px rgba(0,0,0,0.35)',
-                    backdropFilter: 'blur(12px)',
-                  }}
+                  className="card relative z-10 p-6 sm:p-8 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-6">
@@ -91,7 +84,7 @@ export default function CustomOrderCTA() {
                         {s.step}
                       </span>
                       <span className="w-10 h-10 rounded-full flex items-center justify-center"
-                        style={{ background: 'rgba(176,110,232,0.25)', border: '1px solid rgba(176,110,232,0.45)', color: 'var(--brand)' }}>
+                        style={{ background: 'rgba(250,204,21,0.10)', border: '1px solid rgba(250,204,21,0.40)', color: 'var(--accent-gold)' }}>
                         <Icon className="w-5 h-5" />
                       </span>
                     </div>

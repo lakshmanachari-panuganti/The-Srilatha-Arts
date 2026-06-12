@@ -9,67 +9,56 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ── Two-layer system ───────────────────────────────────────
-        // Tailwind tokens here are *aliases* of CSS variables defined
-        // in app/globals.css `:root`. The variables are the single
-        // source of truth - change them to retheme. Names kept for
-        // back-compat with ~200 call sites; values resolve at runtime.
+        // ── Two-layer token system ─────────────────────────────────
+        // Tailwind aliases here resolve to CSS variables defined in
+        // app/globals.css `:root`. The variables are the single source
+        // of truth — retheme by editing :root only. ~200 component
+        // call sites use these names; do not rename them.
+        //
+        // Active theme: Premium Obsidian + Cyber Gold. All legacy
+        // names ('plum', 'lavender', 'ivory', 'ink', etc.) are kept
+        // and remapped at the :root layer so they resolve to the
+        // obsidian palette.
         //
         // We use `rgb(var(--…-rgb) / <alpha-value>)` so opacity
-        // modifiers (`bg-plum/40`, `border-ink/10`, `text-lavender-
-        // pastel/60`) keep composing alpha at build time.
-        //
-        // Phase 1 of the reskin centralises colour without changing
-        // visuals. Phase 2 swaps the `:root` block (only) to warm
-        // ivory + ink + gold.
+        // modifiers (`bg-plum/40`, `border-ink/10`) compose alpha
+        // at build time.
         // ─────────────────────────────────────────────────────────
 
-        // ── IMPORTANT: Token name inversion ─────────────────────────
-        // These token NAMES are legacy aliases from the old lavender-plum
-        // theme and are semantically INVERTED from what you'd expect:
-        //
-        //   `plum`    → actually the WARM IVORY SURFACE  (#FBF8F2)
-        //   `ivory`   → actually the DARK ESPRESSO TEXT  (#221B12)
-        //   `lavender`→ actually the DARK INK BRAND COLOR (#221B12)
-        //
-        // This is intentional for back-compat with ~200 call sites.
-        // ── Lavender Theme Surfaces ──────────────────────────────────
-        // plum     → lavender page background  (#5a2d82)
-        // ivory    → white text                (#ffffff)
-        // lavender → brand lavender button     (#b06ee8)
-        plum:            'rgb(var(--surface-rgb) / <alpha-value>)',
-        'plum-light':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
-        'plum-warm':     'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
-        'lavender-light':'rgba(255,255,255,0.12)',
-        'lavender-faint':'rgb(var(--surface-rgb) / <alpha-value>)',
-        cream:           'rgba(255,255,255,0.10)',
-        'cream-deep':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
-        paper:           'rgba(255,255,255,0.10)',
+        // Surface aliases → obsidian foundation
+        plum:            'rgb(var(--bg-main-rgb) / <alpha-value>)',
+        'plum-light':    'rgb(var(--bg-card-rgb) / <alpha-value>)',
+        'plum-warm':     'rgb(var(--bg-surface-rgb) / <alpha-value>)',
+        'lavender-light':'rgba(255,255,255,0.04)',
+        'lavender-faint':'rgb(var(--bg-surface-rgb) / <alpha-value>)',
+        cream:           'rgba(255,255,255,0.04)',
+        'cream-deep':    'rgb(var(--bg-card-rgb) / <alpha-value>)',
+        paper:           'rgb(var(--bg-glass-fallback-rgb) / <alpha-value>)',
 
-        // Brand (lavender-pink) + accent (gold)
-        lavender:          'rgb(var(--brand-rgb) / <alpha-value>)',
-        'lavender-soft':   'rgb(var(--brand-rgb) / <alpha-value>)',
-        'lavender-pastel': 'rgb(var(--accent-strong-rgb) / <alpha-value>)',
-        'primary-dark':    'rgb(var(--brand-rgb) / <alpha-value>)',
-        'primary-burnt':   'rgb(var(--brand-strong-rgb) / <alpha-value>)',
+        // Brand + accent aliases → cyber gold
+        lavender:          'rgb(var(--accent-gold-rgb) / <alpha-value>)',
+        'lavender-soft':   'rgb(var(--accent-gold-rgb) / <alpha-value>)',
+        'lavender-pastel': 'rgb(var(--accent-gold-hover-rgb) / <alpha-value>)',
+        'primary-dark':    'rgb(var(--accent-gold-rgb) / <alpha-value>)',
+        'primary-burnt':   'rgb(var(--accent-gold-hover-rgb) / <alpha-value>)',
 
-        // Text — white on lavender
-        ivory:        'rgb(var(--text-rgb) / <alpha-value>)',
-        'ivory-soft': 'rgb(var(--text-body-rgb) / <alpha-value>)',
+        // Text aliases — primary white, body slate-400, muted slate-500
+        ivory:        'rgb(var(--text-primary-rgb) / <alpha-value>)',
+        'ivory-soft': 'rgb(var(--text-secondary-rgb) / <alpha-value>)',
         'ivory-mute': 'rgb(var(--text-muted-rgb) / <alpha-value>)',
-        ink:          'rgb(var(--text-rgb) / <alpha-value>)',
-        'ink-soft':   'rgb(var(--text-body-rgb) / <alpha-value>)',
+        ink:          'rgb(var(--text-primary-rgb) / <alpha-value>)',
+        'ink-soft':   'rgb(var(--text-secondary-rgb) / <alpha-value>)',
         'ink-mute':   'rgb(var(--text-muted-rgb) / <alpha-value>)',
 
-        // Navigation surfaces — deep lavender translucent
-        'nav-surface':       'rgba(63,29,96,0.92)',
-        'nav-surface-heavy': 'rgba(42,17,64,0.97)',
+        // Navigation surfaces — obsidian translucent
+        'nav-surface':       'rgba(16,18,22,0.92)',
+        'nav-surface-heavy': 'rgba(7,8,10,0.97)',
 
         // Glass + overlays
-        'glass-surface': 'rgba(255,255,255,0.09)',
-        'glass-border':  'var(--border)',
-        'overlay-soft':  'rgb(var(--brand-rgb) / 0.08)',
-        'overlay-deep':  'rgb(var(--text-rgb) / 0.35)',
+        'glass-surface': 'rgba(16,18,22,0.65)',
+        'glass-border':  'rgba(255,255,255,0.05)',
+        'overlay-soft':  'rgba(250,204,21,0.08)',
+        'overlay-deep':  'rgba(0,0,0,0.55)',
       },
       fontFamily: {
         // Three-font system, each with a clear role:
@@ -157,21 +146,22 @@ const config: Config = {
       backgroundImage: {
         'paper-grain':
           "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E\")",
-        'lavender-gradient': 'linear-gradient(135deg, #FFFFFF 0%, #FBF8F2 45%, #F2EBDD 100%)',
-        'plum-gradient': 'linear-gradient(135deg, #FFFFFF 0%, #FBF8F2 50%, #F2EBDD 100%)',
+        // Obsidian gradients — replace legacy ivory/cream sweeps.
+        'lavender-gradient': 'linear-gradient(135deg, #07080a 0%, #101216 50%, #15181e 100%)',
+        'plum-gradient':     'linear-gradient(135deg, #07080a 0%, #101216 50%, #15181e 100%)',
       },
       maxWidth: {
         '8xl': '88rem',
         reader: '38rem',
       },
       boxShadow: {
-        editorial: '0 30px 60px -20px rgba(0,0,0,0.45)',
-        card: '0 8px 24px -12px rgba(0,0,0,0.40)',
-        soft: '0 2px 12px -2px rgba(0,0,0,0.25)',
-        // Lavender glow shadows — used on cards, buttons, accents
-        'lavender-glow':   '0 0 14px rgba(176,110,232,0.55), 0 8px 18px -10px rgba(0,0,0,0.35)',
-        'lavender-glow-lg':'0 0 24px rgba(176,110,232,0.65), 0 14px 28px -14px rgba(0,0,0,0.45)',
-        glass: '0 8px 24px -12px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.22)',
+        editorial: '0 30px 60px -20px rgba(0,0,0,0.65)',
+        card: '0 8px 24px -12px rgba(0,0,0,0.55)',
+        soft: '0 2px 12px -2px rgba(0,0,0,0.40)',
+        // Gold glow shadows — used on CTAs, focal cards, hover lifts
+        'lavender-glow':    '0 0 12px rgba(250,204,21,0.40), 0 8px 18px -10px rgba(0,0,0,0.50)',
+        'lavender-glow-lg': '0 0 40px rgba(250,204,21,0.20), 0 0 12px rgba(250,204,21,0.40), 0 14px 28px -14px rgba(0,0,0,0.60)',
+        glass: '0 8px 24px -12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)',
       },
     },
   },

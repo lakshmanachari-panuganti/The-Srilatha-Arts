@@ -129,17 +129,17 @@ export default function HomeHero() {
         )
       })}
 
-      {/* Warm ink scrim - diagonal so the photograph still breathes on the
-          right while text on the left/centre stays legible, plus a soft
-          top-down wash so the fixed Header's ivory-tinted glyphs have a
-          dark backing while the user is at scroll position 0. Ink-toned
-          rather than generic black so it sits inside the ivory/ink palette. */}
+      {/* Obsidian scrim - diagonal vignette so the photograph still breathes
+          on the right while text on the left/centre stays legible, plus a
+          soft top-down wash so the fixed Header glyphs have a dark backing
+          at scroll position 0, plus a bottom rise to anchor the slide dots
+          and the CTA cluster. Matches the obsidian + cyber gold theme. */}
       <div
         aria-hidden
         className="absolute inset-0 z-[2]"
         style={{
           background:
-            'linear-gradient(180deg, rgba(20,16,10,0.55) 0%, rgba(20,16,10,0.20) 18%, transparent 32%), linear-gradient(105deg, rgba(20,16,10,0.78) 0%, rgba(20,16,10,0.55) 35%, rgba(20,16,10,0.25) 65%, transparent 100%), linear-gradient(to top, rgba(20,16,10,0.55) 0%, transparent 50%)',
+            'linear-gradient(180deg, rgba(7,8,10,0.70) 0%, rgba(7,8,10,0.30) 18%, transparent 32%), linear-gradient(105deg, rgba(7,8,10,0.88) 0%, rgba(7,8,10,0.65) 35%, rgba(7,8,10,0.30) 65%, transparent 100%), linear-gradient(to top, rgba(7,8,10,0.72) 0%, transparent 50%)',
         }}
       />
 
@@ -182,26 +182,26 @@ export default function HomeHero() {
             Hand-painted, hand-poured, and shockproof-shipped from Hyderabad to elevate your space.
           </motion.p>
 
-          {/* CTA cluster — sits inside a soft warmglow-dark focal panel so
-              the buttons read as a single spotlight against the slideshow
-              scrim. Primary uses the gold-halo pill; secondary picks up
-              the same halo on hover instead of staying a plain underline. */}
+          {/* Primary + secondary CTA pair — both inherit the canonical
+              cyber-gold primitives. Primary is a gold pill with --glow-sm
+              baseline → --glow-lg on hover; secondary is a glass outline
+              that lights up its border on hover. */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.45 }}
-            className="card-warmglow-dark inline-flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 sm:p-4 mb-10 w-full sm:w-auto"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-10"
           >
             <Link
               href="/shop"
-              className="btn-glow-gold inline-flex items-center justify-center gap-2 min-h-12 px-7 text-sm uppercase tracking-wide w-full sm:w-auto sm:min-w-[16rem] active:scale-[0.98]"
+              className="btn-glow-gold min-w-0 sm:min-w-[16rem]"
             >
               Explore Collections
               <ArrowRight className="w-4 h-4" aria-hidden />
             </Link>
             <Link
               href="/custom-order"
-              className="btn-glow-gold-outline inline-flex items-center justify-center gap-2 min-h-12 px-6 text-sm uppercase tracking-wide w-full sm:w-auto"
+              className="btn-glow-gold-outline"
             >
               Order a custom piece
               <ArrowRight className="w-3.5 h-3.5" aria-hidden />
