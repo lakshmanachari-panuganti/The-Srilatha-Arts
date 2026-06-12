@@ -43,18 +43,20 @@
     /* ── Surfaces — deep lavender backgrounds ────────────────── */
     --surface:            #5a2d82;   /* main page bg — warm lavender */
     --surface-rgb:        90 45 130;
-    --surface-raised:     rgba(255,255,255,0.10);  /* glossy card surface */
-    --surface-raised-rgb: 255 255 255;
+    --surface-raised:     #3d1a68;   /* card bg — deep lavender, white text readable */
+    --surface-raised-rgb: 61 26 104;
     --surface-sunken:     #3f1d60;   /* alt section bg — deeper lavender */
     --surface-sunken-rgb: 63 29 96;
 
     /* ── Text — always white on lavender ─────────────────────── */
     --text:           #ffffff;
     --text-rgb:       255 255 255;
-    --text-body:      rgba(255,255,255,0.82);
+    --text-body:      #ffffffd4;     /* 83% white — body copy */
     --text-body-rgb:  255 255 255;
-    --text-muted:     rgba(255,255,255,0.52);
+    --text-muted:     #ffffff99;     /* 60% white — captions/meta */
     --text-muted-rgb: 255 255 255;
+    --text-dark:      #1a0638;       /* dark ink for LIGHT surfaces only */
+    --text-dark-rgb:  26 6 56;
 
     /* ── Brand = lavender-pink; accent = warm gold ───────────── */
     --brand:              #b06ee8;   /* warm lavender brand color */

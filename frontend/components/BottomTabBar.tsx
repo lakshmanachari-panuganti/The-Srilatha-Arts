@@ -21,8 +21,16 @@ export default function BottomTabBar() {
   const pathname = usePathname() || '/'
   const haptic = useHaptic()
 
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/')
+  // Pick the most-specific matching tab so nested routes like /account/wishlist
+  // don't also light up the broader /account tab.
+  const activeHref = tabs
+    .map((t) => t.href)
+    .filter((href) =>
+      href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/'),
+    )
+    .sort((a, b) => b.length - a.length)[0]
+
+  const isActive = (href: string) => href === activeHref
 
   return (
     <nav
