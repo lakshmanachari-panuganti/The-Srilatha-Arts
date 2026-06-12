@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, DM_Sans } from 'next/font/google'
+import { Cormorant_Garamond, DM_Sans, Fraunces } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
@@ -33,6 +33,18 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-dm-sans',
+  display: 'swap',
+})
+
+// Fraunces — modern variable serif used by Aman / Are.na / Helvetiq.
+// Used exclusively on the homepage hero headline. Expressive optical-
+// size and softness via axes, with weights tight to display ranges so
+// the next/font payload stays small.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
+  style: ['normal'],
+  variable: '--font-fraunces',
   display: 'swap',
 })
 
@@ -101,7 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en-IN"
-      className={`${cormorant.variable} ${dmSans.variable}`}
+      className={`${cormorant.variable} ${dmSans.variable} ${fraunces.variable}`}
     >
       <head>
         {/* Fontshare hosts the Pramukh wordmark face. Open the TLS+TCP +

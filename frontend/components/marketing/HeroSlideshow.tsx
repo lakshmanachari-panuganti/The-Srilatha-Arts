@@ -19,11 +19,11 @@
  *
  * Animation tempo (calibrated against Apple / Aesop / Aman timing):
  *   t=0.30s  Line 1 starts (1.2s duration → fully visible at 1.50s)
- *   t=2.50s  Line 2 starts after a ~1s held pause
- *   t=4.70s  Line 3 starts after a ~1s held pause
- *   t=6.30s  Subtitle reveals
- *   t=6.80s  CTAs reveal
- *   t=7.30s  Social row reveals
+ *   t=2.00s  Line 2 starts after a 0.5s held pause
+ *   t=3.70s  Line 3 starts after a 0.5s held pause
+ *   t=5.20s  Subtitle reveals
+ *   t=5.60s  CTAs reveal
+ *   t=6.00s  Social row reveals
  *
  * prefers-reduced-motion freezes everything at its final state — the
  * reader still gets the full hero, just without the choreography.
@@ -120,14 +120,16 @@ export default function HomeHero() {
         >
           <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left">
             <h1
-              className="font-serif text-white
+              className="text-white
                          text-[2.25rem] leading-[1.18]
                          sm:text-6xl sm:leading-[1.12]
                          lg:text-7xl lg:leading-[1.08]
                          xl:text-8xl xl:leading-[1.05]"
               style={{
+                fontFamily: 'var(--font-fraunces), Georgia, serif',
                 fontWeight: 400,
-                letterSpacing: '0.005em',
+                fontOpticalSizing: 'auto',
+                letterSpacing: '-0.015em',
                 textShadow: 'none',
               }}
             >
@@ -135,18 +137,18 @@ export default function HomeHero() {
                 Intentionally handcrafted<Period />
               </Reveal>
 
-              <Reveal as="span" delay={2.50} reduceMotion={reduceMotion} className="block">
+              <Reveal as="span" delay={2.00} reduceMotion={reduceMotion} className="block">
                 Securely delivered<Period />
               </Reveal>
 
-              <Reveal as="span" delay={4.70} reduceMotion={reduceMotion} className="block">
+              <Reveal as="span" delay={3.70} reduceMotion={reduceMotion} className="block">
                 Forever treasured<Period />
               </Reveal>
             </h1>
 
             <Reveal
               as="p"
-              delay={6.30}
+              delay={5.20}
               duration={0.9}
               reduceMotion={reduceMotion}
               className="mt-8 sm:mt-10 mx-auto sm:mx-0 max-w-md sm:max-w-lg text-sm sm:text-base leading-relaxed"
@@ -158,7 +160,7 @@ export default function HomeHero() {
 
             <Reveal
               as="div"
-              delay={6.80}
+              delay={5.60}
               duration={0.9}
               reduceMotion={reduceMotion}
               className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center
@@ -187,7 +189,7 @@ export default function HomeHero() {
           continues), pinned to the bottom-left from sm up. */}
       <Reveal
         as="div"
-        delay={7.30}
+        delay={6.00}
         duration={0.9}
         reduceMotion={reduceMotion}
         className="absolute bottom-6 sm:bottom-8 inset-x-0 sm:inset-x-auto sm:left-8 lg:left-16 z-[2]

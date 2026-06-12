@@ -8,6 +8,34 @@ is dated.
 
 ---
 
+## 2026-06-12 · Hero — Fraunces serif + faster tempo
+
+User asked for a trendier-but-decent display face on the hero, and for
+the inter-line pauses halved.
+
+### Changed
+
+- **Headline font swapped to Fraunces** (variable serif used by Aman /
+  Are.na / Helvetiq). Loaded via `next/font/google` in `layout.tsx`
+  at weights 300/400/500, exposed as `--font-fraunces`. Cormorant
+  Garamond stays the sitewide `font-serif` token for every other h1,
+  h2, h3 — Fraunces is scoped to the hero h1 only.
+- **Hero h1 styling tuned for Fraunces:** weight 400, optical-sizing
+  auto, letter-spacing `-0.015em` (Fraunces sets wider by default so a
+  slight negative tracking keeps the editorial weight).
+- **Inter-line pauses halved** from 1.0s → 0.5s. New tempo:
+  - t=0.30s Line 1 begins
+  - t=2.00s Line 2 begins (was 2.50s)
+  - t=3.70s Line 3 begins (was 4.70s)
+  - t=5.20s Subtitle (was 6.30s)
+  - t=5.60s CTAs (was 6.80s)
+  - t=6.00s Social row (was 7.30s)
+
+Total reveal duration drops from ~7.3s → ~6.0s. Still calm, just
+fewer "waiting" beats between phrases.
+
+---
+
 ## 2026-06-12 · Hero — three-line sequential reveal
 
 Replaces the single uppercase sans headline with a calmer three-phrase
