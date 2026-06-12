@@ -1,29 +1,77 @@
 'use client'
 /**
- * HomeHero — pure-black editorial hero, single-screen, no slideshow.
+ * HomeHero — pure-black editorial hero, mobile-first.
  *
- * Reference: Apple-style "Brilliant. In every way." composition. Pure
- * black canvas, sharp sans display headline, two CTAs (primary gold
- * pill + secondary outline), minimal social row pinned to the bottom-
- * left. Restraint by design — the chrome disappears so the brand
- * promise carries the entire above-the-fold.
+ * Three-line sequential tagline reveal on a #000 canvas. Each phrase
+ * fades up slowly with a one-second pause between lines, so the user
+ * reads them as discrete vows rather than a single block of marketing
+ * copy. After all three are visible they stay; the supporting
+ * subtitle, CTAs, and social row reveal in a quieter trailing wave.
  *
- * Replaces the prior 5-slide auto-rotating slideshow per the user's
- * 2026-06-12 redesign brief. The slideshow's responsibilities — slide
- * eyebrow, trust strip, dots indicator, pause/play, autoplay timer,
- * touch swipe — are all gone. Featured artwork moves to the section
- * below (FeaturedCreations / BestSellers).
+ *   Intentionally handcrafted.        → craftsmanship
+ *   Securely delivered.               → care
+ *   Forever treasured.                → legacy
  *
- * a11y notes:
- *   - One <section aria-label> at root for landmark naming.
- *   - The headline is the only h1 on the page.
- *   - prefers-reduced-motion freezes the staggered reveal.
+ * Period in each line is set in cyber gold — the single accent on the
+ * canvas. Headline is Cormorant Garamond (font-serif), sentence case,
+ * subtly tracked, generous leading. Layout is centred on mobile and
+ * left-aligned from `sm` upward.
+ *
+ * Animation tempo (calibrated against Apple / Aesop / Aman timing):
+ *   t=0.30s  Line 1 starts (1.2s duration → fully visible at 1.50s)
+ *   t=2.50s  Line 2 starts after a ~1s held pause
+ *   t=4.70s  Line 3 starts after a ~1s held pause
+ *   t=6.30s  Subtitle reveals
+ *   t=6.80s  CTAs reveal
+ *   t=7.30s  Social row reveals
+ *
+ * prefers-reduced-motion freezes everything at its final state — the
+ * reader still gets the full hero, just without the choreography.
+ *
+ * a11y: the three phrases sit inside a single h1; the gold period is a
+ * decorative <span aria-hidden> so screen-readers don't say "full stop"
+ * three times.
  */
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+
+const EASE_LUXURY = [0.22, 1, 0.36, 1] as const
+
+interface RevealProps {
+  delay: number
+  duration?: number
+  reduceMotion: boolean
+  className?: string
+  children: React.ReactNode
+  as?: 'span' | 'p' | 'div'
+}
+
+function Reveal({
+  delay,
+  duration = 1.2,
+  reduceMotion,
+  className,
+  children,
+  as = 'span',
+}: RevealProps) {
+  const Tag = motion[as]
+  if (reduceMotion) {
+    return <Tag className={className}>{children}</Tag>
+  }
+  return (
+    <Tag
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration, delay, ease: EASE_LUXURY }}
+      className={className}
+    >
+      {children}
+    </Tag>
+  )
+}
 
 export default function HomeHero() {
   const [reduceMotion, setReduceMotion] = useState(false)
@@ -36,23 +84,17 @@ export default function HomeHero() {
     return () => mql.removeEventListener('change', onChange)
   }, [])
 
-  const fadeIn = (delay: number) =>
-    reduceMotion
-      ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
-      : {
-          initial: { opacity: 0, y: 16 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.9, delay, ease: [0.25, 0.46, 0.45, 0.94] as const },
-        }
+  // Decorative gold period — paired with each tagline line.
+  const Period = () => (
+    <span aria-hidden style={{ color: 'var(--accent-gold)' }}>.</span>
+  )
 
   return (
     <section
       aria-label="Welcome to Srilatha Art"
       className="relative w-full overflow-hidden"
       style={{
-        height: '100svh',
-        minHeight: '600px',
-        maxHeight: '900px',
+        minHeight: '100svh',
         background: '#000000',
       }}
     >
@@ -67,42 +109,60 @@ export default function HomeHero() {
         }}
       />
 
-      {/* Editorial content column — left-aligned on desktop, centred-left
-          on mobile. Generous breathing room above and below; the headline
-          does the work, no decorative chrome. */}
-      <div className="relative z-[2] h-full flex items-center">
-        <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-16 pb-24 sm:pb-28">
-          <div className="max-w-3xl">
-            <motion.h1
-              {...fadeIn(0.05)}
-              className="display text-white font-sans font-semibold uppercase
-                         text-5xl sm:text-7xl lg:text-8xl xl:text-[7.5rem]
-                         leading-[1.02] tracking-[-0.02em] mb-6"
+      {/* Editorial content. Centred on mobile (the three vows read like
+          a poem and centring respects that); left-aligned from sm up so
+          desktop keeps editorial weight on the left third. */}
+      <div className="relative z-[2] flex items-center" style={{ minHeight: '100svh' }}>
+        <div
+          className="w-full max-w-7xl mx-auto
+                     px-5 sm:px-8 lg:px-16
+                     pt-28 sm:pt-32 pb-28 sm:pb-32"
+        >
+          <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left">
+            <h1
+              className="font-serif text-white
+                         text-[2.25rem] leading-[1.18]
+                         sm:text-6xl sm:leading-[1.12]
+                         lg:text-7xl lg:leading-[1.08]
+                         xl:text-8xl xl:leading-[1.05]"
               style={{
-                // Override the global h1 readability shield — pure black
-                // canvas + crisp white type doesn't need it, and the
-                // shadow softens the edges we want crisp here.
+                fontWeight: 400,
+                letterSpacing: '0.005em',
                 textShadow: 'none',
               }}
             >
-              Handcrafted.
-              <br />
-              One hand, one piece
-              <br />
-              at a time<span style={{ color: 'var(--accent-gold)' }}>.</span>
-            </motion.h1>
+              <Reveal as="span" delay={0.30} reduceMotion={reduceMotion} className="block">
+                Intentionally handcrafted<Period />
+              </Reveal>
 
-            <motion.p
-              {...fadeIn(0.20)}
-              className="text-base sm:text-lg max-w-xl mb-10 leading-relaxed"
-              style={{ color: 'rgba(255,255,255,0.65)' }}
+              <Reveal as="span" delay={2.50} reduceMotion={reduceMotion} className="block">
+                Securely delivered<Period />
+              </Reveal>
+
+              <Reveal as="span" delay={4.70} reduceMotion={reduceMotion} className="block">
+                Forever treasured<Period />
+              </Reveal>
+            </h1>
+
+            <Reveal
+              as="p"
+              delay={6.30}
+              duration={0.9}
+              reduceMotion={reduceMotion}
+              className="mt-8 sm:mt-10 mx-auto sm:mx-0 max-w-md sm:max-w-lg text-sm sm:text-base leading-relaxed"
             >
-              Each piece is hand-painted in our Hyderabad studio.
-            </motion.p>
+              <span style={{ color: 'rgba(255,255,255,0.55)' }}>
+                Each piece is hand-painted in our Hyderabad studio.
+              </span>
+            </Reveal>
 
-            <motion.div
-              {...fadeIn(0.32)}
-              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4"
+            <Reveal
+              as="div"
+              delay={6.80}
+              duration={0.9}
+              reduceMotion={reduceMotion}
+              className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center
+                         justify-center sm:justify-start gap-3 sm:gap-4"
             >
               <Link
                 href="/shop"
@@ -118,44 +178,60 @@ export default function HomeHero() {
                 Order a custom piece
                 <ArrowRight className="w-3.5 h-3.5" aria-hidden />
               </Link>
-            </motion.div>
+            </Reveal>
           </div>
         </div>
       </div>
 
-      {/* Bottom-left social row — small caps, hairline separators. Same
-          editorial rhythm as the reference's "01/04 · FACEBOOK ·
-          INSTAGRAM · TWITTER" footer. */}
-      <motion.div
-        {...fadeIn(0.50)}
-        aria-label="Follow Srilatha Art"
-        className="absolute bottom-6 sm:bottom-8 left-5 sm:left-8 lg:left-16 z-[2]
-                   flex items-center gap-3 sm:gap-5 text-[10px] sm:text-[11px]
-                   uppercase font-medium"
-        style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.45)' }}
+      {/* Bottom social row. Centred on mobile (the centred composition
+          continues), pinned to the bottom-left from sm up. */}
+      <Reveal
+        as="div"
+        delay={7.30}
+        duration={0.9}
+        reduceMotion={reduceMotion}
+        className="absolute bottom-6 sm:bottom-8 inset-x-0 sm:inset-x-auto sm:left-8 lg:left-16 z-[2]
+                   flex items-center justify-center sm:justify-start gap-3 sm:gap-5
+                   text-[10px] sm:text-[11px] uppercase font-medium"
       >
+        <span aria-label="Follow Srilatha Art" className="sr-only">
+          Follow Srilatha Art
+        </span>
         <a
           href="https://wa.me/919133266754"
           target="_blank"
           rel="noopener noreferrer"
           className="transition-colors duration-300 hover:text-white"
+          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.45)' }}
         >
           WhatsApp
         </a>
-        <span className="w-1 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.30)' }} aria-hidden />
+        <span
+          className="w-1 h-1 rounded-full"
+          style={{ background: 'rgba(255,255,255,0.30)' }}
+          aria-hidden
+        />
         <a
           href="https://instagram.com/srilatha_arts"
           target="_blank"
           rel="noopener noreferrer"
           className="transition-colors duration-300 hover:text-white"
+          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.45)' }}
         >
           Instagram
         </a>
-        <span className="w-1 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.30)' }} aria-hidden />
-        <span className="hidden sm:inline" style={{ color: 'rgba(255,255,255,0.30)' }}>
+        <span
+          className="w-1 h-1 rounded-full"
+          style={{ background: 'rgba(255,255,255,0.30)' }}
+          aria-hidden
+        />
+        <span
+          className="hidden sm:inline"
+          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.30)' }}
+        >
           Painting since 2020
         </span>
-      </motion.div>
+      </Reveal>
     </section>
   )
 }

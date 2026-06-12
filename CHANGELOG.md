@@ -8,6 +8,48 @@ is dated.
 
 ---
 
+## 2026-06-12 · Hero — three-line sequential reveal
+
+Replaces the single uppercase sans headline with a calmer three-phrase
+serif reveal per the user's craftsmanship → care → legacy brief. Mobile
+first.
+
+### Changed
+
+- **`HomeHero` headline** is now a single h1 carrying three sequentially
+  revealed phrases:
+  - *Intentionally handcrafted.*
+  - *Securely delivered.*
+  - *Forever treasured.*
+- **Typography:** Cormorant Garamond (`font-serif`), sentence case,
+  weight 400, letter-spacing 0.005em, mobile-first sizing
+  (2.25rem → 6xl → 7xl → 8xl). Generous line-height per breakpoint
+  (1.18 / 1.12 / 1.08 / 1.05) so the three lines breathe as discrete
+  vows on mobile but tighten on desktop where the type carries the
+  composition.
+- **Period accent:** each line's terminal period is set in cyber gold
+  via a decorative `<span aria-hidden>` (so screen-readers don't say
+  "full stop" three times).
+- **Animation tempo:** calibrated for Apple / Aesop / Aman timing.
+  - t=0.30s Line 1 begins (1.2s fade-up to fully visible at 1.50s)
+  - t=2.50s Line 2 begins (~1s held pause after Line 1)
+  - t=4.70s Line 3 begins (~1s held pause after Line 2)
+  - t=6.30s Subtitle reveals
+  - t=6.80s CTA pair reveals
+  - t=7.30s Social row reveals
+  - Easing: `cubic-bezier(0.22, 1, 0.36, 1)` — luxury deceleration.
+  - `prefers-reduced-motion` skips choreography entirely.
+- **Layout:** centred on mobile (`text-center`, centred social row),
+  left-aligned from `sm` upward. Vertical centring inside a
+  `min-height: 100svh` section with `pt-28 sm:pt-32 / pb-28 sm:pb-32`
+  so the headline never collides with the fixed header on short
+  viewports.
+- **Reveal primitive:** new local `<Reveal>` component encapsulates the
+  initial/animate/transition triplet so each line, subtitle, CTA group,
+  and social row share the same easing and motion contract.
+
+---
+
 ## 2026-06-12 · Apple-style minimal hero
 
 Rewrite of the homepage hero against an Apple-style reference image the
