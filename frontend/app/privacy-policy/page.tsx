@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Privacy policy',
   description: 'How we collect and use your information, in plain English.',
+  alternates: { canonical: '/privacy-policy/' },
 }
 
 export default function PrivacyPage() {

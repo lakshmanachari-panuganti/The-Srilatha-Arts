@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'About us',
   description: 'How Srilatha started a small handmade art studio in Hyderabad.',
+  alternates: { canonical: '/our-story/' },
 }
 
 export default function OurStoryPage() {

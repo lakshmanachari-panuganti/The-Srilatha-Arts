@@ -5,6 +5,7 @@ import ProductListClient from '@/components/shop/ProductListClient'
 export const metadata: Metadata = {
   title: 'New Arrivals',
   description: 'The newest handmade pieces from our studio.',
+  alternates: { canonical: '/new-arrivals/' },
 }
 
 export default function NewArrivalsPage() {

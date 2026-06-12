@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Terms of use',
   description: 'The simple terms for using the Srilatha Art website.',
+  alternates: { canonical: '/terms/' },
 }
 
 export default function TermsPage() {

@@ -6,6 +6,7 @@ import { CATEGORIES } from '@/data/categories'
 export const metadata: Metadata = {
   title: 'How it’s made',
   description: 'A short look at the five handmade art styles we make.',
+  alternates: { canonical: '/the-craft/' },
 }
 
 export default function TheCraftPage() {
