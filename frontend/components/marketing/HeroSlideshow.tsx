@@ -182,32 +182,28 @@ export default function HomeHero() {
             Hand-painted, hand-poured, and shockproof-shipped from Hyderabad to elevate your space.
           </motion.p>
 
+          {/* CTA cluster — sits inside a soft warmglow-dark focal panel so
+              the buttons read as a single spotlight against the slideshow
+              scrim. Primary uses the gold-halo pill; secondary picks up
+              the same halo on hover instead of staying a plain underline. */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.45 }}
-            className="flex flex-col items-start gap-3 mb-10"
+            className="card-warmglow-dark inline-flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 sm:p-4 mb-10 w-full sm:w-auto"
           >
-            {/* Primary CTA - ivory fill, ink text. Reads as the brand's
-                "click here" against the warm scrim. */}
             <Link
               href="/shop"
-              className="inline-flex items-center justify-center gap-2 min-h-12 px-7
-                         text-sm font-semibold uppercase tracking-wide
-                         bg-white text-ink hover:bg-white/90
-                         transition-all duration-300 active:scale-[0.98]
-                         w-full sm:w-auto sm:min-w-[18rem]"
-              style={{ borderRadius: '24px', letterSpacing: '0.04em' }}
+              className="btn-glow-gold inline-flex items-center justify-center gap-2 min-h-12 px-7 text-sm uppercase tracking-wide w-full sm:w-auto sm:min-w-[16rem] active:scale-[0.98]"
             >
               Explore Collections
               <ArrowRight className="w-4 h-4" aria-hidden />
             </Link>
             <Link
               href="/custom-order"
-              className="text-sm text-white/80 hover:text-white inline-flex items-center gap-1
-                         underline-offset-4 hover:underline transition-colors duration-300"
+              className="btn-glow-gold-outline inline-flex items-center justify-center gap-2 min-h-12 px-6 text-sm uppercase tracking-wide w-full sm:w-auto"
             >
-              Or order a custom piece
+              Order a custom piece
               <ArrowRight className="w-3.5 h-3.5" aria-hidden />
             </Link>
           </motion.div>
