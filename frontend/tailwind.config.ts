@@ -33,34 +33,27 @@ const config: Config = {
         //   `lavender`→ actually the DARK INK BRAND COLOR (#221B12)
         //
         // This is intentional for back-compat with ~200 call sites.
-        // Do NOT rename without a site-wide find-and-replace.
-        // Use CSS variables (var(--surface), var(--text), var(--brand))
-        // for any new code to avoid ambiguity.
-        // ─────────────────────────────────────────────────────────────
-
-        // Surfaces - page, raised cards, sunken alt sections
+        // ── Lavender Theme Surfaces ──────────────────────────────────
+        // plum     → lavender page background  (#5a2d82)
+        // ivory    → white text                (#ffffff)
+        // lavender → brand lavender button     (#b06ee8)
         plum:            'rgb(var(--surface-rgb) / <alpha-value>)',
         'plum-light':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
         'plum-warm':     'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
-        'lavender-light':'rgb(var(--surface-raised-rgb) / <alpha-value>)',
+        'lavender-light':'rgba(255,255,255,0.12)',
         'lavender-faint':'rgb(var(--surface-rgb) / <alpha-value>)',
-        cream:           'rgb(var(--surface-raised-rgb) / <alpha-value>)',
+        cream:           'rgba(255,255,255,0.10)',
         'cream-deep':    'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
-        paper:           'rgb(var(--surface-raised-rgb) / <alpha-value>)',
+        paper:           'rgba(255,255,255,0.10)',
 
-        // Brand + accent. `lavender-pastel` is used on small-text links
-        // across the site (FAQ, contact, custom-order…) so it points at
-        // --accent-strong (deeper gold, AA-passing on ivory at text size)
-        // rather than the bright --accent. The `.gold-text` display class
-        // and hover states are where the bright gold lives.
+        // Brand (lavender-pink) + accent (gold)
         lavender:          'rgb(var(--brand-rgb) / <alpha-value>)',
         'lavender-soft':   'rgb(var(--brand-rgb) / <alpha-value>)',
         'lavender-pastel': 'rgb(var(--accent-strong-rgb) / <alpha-value>)',
         'primary-dark':    'rgb(var(--brand-rgb) / <alpha-value>)',
         'primary-burnt':   'rgb(var(--brand-strong-rgb) / <alpha-value>)',
 
-        // Text - ivory-* and ink-* are both kept and point at the
-        // same vars; existing call sites use both interchangeably.
+        // Text — white on lavender
         ivory:        'rgb(var(--text-rgb) / <alpha-value>)',
         'ivory-soft': 'rgb(var(--text-body-rgb) / <alpha-value>)',
         'ivory-mute': 'rgb(var(--text-muted-rgb) / <alpha-value>)',
@@ -68,15 +61,13 @@ const config: Config = {
         'ink-soft':   'rgb(var(--text-body-rgb) / <alpha-value>)',
         'ink-mute':   'rgb(var(--text-muted-rgb) / <alpha-value>)',
 
-        // Navigation dark surfaces (BottomTabBar / StickyCartBar /
-        // SearchOverlay). Translucent shells derived from brand-strong.
-        'nav-surface':       'rgb(var(--brand-strong-rgb) / 0.92)',
-        'nav-surface-heavy': 'rgb(var(--brand-strong-rgb) / 0.97)',
+        // Navigation surfaces — deep lavender translucent
+        'nav-surface':       'rgba(63,29,96,0.92)',
+        'nav-surface-heavy': 'rgba(42,17,64,0.97)',
 
         // Glass + overlays
-        'glass-surface': 'rgb(var(--surface-rgb) / 0.70)',
+        'glass-surface': 'rgba(255,255,255,0.09)',
         'glass-border':  'var(--border)',
-        'glass-hover':   'rgb(var(--surface-sunken-rgb) / <alpha-value>)',
         'overlay-soft':  'rgb(var(--brand-rgb) / 0.08)',
         'overlay-deep':  'rgb(var(--text-rgb) / 0.35)',
       },
@@ -174,15 +165,13 @@ const config: Config = {
         reader: '38rem',
       },
       boxShadow: {
-        editorial: '0 30px 60px -20px rgba(34, 27, 18, 0.18)',
-        card: '0 8px 24px -12px rgba(34, 27, 18, 0.18)',
-        soft: '0 2px 12px -2px rgba(34, 27, 18, 0.08)',
-        // The `lavender-glow*` keys are kept for back-compat but the
-        // colored glow is intentionally retired - these now resolve
-        // to a soft neutral lift, matching the rest of the theme.
-        'lavender-glow':   '0 8px 18px -10px rgba(34, 27, 18, 0.18)',
-        'lavender-glow-lg':'0 14px 28px -14px rgba(34, 27, 18, 0.22)',
-        glass: '0 8px 24px -12px rgba(34, 27, 18, 0.18)',
+        editorial: '0 30px 60px -20px rgba(0,0,0,0.45)',
+        card: '0 8px 24px -12px rgba(0,0,0,0.40)',
+        soft: '0 2px 12px -2px rgba(0,0,0,0.25)',
+        // Lavender glow shadows — used on cards, buttons, accents
+        'lavender-glow':   '0 0 14px rgba(176,110,232,0.55), 0 8px 18px -10px rgba(0,0,0,0.35)',
+        'lavender-glow-lg':'0 0 24px rgba(176,110,232,0.65), 0 14px 28px -14px rgba(0,0,0,0.45)',
+        glass: '0 8px 24px -12px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.22)',
       },
     },
   },
