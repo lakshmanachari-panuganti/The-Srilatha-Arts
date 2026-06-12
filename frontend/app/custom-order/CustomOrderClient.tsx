@@ -294,7 +294,7 @@ export default function CustomOrderClient() {
             {busy ? 'Sending…' : 'Send my request'}
             {!busy && <ArrowRight className="w-4 h-4" aria-hidden />}
           </button>
-          <p className="text-xs text-ivory-mute">We reply within 24 hours, usually faster.</p>
+          <p className="text-xs text-ivory-mute">We reply as soon as possible, usually faster.</p>
         </div>
       </form>
 
