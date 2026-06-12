@@ -8,6 +8,38 @@ is dated.
 
 ---
 
+## 2026-06-12 · Hero — Italianno script + tighter tempo
+
+User asked for a cursive script face like the "Angela White" reference
+they shared, and to drop the inter-line gap further to 0.3s.
+
+### Changed
+
+- **Headline font swapped to Italianno** (Google Fonts, single-weight
+  400). Flowing italic script, closest match to the user's reference.
+  Loaded via `next/font/google` in `layout.tsx`, exposed as
+  `--font-italianno`. Fallback stack `Allura, "Great Vibes", cursive`
+  preserves the script aesthetic if Italianno fails to load. Cormorant
+  Garamond stays the sitewide `font-serif` token for every other
+  h1/h2/h3; Fraunces stays available but no longer applied to the hero.
+- **Hero h1 sizing bumped** to accommodate cursive readability:
+  3.25rem → 5.5rem → 7rem → 9rem across mobile / sm / lg / xl.
+  Letter-spacing dropped to 0 (cursive letters are connected — wide
+  tracking breaks the script flow). Line-height tightened to 1.05 →
+  1.02 → 0.98 → 0.96 since Italianno carries tall ascenders and the
+  three lines look airy without it.
+- **Inter-line pauses halved again** from 0.5s → 0.3s. New tempo:
+  - t=0.30s Line 1 begins
+  - t=1.80s Line 2 begins (was 2.00s)
+  - t=3.30s Line 3 begins (was 3.70s)
+  - t=4.80s Subtitle (was 5.20s)
+  - t=5.20s CTAs (was 5.60s)
+  - t=5.60s Social row (was 6.00s)
+
+Total reveal duration ~5.6s.
+
+---
+
 ## 2026-06-12 · Hero — Fraunces serif + faster tempo
 
 User asked for a trendier-but-decent display face on the hero, and for

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, DM_Sans, Fraunces } from 'next/font/google'
+import { Cormorant_Garamond, DM_Sans, Fraunces, Italianno } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
@@ -37,14 +37,24 @@ const dmSans = DM_Sans({
 })
 
 // Fraunces — modern variable serif used by Aman / Are.na / Helvetiq.
-// Used exclusively on the homepage hero headline. Expressive optical-
-// size and softness via axes, with weights tight to display ranges so
-// the next/font payload stays small.
+// Scoped to a single non-hero surface (kept loaded as a fallback so
+// any inline opt-in still resolves without a network re-fetch). Tight
+// weight set keeps the payload small.
 const fraunces = Fraunces({
   subsets: ['latin'],
   weight: ['300', '400', '500'],
   style: ['normal'],
   variable: '--font-fraunces',
+  display: 'swap',
+})
+
+// Italianno — flowing cursive script used on the homepage hero h1
+// (per user reference "Angela White"). Italianno is single-weight
+// (400) — typical of script faces.
+const italianno = Italianno({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-italianno',
   display: 'swap',
 })
 
@@ -113,7 +123,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en-IN"
-      className={`${cormorant.variable} ${dmSans.variable} ${fraunces.variable}`}
+      className={`${cormorant.variable} ${dmSans.variable} ${fraunces.variable} ${italianno.variable}`}
     >
       <head>
         {/* Fontshare hosts the Pramukh wordmark face. Open the TLS+TCP +
