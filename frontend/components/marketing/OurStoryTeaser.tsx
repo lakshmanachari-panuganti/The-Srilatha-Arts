@@ -62,7 +62,7 @@ export default function OurStoryTeaser() {
               className="absolute inset-0"
               style={{
                 background:
-                  'linear-gradient(to top, rgba(20,16,10,0.60) 0%, rgba(20,16,10,0.20) 40%, transparent 70%)',
+                  'linear-gradient(to top, rgba(7,8,10,0.70) 0%, rgba(7,8,10,0.25) 40%, transparent 70%)',
               }}
             />
             {/* Studio location badge */}

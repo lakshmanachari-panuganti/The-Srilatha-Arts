@@ -1,55 +1,80 @@
 'use client'
 /**
- * HomeHero - full-bleed editorial hero.
+ * HomeHero — pure-black editorial hero, mobile-first.
  *
- * Replaces the prior stacked HeroSlideshow + Hero pair. The slideshow
- * now lives behind a static headline + CTAs (brand promise, not per-slide
- * sells), with a warm ink scrim for legibility. Dots stay for navigation;
- * the per-slide eyebrow/tagline overlay was removed because two competing
- * messages at once (brand promise + category promise) read as noise.
+ * Three-line sequential tagline reveal on a #000 canvas. Each phrase
+ * fades up slowly with a one-second pause between lines, so the user
+ * reads them as discrete vows rather than a single block of marketing
+ * copy. After all three are visible they stay; the supporting
+ * subtitle, CTAs, and social row reveal in a quieter trailing wave.
  *
- * Behaviour preserved from both predecessors:
- *   - 5 curated category slides, crossfade, slow Ken-Burns on active.
- *   - 5s autoplay with WCAG-required pause/play control and an
- *     8s user-pause window after any interaction.
- *   - Touch swipe (50px threshold).
- *   - prefers-reduced-motion: freeze on first slide, no zoom, no fade.
- *   - Staggered framer-motion reveal on the centred copy + CTAs.
- *   - Primary "Explore Collections" → /shop, quieter "Or order a
- *     custom piece" → /custom-order, plus trust strip
- *     (Painting since 2020 · Free shipping ₹999 · 7-day returns).
+ *   Intentionally handcrafted.        → craftsmanship
+ *   Securely delivered.               → care
+ *   Forever treasured.                → legacy
+ *
+ * Period in each line is set in cyber gold — the single accent on the
+ * canvas. Headline is Cormorant Garamond (font-serif), sentence case,
+ * subtly tracked, generous leading. Layout is centred on mobile and
+ * left-aligned from `sm` upward.
+ *
+ * Animation tempo (calibrated against Apple / Aesop / Aman timing):
+ *   t=0.30s  Line 1 starts (1.2s duration → fully visible at 1.50s)
+ *   t=1.80s  Line 2 starts after a 0.3s held pause
+ *   t=3.30s  Line 3 starts after a 0.3s held pause
+ *   t=4.80s  Subtitle reveals
+ *   t=5.20s  CTAs reveal
+ *   t=5.60s  Social row reveals
+ *
+ * prefers-reduced-motion freezes everything at its final state — the
+ * reader still gets the full hero, just without the choreography.
+ *
+ * a11y: the three phrases sit inside a single h1; the gold period is a
+ * decorative <span aria-hidden> so screen-readers don't say "full stop"
+ * three times.
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import PictureImage from '@/components/PictureImage'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Pause, Play } from 'lucide-react'
-import { cn } from '@/lib/cn'
+import { ArrowRight } from 'lucide-react'
 
-interface Slide {
-  src: string
-  alt: string
-  eyebrow: string
+const EASE_LUXURY = [0.22, 1, 0.36, 1] as const
+
+interface RevealProps {
+  delay: number
+  duration?: number
+  reduceMotion: boolean
+  className?: string
+  children: React.ReactNode
+  as?: 'span' | 'p' | 'div'
 }
 
-const SLIDES: readonly Slide[] = [
-  { src: '/Slideshow/01-resin.jpg',               alt: 'Resin art piece with poured colour and gloss finish',     eyebrow: 'Resin Art' },
-  { src: '/Slideshow/02-dot-mandala.jpg',         alt: 'Hand-painted dot mandala in vibrant colour',              eyebrow: 'Dot Mandala' },
-  { src: '/Slideshow/03-lippan.jpg',              alt: 'Lippan art with clay and mirror work',                    eyebrow: 'Lippan Art' },
-  { src: '/Slideshow/04-kolam.jpg',               alt: 'Kolam line art on dark background',                       eyebrow: 'Kolam Art' },
-  { src: '/Slideshow/05-wedding-decoratives.jpg', alt: 'Handcrafted wedding decoratives - keepsakes and gifts',   eyebrow: 'Wedding Collection' },
-] as const
-
-const AUTOPLAY_MS = 5000
-const USER_PAUSE_AFTER_INTERACTION_MS = 8000
-const TRANSITION_MS = 700
+function Reveal({
+  delay,
+  duration = 1.2,
+  reduceMotion,
+  className,
+  children,
+  as = 'span',
+}: RevealProps) {
+  const Tag = motion[as]
+  if (reduceMotion) {
+    return <Tag className={className}>{children}</Tag>
+  }
+  return (
+    <Tag
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration, delay, ease: EASE_LUXURY }}
+      className={className}
+    >
+      {children}
+    </Tag>
+  )
+}
 
 export default function HomeHero() {
-  const [active, setActive] = useState(0)
-  const [paused, setPaused] = useState(false)
   const [reduceMotion, setReduceMotion] = useState(false)
-  const userPauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -59,231 +84,155 @@ export default function HomeHero() {
     return () => mql.removeEventListener('change', onChange)
   }, [])
 
-  useEffect(() => {
-    if (paused || reduceMotion) return
-    const id = setInterval(() => {
-      setActive((i) => (i + 1) % SLIDES.length)
-    }, AUTOPLAY_MS)
-    return () => clearInterval(id)
-  }, [paused, reduceMotion])
-
-  const userInteract = useCallback(() => {
-    if (userPauseTimer.current) clearTimeout(userPauseTimer.current)
-    setPaused(true)
-    userPauseTimer.current = setTimeout(() => setPaused(false), USER_PAUSE_AFTER_INTERACTION_MS)
-  }, [])
-
-  const goTo = (i: number) => {
-    setActive(i)
-    userInteract()
-  }
-
-  const touchStartX = useRef<number | null>(null)
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0]?.clientX ?? null
-  }
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return
-    const endX = e.changedTouches[0]?.clientX ?? touchStartX.current
-    const delta = endX - touchStartX.current
-    touchStartX.current = null
-    if (Math.abs(delta) < 50) return
-    if (delta < 0) goTo((active + 1) % SLIDES.length)
-    else goTo((active - 1 + SLIDES.length) % SLIDES.length)
-  }
+  // Decorative gold period — paired with each tagline line.
+  const Period = () => (
+    <span aria-hidden style={{ color: 'var(--accent-gold)' }}>.</span>
+  )
 
   return (
     <section
-      aria-label="Featured collections"
+      aria-label="Welcome to Srilatha Art"
       className="relative w-full overflow-hidden"
-      style={{ height: '100svh', minHeight: '600px', maxHeight: '900px' }}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
+      style={{
+        minHeight: '100svh',
+        background: '#000000',
+      }}
     >
-      {/* Slide layers. Each fills the section; crossfade by toggling opacity. */}
-      {SLIDES.map((slide, i) => {
-        const isActive = i === active
-        return (
-          <div
-            key={slide.src}
-            className={cn(
-              'absolute inset-0 transition-opacity ease-out',
-              isActive ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none',
-            )}
-            style={{ transitionDuration: `${TRANSITION_MS}ms` }}
-            aria-hidden={!isActive}
-          >
-            <PictureImage
-              src={slide.src}
-              alt={slide.alt}
-              fill
-              sizes="100vw"
-              priority={i === 0}
-              loading={i === 0 ? 'eager' : 'lazy'}
-              className={cn(
-                'object-cover',
-                isActive && !reduceMotion && 'hero-ken-burns',
-              )}
-            />
-          </div>
-        )
-      })}
-
-      {/* Warm ink scrim - diagonal so the photograph still breathes on the
-          right while text on the left/centre stays legible, plus a soft
-          top-down wash so the fixed Header's ivory-tinted glyphs have a
-          dark backing while the user is at scroll position 0. Ink-toned
-          rather than generic black so it sits inside the ivory/ink palette. */}
+      {/* Soft top vignette — gives the fixed Header glyphs a near-black
+          backing without painting a hard band across the canvas. */}
       <div
         aria-hidden
-        className="absolute inset-0 z-[2]"
+        className="absolute inset-x-0 top-0 h-40 z-[1]"
         style={{
           background:
-            'linear-gradient(180deg, rgba(20,16,10,0.55) 0%, rgba(20,16,10,0.20) 18%, transparent 32%), linear-gradient(105deg, rgba(20,16,10,0.78) 0%, rgba(20,16,10,0.55) 35%, rgba(20,16,10,0.25) 65%, transparent 100%), linear-gradient(to top, rgba(20,16,10,0.55) 0%, transparent 50%)',
+            'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.40) 60%, transparent 100%)',
         }}
       />
 
-      {/* Centred copy + CTAs. Max-w keeps the headline from sprawling on
-          wide desktops; padding bottom leaves room for dots. */}
-      <div className="relative z-[3] h-full flex items-center">
-        <div className="w-full max-w-5xl mx-auto px-5 sm:px-8 lg:px-12 pb-20 sm:pb-24">
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="eyebrow text-on-dark-accent mb-4"
-          >
-            {SLIDES[active]!.eyebrow}
-          </motion.p>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="display text-4xl sm:text-6xl lg:text-7xl xl:text-8xl uppercase text-white mb-6 max-w-3xl"
-            style={{ textShadow: '0 2px 14px rgba(0,0,0,0.35)' }}
-          >
-            Premium Handcrafted
-            <br />
-            Art for Your{' '}
-            <span className="relative italic font-serif font-medium gold-text">
-              Home
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="text-base sm:text-lg lg:text-xl text-white/85 leading-relaxed max-w-2xl mb-8"
-            style={{ textShadow: '0 1px 8px rgba(0,0,0,0.35)' }}
-          >
-            Specializing in handcrafted Resin Art, traditional Lippan Art, and elegant Home &amp; Wedding Decor.
-            Hand-painted, hand-poured, and shockproof-shipped from Hyderabad to elevate your space.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.45 }}
-            className="flex flex-col items-start gap-3 mb-10"
-          >
-            {/* Primary CTA - ivory fill, ink text. Reads as the brand's
-                "click here" against the warm scrim. */}
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center gap-2 min-h-12 px-7
-                         text-sm font-semibold uppercase tracking-wide
-                         bg-white text-ink hover:bg-white/90
-                         transition-all duration-300 active:scale-[0.98]
-                         w-full sm:w-auto sm:min-w-[18rem]"
-              style={{ borderRadius: '24px', letterSpacing: '0.04em' }}
+      {/* Editorial content. Centred on mobile (the three vows read like
+          a poem and centring respects that); left-aligned from sm up so
+          desktop keeps editorial weight on the left third. */}
+      <div className="relative z-[2] flex items-center" style={{ minHeight: '100svh' }}>
+        <div
+          className="w-full max-w-7xl mx-auto
+                     px-5 sm:px-8 lg:px-16
+                     pt-28 sm:pt-32 pb-28 sm:pb-32"
+        >
+          <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left">
+            <h1
+              className="text-white
+                         text-[3.25rem] leading-[1.05]
+                         sm:text-[5.5rem] sm:leading-[1.02]
+                         lg:text-[7rem] lg:leading-[0.98]
+                         xl:text-[9rem] xl:leading-[0.96]"
+              style={{
+                fontFamily: 'var(--font-italianno), "Allura", "Great Vibes", cursive',
+                fontWeight: 400,
+                letterSpacing: '0',
+                textShadow: 'none',
+              }}
             >
-              Explore Collections
-              <ArrowRight className="w-4 h-4" aria-hidden />
-            </Link>
-            <Link
-              href="/custom-order"
-              className="text-sm text-white/80 hover:text-white inline-flex items-center gap-1
-                         underline-offset-4 hover:underline transition-colors duration-300"
-            >
-              Or order a custom piece
-              <ArrowRight className="w-3.5 h-3.5" aria-hidden />
-            </Link>
-          </motion.div>
+              <Reveal as="span" delay={0.30} reduceMotion={reduceMotion} className="block">
+                Intentionally handcrafted<Period />
+              </Reveal>
 
-          {/* Trust strip - concrete signals, dot separators on ≥sm. */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.7 }}
-            className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center
-                       gap-y-2 sm:gap-x-5 text-xs sm:text-[11px] uppercase text-white/70"
-            style={{ letterSpacing: '0.08em' }}
-          >
-            <span>Painting since 2020</span>
-            <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/40" aria-hidden />
-            <span>Free shipping above ₹999</span>
-            <span className="hidden sm:inline w-1 h-1 rounded-full bg-white/40" aria-hidden />
-            <span>7-day easy returns</span>
-          </motion.div>
+              <Reveal as="span" delay={1.80} reduceMotion={reduceMotion} className="block">
+                Securely delivered<Period />
+              </Reveal>
+
+              <Reveal as="span" delay={3.30} reduceMotion={reduceMotion} className="block">
+                Forever treasured<Period />
+              </Reveal>
+            </h1>
+
+            <Reveal
+              as="p"
+              delay={4.80}
+              duration={0.9}
+              reduceMotion={reduceMotion}
+              className="mt-8 sm:mt-10 mx-auto sm:mx-0 max-w-md sm:max-w-lg text-sm sm:text-base leading-relaxed"
+            >
+              <span style={{ color: 'rgba(255,255,255,0.55)' }}>
+                Each piece is hand-painted in our Hyderabad studio.
+              </span>
+            </Reveal>
+
+            <Reveal
+              as="div"
+              delay={5.20}
+              duration={0.9}
+              reduceMotion={reduceMotion}
+              className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center
+                         justify-center sm:justify-start gap-3 sm:gap-4"
+            >
+              <Link
+                href="/shop"
+                className="btn-glow-gold min-w-0 sm:min-w-[15rem] justify-center"
+              >
+                Explore Collections
+                <ArrowRight className="w-4 h-4" aria-hidden />
+              </Link>
+              <Link
+                href="/custom-order"
+                className="btn-glow-gold-outline justify-center"
+              >
+                Order a custom piece
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden />
+              </Link>
+            </Reveal>
+          </div>
         </div>
       </div>
 
-      {/* Dots indicator. Sits over the image at the bottom centre - large
-          enough on mobile to be a real tap target (44×44 hit area via
-          generous padding on the wrapping button). */}
-      <div className="absolute inset-x-0 bottom-6 sm:bottom-8 z-[4] flex items-center justify-center gap-2">
-        {SLIDES.map((slide, i) => {
-          const isActive = i === active
-          return (
-            <button
-              key={slide.src}
-              type="button"
-              onClick={() => goTo(i)}
-              aria-label={`Show ${slide.eyebrow}`}
-              aria-current={isActive ? 'true' : undefined}
-              className="p-3 -m-3"
-            >
-              <span
-                aria-hidden
-                className={cn(
-                  'block h-2 rounded-full transition-all duration-500',
-                  isActive ? 'w-8 bg-white' : 'w-2 bg-white/45 hover:bg-white/70',
-                )}
-              />
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Pause / play. WCAG 2.2.1 - autoplay must be pause-able. */}
-      <button
-        type="button"
-        onClick={() => {
-          if (userPauseTimer.current) {
-            clearTimeout(userPauseTimer.current)
-            userPauseTimer.current = null
-          }
-          setPaused((p) => !p)
-        }}
-        aria-label={paused ? 'Resume slideshow' : 'Pause slideshow'}
-        className="absolute right-4 sm:right-6 bottom-4 sm:bottom-6 z-[5]
-                   min-w-11 min-h-11 w-11 h-11 rounded-full flex items-center justify-center
-                   text-white bg-black/35 hover:bg-black/55
-                   border border-white/20 transition-colors duration-300"
+      {/* Bottom social row. Centred on mobile (the centred composition
+          continues), pinned to the bottom-left from sm up. */}
+      <Reveal
+        as="div"
+        delay={5.60}
+        duration={0.9}
+        reduceMotion={reduceMotion}
+        className="absolute bottom-6 sm:bottom-8 inset-x-0 sm:inset-x-auto sm:left-8 lg:left-16 z-[2]
+                   flex items-center justify-center sm:justify-start gap-3 sm:gap-5
+                   text-[10px] sm:text-[11px] uppercase font-medium"
       >
-        {paused || reduceMotion ? (
-          <Play className="w-4 h-4" aria-hidden />
-        ) : (
-          <Pause className="w-4 h-4" aria-hidden />
-        )}
-      </button>
-
-      {/* Live region announces slide changes to screen readers. */}
-      <p className="sr-only" aria-live="polite" aria-atomic="true">
-        Slide {active + 1} of {SLIDES.length}: {SLIDES[active]!.eyebrow}
-      </p>
+        <span aria-label="Follow Srilatha Art" className="sr-only">
+          Follow Srilatha Art
+        </span>
+        <a
+          href="https://wa.me/919133266754"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors duration-300 hover:text-white"
+          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.45)' }}
+        >
+          WhatsApp
+        </a>
+        <span
+          className="w-1 h-1 rounded-full"
+          style={{ background: 'rgba(255,255,255,0.30)' }}
+          aria-hidden
+        />
+        <a
+          href="https://instagram.com/srilatha_arts"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors duration-300 hover:text-white"
+          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.45)' }}
+        >
+          Instagram
+        </a>
+        <span
+          className="w-1 h-1 rounded-full"
+          style={{ background: 'rgba(255,255,255,0.30)' }}
+          aria-hidden
+        />
+        <span
+          className="hidden sm:inline"
+          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.30)' }}
+        >
+          Painting since 2020
+        </span>
+      </Reveal>
     </section>
   )
 }

@@ -8,6 +8,323 @@ is dated.
 
 ---
 
+## 2026-06-12 · Hero — Italianno script + tighter tempo
+
+User asked for a cursive script face like the "Angela White" reference
+they shared, and to drop the inter-line gap further to 0.3s.
+
+### Changed
+
+- **Headline font swapped to Italianno** (Google Fonts, single-weight
+  400). Flowing italic script, closest match to the user's reference.
+  Loaded via `next/font/google` in `layout.tsx`, exposed as
+  `--font-italianno`. Fallback stack `Allura, "Great Vibes", cursive`
+  preserves the script aesthetic if Italianno fails to load. Cormorant
+  Garamond stays the sitewide `font-serif` token for every other
+  h1/h2/h3; Fraunces stays available but no longer applied to the hero.
+- **Hero h1 sizing bumped** to accommodate cursive readability:
+  3.25rem → 5.5rem → 7rem → 9rem across mobile / sm / lg / xl.
+  Letter-spacing dropped to 0 (cursive letters are connected — wide
+  tracking breaks the script flow). Line-height tightened to 1.05 →
+  1.02 → 0.98 → 0.96 since Italianno carries tall ascenders and the
+  three lines look airy without it.
+- **Inter-line pauses halved again** from 0.5s → 0.3s. New tempo:
+  - t=0.30s Line 1 begins
+  - t=1.80s Line 2 begins (was 2.00s)
+  - t=3.30s Line 3 begins (was 3.70s)
+  - t=4.80s Subtitle (was 5.20s)
+  - t=5.20s CTAs (was 5.60s)
+  - t=5.60s Social row (was 6.00s)
+
+Total reveal duration ~5.6s.
+
+---
+
+## 2026-06-12 · Hero — Fraunces serif + faster tempo
+
+User asked for a trendier-but-decent display face on the hero, and for
+the inter-line pauses halved.
+
+### Changed
+
+- **Headline font swapped to Fraunces** (variable serif used by Aman /
+  Are.na / Helvetiq). Loaded via `next/font/google` in `layout.tsx`
+  at weights 300/400/500, exposed as `--font-fraunces`. Cormorant
+  Garamond stays the sitewide `font-serif` token for every other h1,
+  h2, h3 — Fraunces is scoped to the hero h1 only.
+- **Hero h1 styling tuned for Fraunces:** weight 400, optical-sizing
+  auto, letter-spacing `-0.015em` (Fraunces sets wider by default so a
+  slight negative tracking keeps the editorial weight).
+- **Inter-line pauses halved** from 1.0s → 0.5s. New tempo:
+  - t=0.30s Line 1 begins
+  - t=2.00s Line 2 begins (was 2.50s)
+  - t=3.70s Line 3 begins (was 4.70s)
+  - t=5.20s Subtitle (was 6.30s)
+  - t=5.60s CTAs (was 6.80s)
+  - t=6.00s Social row (was 7.30s)
+
+Total reveal duration drops from ~7.3s → ~6.0s. Still calm, just
+fewer "waiting" beats between phrases.
+
+---
+
+## 2026-06-12 · Hero — three-line sequential reveal
+
+Replaces the single uppercase sans headline with a calmer three-phrase
+serif reveal per the user's craftsmanship → care → legacy brief. Mobile
+first.
+
+### Changed
+
+- **`HomeHero` headline** is now a single h1 carrying three sequentially
+  revealed phrases:
+  - *Intentionally handcrafted.*
+  - *Securely delivered.*
+  - *Forever treasured.*
+- **Typography:** Cormorant Garamond (`font-serif`), sentence case,
+  weight 400, letter-spacing 0.005em, mobile-first sizing
+  (2.25rem → 6xl → 7xl → 8xl). Generous line-height per breakpoint
+  (1.18 / 1.12 / 1.08 / 1.05) so the three lines breathe as discrete
+  vows on mobile but tighten on desktop where the type carries the
+  composition.
+- **Period accent:** each line's terminal period is set in cyber gold
+  via a decorative `<span aria-hidden>` (so screen-readers don't say
+  "full stop" three times).
+- **Animation tempo:** calibrated for Apple / Aesop / Aman timing.
+  - t=0.30s Line 1 begins (1.2s fade-up to fully visible at 1.50s)
+  - t=2.50s Line 2 begins (~1s held pause after Line 1)
+  - t=4.70s Line 3 begins (~1s held pause after Line 2)
+  - t=6.30s Subtitle reveals
+  - t=6.80s CTA pair reveals
+  - t=7.30s Social row reveals
+  - Easing: `cubic-bezier(0.22, 1, 0.36, 1)` — luxury deceleration.
+  - `prefers-reduced-motion` skips choreography entirely.
+- **Layout:** centred on mobile (`text-center`, centred social row),
+  left-aligned from `sm` upward. Vertical centring inside a
+  `min-height: 100svh` section with `pt-28 sm:pt-32 / pb-28 sm:pb-32`
+  so the headline never collides with the fixed header on short
+  viewports.
+- **Reveal primitive:** new local `<Reveal>` component encapsulates the
+  initial/animate/transition triplet so each line, subtitle, CTA group,
+  and social row share the same easing and motion contract.
+
+---
+
+## 2026-06-12 · Apple-style minimal hero
+
+Rewrite of the homepage hero against an Apple-style reference image the
+user supplied ("Brilliant. In every way." composition). Replaces the
+5-slide auto-rotating slideshow with a single static editorial hero on
+a pure-black canvas.
+
+### Changed
+
+- **`HeroSlideshow.tsx` (still exported as `HomeHero`)** — gutted:
+  - Pure `#000000` canvas (no slideshow, no Ken Burns, no scrim layers).
+  - Single h1 with a sharp sans display headline: *"Handcrafted. One
+    hand, one piece at a time."* The terminal period is gold (the
+    only accent of colour on the canvas).
+  - Two CTAs, side-by-side: primary `btn-glow-gold` "Explore
+    Collections" + secondary `btn-glow-gold-outline` "Order a custom
+    piece".
+  - Soft top vignette for the fixed Header glyphs; nothing else.
+  - Minimal bottom-left social row (WhatsApp · Instagram · "Painting
+    since 2020") — same editorial rhythm as the reference image.
+  - `prefers-reduced-motion` freezes the staggered fade-in.
+
+### Removed (from the hero)
+
+- Per-slide eyebrow (Resin Art / Dot Mandala / Lippan Art / Kolam Art /
+  Wedding Collection).
+- Three-item trust strip ("Painting since 2020 · Free shipping ₹999 ·
+  7-day returns") — the shipping/returns commitments move down the
+  page where the visitor is closer to a buying decision.
+- Slideshow autoplay timer, pause/play button, dots indicator, touch-
+  swipe handler, slide layers, scrim gradient stack.
+- `PictureImage` import — no photography in the hero.
+
+The featured artwork visibility moves to `FeaturedCreations` and
+`BestSellers` further down the page, where it can carry product
+context (price, CTA) instead of fighting the headline for attention.
+
+---
+
+## 2026-06-12 · Obsidian theme — luxury polish pass
+
+Follow-up after the user surfaced six concrete bugs from the deployed
+obsidian theme via screenshots. Fixes the "looks like an admin panel"
+problem the token remap caused on a handful of large-surface components.
+
+### Fixed
+
+- **Search overlay full-yellow screen.** `SearchOverlay` was filling the
+  viewport with `var(--brand)` (now solid gold) — overwhelming. Rebuilt
+  as a centred luxury modal: obsidian backdrop with `blur(12px)
+  saturate(140%)`, centred card `#0d0f12` with hairline gold rim,
+  click-outside to dismiss, scoped scroll within the result list.
+- **Mobile drawer full-gold panel.** Same root cause — the 88vw drawer
+  was painted in `var(--brand)`. Replaced with `#0d0f12` solid backing
+  and a hairline gold rim, dim layer behind blurred. All `text-plum*`
+  (which alias to obsidian dark = invisible on dark) flipped to
+  `text-ivory*`.
+- **White cards on dark page (Why Choose Us, Handmade Process).** The
+  `WhyChooseUs` component explicitly applied `bg-white` over `.card`,
+  bleaching the cards. Dropped `bg-white`; cards now use the obsidian
+  glass primitive as intended. Icon badges flipped from
+  `bg-lavender-light` to `rgba(250,204,21,0.08)` + hairline gold rim
+  + gold icon glyph. Connecting timeline rule retuned to cyber gold.
+- **Shop category-filter solid-gold bar.** `CategoryChips` rendered as
+  a giant gold strip. Now an obsidian translucent rail with
+  `blur(12px) saturate(140%)`; chips inherit the segmented-control look
+  (transparent inactive, gold-filled active per the `.chip` spec).
+- **Sticky cart bar gold blob.** `StickyCartBar` was painted gold with
+  `text-plum` labels (invisible). Now an obsidian translucent rail
+  with `blur(16px) saturate(160%)`; Add to cart became an outlined
+  secondary CTA (gold border + soft gold tint on hover); Buy now stays
+  the primary gold pill with `--glow-sm`→`--glow-lg` on hover. Qty
+  stepper labels readable again.
+- **Custom-order form looked like default inputs.** `bg-white/70`
+  fields read as flat grey on the obsidian page. Added new
+  `.form-input` primitive (`--bg-input` `#0d0f12`, hairline
+  `rgba(255,255,255,0.08)` border, gold focus ring + 3px soft glow,
+  custom dark-themed select arrow). `.form-label` companion eyebrow
+  added. All three inputs in `CustomOrderClient` (text, select,
+  textarea) migrated. Error pill flipped from `bg-red-50` to
+  obsidian danger-tinted panel. "Prefer to talk" fallback consumes
+  the `.card` primitive.
+- **`ProductCard` add-to-cart button** flipped from lavender gradient
+  + invisible `text-plum` to canonical gold fill + `--ink-dark` text
+  + `--glow-sm` baseline.
+- **`BottomTabBar` inactive tabs** flipped from `text-plum-warm`
+  (invisible on dark) to `text-ivory-soft`.
+- **`Toaster`** info variant flipped from `bg-white/95` to obsidian
+  glass-blurred panel; success and error variants tinted in their
+  status hues with matching borders. Now uses inline backdrop-filter
+  with mobile fallback color.
+- **`OurStoryTeaser` image scrim** retuned from warm-ink
+  (`rgba(20,16,10,…)`) to obsidian (`rgba(7,8,10,…)`) for tone
+  consistency.
+
+### Added
+
+- **`.form-input` / `.form-label`** primitives in `globals.css`. Dark
+  fill, hairline border, gold focus state. Reusable across every form
+  surface — the next custom-order / checkout / login refactor should
+  consume these instead of inline classes.
+
+---
+
+## 2026-06-12 · Premium Obsidian + Cyber Gold theme
+
+Full repaint of the global token system from "Glossy Lavender" → **Premium
+Obsidian + Cyber Gold**, per the 60-30-10 spec the user supplied. Replaces
+the warm ivory + espresso + gold direction the Studio Vault batch was built
+against. Decided after explicit confirmation that the dark theme is wanted
+on this repo (not the sibling `srilatha.art`).
+
+### Changed
+
+- **Token system (`globals.css` `:root`):** Rewritten end-to-end against the
+  Obsidian + Cyber Gold spec.
+  - 60% foundation: `--bg-main: #07080a`, `--bg-surface: #101216`,
+    `--bg-card: #15181e`, `--bg-input: #0d0f12`.
+  - 30% glass: `--glass-bg: rgba(16,18,22,0.65)`, `--glass-border:
+    rgba(255,255,255,0.05)`, `--glass-border-glow: rgba(250,204,21,0.15)`.
+  - 10% accent: `--accent-gold: #facc15`, `--accent-gold-hover: #eab308`,
+    `--ink-dark: #07080a`.
+  - Typography: `--text-primary: #ffffff`, `--text-secondary: #94a3b8`
+    (slate-400), `--text-muted: #64748b` (slate-500).
+  - Glow tiers: `--glow-sm/md/lg` per spec; status: `--ok-glow`,
+    `--danger-glow`.
+- **Legacy custom-properties remapped, not renamed.** `--surface`,
+  `--text`, `--brand`, `--accent`, etc. all alias the new obsidian
+  tokens. ~200 component call sites continue to work without touching
+  each one.
+- **Tailwind aliases (`tailwind.config.ts`):** `plum`, `lavender`, `ivory`,
+  `ink`, `paper`, `cream`, `nav-surface*`, `lavender-glow*` all reroute
+  to the obsidian palette. Build-time alpha modifiers preserved via
+  `rgb(var(--…-rgb) / <alpha-value>)`.
+- **Mobile glass guard.** Every `backdrop-filter: blur()` is now gated
+  behind `@media (min-width: 1024px)`. Mobile (<1024px) renders the
+  solid `--bg-glass-fallback` (`#12141c`) for paint cost. Affects
+  `.card`, `.glass`, `.glass-strong`, `.chip`, `.card-warmglow*`.
+- **Standard glass radius:** all glass primitives now use `border-radius:
+  16px` (was 20–24px on some).
+- **CTA primitives reconverged on the spec:**
+  - `.btn-dark` / `.btn-resin` / `.btn-glow-gold` — gold fill,
+    `--ink-dark` text, baseline `--glow-sm`, hover `translateY(-3px)` +
+    bg → `--accent-gold-hover` + shadow → `--glow-lg`.
+  - `.btn-outline` / `.btn-glow-gold-outline` — transparent fill, 1px
+    `rgba(255,255,255,0.15)` border, hover border → `--accent-gold` +
+    `--glow-sm`.
+- **Typography readability shield:** all `h1–h6` now carry a soft
+  `text-shadow: 0 2px 10px rgba(0,0,0,0.4)` per spec, so headings stay
+  crisp against busy glass backdrops.
+- **Body copy default:** all `<p>` inherits `line-height: 1.65` +
+  `color: var(--text-secondary)` (slate-400) per spec.
+- **Functional colours:** `--ok` → `#22c55e`, `--danger` → `#ef4444`,
+  with new `--ok-glow` and `--danger-glow` semantic shadows.
+- **PWA + browser chrome:** `theme_color` and `background_color` in
+  `manifest.ts` and `viewport.themeColor` in `layout.tsx` updated from
+  `#FBF8F2` → `#07080a` so the browser chrome and PWA splash match.
+- **Razorpay checkout theme:** `theme.color` updated from `#221B12` →
+  `#facc15` so the Razorpay modal matches the cyber-gold accent.
+- **Hero scrim and CTAs (`HeroSlideshow`):** scrim flipped from
+  warm-ink (`rgba(20,16,10,…)`) to obsidian (`rgba(7,8,10,…)`). CTA
+  cluster now uses the canonical `btn-glow-gold` + `btn-glow-gold-outline`
+  primitives directly, dropping the warm focal panel.
+- **KolamCursorField default colours:** dot field default flipped to
+  gold-tinted (`rgba(250,204,21,0.20)`); particle gold updated to match
+  the cyber-gold accent. Applies to `HeroExperience` overrides too.
+- **CustomOrderCTA step cards:** ditched the lavender inline styles;
+  now consume the canonical `.card` primitive. Connecting rule + icon
+  badges flipped to gold.
+- **`.gold-text`, `.lavender-text`, `.kolam-dots`, `.rule`** all
+  redirected to cyber-gold token sources.
+
+### Pending — visual polish on Studio Vault rooms
+
+The v2 marketing components still carry inline `rgba(34,27,18,…)`
+(espresso ink) borders and `rgba(20,16,10,…)` warm scrims tuned for the
+ivory theme. On obsidian those values either disappear (borders) or
+read warmer than the rest of the site (scrims). Compiles fine, no
+broken behaviour — pure cosmetic. Files: `OurStoryTeaser.tsx`,
+`SectionDivider.tsx`, `Footer.tsx`, `AnalyticsProvider.tsx`,
+`v2/CollectionExhibition.tsx`, `v2/ProcessFilm.tsx`,
+`v2/FeaturedWorks.tsx`, `v2/PourTransition.tsx`,
+`StandaloneFilm.tsx`. Worth a focused second pass when the user has
+eyes on the deployed result.
+
+---
+
+## 2026-06-12 · Notification dashboard — honest failure metric
+
+Follow-up to the 2026-06-11 batch. Resolves TODO-N1 (blocking the merge to `develop`).
+
+### Changed
+
+- **`/admin/notifications` failure metric split into two.** The old single "Failure rate"
+  counted every queue retry as a separate failure — a notification that failed twice then
+  succeeded surfaced as 67% even though the customer received it. Now:
+  - **Notification failure rate** — final, unrecoverable failures (`notificationAlerts`
+    rows with `isFinal: true`) divided by unique `(orderId, channel, templateKey)` groups
+    in the window. This is the customer-impact metric and the only one with the >5% red
+    threshold. Subtitle shows raw "N of M notifications".
+  - **Attempt failure rate** — failed attempts divided by total attempts (the old calc,
+    renamed). Surfaces send-infrastructure health; retries inflate it on purpose; no
+    threshold colouring.
+
+### Added
+
+- **`countFinalAlertsInRange(from?, to?)`** in `backend/src/services/notificationAlerts.ts`.
+  In-memory filter against the alerts table (small — dedup'd by orderId/channel/operation).
+- **New stats fields** on `GET /api/admin/notifications/stats`: `attemptFailureRate`,
+  `uniqueNotifications`, `finalFailures`, `notificationFailureRate`. The old `failureRate`
+  field is replaced (renamed to `attemptFailureRate`) — the only consumer was the admin
+  dashboard, which is updated in the same change.
+
+---
+
 ## 2026-06-11 · Studio Vault, dual-channel notifications, inventory reservation, admin observability
 
 Commits: `7940854`, `f76bef2` · Branch: `ai-driven1`

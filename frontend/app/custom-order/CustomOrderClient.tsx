@@ -241,7 +241,7 @@ export default function CustomOrderClient() {
             <select
               value={form.artForm}
               onChange={on('artForm')}
-              className="w-full h-11 px-3 rounded-xl border border-glass-border bg-white/70 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+              className="form-input"
             >
               {ART_FORMS.map((a) => (
                 <option key={a.value} value={a.value}>{a.label}</option>
@@ -266,7 +266,7 @@ export default function CustomOrderClient() {
             onChange={on('description')}
             rows={5}
             placeholder="Occasion, theme, who it's for, what room it'll live in, any reference, deadline…"
-            className="w-full px-3 py-2 rounded-xl border border-glass-border bg-white/70 text-sm text-ivory placeholder:text-ivory-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+            className="form-input resize-none"
           />
         </Field>
 
@@ -282,7 +282,16 @@ export default function CustomOrderClient() {
         </Field>
 
         {err && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{err}</p>
+          <p
+            className="text-sm rounded-lg px-3 py-2"
+            style={{
+              color: '#fca5a5',
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+            }}
+          >
+            {err}
+          </p>
         )}
 
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -299,7 +308,7 @@ export default function CustomOrderClient() {
       </form>
 
       {/* ── Talk-to-us fallback ─────────────────────────────── */}
-      <div className="rounded-2xl border border-glass-border bg-plum-light/30 p-6 lg:p-8 text-center mt-10">
+      <div className="card p-6 lg:p-8 text-center mt-10">
         <h2 className="font-serif text-xl lg:text-2xl text-ivory mb-3">Prefer to talk?</h2>
         <p className="text-ivory-soft mb-5 text-sm">Reach out on whichever is easiest for you.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -339,7 +348,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full h-11 px-3 rounded-xl border border-glass-border bg-white/70 text-sm text-ivory placeholder:text-ivory-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 ${props.className || ''}`}
+      className={`form-input ${props.className || ''}`}
     />
   )
 }
