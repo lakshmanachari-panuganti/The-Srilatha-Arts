@@ -8,6 +8,45 @@ is dated.
 
 ---
 
+## 2026-06-12 · Apple-style minimal hero
+
+Rewrite of the homepage hero against an Apple-style reference image the
+user supplied ("Brilliant. In every way." composition). Replaces the
+5-slide auto-rotating slideshow with a single static editorial hero on
+a pure-black canvas.
+
+### Changed
+
+- **`HeroSlideshow.tsx` (still exported as `HomeHero`)** — gutted:
+  - Pure `#000000` canvas (no slideshow, no Ken Burns, no scrim layers).
+  - Single h1 with a sharp sans display headline: *"Handcrafted. One
+    hand, one piece at a time."* The terminal period is gold (the
+    only accent of colour on the canvas).
+  - Two CTAs, side-by-side: primary `btn-glow-gold` "Explore
+    Collections" + secondary `btn-glow-gold-outline` "Order a custom
+    piece".
+  - Soft top vignette for the fixed Header glyphs; nothing else.
+  - Minimal bottom-left social row (WhatsApp · Instagram · "Painting
+    since 2020") — same editorial rhythm as the reference image.
+  - `prefers-reduced-motion` freezes the staggered fade-in.
+
+### Removed (from the hero)
+
+- Per-slide eyebrow (Resin Art / Dot Mandala / Lippan Art / Kolam Art /
+  Wedding Collection).
+- Three-item trust strip ("Painting since 2020 · Free shipping ₹999 ·
+  7-day returns") — the shipping/returns commitments move down the
+  page where the visitor is closer to a buying decision.
+- Slideshow autoplay timer, pause/play button, dots indicator, touch-
+  swipe handler, slide layers, scrim gradient stack.
+- `PictureImage` import — no photography in the hero.
+
+The featured artwork visibility moves to `FeaturedCreations` and
+`BestSellers` further down the page, where it can carry product
+context (price, CTA) instead of fighting the headline for attention.
+
+---
+
 ## 2026-06-12 · Obsidian theme — luxury polish pass
 
 Follow-up after the user surfaced six concrete bugs from the deployed
