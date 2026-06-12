@@ -795,6 +795,63 @@
     text-shadow: 0 0 20px rgba(250, 204, 21, 0.50);
   }
 
+  /* ───────────── Premium form inputs ───────────────────
+     Dark fill, hairline rgba border, gold focus ring +
+     soft glow. Replaces bg-white/grey input chrome.
+     Use on text inputs, selects, textareas, file pickers. */
+  .form-input {
+    width: 100%;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    transition:
+      border-color 250ms ease,
+      box-shadow 250ms ease,
+      background-color 250ms ease;
+  }
+  .form-input::placeholder {
+    color: var(--text-muted);
+  }
+  .form-input:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  .form-input:focus,
+  .form-input:focus-visible {
+    outline: none;
+    border-color: var(--accent-gold);
+    background: var(--bg-input);
+    box-shadow:
+      0 0 0 3px rgba(250, 204, 21, 0.12),
+      0 0 12px rgba(250, 204, 21, 0.20);
+  }
+  .form-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* Native select arrow contrast on dark backdrop */
+  select.form-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+    padding-right: 2.25rem;
+  }
+  /* Eyebrow label above a form input */
+  .form-label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
   /* ───────────── Focal CTA primitives ──────────────────
      Aliases that keep older marketing code paths working.
      Both now inherit the canonical primary/secondary spec. */

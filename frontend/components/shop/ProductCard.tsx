@@ -157,15 +157,16 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
             className="absolute bottom-3 right-3 w-11 h-11
-                       flex items-center justify-center text-plum
+                       flex items-center justify-center
                        opacity-100 lg:opacity-90 lg:group-hover:opacity-100
                        lg:scale-95 lg:group-hover:scale-100
                        active:scale-90 transition-all duration-500
                        disabled:opacity-40 disabled:pointer-events-none"
             style={{
               borderRadius: '24px',
-              background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))',
-              boxShadow: '0 4px 16px color-mix(in srgb, var(--brand) 30%, transparent)',
+              background: 'var(--accent-gold)',
+              color: 'var(--ink-dark)',
+              boxShadow: 'var(--glow-sm)',
             }}
           >
             <Plus className="w-5 h-5" aria-hidden />

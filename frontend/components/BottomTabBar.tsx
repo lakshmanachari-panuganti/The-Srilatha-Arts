@@ -70,7 +70,7 @@ export default function BottomTabBar() {
                 className={cn(
                   'relative flex flex-col items-center justify-center gap-1',
                   'font-medium transition-all duration-300',
-                  active ? '' : 'text-plum-warm',
+                  active ? '' : 'text-ivory-soft',
                 )}
                 style={{
                   width: '100%',

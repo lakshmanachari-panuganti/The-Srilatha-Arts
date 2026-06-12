@@ -8,6 +8,71 @@ is dated.
 
 ---
 
+## 2026-06-12 · Obsidian theme — luxury polish pass
+
+Follow-up after the user surfaced six concrete bugs from the deployed
+obsidian theme via screenshots. Fixes the "looks like an admin panel"
+problem the token remap caused on a handful of large-surface components.
+
+### Fixed
+
+- **Search overlay full-yellow screen.** `SearchOverlay` was filling the
+  viewport with `var(--brand)` (now solid gold) — overwhelming. Rebuilt
+  as a centred luxury modal: obsidian backdrop with `blur(12px)
+  saturate(140%)`, centred card `#0d0f12` with hairline gold rim,
+  click-outside to dismiss, scoped scroll within the result list.
+- **Mobile drawer full-gold panel.** Same root cause — the 88vw drawer
+  was painted in `var(--brand)`. Replaced with `#0d0f12` solid backing
+  and a hairline gold rim, dim layer behind blurred. All `text-plum*`
+  (which alias to obsidian dark = invisible on dark) flipped to
+  `text-ivory*`.
+- **White cards on dark page (Why Choose Us, Handmade Process).** The
+  `WhyChooseUs` component explicitly applied `bg-white` over `.card`,
+  bleaching the cards. Dropped `bg-white`; cards now use the obsidian
+  glass primitive as intended. Icon badges flipped from
+  `bg-lavender-light` to `rgba(250,204,21,0.08)` + hairline gold rim
+  + gold icon glyph. Connecting timeline rule retuned to cyber gold.
+- **Shop category-filter solid-gold bar.** `CategoryChips` rendered as
+  a giant gold strip. Now an obsidian translucent rail with
+  `blur(12px) saturate(140%)`; chips inherit the segmented-control look
+  (transparent inactive, gold-filled active per the `.chip` spec).
+- **Sticky cart bar gold blob.** `StickyCartBar` was painted gold with
+  `text-plum` labels (invisible). Now an obsidian translucent rail
+  with `blur(16px) saturate(160%)`; Add to cart became an outlined
+  secondary CTA (gold border + soft gold tint on hover); Buy now stays
+  the primary gold pill with `--glow-sm`→`--glow-lg` on hover. Qty
+  stepper labels readable again.
+- **Custom-order form looked like default inputs.** `bg-white/70`
+  fields read as flat grey on the obsidian page. Added new
+  `.form-input` primitive (`--bg-input` `#0d0f12`, hairline
+  `rgba(255,255,255,0.08)` border, gold focus ring + 3px soft glow,
+  custom dark-themed select arrow). `.form-label` companion eyebrow
+  added. All three inputs in `CustomOrderClient` (text, select,
+  textarea) migrated. Error pill flipped from `bg-red-50` to
+  obsidian danger-tinted panel. "Prefer to talk" fallback consumes
+  the `.card` primitive.
+- **`ProductCard` add-to-cart button** flipped from lavender gradient
+  + invisible `text-plum` to canonical gold fill + `--ink-dark` text
+  + `--glow-sm` baseline.
+- **`BottomTabBar` inactive tabs** flipped from `text-plum-warm`
+  (invisible on dark) to `text-ivory-soft`.
+- **`Toaster`** info variant flipped from `bg-white/95` to obsidian
+  glass-blurred panel; success and error variants tinted in their
+  status hues with matching borders. Now uses inline backdrop-filter
+  with mobile fallback color.
+- **`OurStoryTeaser` image scrim** retuned from warm-ink
+  (`rgba(20,16,10,…)`) to obsidian (`rgba(7,8,10,…)`) for tone
+  consistency.
+
+### Added
+
+- **`.form-input` / `.form-label`** primitives in `globals.css`. Dark
+  fill, hairline border, gold focus state. Reusable across every form
+  surface — the next custom-order / checkout / login refactor should
+  consume these instead of inline classes.
+
+---
+
 ## 2026-06-12 · Premium Obsidian + Cyber Gold theme
 
 Full repaint of the global token system from "Glossy Lavender" → **Premium

@@ -42,15 +42,17 @@ export default function StickyCartBar({ product }: { product: Product }) {
     <div
       className="fixed bottom-16 lg:bottom-0 inset-x-0 z-40 safe-pb"
       style={{
-        background: 'color-mix(in srgb, var(--brand) 96%, transparent)',
-        borderTop: '1px solid color-mix(in srgb, #ffffff 8%, transparent)',
+        background: 'rgba(7, 8, 10, 0.85)',
+        backdropFilter: 'blur(16px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(160%)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
       }}
     >
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2 sm:gap-3">
 
         {/* Total */}
-        <div className="shrink-0 text-plum">
-          <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.22em] opacity-60 leading-none mb-1">Total</p>
+        <div className="shrink-0" style={{ color: 'var(--text-primary)' }}>
+          <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.22em] leading-none mb-1" style={{ color: 'var(--text-muted)' }}>Total</p>
           <p className="font-serif text-sm sm:text-xl font-semibold leading-none tabular-nums">
             {formatINR(product.price * qty)}
           </p>
@@ -59,36 +61,47 @@ export default function StickyCartBar({ product }: { product: Product }) {
         {/* Qty stepper */}
         <div
           className="flex items-center h-10 sm:h-11 shrink-0"
-          style={{ borderRadius: '24px', border: '1px solid rgba(255,255,255,0.18)' }}
+          style={{ borderRadius: '24px', border: '1px solid rgba(255,255,255,0.10)' }}
         >
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             aria-label="Decrease quantity"
-            className="w-8 sm:w-11 h-full flex items-center justify-center text-plum/60 hover:text-plum disabled:opacity-40 transition-colors"
+            className="w-8 sm:w-11 h-full flex items-center justify-center disabled:opacity-40 transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
             disabled={qty <= 1}
           >
             <Minus className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden />
           </button>
-          <span className="min-w-5 sm:min-w-8 text-center text-plum font-medium text-sm" aria-live="polite">
+          <span className="min-w-5 sm:min-w-8 text-center font-medium text-sm" aria-live="polite" style={{ color: 'var(--text-primary)' }}>
             {qty}
           </span>
           <button
             onClick={() => setQty((q) => Math.min(product.stockQty || 10, q + 1))}
             aria-label="Increase quantity"
-            className="w-8 sm:w-11 h-full flex items-center justify-center text-plum/60 hover:text-plum transition-colors"
+            className="w-8 sm:w-11 h-full flex items-center justify-center transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <Plus className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden />
           </button>
         </div>
 
-        {/* Add to cart */}
+        {/* Add to cart — outlined secondary */}
         <button
           onClick={onAdd}
           disabled={!product.inStock}
-          className="flex-1 h-10 sm:h-11 rounded-full inline-flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-plum disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
+          className="flex-1 h-10 sm:h-11 rounded-full inline-flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
           style={{
-            background: 'rgba(255,255,255,0.09)',
-            border: '1.5px solid rgba(255,255,255,0.20)',
+            background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.15)',
+            color: 'var(--text-primary)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--accent-gold)'
+            e.currentTarget.style.background = 'rgba(250,204,21,0.06)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
+            e.currentTarget.style.background = 'transparent'
           }}
         >
           <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" aria-hidden />
@@ -96,7 +109,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
           <span className="sm:hidden">Add</span>
         </button>
 
-        {/* Buy now */}
+        {/* Buy now — primary gold CTA */}
         <button
           onClick={onBuyNow}
           disabled={!product.inStock}
@@ -104,6 +117,15 @@ export default function StickyCartBar({ product }: { product: Product }) {
           style={{
             background: 'var(--accent-gold)',
             color: 'var(--ink-dark)',
+            boxShadow: 'var(--glow-sm)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--accent-gold-hover)'
+            e.currentTarget.style.boxShadow = 'var(--glow-lg)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--accent-gold)'
+            e.currentTarget.style.boxShadow = 'var(--glow-sm)'
           }}
         >
           {product.inStock ? 'Buy now' : 'Sold out'}
@@ -118,8 +140,8 @@ export default function StickyCartBar({ product }: { product: Product }) {
           className="hidden lg:flex items-center gap-2.5 shrink-0 ml-1 group"
         >
           <span className="text-right leading-tight">
-            <span className="block text-[10px] text-plum/55 group-hover:text-plum/80 transition-colors">Need help?</span>
-            <span className="block text-[11px] text-plum/80 font-medium group-hover:text-plum transition-colors">Chat on WhatsApp</span>
+            <span className="block text-[10px] transition-colors" style={{ color: 'var(--text-muted)' }}>Need help?</span>
+            <span className="block text-[11px] font-medium transition-colors" style={{ color: 'var(--text-secondary)' }}>Chat on WhatsApp</span>
           </span>
           <span
             className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"

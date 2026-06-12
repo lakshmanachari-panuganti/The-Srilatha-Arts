@@ -22,15 +22,22 @@ export default function Toaster() {
         const Icon = t.kind === 'success' ? CheckCircle2 : t.kind === 'error' ? AlertCircle : Info
         const palette =
           t.kind === 'success'
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            ? 'border-emerald-500/40 text-emerald-100'
             : t.kind === 'error'
-              ? 'bg-rose-50 border-rose-200 text-rose-900'
-              : 'bg-white/95 border-glass-border text-ivory'
+              ? 'border-rose-500/40 text-rose-100'
+              : 'border-glass-border text-ivory'
+        const bg =
+          t.kind === 'success'
+            ? 'rgba(34, 197, 94, 0.12)'
+            : t.kind === 'error'
+              ? 'rgba(239, 68, 68, 0.14)'
+              : 'rgba(16, 18, 22, 0.85)'
         return (
           <div
             key={t.id}
             role={t.kind === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto rounded-xl px-4 py-3 border shadow-lg backdrop-blur-sm text-sm flex items-start gap-2.5 w-80 ${palette}`}
+            className={`pointer-events-auto rounded-xl px-4 py-3 border shadow-lg text-sm flex items-start gap-2.5 w-80 ${palette}`}
+            style={{ background: bg, backdropFilter: 'blur(12px) saturate(140%)', WebkitBackdropFilter: 'blur(12px) saturate(140%)' }}
           >
             <Icon className="w-4 h-4 mt-0.5 shrink-0" aria-hidden />
             <p className="flex-1 leading-snug">{t.message}</p>
