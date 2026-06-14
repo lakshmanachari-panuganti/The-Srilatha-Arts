@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   X, MessageCircle, Instagram, Sparkles, ShoppingBag, Palette,
-  BookOpen, Mail, ChevronDown, User, LogOut,
+  BookOpen, Mail, ChevronDown, User, LogOut, Home, Heart,
 } from 'lucide-react'
 import { useUI } from '@/stores/ui'
 import { useUserAuth } from '@/stores/userAuth'
@@ -26,6 +26,7 @@ type AccordionItem = {
 type NavItem = LeafItem | AccordionItem
 
 const NAV_ITEMS: NavItem[] = [
+  { kind: 'leaf', href: '/',             label: 'Home',           icon: Home },
   { kind: 'leaf', href: '/custom-order', label: 'Custom Artwork', icon: Sparkles },
   {
     kind: 'accordion',
@@ -58,7 +59,12 @@ export default function MobileDrawer() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
             onClick={close}
-            className="fixed inset-0 z-[70] bg-plum/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[70]"
+            style={{
+              background: 'rgba(7, 8, 10, 0.78)',
+              backdropFilter: 'blur(12px) saturate(140%)',
+              WebkitBackdropFilter: 'blur(12px) saturate(140%)',
+            }}
             aria-hidden
           />
           <motion.aside
@@ -71,9 +77,9 @@ export default function MobileDrawer() {
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="fixed top-0 bottom-0 left-0 z-[71] w-[88vw] max-w-sm flex flex-col safe-pt"
             style={{
-              background: 'var(--brand)',
-              borderRight: '1px solid color-mix(in srgb, #ffffff 12%, transparent)',
-              boxShadow: '24px 0 60px -20px rgba(0,0,0,0.55)',
+              background: '#0d0f12',
+              borderRight: '1px solid rgba(250, 204, 21, 0.18)',
+              boxShadow: '24px 0 60px -20px rgba(0,0,0,0.75)',
             }}
           >
             {/* ── Header: brand mark + sign-in pill + close ─────────────────── */}
@@ -92,7 +98,7 @@ export default function MobileDrawer() {
                   className="w-12 h-12 object-contain shrink-0
                              drop-shadow-[0_0_14px_rgba(200,150,47,0.35)]"
                 />
-                <span className="font-brand text-[2.25rem] leading-none text-plum tracking-[0.04em] truncate">
+                <span className="font-brand text-[2.25rem] leading-none text-ivory tracking-[0.04em] truncate">
                   Srilatha Art
                 </span>
               </Link>
@@ -101,7 +107,7 @@ export default function MobileDrawer() {
                   <Link
                     href="/login"
                     onClick={close}
-                    className="text-[11px] uppercase tracking-[0.15em] text-plum hover:text-lavender-pastel
+                    className="text-[11px] uppercase tracking-[0.15em] text-ivory hover:text-lavender-pastel
                                transition-colors duration-300 border border-white/20 rounded-full
                                px-3 h-8 inline-flex items-center"
                   >
@@ -112,7 +118,7 @@ export default function MobileDrawer() {
                   onClick={close}
                   aria-label="Close menu"
                   className="min-h-11 min-w-11 flex items-center justify-center
-                             text-plum hover:text-lavender-pastel transition-colors duration-300"
+                             text-ivory hover:text-lavender-pastel transition-colors duration-300"
                 >
                   <X className="w-5 h-5" aria-hidden />
                 </button>
@@ -120,7 +126,7 @@ export default function MobileDrawer() {
             </header>
 
             {/* Tagline - sets the premium tone without consuming a row of nav */}
-            <p className="flex-none px-5 pb-4 font-serif italic text-base text-plum-warm/95
+            <p className="flex-none px-5 pb-4 font-serif italic text-base text-ivory-soft/95
                           border-b border-white/10">
               Handcrafted Art For Modern Homes
             </p>
@@ -135,7 +141,7 @@ export default function MobileDrawer() {
                         href={item.href}
                         onClick={close}
                         className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
-                                   font-serif text-xl text-plum
+                                   font-serif text-xl text-ivory
                                    hover:bg-white/[0.06] hover:text-lavender-pastel
                                    transition-colors duration-300"
                       >
@@ -168,7 +174,7 @@ export default function MobileDrawer() {
                     href={authUser ? '/account' : '/login?next=/account'}
                     onClick={close}
                     className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
-                               text-plum hover:bg-white/[0.06] hover:text-lavender-pastel
+                               text-ivory hover:bg-white/[0.06] hover:text-lavender-pastel
                                transition-colors duration-300"
                   >
                     <span className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10
@@ -179,10 +185,25 @@ export default function MobileDrawer() {
                       {authUser ? `Hello, ${authUser.name.split(' ')[0]}` : 'Sign in'}
                     </span>
                     {authUser && (
-                      <span className="text-[11px] uppercase tracking-[0.15em] text-plum-warm/80">
+                      <span className="text-[11px] uppercase tracking-[0.15em] text-ivory-soft/80">
                         Dashboard
                       </span>
                     )}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/account/wishlist"
+                    onClick={close}
+                    className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
+                               text-ivory hover:bg-white/[0.06] hover:text-lavender-pastel
+                               transition-colors duration-300"
+                  >
+                    <span className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10
+                                     flex items-center justify-center shrink-0">
+                      <Heart className="w-4 h-4 text-lavender-pastel" aria-hidden />
+                    </span>
+                    Wishlist
                   </Link>
                 </li>
                 {authUser && (
@@ -190,7 +211,7 @@ export default function MobileDrawer() {
                     <button
                       onClick={() => { logout(); close() }}
                       className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-xl text-left
-                                 text-plum-warm hover:bg-white/[0.06] hover:text-lavender-pastel
+                                 text-ivory-soft hover:bg-white/[0.06] hover:text-lavender-pastel
                                  transition-colors duration-300"
                     >
                       <span className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10
@@ -233,7 +254,7 @@ export default function MobileDrawer() {
                 href={SOCIAL.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-2 text-sm text-plum-warm
+                className="mt-3 inline-flex items-center gap-2 text-sm text-ivory-soft
                            hover:text-lavender-pastel transition-colors duration-300"
               >
                 <Instagram className="w-4 h-4" aria-hidden />
@@ -272,7 +293,7 @@ function AccordionRow({
         aria-controls={panelId}
         onClick={onToggle}
         className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-xl text-left
-                   font-serif text-xl text-plum
+                   font-serif text-xl text-ivory
                    hover:bg-white/[0.06] hover:text-lavender-pastel
                    transition-colors duration-300"
       >
@@ -282,7 +303,7 @@ function AccordionRow({
         </span>
         <span className="flex-1">{item.label}</span>
         <ChevronDown
-          className={`w-4 h-4 text-plum-warm transition-transform duration-300 ${
+          className={`w-4 h-4 text-ivory-soft transition-transform duration-300 ${
             isOpen ? 'rotate-180' : 'rotate-0'
           }`}
           aria-hidden
@@ -304,7 +325,7 @@ function AccordionRow({
                   <Link
                     href={c.href}
                     onClick={onLeafClick}
-                    className="block min-h-11 leading-[44px] text-[15px] text-plum-warm
+                    className="block min-h-11 leading-[44px] text-[15px] text-ivory-soft
                                hover:text-lavender-pastel transition-colors duration-300"
                   >
                     {c.label}

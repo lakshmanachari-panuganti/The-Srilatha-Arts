@@ -33,78 +33,139 @@
 
 @layer base {
   :root {
-    /* ── SEMANTIC SOURCE OF TRUTH (honest names) ──────────────────
-       Two forms per themed colour:
-         --<name>     : hex/rgba - for direct CSS use (`var(--brand)`)
-         --<name>-rgb : space-separated R G B triplet - consumed by
-                        Tailwind tokens via `rgb(var(--…) / <alpha>)`
-                        so opacity modifiers (`bg-plum/40`,
-                        `border-ink/10`) keep working.
+    /* ══════════════════════════════════════════════════════════
+       PREMIUM OBSIDIAN & CYBER GOLD THEME
+       60-30-10 rule:
+         60%  Immersive obsidian foundation
+         30%  Liquid glassmorphism surfaces (mobile-guarded)
+         10%  Cyber gold luminous accents
 
-       Phase 1: values mirror the prior lavender palette so the site
-       looks identical after token centralization. Phase 2 swaps this
-       block - and only this block - to retheme everything.
-       ─────────────────────────────────────────────────────────── */
+       Legacy custom-property names (--surface, --text, --brand,
+       --accent, …) are intentionally preserved and remapped so
+       the ~200 component call sites resolve to obsidian/gold
+       values without per-component edits. Tailwind aliases in
+       tailwind.config.ts read these same names.
+       ══════════════════════════════════════════════════════════ */
 
-    /* Surfaces - warm ivory ground, sand alt sections */
-    --surface:        #FBF8F2;
-    --surface-rgb:    251 248 242;
-    --surface-raised: #FFFFFF;
-    --surface-raised-rgb: 255 255 255;
-    --surface-sunken: #F2EBDD;
-    --surface-sunken-rgb: 242 235 221;
+    /* ── 60%  Obsidian foundation ────────────────────────────── */
+    --bg-main:      #07080a;            /* deep base canvas */
+    --bg-main-rgb:  7 8 10;
+    --bg-surface:   #101216;            /* structural sections, headers */
+    --bg-surface-rgb: 16 18 22;
+    --bg-card:      #15181e;            /* default panel container */
+    --bg-card-rgb:  21 24 30;
+    --bg-input:     #0d0f12;            /* form wells and fields */
+    --bg-input-rgb: 13 15 18;
 
-    /* Text - espresso ink */
-    --text:        #221B12;
-    --text-rgb:    34 27 18;
-    --text-body:   #43392E;
-    --text-body-rgb: 67 57 46;
-    --text-muted:  #8A7E6E;
-    --text-muted-rgb: 138 126 110;
+    /* Mobile solid fallback for glass surfaces (no backdrop-blur) */
+    --bg-glass-fallback:     #12141c;
+    --bg-glass-fallback-rgb: 18 20 28;
 
-    /* Brand = ink (primary buttons/links); accent = gold/ochre */
-    --brand:         #221B12;
-    --brand-rgb:     34 27 18;
-    --brand-strong:  #000000;
-    --brand-strong-rgb: 0 0 0;
-    --accent:        #C8962F;
-    --accent-rgb:    200 150 47;
-    --accent-strong: #8A6A1A;
-    --accent-strong-rgb: 138 106 26;
+    /* ── 30%  Glass surface system ───────────────────────────── */
+    --glass-bg:          rgba(16, 18, 22, 0.65);
+    --glass-border:      rgba(255, 255, 255, 0.05);
+    --glass-border-glow: rgba(250, 204, 21, 0.15);
 
-    --border:        rgba(34,27,18,0.12);
-    --ring:          #C8962F;
+    /* ── 10%  Cyber gold accent ──────────────────────────────── */
+    --accent-gold:        #facc15;       /* high-energy interactive yellow */
+    --accent-gold-rgb:    250 204 21;
+    --accent-gold-hover:  #eab308;       /* deepened active state */
+    --accent-gold-hover-rgb: 234 179 8;
+    --ink-dark:           #07080a;       /* AA contrast text on gold fills */
+    --ink-dark-rgb:       7 8 10;
 
-    /* functional colours - NOT themed, keep across reskins */
-    --ok:   #1A7F4B;
-    --danger: #B42318;
-    --wa-1: #25D366;
-    --wa-2: #128C7E;
+    /* ── Typography layer ────────────────────────────────────── */
+    --text-primary:     #ffffff;         /* 100% crisp white headings */
+    --text-primary-rgb: 255 255 255;
+    --text-secondary:   #94a3b8;         /* slate-400 body */
+    --text-secondary-rgb: 148 163 184;
+    --text-muted:       #64748b;         /* slate-500 captions, metadata */
+    --text-muted-rgb:   100 116 139;
 
-    /* Terracotta - Indian craft micro-accent. Use for decorative
-       dot elements, section dividers and subtle warm details.
-       NOT for text at small sizes (contrast ratio <3:1 on ivory). */
-    --terracotta:     #C3501A;
-    --terracotta-rgb: 195 80 26;
+    /* ── Semantic glow tiers (gold-default) ──────────────────── */
+    --glow-sm: 0 0 12px rgba(250, 204, 21, 0.40);
+    --glow-md: 0 0 24px rgba(250, 204, 21, 0.30);
+    --glow-lg: 0 0 40px rgba(250, 204, 21, 0.20),
+               0 0 12px rgba(250, 204, 21, 0.40);
 
+    /* ── Functional status glows ─────────────────────────────── */
+    --ok:         #22c55e;
+    --ok-rgb:     34 197 94;
+    --ok-glow:    0 0 20px rgba(34, 197, 94, 0.40);
+    --danger:     #ef4444;
+    --danger-rgb: 239 68 68;
+    --danger-glow:0 0 20px rgba(239, 68, 68, 0.40);
+    --wa-1:       #25D366;
+    --wa-2:       #128C7E;
+
+    /* ══════════════════════════════════════════════════════════
+       LEGACY ALIAS LAYER — keeps existing class names resolving.
+       Do not consume these in new code; reach for the obsidian
+       tokens above directly.
+       ══════════════════════════════════════════════════════════ */
+
+    /* Surface aliases */
+    --surface:            var(--bg-main);
+    --surface-rgb:        var(--bg-main-rgb);
+    --surface-raised:     var(--bg-card);
+    --surface-raised-rgb: var(--bg-card-rgb);
+    --surface-sunken:     var(--bg-surface);
+    --surface-sunken-rgb: var(--bg-surface-rgb);
+
+    /* Text aliases — body now slate-400, muted now slate-500 */
+    --text:           var(--text-primary);
+    --text-rgb:       var(--text-primary-rgb);
+    --text-body:      var(--text-secondary);
+    --text-body-rgb:  var(--text-secondary-rgb);
+    --text-muted-old: var(--text-muted);   /* avoid self-reference */
+    --text-dark:      var(--ink-dark);
+    --text-dark-rgb:  var(--ink-dark-rgb);
+
+    /* Brand + accent aliases — both now route to cyber gold */
+    --brand:              var(--accent-gold);
+    --brand-rgb:          var(--accent-gold-rgb);
+    --brand-strong:       var(--accent-gold-hover);
+    --brand-strong-rgb:   var(--accent-gold-hover-rgb);
+    --accent:             var(--accent-gold);
+    --accent-rgb:         var(--accent-gold-rgb);
+    --accent-strong:      var(--accent-gold-hover);
+    --accent-strong-rgb:  var(--accent-gold-hover-rgb);
+
+    /* Borders / rings */
+    --border:  var(--glass-border);
+    --ring:    var(--accent-gold);
+
+    /* Legacy orchid/coral micro-accents — rerouted to gold so any
+       stray reference reads as on-brand instead of off-palette. */
+    --orchid:         var(--accent-gold);
+    --orchid-rgb:     var(--accent-gold-rgb);
+    --coral:          var(--danger);
+    --coral-rgb:      var(--danger-rgb);
+    --terracotta:     var(--accent-gold-hover);
+    --terracotta-rgb: var(--accent-gold-hover-rgb);
+
+    /* Legacy *-glow tokens — all gold-routed */
+    --lav-glow:    rgba(250, 204, 21, 0.55);
+    --orchid-glow: rgba(250, 204, 21, 0.45);
+    --coral-glow:  rgba(239, 68, 68, 0.55);
+    --gold-glow:   rgba(250, 204, 21, 0.55);
+
+    /* Gloss surface system — pulled into the obsidian palette */
+    --gloss-bg:        rgba(255,255,255,0.05);
+    --gloss-bg-hi:     rgba(255,255,255,0.09);
+    --gloss-border:    var(--glass-border);
+    --gloss-border-hi: var(--glass-border-glow);
+    --gloss-sheen:     rgba(255,255,255,0.12);
+
+    /* ── Layout heights ──────────────────────────────────────── */
     --banner-h: 0px;
     --header-h: 64px;
-    --tab-h: 68px;
 
-    /* ── v2 "Studio Vault" exhibition system ──────────────────────
-       Additive tokens for the immersive homepage redesign. Existing
-       components are unaffected; v2 components read from these. */
-
-    /* Gold ramp — display accents, kolam cursor field, editorial rules */
-    --gold-leaf:    #E8C25A;
-    --gold-deep:    #6A4D12;
-    --mandala-stroke: rgba(200,150,47,0.55);
-
-    /* Exhibition curtain — full-bleed scrim during room transitions */
-    --ink-veil:     rgba(20,16,10,0.92);
-
-    /* Motion primitives — every v2 component reads timing from here so
-       the whole site shares a single motion vocabulary. */
+    /* ── v2 motion primitives ────────────────────────────────── */
+    --gold-leaf:      #fbbf24;
+    --gold-deep:      #d97706;
+    --mandala-stroke: rgba(251,191,36,0.55);
+    --ink-veil:       rgba(20,10,40,0.92);
     --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-pour:      cubic-bezier(0.83, 0, 0.17, 1);
     --ease-gallery:   cubic-bezier(0.65, 0, 0.35, 1);
@@ -117,129 +178,97 @@
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     scrollbar-gutter: stable;
-    /* OpenType: kerning + common ligatures + contextual alternates,
-       on by default everywhere. */
     font-feature-settings: 'kern', 'liga', 'clig', 'calt';
     text-rendering: optimizeLegibility;
-    /* Horizontal overflow clamp on the root element. Putting overflow-x:hidden
-       only on body is unreliable on iOS Safari + some Android browsers - they
-       still let the html scroll. Both is the bulletproof combo. */
     overflow-x: hidden;
     max-width: 100vw;
   }
 
   body {
-    @apply bg-plum text-ivory font-sans antialiased;
+    font-family: var(--font-dm-sans, 'Inter', system-ui, sans-serif);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
     min-height: 100svh;
-    /* Belt + braces with the html rule above. Some browsers honour overflow on
-       body, some on html, some on both; clamp everywhere to be safe. */
     overflow-x: hidden;
     max-width: 100vw;
     position: relative;
-    /* Crisper sub-pixel rendering on macOS / iOS Safari and Chrome on
-       any platform - small body type is the main beneficiary. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Kerning + common ligatures + contextual alternates. DM Sans
-       supports all three out of the box and renders better with them
-       on for body copy. */
     font-feature-settings: 'kern', 'liga', 'calt';
-    /* Inherit-friendly default; consumers can override on individual
-       lines where they need lining figures (rare). */
     font-variant-numeric: lining-nums;
-    /* ONE ultra-subtle warm wash at the top - keeps the page from
-       reading as flat paper without competing with photography. */
-    background-color: var(--surface);
-    background-image:
-      radial-gradient(ellipse 90% 60% at 50% -10%, rgba(200,150,47,0.06) 0%, transparent 60%);
   }
 
-  /* Paper-grain overlay - desktop only. On mobile the full-screen
-     mix-blend-mode layer costs paint with no perceptible benefit. */
+  /* Subtle vignette + gold pinprick texture on desktop */
   @media (min-width: 769px) {
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image: theme('backgroundImage.paper-grain');
-      opacity: 0.02;
+      background:
+        radial-gradient(120% 80% at 50% -20%, rgba(250,204,21,0.06), transparent 55%),
+        radial-gradient(80% 60% at 50% 120%, rgba(250,204,21,0.04), transparent 60%);
       pointer-events: none;
       z-index: 1;
-      mix-blend-mode: overlay;
     }
   }
 
-  /* Default heading style - picks up Cormorant Garamond via
-     font-serif, balanced wrapping, comfortable tracking. Components
-     that need a different size or weight set their own Tailwind
-     classes, which still win because atomics live in the utilities
-     layer below this base layer. */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-medium text-ivory;
+    font-family: var(--font-cormorant, 'Cormorant Garamond', Georgia, serif);
+    font-weight: 500;
+    color: var(--text-primary);
     letter-spacing: -0.01em;
-    /* `balance` keeps headlines from leaving an orphan word; supported
-       in Chrome/Edge/Safari 17.4+ - degrades silently elsewhere. */
     text-wrap: balance;
+    /* Readability shield — keeps headings crisp over glassy panels */
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   }
 
-  /* Paragraphs get the modern `pretty` wrapping (Chrome 117+, Safari
-     17.5+), which avoids short last lines. Falls back to `normal`. */
   p {
     text-wrap: pretty;
+    line-height: 1.65;
+    color: var(--text-secondary);
   }
 
-  /* <strong> defaults to 700 across browsers - 600 (semibold) reads
-     more comfortably against DM Sans 400 body without going heavy.
-     Cormorant headings handle 700 fine but body emphasis stays light. */
   strong, b {
     font-weight: 600;
+    color: var(--text-primary);
   }
 
-  /* Inherit font + feature settings into native form controls so
-     inputs match the rest of the page. */
   input, textarea, select, button {
     font-family: inherit;
     font-feature-settings: inherit;
     color: inherit;
   }
-  /* Caret picks up the brand colour. */
+
   input, textarea {
-    caret-color: theme('colors.lavender');
+    caret-color: var(--accent-gold);
   }
-  /* Placeholder copy is one step quieter than the muted text token. */
+
   ::placeholder {
-    color: theme('colors.ivory-mute');
-    opacity: 0.65;
+    color: var(--text-muted);
+    opacity: 1;
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--accent) 25%, transparent);
-    color: var(--text);
+    background: rgba(250, 204, 21, 0.30);
+    color: var(--text-primary);
   }
 
   a, button {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: color-mix(in srgb, var(--surface-sunken) 60%, transparent);
-  }
+  /* Custom scrollbar — gold-tinted on obsidian track */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-surface); }
   ::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--brand) 50%, transparent);
+    background: var(--accent-gold);
     border-radius: 3px;
+    box-shadow: 0 0 6px rgba(250, 204, 21, 0.50);
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--brand) 75%, transparent);
-  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold-hover); }
 
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -249,164 +278,346 @@
 }
 
 @layer components {
+
   /* ───────────── Typography ───────────── */
 
-  /* Editorial eyebrow - small caps, wide tracking. Used on light
-     page backgrounds by default; on dark surfaces (Hero gradient,
-     Footer, MobileDrawer) override the colour inline with
-     `text-lavender-pastel`. */
   .eyebrow {
-    @apply inline-flex items-center gap-2 text-[11px] uppercase font-semibold;
-    /* Tighter on mobile - the 0.28em editorial tracking was pushing
-       eyebrows wider than viewport at 360px (see UI audit §2.2).
-       Widens back to 0.28em from the sm breakpoint up. */
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
     letter-spacing: 0.16em;
-    color: theme('colors.ivory-soft');
+    color: var(--brand);
   }
   @media (min-width: 640px) {
-    .eyebrow {
-      letter-spacing: 0.28em;
-    }
+    .eyebrow { letter-spacing: 0.24em; }
   }
 
-  /* Section number - editorial "001 / 002" style. Bumped from
-     regular to semibold for legibility at this size and tracking. */
   .section-no {
-    @apply font-serif text-base text-ivory-mute font-semibold;
+    font-family: var(--font-cormorant, serif);
+    font-size: 1rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 600;
     letter-spacing: 0.32em;
   }
 
-  /* Display headline - Cormorant Garamond at medium weight with
-     slightly open tracking. The site sets nearly every h1/h2 in
-     UPPERCASE; Cormorant's high-contrast classical capitals want
-     air around them (Roman tradition), so the tracking is gently
-     positive (+0.02em) instead of tight. Weight 500 reads more
-     refined than 600 at display sizes - at 56–88px the extra
-     stroke weight of semibold pushes too hard.
-     Consumers add size classes (`text-4xl lg:text-7xl`, etc.)
-     on top; this base just gets the family / weight / colour /
-     tracking right. */
   .display {
-    @apply font-serif font-medium text-ivory;
+    font-family: var(--font-cormorant, 'Cormorant Garamond', serif);
+    font-weight: 500;
+    color: #ffffff;
     line-height: 1.1;
     letter-spacing: 0.02em;
     text-wrap: balance;
   }
 
-  /* Lede paragraph - for hero subheads and page intro paragraphs.
-     Slightly heavier than body, with a more generous line-height. */
   .lede {
-    @apply text-base lg:text-lg text-ivory-soft;
-    font-weight: 400;
+    font-size: 1rem;
     line-height: 1.7;
+    color: rgba(255,255,255,0.80);
+    font-weight: 400;
     text-wrap: pretty;
   }
 
   /* ───────────── Buttons ───────────── */
 
-  /* All buttons share weight + tracking + height + radius. Variants
-     below only change colour and background. */
+  /* Base button — all variants share geometry */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 min-h-12 px-7
-           text-sm font-semibold transition-all duration-500
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-pastel focus-visible:ring-offset-2 focus-visible:ring-offset-plum
-           active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
-    letter-spacing: 0.01em;
-    border-radius: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0 1.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    transition: all 400ms cubic-bezier(0.22,1,0.36,1);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    cursor: pointer;
+    border: none;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  .btn:active { transform: translateY(0) scale(0.98); }
+  .btn:disabled { opacity: 0.5; pointer-events: none; }
+
+  /* Glossy inner cap shared by all filled buttons */
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 55% 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.04) 100%);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
   }
 
+  /* ── Primary CTA — Cyber Gold ──────────────
+     Spec: --accent-gold fill, --ink-dark text, baseline --glow-sm.
+     Hover: translateY(-3px), bg → --accent-gold-hover, shadow → --glow-lg. */
   .btn-dark {
-    @apply btn text-white;
-    background: var(--brand);
+    @apply btn;
+    background: var(--accent-gold);
+    color: var(--ink-dark);
+    font-weight: 700;
+    box-shadow: var(--glow-sm);
+    transition:
+      background-color 350ms ease,
+      box-shadow 350ms ease,
+      transform 300ms cubic-bezier(0.22,1,0.36,1);
   }
   .btn-dark:hover {
-    background: var(--brand-strong);
-    transform: translateY(-1px);
+    background: var(--accent-gold-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--glow-lg);
   }
+  .btn-dark:active { transform: translateY(0); }
 
+  /* ── Secondary / Outline ──────────────────
+     Spec: transparent bg, 1px rgba(255,255,255,0.15) border.
+     Hover: border → --accent-gold + subtle gold glow. */
   .btn-outline {
     @apply btn;
-    color: var(--text);
-    border: 1.5px solid var(--border);
-    border-radius: 24px;
     background: transparent;
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+    transition:
+      border-color 350ms ease,
+      background-color 350ms ease,
+      box-shadow 350ms ease,
+      transform 300ms cubic-bezier(0.22,1,0.36,1);
   }
   .btn-outline:hover {
-    border-color: color-mix(in srgb, var(--text) 35%, transparent);
-    color: var(--text);
-    background: color-mix(in srgb, var(--text) 4%, transparent);
+    border-color: var(--accent-gold);
+    background: rgba(250, 204, 21, 0.06);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-sm);
   }
+  .btn-outline:active { transform: translateY(0); }
 
-  /* Inline text link with a subtle underline - used in marketing
-     teasers and inside cards. Keeps the same weight as the button
-     family so they read as a system. */
+  /* ── Legacy .btn-resin alias — inherits primary CTA spec.
+     Kept so existing components don't break; new code should
+     reach for .btn-dark directly. */
+  .btn-resin {
+    @apply btn;
+    background: var(--accent-gold);
+    color: var(--ink-dark);
+    font-weight: 700;
+    box-shadow: var(--glow-sm);
+    transition:
+      background-color 350ms ease,
+      box-shadow 350ms ease,
+      transform 300ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .btn-resin:hover {
+    background: var(--accent-gold-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--glow-lg);
+  }
+  .btn-resin:active { transform: translateY(0); }
+  .btn-resin::after,
+  .btn-resin:hover::after,
+  .btn-resin:focus-visible::after { display: none; }
+
+  /* ── Text link — gold, underlined ────────── */
   .btn-link {
-    @apply inline-flex items-center gap-2 text-sm font-semibold text-lavender
-           border-b border-lavender/40 hover:border-lavender pb-1
-           transition-all duration-500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--accent-gold);
+    border-bottom: 1px solid rgba(250, 204, 21, 0.40);
+    padding-bottom: 0.25rem;
+    transition: all 350ms ease;
     letter-spacing: 0.01em;
   }
+  .btn-link:hover {
+    color: var(--accent-gold-hover);
+    border-bottom-color: var(--accent-gold);
+    text-shadow: 0 0 8px rgba(250, 204, 21, 0.40);
+  }
 
-  /* ───────────── Cards & surfaces - glassmorphism ───────────── */
+  /* ── Editorial arrow link ─────────────── */
+  .btn-editorial {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.86);
+    transition: all 500ms;
+  }
+  .btn-editorial:hover { color: #ffffff; gap: 1.25rem; }
+  .btn-editorial::after {
+    content: '';
+    width: 28px; height: 1px;
+    background: currentColor;
+    opacity: 0.7;
+    transition: width 400ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .btn-editorial:hover::after { width: 44px; }
 
+  /* ───────────── Cards & surfaces ───────────── */
+
+  /* Obsidian card with glass surface on desktop.
+     Mobile (<1024px): solid obsidian fallback, no backdrop blur.
+     ≥1024px:          true glass with backdrop-filter. */
   .card {
-    background: var(--surface-raised);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    box-shadow: 0 8px 24px -12px rgba(34,27,18,0.18);
-    transition: box-shadow 0.5s ease, transform 0.5s ease, border-color 0.5s ease;
+    background: var(--bg-glass-fallback);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.04),
+      inset 0 -1px 0 rgba(0,0,0,0.40),
+      0 16px 48px rgba(0,0,0,0.55),
+      0 4px 12px rgba(0,0,0,0.30);
+    position: relative;
+    overflow: hidden;
+    transition: transform 450ms cubic-bezier(0.22,1,0.36,1),
+                box-shadow 450ms cubic-bezier(0.22,1,0.36,1),
+                border-color 450ms;
   }
+  @media (min-width: 1024px) {
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+    }
+  }
+  /* Glossy top-cap sheen */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 60% 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 100%);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+  }
+  /* Diagonal light sweep on hover */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg,
+      transparent 30%,
+      rgba(255,255,255,0.18) 48%,
+      rgba(255,255,255,0.08) 52%,
+      transparent 70%);
+    background-size: 220% 100%;
+    background-position: -80% 0;
+    transition: background-position 0.8s cubic-bezier(0.22,1,0.36,1);
+    pointer-events: none;
+    z-index: 2;
+    border-radius: inherit;
+  }
+  .card > * { position: relative; z-index: 3; }
   .card:hover {
-    box-shadow: 0 16px 32px -14px rgba(200, 150, 47, 0.18);
-    border-color: rgba(200, 150, 47, 0.28);
+    transform: translateY(-6px);
+    border-color: var(--glass-border-glow);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      inset 0 -1px 0 rgba(0,0,0,0.30),
+      0 28px 64px rgba(0,0,0,0.70),
+      0 0 0 1px rgba(250,204,21,0.18),
+      var(--glow-md);
   }
+  .card:hover::after { background-position: 180% 0; }
 
   .card-cream {
-    border-radius: 24px;
-    background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
   }
 
-  /* Sticker / pill badge - solid ink fill, restrained. Photography
-     carries the colour now; chrome stays warm-neutral. */
+  /* Sticker / pill badge */
   .sticker {
-    @apply inline-flex items-center justify-center
-           text-[10px] uppercase font-semibold
-           px-3 py-1.5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
     letter-spacing: 0.18em;
-    border-radius: 24px;
-    background: var(--brand);
-    color: #ffffff;
+    padding: 0.375rem 0.75rem;
+    border-radius: 999px;
+    background: var(--accent-gold);
+    color: var(--ink-dark);
+    box-shadow: var(--glow-sm);
   }
 
-  /* Horizontal-scroll chip rail */
+  /* Chip rail */
   .chip-rail {
-    @apply flex gap-2 overflow-x-auto snap-x snap-mandatory
-           -mx-5 px-5 pb-1 scrollbar-hide;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 0 -1.25rem;
+    padding: 0 1.25rem 0.25rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  .chip-rail > * {
-    @apply snap-start shrink-0;
-  }
+  .chip-rail::-webkit-scrollbar { display: none; }
+  .chip-rail > * { scroll-snap-align: start; flex-shrink: 0; }
 
+  /* Glossy chips — solid on mobile, frosted on desktop only */
   .chip {
-    @apply inline-flex items-center h-10 px-4 text-sm font-medium;
-    border-radius: 24px;
-    border: 1.5px solid color-mix(in srgb, var(--brand) 25%, transparent);
-    background: color-mix(in srgb, var(--surface-raised) 75%, transparent);
-    color: var(--brand-strong);
-    transition: all 0.4s ease;
+    display: inline-flex;
+    align-items: center;
+    height: 2.5rem;
+    padding: 0 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: var(--bg-glass-fallback);
+    color: var(--text-secondary);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  @media (min-width: 1024px) {
+    .chip {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+  }
+  .chip::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 52% 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+    pointer-events: none;
+    border-radius: inherit;
   }
   .chip:hover {
-    border-color: color-mix(in srgb, var(--brand) 55%, transparent);
-    color: var(--text);
-    background: color-mix(in srgb, var(--surface-sunken) 70%, transparent);
+    border-color: var(--accent-gold);
+    background: rgba(250,204,21,0.08);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-sm);
   }
   .chip[aria-current='page'],
   .chip.is-active {
-    background: var(--brand);
-    border-color: transparent;
-    color: #ffffff;
+    background: var(--accent-gold);
+    border-color: var(--accent-gold);
+    color: var(--ink-dark);
     font-weight: 600;
+    box-shadow: var(--glow-md);
   }
 
   .sticky-cta {
@@ -415,99 +626,105 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
-  /* Editorial deco rule */
+  /* Editorial rule — gold gradient hairline */
   .rule {
     height: 1px;
     background: linear-gradient(to right,
       transparent,
-      color-mix(in srgb, var(--brand) 60%, transparent),
-      color-mix(in srgb, var(--accent) 40%, transparent),
+      rgba(250,204,21,0.55),
+      rgba(250,204,21,0.30),
       transparent);
   }
 
-  /* ───────────── Surfaces (formerly glass) ─────────────
-     Blur dropped: it's the biggest mobile paint cost and the warm
-     ivory ground doesn't need a frosted layer to read clean. These
-     class names are kept so the ~8 components using them don't need
-     touching; the look is now a solid raised panel with a hairline. */
+  /* ───────────── Glass surface system ─────────────
+     Liquid glassmorphism — desktop only. Mobile renders
+     a solid obsidian fallback for paint cost. Standard
+     16px radius across the system. */
 
   .glass {
-    background: var(--surface-raised);
-    border: 1px solid var(--border);
+    background: var(--bg-glass-fallback);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
   }
+  @media (min-width: 1024px) {
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+    }
+  }
+  .glass::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 55% 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+  }
+  .glass > * { position: relative; z-index: 2; }
 
   .glass-strong {
-    background: var(--surface-raised);
-    border: 1px solid var(--border);
+    background: var(--bg-glass-fallback);
+    border: 1px solid var(--glass-border-glow);
+    border-radius: 16px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 8px 32px rgba(0,0,0,0.50);
   }
-
-  /* Desktop-only frosted glass for the scrolled header.
-     Blur is the single biggest mobile paint cost — disable on mobile. */
   @media (min-width: 1024px) {
     .glass-strong {
-      backdrop-filter: blur(18px) saturate(180%);
-      -webkit-backdrop-filter: blur(18px) saturate(180%);
-      background: rgba(251, 248, 242, 0.84) !important;
+      background: rgba(16,18,22,0.75);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
   }
 
-  /* ───────────── Hover lift (no glow) ───────────── */
-
+  /* Hover lift — gold halo + lift */
   .glow-hover {
-    transition: box-shadow 0.5s ease, transform 0.5s ease;
+    transition: box-shadow 500ms ease, transform 500ms ease;
   }
   .glow-hover:hover {
-    box-shadow: 0 12px 28px -16px rgba(34,27,18,0.22);
-    transform: translateY(-2px);
+    box-shadow:
+      0 12px 28px -8px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(250,204,21,0.30),
+      var(--glow-sm);
+    transform: translateY(-3px);
   }
 
-  /* ───────────── Kolam decorative dot pattern ───────────── */
-
+  /* Kolam decorative dots — now gold-tinted */
   .kolam-dots {
-    background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 14%, transparent) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(250,204,21,0.30) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   /* ───────────── Liquid Resin Material System (v2) ─────────────
-     Strategic gloss primitives for the "Studio Vault" redesign. Apply
-     ONLY to: the hero artwork plate, primary CTAs, collection showcase
-     cards, featured-work displays, the final-invite panel.
-     NEVER on: body text, eyebrows, museum captions, dot pagination,
-     navigation links, or any text-bearing surface — gloss on type
-     reads as cheap. The artwork must always remain the hero.
+     Glossy resin plate for artwork hero areas.
+     White specular cap + animated diagonal gold-white sweep. */
 
-     This is NOT glassmorphism. There is no backdrop-filter blur. The
-     effect is *specular* — soft white/gold highlight + a thin top-edge
-     sheen + a deep multi-layer drop shadow + an animated diagonal light
-     sweep. The result reads as polished resin catching light, not as a
-     frosted overlay. */
-
-  /* The resin plate — for the featured artwork wrapper. The element
-     itself is a clean container; the gloss lives in ::before (top sheen)
-     and ::after (animated diagonal sweep). The image sits between them
-     in normal flow. */
   .resin-plate {
     position: relative;
     border-radius: 4px;
-    background: var(--surface-raised);
+    background: rgba(255,255,255,0.08);
     overflow: hidden;
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.45) inset,          /* hairline top edge highlight */
-      0 0 0 1px rgba(34,27,18,0.08),                 /* crisp dark hairline */
-      0 30px 60px -22px rgba(34,27,18,0.40),         /* close shadow — lifts off page */
-      0 60px 120px -40px rgba(34,27,18,0.30);        /* far shadow — depth */
+      inset 0 1px 0 rgba(255,255,255,0.38),
+      0 0 0 1px rgba(255,255,255,0.12),
+      0 30px 60px -22px rgba(0,0,0,0.55),
+      0 60px 120px -40px rgba(0,0,0,0.40);
     isolation: isolate;
   }
   .resin-plate::before {
-    /* Top-edge sheen — soft gold highlight that gives the resin its "wet" cap. */
     content: '';
     position: absolute;
     inset: 0 0 auto 0;
     height: 40%;
     background: linear-gradient(
       180deg,
-      rgba(255, 248, 230, 0.18) 0%,
-      rgba(255, 248, 230, 0.04) 45%,
+      rgba(255,255,255,0.22) 0%,
+      rgba(255,255,255,0.05) 45%,
       transparent 100%
     );
     pointer-events: none;
@@ -515,16 +732,14 @@
     mix-blend-mode: screen;
   }
   .resin-plate::after {
-    /* Diagonal slow-sweep light bar — the "light catching the resin" moment.
-       Animated by default; respect reduce-motion below. */
     content: '';
     position: absolute;
     inset: 0;
     background: linear-gradient(
       115deg,
       transparent 35%,
-      rgba(232, 194, 90, 0.18) 48%,
-      rgba(255, 248, 230, 0.10) 52%,
+      rgba(250,204,21,0.22) 48%,
+      rgba(255,255,255,0.12) 52%,
       transparent 65%
     );
     background-size: 220% 220%;
@@ -543,127 +758,185 @@
     .resin-plate::after { animation: none; }
   }
 
-  /* Cursor-reactive specular — wrap any image and read --rx / --ry
-     (CSS custom properties set from JS in CSS pixels relative to the
-     element) for a soft radial highlight that follows the pointer.
-     Falls back to a static centred highlight when the variables are
-     unset. mix-blend-mode keeps it from washing out the artwork. */
+  /* Cursor-reactive specular */
   .resin-specular {
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 5;
-    background:
-      radial-gradient(
-        260px circle at var(--rx, 50%) var(--ry, 35%),
-        rgba(255, 248, 230, 0.22) 0%,
-        rgba(255, 248, 230, 0.10) 22%,
-        transparent 55%
-      );
-    mix-blend-mode: soft-light;
-    transition: background 600ms var(--ease-editorial);
-  }
-
-  /* Primary resin CTA — solid ink with a glossy top half + animated
-     diagonal sheen on hover. NOT a generic gradient button. */
-  .btn-resin {
-    @apply inline-flex items-center justify-center gap-2 min-h-12 px-8
-           text-sm font-semibold uppercase
-           focus-visible:outline-none focus-visible:ring-2
-           focus-visible:ring-offset-2 disabled:opacity-50
-           disabled:pointer-events-none;
-    position: relative;
-    color: #ffffff;
-    letter-spacing: 0.08em;
-    border-radius: 999px;
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 50%),
-      var(--brand);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.22),                 /* gloss highlight cap */
-      inset 0 -1px 0 rgba(0,0,0,0.20),                      /* bottom inner shadow */
-      0 14px 32px -14px rgba(34,27,18,0.55),                /* lifted shadow */
-      0 0 0 1px rgba(0,0,0,0.20);
-    overflow: hidden;
-    isolation: isolate;
-    transition:
-      transform 400ms var(--ease-editorial),
-      box-shadow 400ms var(--ease-editorial);
-  }
-  .btn-resin::after {
-    /* Light sweep — travels left→right on hover/focus. */
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      115deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.28) 48%,
-      rgba(232, 194, 90, 0.22) 52%,
-      transparent 70%
+    background: radial-gradient(
+      260px circle at var(--rx, 50%) var(--ry, 35%),
+      rgba(255,255,255,0.22) 0%,
+      rgba(250,204,21,0.14) 22%,
+      transparent 55%
     );
-    transform: translateX(-110%);
-    transition: transform 900ms var(--ease-editorial);
-    pointer-events: none;
-    mix-blend-mode: screen;
-  }
-  .btn-resin:hover,
-  .btn-resin:focus-visible {
-    transform: translateY(-2px);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.30),
-      inset 0 -1px 0 rgba(0,0,0,0.25),
-      0 22px 44px -16px rgba(34,27,18,0.62),
-      0 0 0 1px rgba(200,150,47,0.55);
-  }
-  .btn-resin:hover::after,
-  .btn-resin:focus-visible::after {
-    transform: translateX(110%);
-  }
-  .btn-resin:active {
-    transform: translateY(0);
+    mix-blend-mode: soft-light;
+    transition: background 600ms cubic-bezier(0.22,1,0.36,1);
   }
 
-  /* Editorial text link with magnetic hover spacing — sibling of btn-link
-     but with no underline by default; the chevron is the affordance. */
-  .btn-editorial {
-    @apply inline-flex items-center gap-3 text-sm font-semibold uppercase
-           transition-all duration-500;
-    color: rgba(255,255,255,0.86);
-    letter-spacing: 0.14em;
-  }
-  .btn-editorial:hover {
-    color: #ffffff;
-    gap: 1.25rem;
-  }
-  .btn-editorial::after {
-    content: '';
-    width: 28px;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.7;
-    transition: width 400ms var(--ease-editorial);
-  }
-  .btn-editorial:hover::after {
-    width: 44px;
-  }
-
-  /* ───────────── Gold display text ─────────────
-     Used on hero/section accent words: "Home" (Hero), "studio"
-     (Footer), wordmark accents, the big serif numbers in WhyChooseUs
-     and CustomOrderCTA. Gradient text-fill via background-clip with
-     a solid fallback for browsers that lack support. Per §7 contrast,
-     use this only on ≥24px/700 display words; for small text rely on
-     --accent-strong instead. */
+  /* ── Cyber gold display text ──────────────────────────── */
   .gold-text {
-    background: linear-gradient(135deg, #E8C25A 0%, var(--accent) 45%, var(--accent-strong) 100%);
+    background: linear-gradient(135deg, #fef3c7 0%, #facc15 45%, #eab308 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: var(--accent-strong);
+    color: var(--accent-gold);
+    text-shadow: 0 0 24px rgba(250, 204, 21, 0.30);
   }
   @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-    .gold-text { color: var(--accent-strong); }
+    .gold-text { color: var(--accent-gold); }
+  }
+
+  /* ── Gold text glow accent — replaces legacy .lavender-text ── */
+  .lavender-text,
+  .gold-text-glow {
+    color: var(--accent-gold);
+    text-shadow: 0 0 20px rgba(250, 204, 21, 0.50);
+  }
+
+  /* ───────────── Premium form inputs ───────────────────
+     Dark fill, hairline rgba border, gold focus ring +
+     soft glow. Replaces bg-white/grey input chrome.
+     Use on text inputs, selects, textareas, file pickers. */
+  .form-input {
+    width: 100%;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    transition:
+      border-color 250ms ease,
+      box-shadow 250ms ease,
+      background-color 250ms ease;
+  }
+  .form-input::placeholder {
+    color: var(--text-muted);
+  }
+  .form-input:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  .form-input:focus,
+  .form-input:focus-visible {
+    outline: none;
+    border-color: var(--accent-gold);
+    background: var(--bg-input);
+    box-shadow:
+      0 0 0 3px rgba(250, 204, 21, 0.12),
+      0 0 12px rgba(250, 204, 21, 0.20);
+  }
+  .form-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* Native select arrow contrast on dark backdrop */
+  select.form-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+    padding-right: 2.25rem;
+  }
+  /* Eyebrow label above a form input */
+  .form-label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ───────────── Focal CTA primitives ──────────────────
+     Aliases that keep older marketing code paths working.
+     Both now inherit the canonical primary/secondary spec. */
+
+  .btn-glow-gold {
+    @apply btn;
+    background: var(--accent-gold);
+    color: var(--ink-dark);
+    font-weight: 700;
+    box-shadow: var(--glow-sm);
+    transition:
+      background-color 350ms ease,
+      box-shadow 350ms ease,
+      transform 300ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .btn-glow-gold:hover {
+    background: var(--accent-gold-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--glow-lg);
+  }
+  .btn-glow-gold:active { transform: translateY(0); }
+
+  .btn-glow-gold-outline {
+    @apply btn;
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+    transition:
+      border-color 350ms ease,
+      background-color 350ms ease,
+      box-shadow 350ms ease,
+      transform 300ms cubic-bezier(0.22,1,0.36,1);
+  }
+  .btn-glow-gold-outline:hover {
+    border-color: var(--accent-gold);
+    background: rgba(250, 204, 21, 0.06);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-sm);
+  }
+  .btn-glow-gold-outline:active { transform: translateY(0); }
+
+  /* ───────────── Focal panels ──────────────────────────
+     Both card-warmglow* aliases now point at the obsidian
+     glass surface system so legacy call sites stay valid. */
+
+  .card-warmglow,
+  .card-warmglow-dark {
+    position: relative;
+    border-radius: 16px;
+    background: var(--bg-glass-fallback);
+    border: 1px solid var(--glass-border-glow);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      0 24px 60px -22px rgba(0,0,0,0.65),
+      var(--glow-sm);
+    isolation: isolate;
+    overflow: hidden;
+  }
+  @media (min-width: 1024px) {
+    .card-warmglow,
+    .card-warmglow-dark {
+      background: rgba(16, 18, 22, 0.75);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+  }
+  .card-warmglow::before,
+  .card-warmglow-dark::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 36%;
+    background: linear-gradient(
+      180deg,
+      rgba(255,255,255,0.06) 0%,
+      rgba(255,255,255,0.01) 60%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+  .card-warmglow > *,
+  .card-warmglow-dark > * {
+    position: relative;
+    z-index: 2;
   }
 }
 
@@ -672,73 +945,65 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-  .safe-pb {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-  .safe-pt {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
+  .safe-pb { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+  .safe-pt { padding-top: max(1rem, env(safe-area-inset-top)); }
 
-  .min-h-svh {
-    min-height: 100svh;
-  }
+  .min-h-svh { min-height: 100svh; }
 
-  /* Slight rotation classes for sticker/badge details */
   .-rotate-2 { transform: rotate(-2deg); }
   .-rotate-6 { transform: rotate(-6deg); }
   .rotate-3  { transform: rotate(3deg); }
 
-  /* HeroSlideshow - subtle Ken-Burns zoom on the active slide so the
-     still photograph feels cinematic. Plays once per slide activation;
-     the React `key={src}` + the `isActive` conditional on the class
-     guarantees the animation restarts on every slide change. */
-  .hero-ken-burns {
-    animation: hero-ken-burns 7s ease-out both;
-  }
+  .hero-ken-burns { animation: hero-ken-burns 7s ease-out both; }
 
-  /* Text shadow for readability on images */
+  /* Text shadow for readability on dark lavender background */
   .text-shadow-soft {
-    text-shadow: 0 2px 12px rgba(43, 30, 52, 0.6);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.45);
   }
 
-  /* Equal-width digits - apply to prices, totals, quantities so
-     rows in the summary line up cleanly. Tailwind also ships
-     `tabular-nums`; this alias is here for clarity at call sites. */
   .tnum {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum', 'kern';
   }
 
-  /* Balanced and pretty wrapping helpers for ad-hoc use. */
   .text-balance { text-wrap: balance; }
-  .text-pretty { text-wrap: pretty; }
+  .text-pretty  { text-wrap: pretty; }
 
-  /* Semantic on-dark text helpers - use on elements inside dark nav
-     surfaces (MobileDrawer, BottomTabBar, StickyCartBar, SearchOverlay)
-     instead of repeating the equivalent dark-text tokens which would be
-     invisible against the dark ink background.
-       on-dark         → warm ivory (page surface)
-       on-dark-muted   → soft sand
-       on-dark-accent  → gold accent - calls attention without competing */
-  .text-on-dark { @apply text-plum; }
-  .text-on-dark-muted { @apply text-plum-warm; }
+  /* On-dark text helpers remain same names, now on lavender */
+  .text-on-dark       { color: #ffffff; }
+  .text-on-dark-muted { color: rgba(255,255,255,0.70); }
   .text-on-dark-accent { color: var(--accent); }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .hero-ken-burns {
-    animation: none !important;
+  /* On-glass text — restores crispness softened by backdrop blur.
+     Pair with .glass / .glass-strong / .card content. */
+  .text-on-glass {
+    color: #ffffff;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+  }
+  .text-on-glass-muted {
+    color: rgba(255,255,255,0.82);
+    font-weight: 400;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.16);
+  }
+  .text-on-glass-eyebrow {
+    color: var(--brand);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(250,204,21,0.45);
   }
 }
 
-/* Mobile motion trim - perf + battery. The heavy ambient infinite
-   animations (float, glow-pulse, slow-zoom, gentle-rotate) are useful
-   visual interest on desktop but on mid-range Android they spend paint
-   budget that the hero photo needs. Disable them below 769px. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-ken-burns { animation: none !important; }
+}
+
+/* Mobile motion trim */
 @media (max-width: 768px) {
   .animate-float,
   .animate-glow-pulse,

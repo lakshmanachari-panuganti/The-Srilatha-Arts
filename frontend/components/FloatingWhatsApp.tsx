@@ -10,7 +10,7 @@ import { whatsappLink } from '@/lib/site-config'
 // conversion threshold for "I have a question".
 //
 // Positioning rules:
-//   - Mobile: bottom-right, lifted above the BottomTabBar (h-16 + safe-area).
+//   - Mobile: bottom-right, just above the viewport edge (or above StickyCartBar on PDP/cart).
 //   - Desktop: bottom-right with comfortable inset.
 //
 // Why platform-recognisable green and not brand lavender:
@@ -44,12 +44,12 @@ export default function FloatingWhatsApp() {
         'h-14 w-14 lg:h-16 lg:w-16',
         'right-4 lg:right-6',
         // Mobile bottom offset:
-        //   - default: BottomTabBar (h-16) + safe-area + breathing room
-        //   - PDP / cart: also clear the StickyCartBar (~h-16) sitting above it
-        // Desktop: tab bar is hidden, normal bottom inset.
+        //   - default: safe-area + breathing room
+        //   - PDP / cart: also clear the StickyCartBar (h-16 + safe-pb) sitting at bottom-0
+        // Desktop: normal bottom inset.
         hasStickyCartBar
-          ? 'bottom-[calc(9rem+env(safe-area-inset-bottom))] lg:bottom-8'
-          : 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-8',
+          ? 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-8'
+          : 'bottom-[calc(1rem+env(safe-area-inset-bottom))] lg:bottom-8',
         'rounded-full text-white',
         'transition-all duration-500',
         visible ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none',

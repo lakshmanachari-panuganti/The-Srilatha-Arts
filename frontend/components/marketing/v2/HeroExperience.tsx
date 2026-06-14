@@ -199,7 +199,7 @@ export default function HeroExperience() {
       <KolamCursorField
         density={32}
         interactionRadius={170}
-        dotColor="rgba(34, 27, 18, 0.16)"
+        dotColor="rgba(250, 204, 21, 0.16)"
       />
 
       {/* ── 2. Soft warm wash behind the editorial column ────────

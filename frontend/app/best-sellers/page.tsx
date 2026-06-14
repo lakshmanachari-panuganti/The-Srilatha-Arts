@@ -5,6 +5,7 @@ import ProductListClient from '@/components/shop/ProductListClient'
 export const metadata: Metadata = {
   title: 'Best sellers',
   description: 'The pieces our customers love most.',
+  alternates: { canonical: '/best-sellers/' },
 }
 
 export default function BestSellersPage() {

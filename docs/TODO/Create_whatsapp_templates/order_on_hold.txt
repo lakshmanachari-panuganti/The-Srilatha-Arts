@@ -1,25 +1,16 @@
 7. order_on_hold
-Purpose
 
-Used when the order cannot proceed until the customer provides something.
-
-Examples:
-
-Missing reference photos
-Incomplete address
-Phone number not reachable
-Custom artwork clarification needed
-Payment verification issue
-Courier service unavailable for the destination
-Trigger
+Trigger:
 Order Status:
-→ ON_HOLD
-Variables
-Variable	Meaning
-{{1}}	Customer Name
-{{2}}	Order Number
-{{3}}	Hold Reason
-Example Template
+-> ON_HOLD
+
+Variables:
+{{1}} Customer Name
+{{2}} Order Number
+{{3}} Hold Reason
+{{4}} Store Contact Number
+
+Template:
 Hello {{1}},
 
 Your order {{2}} is currently on hold.
@@ -27,30 +18,12 @@ Your order {{2}} is currently on hold.
 Reason:
 {{3}}
 
-Please reply to this message or contact us so we can continue working on your order.
+Please reply to this message with the required details so we can continue processing your order.
 
-Thank you,
-Srilatha Art
-Sample Message
-Hello Lakshman,
+If you have any questions, please feel free to contact us -
 
-Your order SA-20260611-001 is currently on hold.
+📞 Call/WhatsApp: {{4}}
+✉️ Email: studio@srilatha.art
+🌐 www.srilatha.art
 
-Reason:
-We need one additional reference photograph for your custom artwork.
-
-Please reply to this message or contact us so we can continue working on your order.
-
-Thank you,
-Srilatha Art
-Business Value
-
-Without this template:
-
-Customer waits
-Customer gets worried
-Customer contacts support
-
-With this template:
-
-Customer immediately knows why work stopped
+-Srilatha Art

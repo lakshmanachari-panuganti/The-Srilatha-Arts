@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Common questions',
   description: 'Answers to common questions about orders, shipping, and custom pieces.',
+  alternates: { canonical: '/faq/' },
 }
 
 const faqs = [

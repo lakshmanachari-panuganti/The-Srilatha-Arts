@@ -215,6 +215,28 @@ export async function listAlerts(opts: ListAlertsOptions = {}): Promise<Notifica
 }
 
 /**
+ * Count final-failure alerts whose most recent failure falls in the window.
+ * Used by the notifications dashboard's "notification failure rate" stat —
+ * the operationally honest count of unique notifications that the customer
+ * never received (queue retries exhausted), not the attempt-level count.
+ *
+ * Final = `isFinal: true`. Acknowledged alerts ARE counted (the customer
+ * still didn't receive the message; admin ack just dismisses the row).
+ * In-memory filter is fine — alerts table is small (one row per failing
+ * notification, dedup'd by orderId/channel/operation).
+ */
+export async function countFinalAlertsInRange(from?: string, to?: string): Promise<number> {
+  const all = await listAlerts({ includeAcknowledged: true })
+  return all.filter((a) => {
+    if (!a.isFinal) return false
+    const ts = String(a.lastFailureAt || '')
+    if (from && ts < from) return false
+    if (to && ts > to) return false
+    return true
+  }).length
+}
+
+/**
  * Acknowledge an alert. Row stays in the table for audit — only the
  * status flag changes. Re-failure of the same (order, channel, operation)
  * reopens it.

@@ -68,9 +68,9 @@ export default function WhyChooseUs() {
             We believe that premium home decor should tell a story of dedication, authenticity, and unparalleled craft.
             Every creation is treated as a unique masterwork, built from high-grade raw components and handled with exceptional care.
           </p>
-          <div className="p-6 bg-lavender-light border border-glass-border rounded-3xl">
+          <div className="card p-6">
             <p className="text-sm font-semibold tracking-wider uppercase text-ivory mb-2 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-lavender-pastel" /> Shipping Guarantee
+              <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-gold)' }} /> Shipping Guarantee
             </p>
             <p className="text-ivory-soft text-sm leading-relaxed font-normal">
               Any damage in transit is fully covered. We will immediately replace or refund any piece that does not arrive perfectly.
@@ -92,27 +92,33 @@ export default function WhyChooseUs() {
               <motion.div
                 key={diff.title}
                 variants={fadeUp}
-                className="relative p-6 pl-7 card bg-white border border-glass-border hover:shadow-lavender-glow transition-all duration-300 flex flex-col gap-4 overflow-hidden"
+                className="card relative p-6 pl-7 flex flex-col gap-4 transition-all duration-300"
               >
-                {/* Editorial left-accent rail - gold gradient hugging the card
-                    edge. Sits under the rounded corner via the card's
+                {/* Left-accent rail in cyber gold, sitting under the card's
                     overflow-hidden so it bleeds into the radius cleanly. */}
                 <span
                   aria-hidden
                   className="absolute left-0 top-0 bottom-0 w-1"
                   style={{
                     background:
-                      'linear-gradient(180deg, #F3D27A 0%, #D4AF37 50%, #B8962E 100%)',
+                      'linear-gradient(180deg, #fef3c7 0%, #facc15 50%, #eab308 100%)',
                   }}
                 />
-                <div className="w-12 h-12 rounded-2xl bg-lavender-light border border-glass-border flex items-center justify-center text-lavender">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                  style={{
+                    background: 'rgba(250,204,21,0.08)',
+                    border: '1px solid rgba(250,204,21,0.25)',
+                    color: 'var(--accent-gold)',
+                  }}
+                >
                   <Icon className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="font-sans text-lg font-semibold tracking-wide text-ivory mb-2 uppercase">
                     {diff.title}
                   </h3>
-                  <p className="text-ivory-soft/80 text-sm lg:text-base leading-relaxed font-normal">
+                  <p className="text-ivory-soft text-sm lg:text-base leading-relaxed font-normal">
                     {diff.description}
                   </p>
                 </div>
@@ -148,7 +154,7 @@ export default function WhyChooseUs() {
             className="hidden lg:block absolute top-14 left-[12.5%] right-[12.5%] h-px z-0"
             style={{
               background:
-                'linear-gradient(to right, transparent, rgba(201,168,76,0.45) 18%, rgba(201,168,76,0.45) 82%, transparent)',
+                'linear-gradient(to right, transparent, rgba(250,204,21,0.40) 18%, rgba(250,204,21,0.40) 82%, transparent)',
             }}
           />
           {processSteps.map((step) => {
@@ -156,7 +162,7 @@ export default function WhyChooseUs() {
               <motion.div
                 key={step.step}
                 variants={fadeUp}
-                className="relative z-10 p-6 sm:p-8 card bg-white border border-glass-border flex flex-col justify-between"
+                className="card relative z-10 p-6 sm:p-8 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
@@ -166,14 +172,21 @@ export default function WhyChooseUs() {
                     >
                       {step.step}
                     </span>
-                    <span className="w-8 h-8 rounded-full bg-lavender-light border border-glass-border flex items-center justify-center text-lavender">
+                    <span
+                      className="w-8 h-8 rounded-full flex items-center justify-center"
+                      style={{
+                        background: 'rgba(250,204,21,0.08)',
+                        border: '1px solid rgba(250,204,21,0.25)',
+                        color: 'var(--accent-gold)',
+                      }}
+                    >
                       <step.icon className="w-4 h-4" />
                     </span>
                   </div>
                   <h3 className="font-sans text-base font-semibold tracking-wide text-ivory mb-2 uppercase">
                     {step.title}
                   </h3>
-                  <p className="text-ivory-soft/80 text-sm leading-relaxed font-normal">
+                  <p className="text-ivory-soft text-sm leading-relaxed font-normal">
                     {step.description}
                   </p>
                 </div>

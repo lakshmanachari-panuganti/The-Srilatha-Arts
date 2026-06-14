@@ -51,8 +51,8 @@ interface Particle {
 export default function KolamCursorField({
   density = 28,
   interactionRadius = 150,
-  dotColor = 'rgba(34, 27, 18, 0.22)',
-  goldColor = '232, 194, 90',
+  dotColor = 'rgba(250, 204, 21, 0.20)',
+  goldColor = '250, 204, 21',
   className,
   maxParticles = 28,
 }: KolamCursorFieldProps) {

@@ -15,6 +15,7 @@ import PinterestIcon from '@/components/icons/PinterestIcon'
 export const metadata: Metadata = {
   title: 'Contact us',
   description: 'Get in touch by WhatsApp, email or Instagram. We usually reply within a few hours.',
+  alternates: { canonical: '/contact/' },
 }
 
 export default function ContactPage() {

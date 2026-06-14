@@ -52,7 +52,16 @@ interface StatsResponse {
   total: number
   sent: number
   failed: number
-  failureRate: number
+  // Attempt-level rate: failed attempts / total attempts. Queue retries
+  // each count as a separate attempt — informational only, no threshold.
+  attemptFailureRate: number
+  // Notification-level metrics: how many distinct customer notifications
+  // (orderId × channel × templateKey) fired in the window, and how many
+  // of those reached the queue's final-failure state. This is the
+  // operationally honest number — threshold colouring lives here.
+  uniqueNotifications: number
+  finalFailures: number
+  notificationFailureRate: number
   byChannel: { email: ChannelBucket; whatsapp: ChannelBucket }
   byTemplate: TemplateBucket[]
   windowFrom?: string
@@ -185,21 +194,44 @@ export default function AdminNotificationsPage() {
 
 // ── Stat cards ──────────────────────────────────────────────────────
 function StatCards({ stats, loading }: { stats?: StatsResponse; loading: boolean }) {
+  const notifRate = stats?.notificationFailureRate ?? 0
   const cards = [
-    { name: 'Total notifications', value: stats?.total ?? 0, color: 'text-ink' },
-    { name: 'Successful', value: stats?.sent ?? 0, color: 'text-emerald-700' },
-    { name: 'Failed', value: stats?.failed ?? 0, color: 'text-red-700' },
-    { name: 'Failure rate', value: `${stats?.failureRate ?? 0}%`, color: (stats?.failureRate ?? 0) > 5 ? 'text-red-700' : 'text-ink' },
+    { name: 'Total attempts', value: stats?.total ?? 0, color: 'text-ink', subtitle: undefined as string | undefined },
+    { name: 'Successful', value: stats?.sent ?? 0, color: 'text-emerald-700', subtitle: undefined },
+    { name: 'Failed', value: stats?.failed ?? 0, color: 'text-red-700', subtitle: undefined },
+    {
+      name: 'Notification failure rate',
+      value: `${notifRate}%`,
+      color: notifRate > 5 ? 'text-red-700' : 'text-ink',
+      // The customer-impact metric — how many distinct notifications never
+      // reached the customer, across the unique groups that fired in window.
+      subtitle: stats
+        ? `${stats.finalFailures} of ${stats.uniqueNotifications} notifications`
+        : undefined,
+    },
+    {
+      name: 'Attempt failure rate',
+      value: `${stats?.attemptFailureRate ?? 0}%`,
+      color: 'text-ink-soft',
+      // Infrastructure health — retries count, so this can be non-zero
+      // even when the customer ultimately received every notification.
+      subtitle: 'Send infrastructure (retries count)',
+    },
   ]
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       {cards.map((c) => (
         <div key={c.name} className="bg-plum-light border border-ink/10 rounded-xl p-5">
           <p className="text-xs text-ink-soft mb-2">{c.name}</p>
           {loading ? (
             <div className="h-7 w-24 bg-ink/10 rounded animate-pulse" />
           ) : (
-            <p className={`text-2xl font-serif ${c.color}`}>{c.value}</p>
+            <>
+              <p className={`text-2xl font-serif ${c.color}`}>{c.value}</p>
+              {c.subtitle && (
+                <p className="text-[10px] uppercase tracking-wider text-ink-mute mt-1.5">{c.subtitle}</p>
+              )}
+            </>
           )}
         </div>
       ))}
