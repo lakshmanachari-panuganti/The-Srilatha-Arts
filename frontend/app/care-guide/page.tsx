@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Care guide',
   description: 'How to take care of your handmade art so it lasts for years.',
+  alternates: { canonical: '/care-guide/' },
 }
 
 export default function CareGuidePage() {

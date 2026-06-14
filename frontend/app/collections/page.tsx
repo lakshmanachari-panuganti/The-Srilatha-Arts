@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import PlaceholderPage from '@/components/PlaceholderPage'
 
-export const metadata: Metadata = { title: 'Collections' }
+export const metadata: Metadata = {
+  title: 'Collections',
+  alternates: { canonical: '/collections/' },
+}
 
 export default function CollectionsPage() {
   return (

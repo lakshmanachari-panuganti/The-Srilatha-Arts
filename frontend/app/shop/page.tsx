@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'Shop all handmade art',
   description:
     'Browse all our handmade pieces - Resin, Dot Mandala, Lippan, Kolam and Wedding Decoratives - made by hand in Hyderabad.',
+  alternates: { canonical: '/shop/' },
 }
 
 export default function ShopPage() {

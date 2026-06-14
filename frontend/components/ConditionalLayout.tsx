@@ -3,7 +3,6 @@ import { usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import MarqueeBanner from '@/components/MarqueeBanner'
 import Header from '@/components/Header'
-import BottomTabBar from '@/components/BottomTabBar'
 import Footer from '@/components/Footer'
 import FloatingWhatsApp from '@/components/FloatingWhatsApp'
 import Toaster from '@/components/Toaster'
@@ -22,7 +21,6 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
 
   const showMarquee = !isAdmin && !isCheckout && !isAuth
   const showChrome = !isAdmin && !isAuth
-  const showTabs = !isAdmin && !isAuth && !isCheckout
   const showFooter = !isAdmin && !isAuth && !isCheckout
   // Floating WhatsApp: same gating as footer - anywhere the user is shopping
   // or browsing. Hidden in checkout (don't interrupt payment), admin, auth.
@@ -45,11 +43,10 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     <>
       {showMarquee && <MarqueeBanner items={announcements} />}
       {showChrome && <Header />}
-      <main id="main" className="relative z-10 pb-24 lg:pb-0">
+      <main id="main" className="relative z-10">
         {children}
       </main>
       {showFooter && <Footer />}
-      {showTabs && <BottomTabBar />}
       {showWhatsApp && <FloatingWhatsApp />}
       {/* Toaster lives outside the route boundary so a toast announced just
           before a navigation (e.g. "Redirecting to login…") keeps rendering

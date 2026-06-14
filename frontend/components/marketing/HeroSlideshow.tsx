@@ -37,6 +37,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import { SOCIAL, whatsappLink } from '@/lib/site-config'
 
 const EASE_LUXURY = [0.22, 1, 0.36, 1] as const
 
@@ -199,7 +200,7 @@ export default function HomeHero() {
           Follow Srilatha Art
         </span>
         <a
-          href="https://wa.me/919133266754"
+          href={whatsappLink()}
           target="_blank"
           rel="noopener noreferrer"
           className="transition-colors duration-300 hover:text-white"
@@ -213,7 +214,7 @@ export default function HomeHero() {
           aria-hidden
         />
         <a
-          href="https://instagram.com/srilatha_arts"
+          href={SOCIAL.instagram}
           target="_blank"
           rel="noopener noreferrer"
           className="transition-colors duration-300 hover:text-white"

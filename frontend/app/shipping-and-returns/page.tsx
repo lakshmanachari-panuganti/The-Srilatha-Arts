@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Shipping & Returns',
   description: 'How shipping, exchanges and returns work at Srilatha Art.',
+  alternates: { canonical: '/shipping-and-returns/' },
 }
 
 export default function ShippingPage() {

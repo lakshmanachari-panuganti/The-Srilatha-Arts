@@ -16,9 +16,12 @@ import StandaloneFilm from './StandaloneFilm'
  * ActionPanel (Buy Now / Add to Cart / Inquire).
  */
 export const metadata: Metadata = {
-  title: 'The Making of Vermilion Tide — Process Film | Srilatha Art',
+  // Root layout template appends ' · Srilatha Art' — don't include the brand
+  // here or it ends up twice in the final <title>.
+  title: 'The Making of Vermilion Tide — Process Film',
   description:
     'Thirty-two hours of layered resin pour, documented chapter by chapter. Watch the making of Vermilion Tide — handcrafted resin and gold-leaf wall art from the Srilatha Art studio in Hyderabad.',
+  alternates: { canonical: '/process-film/vermilion-tide/' },
   openGraph: {
     title: 'The Making of Vermilion Tide',
     description:

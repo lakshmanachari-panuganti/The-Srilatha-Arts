@@ -82,6 +82,9 @@ export const metadata: Metadata = {
     'Hyderabad artist',
   ],
   authors: [{ name: 'Srilatha' }],
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_IN',

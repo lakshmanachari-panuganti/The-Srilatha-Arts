@@ -6,6 +6,7 @@ import SaleCoupons from './SaleCoupons'
 export const metadata: Metadata = {
   title: 'Sale',
   description: 'Handmade art at special prices.',
+  alternates: { canonical: '/sale/' },
 }
 
 export default function SalePage() {
