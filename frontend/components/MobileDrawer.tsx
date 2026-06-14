@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   X, MessageCircle, Instagram, Sparkles, ShoppingBag, Palette,
-  BookOpen, Mail, ChevronDown, User, LogOut,
+  BookOpen, Mail, ChevronDown, User, LogOut, Home, Heart,
 } from 'lucide-react'
 import { useUI } from '@/stores/ui'
 import { useUserAuth } from '@/stores/userAuth'
@@ -26,6 +26,7 @@ type AccordionItem = {
 type NavItem = LeafItem | AccordionItem
 
 const NAV_ITEMS: NavItem[] = [
+  { kind: 'leaf', href: '/',             label: 'Home',           icon: Home },
   { kind: 'leaf', href: '/custom-order', label: 'Custom Artwork', icon: Sparkles },
   {
     kind: 'accordion',
@@ -188,6 +189,21 @@ export default function MobileDrawer() {
                         Dashboard
                       </span>
                     )}
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/account/wishlist"
+                    onClick={close}
+                    className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
+                               text-ivory hover:bg-white/[0.06] hover:text-lavender-pastel
+                               transition-colors duration-300"
+                  >
+                    <span className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10
+                                     flex items-center justify-center shrink-0">
+                      <Heart className="w-4 h-4 text-lavender-pastel" aria-hidden />
+                    </span>
+                    Wishlist
                   </Link>
                 </li>
                 {authUser && (
