@@ -152,7 +152,7 @@ export default function HomeHero() {
                 </span>
                 <span className="hidden sm:inline w-1 h-1 rounded-full bg-ivory-mute/50" aria-hidden />
                 <span>
-                  <strong className="text-ivory font-semibold">1,200+</strong> pieces shipped
+                  <strong className="text-ivory font-semibold">100+</strong> pieces shipped
                 </span>
                 <span className="hidden sm:inline w-1 h-1 rounded-full bg-ivory-mute/50" aria-hidden />
                 <span>Free shipping above <FreeShippingThreshold /></span>
