@@ -506,6 +506,7 @@ export async function getAllAdmins(): Promise<Row[]> {
 // ─── ANNOUNCEMENTS ───────────────────────────────────────────
 
 export async function listAnnouncements(includeInactive = false): Promise<Row[]> {
+  await ensureTable('announcements')
   const rows = await listAll('announcements')
   const filtered = includeInactive
     ? rows
@@ -520,7 +521,7 @@ export async function listAnnouncements(includeInactive = false): Promise<Row[]>
 }
 
 export async function getAnnouncement(id: string): Promise<Row | null> {
-  const client = getTableClient('announcements')
+  const client = await ensureTable('announcements')
   try {
     return (await client.getEntity('banner', id)) as Row
   } catch (error: any) {
@@ -530,12 +531,12 @@ export async function getAnnouncement(id: string): Promise<Row | null> {
 }
 
 export async function upsertAnnouncement(announcement: Row): Promise<void> {
-  const client = getTableClient('announcements')
+  const client = await ensureTable('announcements')
   await client.upsertEntity(announcement as any, 'Replace')
 }
 
 export async function deleteAnnouncement(id: string): Promise<void> {
-  const client = getTableClient('announcements')
+  const client = await ensureTable('announcements')
   await client.deleteEntity('banner', id)
 }
 
