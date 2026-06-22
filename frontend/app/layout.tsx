@@ -1,29 +1,28 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, DM_Sans, Fraunces, Italianno } from 'next/font/google'
+import { Cormorant_Garamond, DM_Sans, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
 import AnalyticsProvider from '@/components/analytics/AnalyticsProvider'
 
-// ── Typography system ──────────────────────────────────────────────
-// Three Google fonts, each with a clear role. next/font self-hosts at
-// build time, generates fallback metrics to prevent layout shift, and
-// inlines the CSS - no runtime CDN hit, no FOUT beyond the swap.
-//
-//   Cormorant Garamond - `font-serif`. Display + headlines. Variable
-//     weight range with elegant high-contrast capitals (the previous
-//     Aldo face was a single-weight script that produced faux-bold
-//     under font-semibold/bold and looked stiff under uppercase, which
-//     this site uses heavily for h1/h2 + buttons + nav + eyebrows).
-//
-//   DM Sans - `font-sans`. Body, UI, prices, buttons. Variable weight,
-//     proper hinting at small sizes.
-//
-//   Pramukh Rounded - `font-brand`. Reserved for the "Srilatha Art"
-//     wordmark only. Don't use it elsewhere.
+// ── Typography system (AndroAI-inspired canonical) ─────────────────
+//   Plus Jakarta Sans - `font-sans` + `font-display`. Body, UI,
+//     headlines. Full 400/500/600/700/800 weight range.
+//   Cormorant Garamond - `font-serif`. Italic editorial accents only;
+//     no longer the default headline face.
+//   DM Sans - kept as a system fallback for any legacy callers; can
+//     be removed once /theme-preview routes are migrated.
+//   Pramukh Rounded - `font-brand`, "Srilatha Art" wordmark only.
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
+  display: 'swap',
+})
+
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600'],
   style: ['normal', 'italic'],
   variable: '--font-cormorant',
   display: 'swap',
@@ -33,28 +32,6 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-dm-sans',
-  display: 'swap',
-})
-
-// Fraunces — modern variable serif used by Aman / Are.na / Helvetiq.
-// Scoped to a single non-hero surface (kept loaded as a fallback so
-// any inline opt-in still resolves without a network re-fetch). Tight
-// weight set keeps the payload small.
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  style: ['normal'],
-  variable: '--font-fraunces',
-  display: 'swap',
-})
-
-// Italianno — flowing cursive script used on the homepage hero h1
-// (per user reference "Angela White"). Italianno is single-weight
-// (400) — typical of script faces.
-const italianno = Italianno({
-  subsets: ['latin'],
-  weight: ['400'],
-  variable: '--font-italianno',
   display: 'swap',
 })
 
@@ -114,7 +91,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#07080a',
+  themeColor: '#FFFFFF',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -126,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en-IN"
-      className={`${cormorant.variable} ${dmSans.variable} ${fraunces.variable} ${italianno.variable}`}
+      className={`${jakarta.variable} ${cormorant.variable} ${dmSans.variable}`}
     >
       <head>
         {/* Fontshare hosts the Pramukh wordmark face. Open the TLS+TCP +
@@ -195,7 +172,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100]
-                     focus:bg-lavender-pastel focus:text-plum focus:px-4 focus:py-2 focus:rounded-full"
+                     focus:bg-blue focus:text-white focus:px-4 focus:py-2 focus:rounded-full focus:shadow-lavender-glow"
         >
           Skip to content
         </a>

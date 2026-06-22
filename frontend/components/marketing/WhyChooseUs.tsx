@@ -101,15 +101,15 @@ export default function WhyChooseUs() {
                   className="absolute left-0 top-0 bottom-0 w-1"
                   style={{
                     background:
-                      'linear-gradient(180deg, #fef3c7 0%, #facc15 50%, #eab308 100%)',
+                      'linear-gradient(180deg, #2563EB 0%, #6366F1 50%, #06B6D4 100%)',
                   }}
                 />
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center"
                   style={{
-                    background: 'rgba(250,204,21,0.08)',
-                    border: '1px solid rgba(250,204,21,0.25)',
-                    color: 'var(--accent-gold)',
+                    background: 'rgba(37,99,235,0.08)',
+                    border: '1px solid rgba(37,99,235,0.20)',
+                    color: 'var(--accent-blue)',
                   }}
                 >
                   <Icon className="w-6 h-6" />
@@ -154,7 +154,7 @@ export default function WhyChooseUs() {
             className="hidden lg:block absolute top-14 left-[12.5%] right-[12.5%] h-px z-0"
             style={{
               background:
-                'linear-gradient(to right, transparent, rgba(250,204,21,0.40) 18%, rgba(250,204,21,0.40) 82%, transparent)',
+                'linear-gradient(to right, transparent, rgba(37,99,235,0.45) 18%, rgba(99,102,241,0.45) 82%, transparent)',
             }}
           />
           {processSteps.map((step) => {
@@ -175,9 +175,9 @@ export default function WhyChooseUs() {
                     <span
                       className="w-8 h-8 rounded-full flex items-center justify-center"
                       style={{
-                        background: 'rgba(250,204,21,0.08)',
-                        border: '1px solid rgba(250,204,21,0.25)',
-                        color: 'var(--accent-gold)',
+                        background: 'rgba(37,99,235,0.08)',
+                        border: '1px solid rgba(37,99,235,0.20)',
+                        color: 'var(--accent-blue)',
                       }}
                     >
                       <step.icon className="w-4 h-4" />

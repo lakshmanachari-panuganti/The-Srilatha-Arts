@@ -26,15 +26,11 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
 
   const onAdd = (e: React.MouseEvent) => {
     e.preventDefault()
-    // useAddToCart returns false if it redirected to login - no haptic
-    // in that case (the page is unmounting anyway).
     if (addToCart(product)) haptic([12, 30, 12])
   }
 
   const onWish = (e: React.MouseEvent) => {
     e.preventDefault()
-    // Same auth gate as add-to-cart: anonymous users get a toast +
-    // redirect to login, and the add is replayed after sign-in.
     if (toggleWishlist(product)) haptic(10)
   }
 
@@ -42,17 +38,17 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
     <article
       className={cn(
         'group relative',
-        variant === 'carousel' ? 'w-[68vw] sm:w-72 shrink-0 snap-start' : '',
+        variant === 'carousel' ? 'w-[60vw] sm:w-60 shrink-0 snap-start' : '',
       )}
     >
       <Link href={`/product/${product.id}`} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden
-                        bg-gradient-to-b from-plum-warm/80 to-plum-light/60
-                        border border-glass-border
-                        transition-all duration-700
-                        group-hover:border-lavender-pastel/20
-                        group-hover:shadow-lavender-glow"
-             style={{ borderRadius: '24px' }}
+        <div
+          className="relative aspect-square overflow-hidden rounded-2xl
+                     bg-gradient-to-br from-slate-50 to-white
+                     border border-slate-200/80
+                     transition-all duration-500
+                     group-hover:border-blue/30
+                     group-hover:shadow-card-hover"
         >
           <PictureImage
             src={product.images[0]}
@@ -60,51 +56,48 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             fill
             sizes={
               variant === 'carousel'
-                ? '(min-width: 640px) 288px, 68vw'
-                : '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
+                ? '(min-width: 640px) 240px, 60vw'
+                : '(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
             }
             priority={priority}
-            className="object-contain p-6 sm:p-8 transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
           />
 
-          {/*
-            Badges - top-left. Capped at 2 visible to avoid a sticker pile
-            covering the upper-left quadrant of the image. Priority order:
-            Sold Out > discount % > Best Seller > New (the most important
-            commercial signal wins).
-          */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-            {/*
-              Sticker priority: Sold Out > Low stock > discount > Best Seller > New.
-              Capped at 2 visible. Low-stock cue is honest urgency - handcrafted
-              inventory is genuinely limited, so "Only N left" is truthful (audit §3).
-            */}
+          {/* Soft top gradient for badge legibility */}
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-20 pointer-events-none
+                       bg-gradient-to-b from-white/40 to-transparent"
+          />
+
+          {/* Badges - top-left. Capped at 2 visible. */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
             {(() => {
               const badges: React.ReactNode[] = []
               if (!product.inStock) {
                 badges.push(
-                  <span key="oos" className="sticker" style={{ background: 'rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
+                  <span key="oos" className="sticker bg-slate-200 text-slate-700 shadow-none">
                     Sold Out
                   </span>,
                 )
               }
               if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
                 badges.push(
-                  <span key="low" className="sticker" style={{ background: 'linear-gradient(135deg, var(--accent), var(--brand))', color: '#ffffff' }}>
+                  <span key="low" className="sticker">
                     Only {product.stockQty} left
                   </span>,
                 )
               }
               if (badges.length < 2 && pct !== null) {
                 badges.push(
-                  <span key="disc" className="sticker" style={{ background: 'linear-gradient(135deg, var(--brand), var(--accent-strong), var(--accent))', color: '#ffffff' }}>
+                  <span key="disc" className="sticker">
                     −{pct}%
                   </span>,
                 )
               }
               if (badges.length < 2 && product.isBestSeller) {
                 badges.push(
-                  <span key="best" className="sticker" style={{ background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))' }}>
+                  <span key="best" className="sticker">
                     Best Seller
                   </span>,
                 )
@@ -116,83 +109,61 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             })()}
           </div>
 
-          {/*
-            Wishlist heart - moved to a high-contrast pale chip so it pops
-            against the lavender-gradient card. Previous version used a
-            plum-purple chip that visually disappeared into the card.
-          */}
+          {/* Wishlist heart — white pill with soft shadow */}
           <button
             type="button"
             onClick={onWish}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={inWishlist}
-            className="absolute top-3 right-3 w-10 h-10
-                       flex items-center justify-center text-ivory
-                       hover:text-lavender-pastel active:scale-90 transition-all duration-500"
-            style={{
-              borderRadius: '24px',
-              background: 'var(--surface-raised)',
-              border: '1px solid var(--border)',
-              boxShadow: '0 2px 10px color-mix(in srgb, var(--text) 10%, transparent)',
-            }}
+            className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full
+                       flex items-center justify-center
+                       bg-white/95 backdrop-blur border border-slate-200
+                       text-slate-700 hover:text-blue hover:border-blue/40
+                       active:scale-90 transition-all duration-300
+                       shadow-soft"
           >
             <Heart
               className={cn(
-                'w-4 h-4 transition-colors duration-500',
-                inWishlist ? 'fill-lavender-pastel text-lavender-pastel' : 'text-ivory-soft',
+                'w-4 h-4 transition-colors duration-300',
+                inWishlist ? 'fill-blue text-blue' : 'text-slate-500 group-hover:text-blue',
               )}
               aria-hidden
             />
           </button>
 
-          {/*
-            Quick-add. Previously hidden until :hover, which on touch devices
-            meant the button was effectively invisible. Always-visible on
-            every viewport so a customer can add from the grid without
-            committing to a PDP. Hover still nudges it visually on desktop.
-          */}
+          {/* Quick-add — gradient blue circle */}
           <button
             type="button"
             onClick={onAdd}
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
-            className="absolute bottom-3 right-3 w-11 h-11
-                       flex items-center justify-center
-                       opacity-100 lg:opacity-90 lg:group-hover:opacity-100
-                       lg:scale-95 lg:group-hover:scale-100
-                       active:scale-90 transition-all duration-500
+            className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full
+                       flex items-center justify-center text-white
+                       bg-gradient-to-br from-blue to-indigo
+                       shadow-lavender-glow
+                       opacity-100 lg:opacity-0 lg:translate-y-1
+                       lg:group-hover:opacity-100 lg:group-hover:translate-y-0
+                       hover:from-blue-strong hover:to-indigo-strong
+                       active:scale-90 transition-all duration-300
                        disabled:opacity-40 disabled:pointer-events-none"
-            style={{
-              borderRadius: '24px',
-              background: 'var(--accent-gold)',
-              color: 'var(--ink-dark)',
-              boxShadow: 'var(--glow-sm)',
-            }}
           >
-            <Plus className="w-5 h-5" aria-hidden />
+            <Plus className="w-4 h-4" aria-hidden />
           </button>
         </div>
 
-        <div className="pt-4 px-1">
-          <p className="text-10 uppercase tracking-[0.22em] text-ivory-mute mb-1.5">
+        <div className="pt-3 px-0.5">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-1">
             {product.category.replace('-', ' ')}
           </p>
-          {/*
-            Mobile uses DM Sans at 15px - Cormorant at this size on a card
-            reads decoratively where it should read functionally. From the
-            sm breakpoint up, where the card is larger and the title gets
-            real estate, the Cormorant serif comes back. Audit §2.5.
-          */}
-          <h3 className="font-sans text-[15px] tracking-tight
-                         sm:font-serif sm:text-xl sm:tracking-normal
-                         leading-snug text-ivory
-                         line-clamp-2 group-hover:text-lavender-pastel transition-colors duration-500">
+          <h3 className="font-display text-[14px] sm:text-[15px] font-semibold
+                         leading-snug text-slate-900 tracking-tight
+                         line-clamp-2 group-hover:text-blue transition-colors duration-300">
             {product.title}
           </h3>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-ivory font-semibold tabular-nums">{formatINR(product.price)}</span>
+          <div className="flex items-baseline gap-2 mt-1.5">
+            <span className="text-slate-900 font-bold tabular-nums text-[15px]">{formatINR(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-xs text-ivory-mute line-through tabular-nums">
+              <span className="text-xs text-slate-400 line-through tabular-nums">
                 {formatINR(product.compareAtPrice)}
               </span>
             )}

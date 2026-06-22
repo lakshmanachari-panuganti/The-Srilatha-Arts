@@ -91,17 +91,17 @@ export default function StickyCartBar({ product }: { product: Product }) {
           disabled={!product.inStock}
           className="flex-1 h-10 sm:h-11 rounded-full inline-flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
           style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,255,255,0.15)',
+            background: '#FFFFFF',
+            border: '1px solid rgba(15,23,42,0.12)',
             color: 'var(--text-primary)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--accent-gold)'
-            e.currentTarget.style.background = 'rgba(250,204,21,0.06)'
+            e.currentTarget.style.borderColor = 'var(--accent-blue)'
+            e.currentTarget.style.background = 'rgba(37,99,235,0.04)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
-            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.borderColor = 'rgba(15,23,42,0.12)'
+            e.currentTarget.style.background = '#FFFFFF'
           }}
         >
           <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" aria-hidden />

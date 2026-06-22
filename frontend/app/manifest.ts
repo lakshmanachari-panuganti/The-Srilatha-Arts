@@ -11,8 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Resin Art, Lippan Art, Wedding Decor and Handmade Gifts - made by hand in Hyderabad.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#07080a',
-    theme_color: '#07080a',
+    background_color: '#FFFFFF',
+    theme_color: '#FFFFFF',
     orientation: 'portrait',
     categories: ['shopping', 'lifestyle', 'art'],
     icons: [

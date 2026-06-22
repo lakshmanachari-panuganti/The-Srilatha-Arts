@@ -480,7 +480,7 @@ export default function CheckoutClient() {
           contact: res.order.customerPhone,
         },
         notes: { internalOrderId: res.order.id },
-        theme: { color: '#facc15' },
+        theme: { color: '#2563EB' },
         // Explicitly opt every method in. Razorpay shows a method only when
         // it's both enabled on the merchant account AND not set to false
         // here, so this guarantees nothing is being suppressed client-side.

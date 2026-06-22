@@ -3,105 +3,122 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────
-   Typography system
+   Typography system — AndroAI-inspired canonical (2026-06-22)
 
-   Three typefaces, each with a single role:
+   Plus Jakarta Sans     - `font-sans`. Body, UI, prices, buttons,
+                           nav, eyebrows, and headlines. Variable
+                           weight (400/500/600/700/800) so font-medium/
+                           semibold/bold/extrabold are real weights.
 
-     DM Sans            - `font-sans`. Body, UI, prices, buttons,
-                          nav, eyebrows. Variable weight (400/500/
-                          600/700) so font-medium/semibold/bold are
-                          real weights, not faux-bold synthesis.
+   Cormorant Garamond    - `font-serif`. Editorial italic accents and
+                           rare display flourishes. No longer the
+                           default headline face — Jakarta carries
+                           h1-h6 directly for the modern SaaS feel.
 
-     Cormorant Garamond - `font-serif`. Display headlines, italic
-                          accent words, editorial pull-quotes. High-
-                          contrast classical capitals that hold up
-                          under the heavy uppercase usage sitewide.
+   Pramukh Rounded       - `font-brand`. Reserved exclusively for the
+                           "Srilatha Art" wordmark. Do not use it
+                           elsewhere.
 
-     Pramukh Rounded      - `font-brand`. Reserved exclusively for the
-                          "Srilatha Art" wordmark. Do not use it
-                          elsewhere.
-
-   All three are loaded via next/font/google in app/layout.tsx (and Fontshare for brand) and
-   exposed as CSS variables (--font-dm-sans, --font-cormorant). next/font self-hosts at build time, generates
+   All loaded via next/font/google in app/layout.tsx (and Fontshare
+   for brand) and exposed as CSS variables (--font-jakarta,
+   --font-cormorant). next/font self-hosts at build time, generates
    fallback metrics to prevent CLS, and inlines the font CSS.
-
-   Feature settings (kerning + common ligatures) stay on the html
-   element below. Tabular figures still get opted-in on a per-
-   component basis via the .tabular-nums utility for prices /
-   totals / line-up grids.
    ───────────────────────────────────────────────────────────── */
 
 @layer base {
   :root {
     /* ══════════════════════════════════════════════════════════
-       PREMIUM OBSIDIAN & CYBER GOLD THEME
-       60-30-10 rule:
-         60%  Immersive obsidian foundation
-         30%  Liquid glassmorphism surfaces (mobile-guarded)
-         10%  Cyber gold luminous accents
+       ANDROAI-INSPIRED BRIGHT THEME
+         Foundation:  off-white slate-50 canvas, white surfaces
+         Accents:     royal blue → indigo gradient, cyan highlight
+         Type:        Plus Jakarta Sans, slate-900 ink
 
        Legacy custom-property names (--surface, --text, --brand,
-       --accent, …) are intentionally preserved and remapped so
-       the ~200 component call sites resolve to obsidian/gold
-       values without per-component edits. Tailwind aliases in
-       tailwind.config.ts read these same names.
+       --accent, --accent-gold, …) are intentionally preserved and
+       remapped so the ~200 component call sites resolve to the new
+       bright palette without per-component edits. Tailwind aliases
+       in tailwind.config.ts read the same names.
        ══════════════════════════════════════════════════════════ */
 
-    /* ── 60%  Obsidian foundation ────────────────────────────── */
-    --bg-main:      #07080a;            /* deep base canvas */
-    --bg-main-rgb:  7 8 10;
-    --bg-surface:   #101216;            /* structural sections, headers */
-    --bg-surface-rgb: 16 18 22;
-    --bg-card:      #15181e;            /* default panel container */
-    --bg-card-rgb:  21 24 30;
-    --bg-input:     #0d0f12;            /* form wells and fields */
-    --bg-input-rgb: 13 15 18;
+    /* ── Foundation — bright canvas ──────────────────────────── */
+    --bg-main:        #F8FAFC;          /* slate-50 base canvas */
+    --bg-main-rgb:    248 250 252;
+    --bg-surface:     #FFFFFF;          /* sections, headers */
+    --bg-surface-rgb: 255 255 255;
+    --bg-card:        #FFFFFF;          /* default panel container */
+    --bg-card-rgb:    255 255 255;
+    --bg-input:       #FFFFFF;          /* form wells */
+    --bg-input-rgb:   255 255 255;
 
-    /* Mobile solid fallback for glass surfaces (no backdrop-blur) */
-    --bg-glass-fallback:     #12141c;
-    --bg-glass-fallback-rgb: 18 20 28;
+    /* Mobile solid fallback for glass surfaces */
+    --bg-glass-fallback:     #FFFFFF;
+    --bg-glass-fallback-rgb: 255 255 255;
 
-    /* ── 30%  Glass surface system ───────────────────────────── */
-    --glass-bg:          rgba(16, 18, 22, 0.65);
-    --glass-border:      rgba(255, 255, 255, 0.05);
-    --glass-border-glow: rgba(250, 204, 21, 0.15);
+    /* ── Glass surface — frosted white (desktop only) ────────── */
+    --glass-bg:          rgba(255, 255, 255, 0.72);
+    --glass-border:      rgba(15, 23, 42, 0.06);
+    --glass-border-glow: rgba(37, 99, 235, 0.18);
 
-    /* ── 10%  Cyber gold accent ──────────────────────────────── */
-    --accent-gold:        #facc15;       /* high-energy interactive yellow */
-    --accent-gold-rgb:    250 204 21;
-    --accent-gold-hover:  #eab308;       /* deepened active state */
-    --accent-gold-hover-rgb: 234 179 8;
-    --ink-dark:           #07080a;       /* AA contrast text on gold fills */
-    --ink-dark-rgb:       7 8 10;
+    /* ── Accents — royal blue + indigo + cyan ────────────────── */
+    --accent-blue:        #2563EB;       /* primary CTA, AndroAI signature */
+    --accent-blue-rgb:    37 99 235;
+    --accent-blue-hover:  #1D4ED8;       /* deepened active state */
+    --accent-blue-hover-rgb: 29 78 216;
+    --accent-indigo:      #6366F1;       /* gradient stop, secondary accent */
+    --accent-indigo-rgb:  99 102 241;
+    --accent-indigo-hover:#4F46E5;
+    --accent-indigo-hover-rgb: 79 70 229;
+    --accent-cyan:        #06B6D4;       /* highlight / focus tint */
+    --accent-cyan-rgb:    6 182 212;
+    --ink-light:          #FFFFFF;       /* AA contrast text on blue fills */
+    --ink-light-rgb:      255 255 255;
 
-    /* ── Typography layer ────────────────────────────────────── */
-    --text-primary:     #ffffff;         /* 100% crisp white headings */
-    --text-primary-rgb: 255 255 255;
-    --text-secondary:   #94a3b8;         /* slate-400 body */
-    --text-secondary-rgb: 148 163 184;
-    --text-muted:       #64748b;         /* slate-500 captions, metadata */
+    /* Legacy gold names re-routed to the new blue accent. Keep so
+       existing .btn-dark / .btn-resin / .btn-glow-gold call sites
+       still resolve correctly. */
+    --accent-gold:        var(--accent-blue);
+    --accent-gold-rgb:    var(--accent-blue-rgb);
+    --accent-gold-hover:  var(--accent-blue-hover);
+    --accent-gold-hover-rgb: var(--accent-blue-hover-rgb);
+    --ink-dark:           var(--ink-light);
+    --ink-dark-rgb:       var(--ink-light-rgb);
+
+    /* ── Typography ──────────────────────────────────────────── */
+    --text-primary:     #0F172A;         /* slate-900 headings + primary body */
+    --text-primary-rgb: 15 23 42;
+    --text-secondary:   #334155;         /* slate-700 body */
+    --text-secondary-rgb: 51 65 85;
+    --text-muted:       #64748B;         /* slate-500 captions, metadata */
     --text-muted-rgb:   100 116 139;
 
-    /* ── Semantic glow tiers (gold-default) ──────────────────── */
-    --glow-sm: 0 0 12px rgba(250, 204, 21, 0.40);
-    --glow-md: 0 0 24px rgba(250, 204, 21, 0.30);
-    --glow-lg: 0 0 40px rgba(250, 204, 21, 0.20),
-               0 0 12px rgba(250, 204, 21, 0.40);
+    /* ── Glow tiers (blue-routed) ────────────────────────────── */
+    --glow-sm: 0 4px 14px rgba(37, 99, 235, 0.22);
+    --glow-md: 0 8px 28px rgba(37, 99, 235, 0.20);
+    --glow-lg: 0 18px 48px rgba(37, 99, 235, 0.22),
+               0 4px 14px rgba(99, 102, 241, 0.18);
 
-    /* ── Functional status glows ─────────────────────────────── */
+    /* ── Soft elevation shadows ──────────────────────────────── */
+    --shadow-card:       0 1px 2px rgba(15, 23, 42, 0.04),
+                         0 8px 24px -8px rgba(15, 23, 42, 0.10);
+    --shadow-card-hover: 0 2px 4px rgba(15, 23, 42, 0.05),
+                         0 18px 40px -12px rgba(15, 23, 42, 0.18);
+    --shadow-nav:        0 1px 0 rgba(15, 23, 42, 0.04),
+                         0 8px 24px -12px rgba(15, 23, 42, 0.10);
+
+    /* ── Functional status (unchanged) ───────────────────────── */
     --ok:         #22c55e;
     --ok-rgb:     34 197 94;
-    --ok-glow:    0 0 20px rgba(34, 197, 94, 0.40);
+    --ok-glow:    0 0 20px rgba(34, 197, 94, 0.30);
     --danger:     #ef4444;
     --danger-rgb: 239 68 68;
-    --danger-glow:0 0 20px rgba(239, 68, 68, 0.40);
+    --danger-glow:0 0 20px rgba(239, 68, 68, 0.30);
     --wa-1:       #25D366;
     --wa-2:       #128C7E;
 
     /* ══════════════════════════════════════════════════════════
-       LEGACY ALIAS LAYER — keeps existing class names resolving.
-       Do not consume these in new code; reach for the obsidian
-       tokens above directly.
+       LEGACY ALIAS LAYER — keeps existing class names resolving
+       against the new bright palette. Do not consume these in
+       new code; reach for the named tokens above directly.
        ══════════════════════════════════════════════════════════ */
 
     /* Surface aliases */
@@ -112,64 +129,63 @@
     --surface-sunken:     var(--bg-surface);
     --surface-sunken-rgb: var(--bg-surface-rgb);
 
-    /* Text aliases — body now slate-400, muted now slate-500 */
+    /* Text aliases */
     --text:           var(--text-primary);
     --text-rgb:       var(--text-primary-rgb);
     --text-body:      var(--text-secondary);
     --text-body-rgb:  var(--text-secondary-rgb);
-    --text-muted-old: var(--text-muted);   /* avoid self-reference */
-    --text-dark:      var(--ink-dark);
-    --text-dark-rgb:  var(--ink-dark-rgb);
+    --text-muted-old: var(--text-muted);
+    --text-dark:      var(--text-primary);
+    --text-dark-rgb:  var(--text-primary-rgb);
 
-    /* Brand + accent aliases — both now route to cyber gold */
-    --brand:              var(--accent-gold);
-    --brand-rgb:          var(--accent-gold-rgb);
-    --brand-strong:       var(--accent-gold-hover);
-    --brand-strong-rgb:   var(--accent-gold-hover-rgb);
-    --accent:             var(--accent-gold);
-    --accent-rgb:         var(--accent-gold-rgb);
-    --accent-strong:      var(--accent-gold-hover);
-    --accent-strong-rgb:  var(--accent-gold-hover-rgb);
+    /* Brand + accent aliases — route to royal blue */
+    --brand:              var(--accent-blue);
+    --brand-rgb:          var(--accent-blue-rgb);
+    --brand-strong:       var(--accent-blue-hover);
+    --brand-strong-rgb:   var(--accent-blue-hover-rgb);
+    --accent:             var(--accent-blue);
+    --accent-rgb:         var(--accent-blue-rgb);
+    --accent-strong:      var(--accent-indigo);
+    --accent-strong-rgb:  var(--accent-indigo-rgb);
 
     /* Borders / rings */
     --border:  var(--glass-border);
-    --ring:    var(--accent-gold);
+    --ring:    var(--accent-blue);
 
-    /* Legacy orchid/coral micro-accents — rerouted to gold so any
-       stray reference reads as on-brand instead of off-palette. */
-    --orchid:         var(--accent-gold);
-    --orchid-rgb:     var(--accent-gold-rgb);
+    /* Legacy orchid/coral micro-accents — rerouted to indigo */
+    --orchid:         var(--accent-indigo);
+    --orchid-rgb:     var(--accent-indigo-rgb);
     --coral:          var(--danger);
     --coral-rgb:      var(--danger-rgb);
-    --terracotta:     var(--accent-gold-hover);
-    --terracotta-rgb: var(--accent-gold-hover-rgb);
+    --terracotta:     var(--accent-indigo-hover);
+    --terracotta-rgb: var(--accent-indigo-hover-rgb);
 
-    /* Legacy *-glow tokens — all gold-routed */
-    --lav-glow:    rgba(250, 204, 21, 0.55);
-    --orchid-glow: rgba(250, 204, 21, 0.45);
-    --coral-glow:  rgba(239, 68, 68, 0.55);
-    --gold-glow:   rgba(250, 204, 21, 0.55);
+    /* Legacy *-glow tokens — blue-routed */
+    --lav-glow:    rgba(37, 99, 235, 0.40);
+    --orchid-glow: rgba(99, 102, 241, 0.40);
+    --coral-glow:  rgba(239, 68, 68, 0.40);
+    --gold-glow:   rgba(37, 99, 235, 0.40);
 
-    /* Gloss surface system — pulled into the obsidian palette */
-    --gloss-bg:        rgba(255,255,255,0.05);
-    --gloss-bg-hi:     rgba(255,255,255,0.09);
+    /* Gloss surface system */
+    --gloss-bg:        rgba(255, 255, 255, 0.65);
+    --gloss-bg-hi:     rgba(255, 255, 255, 0.85);
     --gloss-border:    var(--glass-border);
     --gloss-border-hi: var(--glass-border-glow);
-    --gloss-sheen:     rgba(255,255,255,0.12);
+    --gloss-sheen:     rgba(255, 255, 255, 0.95);
 
     /* ── Layout heights ──────────────────────────────────────── */
     --banner-h: 0px;
     --header-h: 64px;
 
-    /* ── v2 motion primitives ────────────────────────────────── */
-    --gold-leaf:      #fbbf24;
-    --gold-deep:      #d97706;
-    --mandala-stroke: rgba(251,191,36,0.55);
-    --ink-veil:       rgba(20,10,40,0.92);
+    /* ── Motion primitives ───────────────────────────────────── */
+    --gold-leaf:      var(--accent-indigo);
+    --gold-deep:      var(--accent-blue-hover);
+    --mandala-stroke: rgba(37, 99, 235, 0.45);
+    --ink-veil:       rgba(15, 23, 42, 0.06);
     --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-pour:      cubic-bezier(0.83, 0, 0.17, 1);
     --ease-gallery:   cubic-bezier(0.65, 0, 0.35, 1);
-    --dur-reveal:     900ms;
+    --dur-reveal:     800ms;
     --dur-pour:      1200ms;
     --dur-wipe:       700ms;
   }
@@ -185,7 +201,7 @@
   }
 
   body {
-    font-family: var(--font-dm-sans, 'Inter', system-ui, sans-serif);
+    font-family: var(--font-jakarta, 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif);
     background-color: var(--bg-main);
     color: var(--text-primary);
     min-height: 100svh;
@@ -198,28 +214,28 @@
     font-variant-numeric: lining-nums;
   }
 
-  /* Subtle vignette + gold pinprick texture on desktop */
+  /* Soft blue aura behind the page on desktop. Keeps the bright
+     canvas from reading flat against deep imagery. */
   @media (min-width: 769px) {
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(120% 80% at 50% -20%, rgba(250,204,21,0.06), transparent 55%),
-        radial-gradient(80% 60% at 50% 120%, rgba(250,204,21,0.04), transparent 60%);
+        radial-gradient(60% 50% at 50% -10%, rgba(37, 99, 235, 0.07), transparent 60%),
+        radial-gradient(50% 40% at 100% 0%, rgba(99, 102, 241, 0.06), transparent 65%),
+        radial-gradient(60% 40% at 0% 110%, rgba(6, 182, 212, 0.05), transparent 60%);
       pointer-events: none;
-      z-index: 1;
+      z-index: 0;
     }
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-cormorant, 'Cormorant Garamond', Georgia, serif);
-    font-weight: 500;
+    font-family: var(--font-jakarta, 'Plus Jakarta Sans', system-ui, sans-serif);
+    font-weight: 700;
     color: var(--text-primary);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     text-wrap: balance;
-    /* Readability shield — keeps headings crisp over glassy panels */
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   }
 
   p {
@@ -240,7 +256,7 @@
   }
 
   input, textarea {
-    caret-color: var(--accent-gold);
+    caret-color: var(--accent-blue);
   }
 
   ::placeholder {
@@ -249,7 +265,7 @@
   }
 
   ::selection {
-    background: rgba(250, 204, 21, 0.30);
+    background: rgba(37, 99, 235, 0.18);
     color: var(--text-primary);
   }
 
@@ -257,15 +273,14 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Custom scrollbar — gold-tinted on obsidian track */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg-surface); }
+  /* Custom scrollbar — slate track, blue thumb */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-main); }
   ::-webkit-scrollbar-thumb {
-    background: var(--accent-gold);
-    border-radius: 3px;
-    box-shadow: 0 0 6px rgba(250, 204, 21, 0.50);
+    background: rgba(37, 99, 235, 0.40);
+    border-radius: 4px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold-hover); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.65); }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -287,55 +302,54 @@
     gap: 0.5rem;
     font-size: 11px;
     text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    color: var(--brand);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--accent-blue);
   }
   @media (min-width: 640px) {
-    .eyebrow { letter-spacing: 0.24em; }
+    .eyebrow { letter-spacing: 0.22em; }
   }
 
   .section-no {
-    font-family: var(--font-cormorant, serif);
-    font-size: 1rem;
-    color: rgba(255,255,255,0.45);
-    font-weight: 600;
+    font-family: var(--font-jakarta, sans-serif);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
     letter-spacing: 0.32em;
   }
 
   .display {
-    font-family: var(--font-cormorant, 'Cormorant Garamond', serif);
-    font-weight: 500;
-    color: #ffffff;
-    line-height: 1.1;
-    letter-spacing: 0.02em;
+    font-family: var(--font-jakarta, system-ui, sans-serif);
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
     text-wrap: balance;
   }
 
   .lede {
-    font-size: 1rem;
+    font-size: 1.0625rem;
     line-height: 1.7;
-    color: rgba(255,255,255,0.80);
+    color: var(--text-secondary);
     font-weight: 400;
     text-wrap: pretty;
   }
 
   /* ───────────── Buttons ───────────── */
 
-  /* Base button — all variants share geometry */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 3rem;
-    padding: 0 1.75rem;
-    font-size: 0.875rem;
+    min-height: 2.875rem;
+    padding: 0 1.5rem;
+    font-size: 0.9375rem;
     font-weight: 600;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
+    letter-spacing: -0.005em;
+    text-transform: none;
     border-radius: 999px;
-    transition: all 400ms cubic-bezier(0.22,1,0.36,1);
+    transition: all 300ms cubic-bezier(0.22, 1, 0.36, 1);
     position: relative;
     overflow: hidden;
     isolation: isolate;
@@ -343,108 +357,96 @@
     border: none;
   }
   .btn:focus-visible {
-    outline: 2px solid var(--brand);
+    outline: 2px solid var(--accent-blue);
     outline-offset: 2px;
   }
   .btn:active { transform: translateY(0) scale(0.98); }
   .btn:disabled { opacity: 0.5; pointer-events: none; }
 
-  /* Glossy inner cap shared by all filled buttons */
-  .btn::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 55% 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.04) 100%);
-    pointer-events: none;
-    z-index: 1;
-    border-radius: inherit;
-  }
-
-  /* ── Primary CTA — Cyber Gold ──────────────
-     Spec: --accent-gold fill, --ink-dark text, baseline --glow-sm.
-     Hover: translateY(-3px), bg → --accent-gold-hover, shadow → --glow-lg. */
+  /* ── Primary CTA — gradient blue → indigo ──
+     Hover: lift -2px, deepen gradient, expand glow. */
   .btn-dark {
     @apply btn;
-    background: var(--accent-gold);
-    color: var(--ink-dark);
-    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 100%);
+    color: var(--ink-light);
+    font-weight: 600;
     box-shadow: var(--glow-sm);
-    transition:
-      background-color 350ms ease,
-      box-shadow 350ms ease,
-      transform 300ms cubic-bezier(0.22,1,0.36,1);
   }
   .btn-dark:hover {
-    background: var(--accent-gold-hover);
-    transform: translateY(-3px);
+    background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-indigo-hover) 100%);
+    transform: translateY(-2px);
     box-shadow: var(--glow-lg);
   }
   .btn-dark:active { transform: translateY(0); }
 
   /* ── Secondary / Outline ──────────────────
-     Spec: transparent bg, 1px rgba(255,255,255,0.15) border.
-     Hover: border → --accent-gold + subtle gold glow. */
+     Slate hairline, blue hover ring. */
   .btn-outline {
     @apply btn;
-    background: transparent;
+    background: var(--bg-surface);
     color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: none;
-    transition:
-      border-color 350ms ease,
-      background-color 350ms ease,
-      box-shadow 350ms ease,
-      transform 300ms cubic-bezier(0.22,1,0.36,1);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   }
   .btn-outline:hover {
-    border-color: var(--accent-gold);
-    background: rgba(250, 204, 21, 0.06);
+    border-color: var(--accent-blue);
+    background: rgba(37, 99, 235, 0.04);
+    color: var(--accent-blue);
     transform: translateY(-2px);
     box-shadow: var(--glow-sm);
   }
   .btn-outline:active { transform: translateY(0); }
 
-  /* ── Legacy .btn-resin alias — inherits primary CTA spec.
-     Kept so existing components don't break; new code should
-     reach for .btn-dark directly. */
-  .btn-resin {
+  /* Legacy .btn-resin alias — same primary CTA spec. */
+  .btn-resin,
+  .btn-glow-gold {
     @apply btn;
-    background: var(--accent-gold);
-    color: var(--ink-dark);
-    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 100%);
+    color: var(--ink-light);
+    font-weight: 600;
     box-shadow: var(--glow-sm);
-    transition:
-      background-color 350ms ease,
-      box-shadow 350ms ease,
-      transform 300ms cubic-bezier(0.22,1,0.36,1);
   }
-  .btn-resin:hover {
-    background: var(--accent-gold-hover);
-    transform: translateY(-3px);
+  .btn-resin:hover,
+  .btn-glow-gold:hover {
+    background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-indigo-hover) 100%);
+    transform: translateY(-2px);
     box-shadow: var(--glow-lg);
   }
-  .btn-resin:active { transform: translateY(0); }
-  .btn-resin::after,
-  .btn-resin:hover::after,
-  .btn-resin:focus-visible::after { display: none; }
+  .btn-resin:active,
+  .btn-glow-gold:active { transform: translateY(0); }
 
-  /* ── Text link — gold, underlined ────────── */
+  .btn-glow-gold-outline {
+    @apply btn;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .btn-glow-gold-outline:hover {
+    border-color: var(--accent-blue);
+    background: rgba(37, 99, 235, 0.04);
+    color: var(--accent-blue);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-sm);
+  }
+  .btn-glow-gold-outline:active { transform: translateY(0); }
+
+  /* ── Text link — blue, underlined ────────── */
   .btn-link {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--accent-gold);
-    border-bottom: 1px solid rgba(250, 204, 21, 0.40);
-    padding-bottom: 0.25rem;
-    transition: all 350ms ease;
-    letter-spacing: 0.01em;
+    color: var(--accent-blue);
+    border-bottom: 1px solid rgba(37, 99, 235, 0.40);
+    padding-bottom: 0.125rem;
+    transition: all 250ms ease;
+    letter-spacing: -0.005em;
   }
   .btn-link:hover {
-    color: var(--accent-gold-hover);
-    border-bottom-color: var(--accent-gold);
-    text-shadow: 0 0 8px rgba(250, 204, 21, 0.40);
+    color: var(--accent-blue-hover);
+    border-bottom-color: var(--accent-blue);
   }
 
   /* ── Editorial arrow link ─────────────── */
@@ -456,90 +458,44 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: rgba(255,255,255,0.86);
-    transition: all 500ms;
+    color: var(--text-secondary);
+    transition: all 350ms;
   }
-  .btn-editorial:hover { color: #ffffff; gap: 1.25rem; }
+  .btn-editorial:hover { color: var(--accent-blue); gap: 1.25rem; }
   .btn-editorial::after {
     content: '';
     width: 28px; height: 1px;
     background: currentColor;
     opacity: 0.7;
-    transition: width 400ms cubic-bezier(0.22,1,0.36,1);
+    transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .btn-editorial:hover::after { width: 44px; }
 
   /* ───────────── Cards & surfaces ───────────── */
 
-  /* Obsidian card with glass surface on desktop.
-     Mobile (<1024px): solid obsidian fallback, no backdrop blur.
-     ≥1024px:          true glass with backdrop-filter. */
   .card {
-    background: var(--bg-glass-fallback);
+    background: var(--bg-card);
     border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.04),
-      inset 0 -1px 0 rgba(0,0,0,0.40),
-      0 16px 48px rgba(0,0,0,0.55),
-      0 4px 12px rgba(0,0,0,0.30);
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
     position: relative;
     overflow: hidden;
-    transition: transform 450ms cubic-bezier(0.22,1,0.36,1),
-                box-shadow 450ms cubic-bezier(0.22,1,0.36,1),
-                border-color 450ms;
+    transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 350ms;
   }
-  @media (min-width: 1024px) {
-    .card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-    }
-  }
-  /* Glossy top-cap sheen */
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 60% 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 100%);
-    pointer-events: none;
-    z-index: 1;
-    border-radius: inherit;
-  }
-  /* Diagonal light sweep on hover */
-  .card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(115deg,
-      transparent 30%,
-      rgba(255,255,255,0.18) 48%,
-      rgba(255,255,255,0.08) 52%,
-      transparent 70%);
-    background-size: 220% 100%;
-    background-position: -80% 0;
-    transition: background-position 0.8s cubic-bezier(0.22,1,0.36,1);
-    pointer-events: none;
-    z-index: 2;
-    border-radius: inherit;
-  }
-  .card > * { position: relative; z-index: 3; }
+  .card > * { position: relative; z-index: 1; }
   .card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-4px);
     border-color: var(--glass-border-glow);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.06),
-      inset 0 -1px 0 rgba(0,0,0,0.30),
-      0 28px 64px rgba(0,0,0,0.70),
-      0 0 0 1px rgba(250,204,21,0.18),
-      var(--glow-md);
+    box-shadow: var(--shadow-card-hover);
   }
-  .card:hover::after { background-position: 180% 0; }
 
   .card-cream {
-    border-radius: 16px;
-    background: var(--glass-bg);
+    border-radius: 20px;
+    background: var(--bg-card);
     border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-card);
   }
 
   /* Sticker / pill badge */
@@ -550,11 +506,11 @@
     font-size: 10px;
     text-transform: uppercase;
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.14em;
     padding: 0.375rem 0.75rem;
     border-radius: 999px;
-    background: var(--accent-gold);
-    color: var(--ink-dark);
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+    color: var(--ink-light);
     box-shadow: var(--glow-sm);
   }
 
@@ -572,50 +528,34 @@
   .chip-rail::-webkit-scrollbar { display: none; }
   .chip-rail > * { scroll-snap-align: start; flex-shrink: 0; }
 
-  /* Glossy chips — solid on mobile, frosted on desktop only */
   .chip {
     display: inline-flex;
     align-items: center;
     height: 2.5rem;
-    padding: 0 1.25rem;
+    padding: 0 1.125rem;
     font-size: 0.875rem;
     font-weight: 500;
     border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.15);
-    background: var(--bg-glass-fallback);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    background: var(--bg-surface);
     color: var(--text-secondary);
     position: relative;
     overflow: hidden;
-    transition: all 0.3s;
+    transition: all 0.25s ease;
     cursor: pointer;
   }
-  @media (min-width: 1024px) {
-    .chip {
-      background: rgba(255,255,255,0.04);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-  }
-  .chip::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 52% 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
-    pointer-events: none;
-    border-radius: inherit;
-  }
   .chip:hover {
-    border-color: var(--accent-gold);
-    background: rgba(250,204,21,0.08);
-    color: var(--text-primary);
-    transform: translateY(-2px);
+    border-color: var(--accent-blue);
+    background: rgba(37, 99, 235, 0.04);
+    color: var(--accent-blue);
+    transform: translateY(-1px);
     box-shadow: var(--glow-sm);
   }
   .chip[aria-current='page'],
   .chip.is-active {
-    background: var(--accent-gold);
-    border-color: var(--accent-gold);
-    color: var(--ink-dark);
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+    border-color: transparent;
+    color: var(--ink-light);
     font-weight: 600;
     box-shadow: var(--glow-md);
   }
@@ -626,94 +566,79 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
-  /* Editorial rule — gold gradient hairline */
+  /* Editorial rule — blue hairline */
   .rule {
     height: 1px;
     background: linear-gradient(to right,
       transparent,
-      rgba(250,204,21,0.55),
-      rgba(250,204,21,0.30),
+      rgba(37, 99, 235, 0.45),
+      rgba(99, 102, 241, 0.30),
       transparent);
   }
 
   /* ───────────── Glass surface system ─────────────
-     Liquid glassmorphism — desktop only. Mobile renders
-     a solid obsidian fallback for paint cost. Standard
-     16px radius across the system. */
+     Frosted white — desktop only. Mobile renders a
+     solid white fallback for paint cost.
+     Standard 20px radius across the system. */
 
   .glass {
     background: var(--bg-glass-fallback);
     border: 1px solid var(--glass-border);
-    border-radius: 16px;
+    border-radius: 20px;
     position: relative;
     overflow: hidden;
   }
   @media (min-width: 1024px) {
     .glass {
       background: var(--glass-bg);
-      backdrop-filter: blur(18px) saturate(160%);
-      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
     }
   }
-  .glass::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 55% 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
-    pointer-events: none;
-    z-index: 1;
-    border-radius: inherit;
-  }
-  .glass > * { position: relative; z-index: 2; }
+  .glass > * { position: relative; z-index: 1; }
 
   .glass-strong {
-    background: var(--bg-glass-fallback);
-    border: 1px solid var(--glass-border-glow);
-    border-radius: 16px;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.05),
-      0 8px 32px rgba(0,0,0,0.50);
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-nav);
   }
   @media (min-width: 1024px) {
     .glass-strong {
-      background: rgba(16,18,22,0.75);
+      background: rgba(255, 255, 255, 0.82);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
   }
 
-  /* Hover lift — gold halo + lift */
+  /* Hover lift — blue halo */
   .glow-hover {
-    transition: box-shadow 500ms ease, transform 500ms ease;
+    transition: box-shadow 350ms ease, transform 350ms ease;
   }
   .glow-hover:hover {
-    box-shadow:
-      0 12px 28px -8px rgba(0,0,0,0.55),
-      0 0 0 1px rgba(250,204,21,0.30),
-      var(--glow-sm);
+    box-shadow: var(--shadow-card-hover),
+                0 0 0 1px rgba(37, 99, 235, 0.18);
     transform: translateY(-3px);
   }
 
-  /* Kolam decorative dots — now gold-tinted */
+  /* Kolam decorative dots — blue-tinted */
   .kolam-dots {
-    background-image: radial-gradient(circle, rgba(250,204,21,0.30) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(37, 99, 235, 0.18) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
-  /* ───────────── Liquid Resin Material System (v2) ─────────────
-     Glossy resin plate for artwork hero areas.
-     White specular cap + animated diagonal gold-white sweep. */
+  /* ───────────── Resin plate (artwork hero areas) ───────────── */
 
   .resin-plate {
     position: relative;
-    border-radius: 4px;
-    background: rgba(255,255,255,0.08);
+    border-radius: 16px;
+    background: var(--bg-surface);
     overflow: hidden;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.38),
-      0 0 0 1px rgba(255,255,255,0.12),
-      0 30px 60px -22px rgba(0,0,0,0.55),
-      0 60px 120px -40px rgba(0,0,0,0.40);
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      0 0 0 1px rgba(15, 23, 42, 0.06),
+      0 24px 60px -22px rgba(15, 23, 42, 0.20),
+      0 60px 120px -40px rgba(37, 99, 235, 0.12);
     isolation: isolate;
   }
   .resin-plate::before {
@@ -723,13 +648,12 @@
     height: 40%;
     background: linear-gradient(
       180deg,
-      rgba(255,255,255,0.22) 0%,
-      rgba(255,255,255,0.05) 45%,
+      rgba(37, 99, 235, 0.06) 0%,
+      rgba(99, 102, 241, 0.02) 45%,
       transparent 100%
     );
     pointer-events: none;
     z-index: 3;
-    mix-blend-mode: screen;
   }
   .resin-plate::after {
     content: '';
@@ -738,8 +662,8 @@
     background: linear-gradient(
       115deg,
       transparent 35%,
-      rgba(250,204,21,0.22) 48%,
-      rgba(255,255,255,0.12) 52%,
+      rgba(37, 99, 235, 0.18) 48%,
+      rgba(99, 102, 241, 0.10) 52%,
       transparent 65%
     );
     background-size: 220% 220%;
@@ -758,7 +682,6 @@
     .resin-plate::after { animation: none; }
   }
 
-  /* Cursor-reactive specular */
   .resin-specular {
     position: absolute;
     inset: 0;
@@ -766,146 +689,96 @@
     z-index: 5;
     background: radial-gradient(
       260px circle at var(--rx, 50%) var(--ry, 35%),
-      rgba(255,255,255,0.22) 0%,
-      rgba(250,204,21,0.14) 22%,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(37, 99, 235, 0.10) 28%,
       transparent 55%
     );
     mix-blend-mode: soft-light;
-    transition: background 600ms cubic-bezier(0.22,1,0.36,1);
+    transition: background 600ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* ── Cyber gold display text ──────────────────────────── */
+  /* ── Gradient text — replaces legacy gold-text ──────────── */
   .gold-text {
-    background: linear-gradient(135deg, #fef3c7 0%, #facc15 45%, #eab308 100%);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 50%, var(--accent-cyan) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: var(--accent-gold);
-    text-shadow: 0 0 24px rgba(250, 204, 21, 0.30);
+    color: var(--accent-blue);
   }
   @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-    .gold-text { color: var(--accent-gold); }
+    .gold-text { color: var(--accent-blue); }
   }
 
-  /* ── Gold text glow accent — replaces legacy .lavender-text ── */
   .lavender-text,
   .gold-text-glow {
-    color: var(--accent-gold);
-    text-shadow: 0 0 20px rgba(250, 204, 21, 0.50);
+    color: var(--accent-blue);
   }
 
-  /* ───────────── Premium form inputs ───────────────────
-     Dark fill, hairline rgba border, gold focus ring +
-     soft glow. Replaces bg-white/grey input chrome.
-     Use on text inputs, selects, textareas, file pickers. */
+  /* ───────────── Premium form inputs ─────────────────── */
   .form-input {
     width: 100%;
     background: var(--bg-input);
     color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(15, 23, 42, 0.10);
     border-radius: 12px;
     padding: 0.75rem 0.875rem;
     font-size: 0.9375rem;
     line-height: 1.5;
     transition:
-      border-color 250ms ease,
-      box-shadow 250ms ease,
-      background-color 250ms ease;
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      background-color 200ms ease;
   }
   .form-input::placeholder {
     color: var(--text-muted);
   }
   .form-input:hover {
-    border-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(15, 23, 42, 0.18);
   }
   .form-input:focus,
   .form-input:focus-visible {
     outline: none;
-    border-color: var(--accent-gold);
+    border-color: var(--accent-blue);
     background: var(--bg-input);
     box-shadow:
-      0 0 0 3px rgba(250, 204, 21, 0.12),
-      0 0 12px rgba(250, 204, 21, 0.20);
+      0 0 0 3px rgba(37, 99, 235, 0.14),
+      0 1px 2px rgba(15, 23, 42, 0.04);
   }
   .form-input:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  /* Native select arrow contrast on dark backdrop */
   select.form-input {
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' fill='none' stroke='%2364748B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
     background-repeat: no-repeat;
     background-position: right 0.875rem center;
     padding-right: 2.25rem;
   }
-  /* Eyebrow label above a form input */
   .form-label {
     display: block;
     font-size: 0.6875rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--text-muted);
     margin-bottom: 0.5rem;
   }
 
-  /* ───────────── Focal CTA primitives ──────────────────
-     Aliases that keep older marketing code paths working.
-     Both now inherit the canonical primary/secondary spec. */
-
-  .btn-glow-gold {
-    @apply btn;
-    background: var(--accent-gold);
-    color: var(--ink-dark);
-    font-weight: 700;
-    box-shadow: var(--glow-sm);
-    transition:
-      background-color 350ms ease,
-      box-shadow 350ms ease,
-      transform 300ms cubic-bezier(0.22,1,0.36,1);
-  }
-  .btn-glow-gold:hover {
-    background: var(--accent-gold-hover);
-    transform: translateY(-3px);
-    box-shadow: var(--glow-lg);
-  }
-  .btn-glow-gold:active { transform: translateY(0); }
-
-  .btn-glow-gold-outline {
-    @apply btn;
-    background: transparent;
-    color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: none;
-    transition:
-      border-color 350ms ease,
-      background-color 350ms ease,
-      box-shadow 350ms ease,
-      transform 300ms cubic-bezier(0.22,1,0.36,1);
-  }
-  .btn-glow-gold-outline:hover {
-    border-color: var(--accent-gold);
-    background: rgba(250, 204, 21, 0.06);
-    transform: translateY(-2px);
-    box-shadow: var(--glow-sm);
-  }
-  .btn-glow-gold-outline:active { transform: translateY(0); }
-
   /* ───────────── Focal panels ──────────────────────────
-     Both card-warmglow* aliases now point at the obsidian
-     glass surface system so legacy call sites stay valid. */
+     Both card-warmglow* aliases now point at the new
+     bright glass surface system. */
 
   .card-warmglow,
   .card-warmglow-dark {
     position: relative;
-    border-radius: 16px;
-    background: var(--bg-glass-fallback);
+    border-radius: 20px;
+    background: var(--bg-card);
     border: 1px solid var(--glass-border-glow);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.05),
-      0 24px 60px -22px rgba(0,0,0,0.65),
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 24px 60px -22px rgba(15, 23, 42, 0.18),
       var(--glow-sm);
     isolation: isolate;
     overflow: hidden;
@@ -913,7 +786,7 @@
   @media (min-width: 1024px) {
     .card-warmglow,
     .card-warmglow-dark {
-      background: rgba(16, 18, 22, 0.75);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
@@ -926,8 +799,7 @@
     height: 36%;
     background: linear-gradient(
       180deg,
-      rgba(255,255,255,0.06) 0%,
-      rgba(255,255,255,0.01) 60%,
+      rgba(37, 99, 235, 0.04) 0%,
       transparent 100%
     );
     pointer-events: none;
@@ -937,6 +809,19 @@
   .card-warmglow-dark > * {
     position: relative;
     z-index: 2;
+  }
+
+  /* ── Motion primitives (fade + lift on scroll-into-view) ── */
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 700ms var(--ease-editorial),
+                transform 700ms var(--ease-editorial);
+  }
+  .reveal-up.is-visible,
+  .no-js .reveal-up {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -958,9 +843,9 @@
 
   .hero-ken-burns { animation: hero-ken-burns 7s ease-out both; }
 
-  /* Text shadow for readability on dark lavender background */
+  /* Soft text shadow utility — kept for legacy callers but de-emphasised */
   .text-shadow-soft {
-    text-shadow: 0 2px 12px rgba(0,0,0,0.45);
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
   }
 
   .tnum {
@@ -971,36 +856,34 @@
   .text-balance { text-wrap: balance; }
   .text-pretty  { text-wrap: pretty; }
 
-  /* On-dark text helpers remain same names, now on lavender */
+  /* On-dark helpers retained for any component still painting on a
+     gradient hero. On a bright canvas they should rarely fire. */
   .text-on-dark       { color: #ffffff; }
-  .text-on-dark-muted { color: rgba(255,255,255,0.70); }
-  .text-on-dark-accent { color: var(--accent); }
+  .text-on-dark-muted { color: rgba(255, 255, 255, 0.75); }
+  .text-on-dark-accent { color: var(--accent-cyan); }
 
-  /* On-glass text — restores crispness softened by backdrop blur.
-     Pair with .glass / .glass-strong / .card content. */
+  /* On-glass helpers now target dark text on frosted white. */
   .text-on-glass {
-    color: #ffffff;
+    color: var(--text-primary);
     font-weight: 500;
-    letter-spacing: 0.005em;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+    letter-spacing: -0.005em;
   }
   .text-on-glass-muted {
-    color: rgba(255,255,255,0.82);
+    color: var(--text-secondary);
     font-weight: 400;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.16);
   }
   .text-on-glass-eyebrow {
-    color: var(--brand);
-    font-weight: 600;
+    color: var(--accent-blue);
+    font-weight: 700;
     font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(250,204,21,0.45);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-ken-burns { animation: none !important; }
+  .reveal-up { opacity: 1 !important; transform: none !important; }
 }
 
 /* Mobile motion trim */
