@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Instagram, Menu, MessageCircle, Search, ShoppingBag, User } from 'lucide-react'
+import { Instagram, Mail, Menu, MessageCircle, Phone, Search, ShoppingBag, User } from 'lucide-react'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
 import { useCart, cartCount } from '@/stores/cart'
 import { useUI } from '@/stores/ui'
@@ -178,10 +178,27 @@ export default function Header() {
               </button>
             </div>
           </div>
+
+          <div className="lg:hidden flex flex-col items-end gap-1 px-4 pb-2 -mt-1 text-[13px] text-ivory-soft">
+            <a
+              href={`mailto:${CONTACT.email}`}
+              className="inline-flex items-center gap-2 hover:text-blue transition-colors duration-300"
+            >
+              <Mail className="w-4 h-4 text-blue" aria-hidden />
+              <span>{CONTACT.email}</span>
+            </a>
+            <a
+              href={`tel:${CONTACT.phoneTel}`}
+              className="inline-flex items-center gap-2 hover:text-blue transition-colors duration-300"
+            >
+              <Phone className="w-4 h-4 text-blue" aria-hidden />
+              <span>{CONTACT.phoneDisplay}</span>
+            </a>
+          </div>
         </div>
       </header>
 
-      <div aria-hidden className="h-[calc(var(--banner-h)+4rem)] lg:h-[calc(var(--banner-h)+5rem)]" />
+      <div aria-hidden className="h-[calc(var(--banner-h)+7rem)] lg:h-[calc(var(--banner-h)+5rem)]" />
 
       <MobileDrawer />
       <SearchOverlay />
