@@ -7,7 +7,6 @@ import Footer from '@/components/Footer'
 import FloatingWhatsApp from '@/components/FloatingWhatsApp'
 import Toaster from '@/components/Toaster'
 import { apiFetch } from '@/lib/api'
-import { ANNOUNCEMENTS } from '@/data/announcements'
 import type { Announcement } from '@/types'
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
@@ -33,11 +32,11 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     staleTime: 5 * 60_000,
   })
 
-  // Use live announcements from backend; fall back to static data if backend returns empty
-  const announcements =
-    (apiData?.announcements?.length ?? 0) > 0
-      ? apiData!.announcements.filter((a) => a.active)
-      : ANNOUNCEMENTS.filter((a) => a.active)
+  // Admin (/admin/announcements) is the single source of truth. The marquee
+  // banner only appears when an admin has created at least one announcement
+  // and flipped its `active` toggle on. No static fallbacks — an empty list
+  // means the banner stays hidden, which is the intentional default state.
+  const announcements = (apiData?.announcements ?? []).filter((a) => a.active)
 
   return (
     <>

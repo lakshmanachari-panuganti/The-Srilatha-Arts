@@ -396,7 +396,7 @@ export type WhatsAppMessageType =
 export type WhatsAppDeliveryStatus = 'sent' | 'delivered' | 'read' | 'failed'
 
 export interface WhatsAppMessageEntity {
-  partitionKey: string      // customer phone, E.164 without '+' (e.g. '919133266754')
+  partitionKey: string      // customer phone, E.164 without '+' (e.g. '919052380325')
   rowKey: string            // '{ISO-timestamp}_{outbound|inbound}_{wamid}'
   direction: WhatsAppDirection
   waMessageId: string       // Meta's wamid.HBgM...

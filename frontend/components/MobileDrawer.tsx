@@ -10,7 +10,7 @@ import {
 import { useUI } from '@/stores/ui'
 import { useUserAuth } from '@/stores/userAuth'
 import { CATEGORIES } from '@/data/categories'
-import { SOCIAL, INSTAGRAM_HANDLE, whatsappLink } from '@/lib/site-config'
+import { CONTACT, waLink } from '@/lib/site-config'
 
 // Primary navigation grouped by intent. The accordion for Shop keeps the menu
 // short by default - opening it surfaces the five categories without making
@@ -234,7 +234,7 @@ export default function MobileDrawer() {
               }}
             >
               <a
-                href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
+                href={waLink("Hi Srilatha Art, I'd like to know more about your work.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={close}
@@ -251,14 +251,14 @@ export default function MobileDrawer() {
                 WhatsApp us
               </a>
               <a
-                href={SOCIAL.instagram}
+                href={CONTACT.social.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-flex items-center gap-2 text-sm text-ivory-soft
                            hover:text-lavender-pastel transition-colors duration-300"
               >
                 <Instagram className="w-4 h-4" aria-hidden />
-                {INSTAGRAM_HANDLE}
+                {CONTACT.instagramHandleAt}
               </a>
             </div>
           </motion.aside>

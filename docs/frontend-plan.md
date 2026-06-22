@@ -1374,7 +1374,7 @@ The current code is a solid starting point - don't throw it away.
         Meets <span className="gold-text">Creativity</span>
       </h1>
       <p className="text-white/70 text-base lg:text-lg mb-7 leading-relaxed">
-        Bespoke Dot Mandala, Resin and Lippan art - handcrafted to bring beauty into your space.
+        Custom Dot Mandala, Resin and Lippan art - handcrafted to bring beauty into your space.
       </p>
       <div className="flex flex-col sm:flex-row gap-3">
         <Link href="/shop" className="btn-gold h-12 px-7 text-base">

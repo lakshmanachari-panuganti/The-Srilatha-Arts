@@ -4,6 +4,7 @@ import './globals.css'
 import ConditionalLayout from '@/components/ConditionalLayout'
 import Providers from '@/components/Providers'
 import AnalyticsProvider from '@/components/analytics/AnalyticsProvider'
+import { CONTACT } from '@/lib/site-config'
 
 // ── Typography system (AndroAI-inspired canonical) ─────────────────
 //   Plus Jakarta Sans - `font-sans` + `font-display`. Body, UI,
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     template: '%s · Srilatha Art',
   },
   description:
-    'Resin Art, Lippan Art, Kolam, Wedding Decor and Gift Items - all made by hand in Hyderabad. Free shipping across India on orders above ₹999.',
+    'Resin Art, Lippan Art, Kolam, Wedding Decor and Gift Items - all made by hand in Hyderabad. Free shipping across India on qualifying orders.',
   keywords: [
     'Resin Art',
     'Lippan Art',
@@ -134,15 +135,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     'Handcrafted resin art, lippan art, dot mandala, kolam art and wedding decoratives — made by hand in Hyderabad, India.',
                   address: {
                     '@type': 'PostalAddress',
-                    addressLocality: 'Hyderabad',
-                    addressRegion: 'Telangana',
-                    addressCountry: 'IN',
+                    streetAddress: `${CONTACT.studioAddress.line1}, ${CONTACT.studioAddress.line2}`,
+                    addressLocality: CONTACT.studioAddress.city,
+                    addressRegion: CONTACT.studioAddress.region,
+                    addressCountry: CONTACT.studioAddress.countryCode,
                   },
                   contactPoint: {
                     '@type': 'ContactPoint',
                     contactType: 'customer service',
-                    email: 'studio@srilatha.art',
-                    telephone: '+91-91332-66754',
+                    email: CONTACT.email,
+                    telephone: CONTACT.phoneTel,
                     areaServed: 'IN',
                     availableLanguage: ['en', 'hi', 'te'],
                   },

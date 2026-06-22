@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { apiFetch, ApiError } from '@/lib/api'
-import { SOCIAL, STUDIO_EMAIL, PHONE_DISPLAY, PHONE_TEL, whatsappLink, emailLink } from '@/lib/site-config'
+import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
 import PinterestIcon from '@/components/icons/PinterestIcon'
 
 const columns = [
@@ -160,43 +160,48 @@ export default function Footer() {
 
             <div className="mt-6 space-y-2.5 text-sm">
               <a
-                href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
+                href={waLink("Hi Srilatha Art, I'd like to know more about your work.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />
-                WhatsApp · {PHONE_DISPLAY}
+                WhatsApp · {CONTACT.phoneDisplay}
               </a>
               <br />
               <a
-                href={emailLink()}
+                href={mailtoLink()}
                 className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <Mail className="w-4 h-4 text-blue" aria-hidden />
-                {STUDIO_EMAIL}
+                {CONTACT.email}
               </a>
               <br />
               <a
-                href={`tel:${PHONE_TEL}`}
+                href={`tel:${CONTACT.phoneTel}`}
                 className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <Phone className="w-4 h-4 text-blue" aria-hidden />
-                {PHONE_DISPLAY}
+                {CONTACT.phoneDisplay}
               </a>
             </div>
 
+            <p className="mt-4 text-xs text-ivory-mute leading-relaxed">
+              {CONTACT.studioAddress.line1}, {CONTACT.studioAddress.line2}<br />
+              {CONTACT.studioAddress.city}, {CONTACT.studioAddress.country}
+            </p>
+
             <div className="flex items-center gap-2 mt-6">
-              <SocialLink href={SOCIAL.instagram} label="Instagram">
+              <SocialLink href={CONTACT.social.instagram} label="Instagram">
                 <Instagram className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href={SOCIAL.pinterest} label="Pinterest">
+              <SocialLink href={CONTACT.social.pinterest} label="Pinterest">
                 <PinterestIcon className="w-4 h-4" />
               </SocialLink>
-              <SocialLink href={SOCIAL.facebook} label="Facebook">
+              <SocialLink href={CONTACT.social.facebook} label="Facebook">
                 <Facebook className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href={SOCIAL.youtube} label="YouTube">
+              <SocialLink href={CONTACT.social.youtube} label="YouTube">
                 <Youtube className="w-4 h-4" aria-hidden />
               </SocialLink>
             </div>
@@ -218,47 +223,52 @@ export default function Footer() {
             </span>
           </Link>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <SocialLink href={SOCIAL.instagram} label="Instagram">
+            <SocialLink href={CONTACT.social.instagram} label="Instagram">
               <Instagram className="w-4 h-4" aria-hidden />
             </SocialLink>
-            <SocialLink href={SOCIAL.pinterest} label="Pinterest">
+            <SocialLink href={CONTACT.social.pinterest} label="Pinterest">
               <PinterestIcon className="w-4 h-4" />
             </SocialLink>
-            <SocialLink href={SOCIAL.facebook} label="Facebook">
+            <SocialLink href={CONTACT.social.facebook} label="Facebook">
               <Facebook className="w-4 h-4" aria-hidden />
             </SocialLink>
-            <SocialLink href={SOCIAL.youtube} label="YouTube">
+            <SocialLink href={CONTACT.social.youtube} label="YouTube">
               <Youtube className="w-4 h-4" aria-hidden />
             </SocialLink>
           </div>
 
           <div className="mt-6 space-y-2 text-sm">
             <a
-              href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
+              href={waLink("Hi Srilatha Art, I'd like to know more about your work.")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />
-              WhatsApp · {PHONE_DISPLAY}
+              WhatsApp · {CONTACT.phoneDisplay}
             </a>
             <br />
             <a
-              href={emailLink()}
+              href={mailtoLink()}
               className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               <Mail className="w-4 h-4 text-blue" aria-hidden />
-              {STUDIO_EMAIL}
+              {CONTACT.email}
             </a>
             <br />
             <a
-              href={`tel:${PHONE_TEL}`}
+              href={`tel:${CONTACT.phoneTel}`}
               className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               <Phone className="w-4 h-4 text-blue" aria-hidden />
-              {PHONE_DISPLAY}
+              {CONTACT.phoneDisplay}
             </a>
           </div>
+
+          <p className="mt-4 text-xs text-ivory-mute leading-relaxed">
+            {CONTACT.studioAddress.line1}, {CONTACT.studioAddress.line2}<br />
+            {CONTACT.studioAddress.city}, {CONTACT.studioAddress.country}
+          </p>
         </div>
 
         <div className="mt-12 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ivory-mute">

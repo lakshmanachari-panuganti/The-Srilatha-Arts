@@ -30,9 +30,9 @@ export function isWhatsAppConfigured(): boolean {
 /**
  * Normalise an Indian phone number to E.164 without the leading '+'
  * (Cloud API expects digits only). Accepts:
- *   "+91 91332 66754" → "919133266754"
- *   "9133266754"      → "919133266754"  (assumes IN if 10 digits)
- *   "919133266754"    → "919133266754"
+ *   "+91 90523 80325" → "919052380325"
+ *   "9052380325"      → "919052380325"  (assumes IN if 10 digits)
+ *   "919052380325"    → "919052380325"
  */
 export function normalisePhone(raw: string): string {
   const digits = (raw || '').replace(/\D+/g, '')

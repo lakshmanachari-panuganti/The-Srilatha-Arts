@@ -4,6 +4,7 @@
  * prominently so the customer can check the courier's portal.
  */
 import { renderEmail, escapeHtml, type BuiltEmail } from './shared'
+import { CONTACT } from '../../config/contact'
 
 export interface OrderShippedInput {
   orderId: string
@@ -41,7 +42,7 @@ export function buildOrderShippedEmail(input: OrderShippedInput): BuiltEmail {
       ? { cta: { label: 'Track your piece', href: trackingHref } as const }
       : {}),
     footerHtml: `
-      <p>If you have any questions, just reply to this email or write to studio@srilatha.art.</p>
+      <p>If you have any questions, just reply to this email or write to ${CONTACT.email}.</p>
       <p style="margin-top:8px;">&mdash; Srilatha</p>
     `,
   })

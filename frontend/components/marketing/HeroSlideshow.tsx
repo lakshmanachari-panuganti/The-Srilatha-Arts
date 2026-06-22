@@ -13,6 +13,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles, Star } from 'lucide-react'
+import { FreeShippingThreshold } from '@/components/ShippingFigures'
 
 const EASE_LUXURY = [0.22, 1, 0.36, 1] as const
 
@@ -154,7 +155,7 @@ export default function HomeHero() {
                   <strong className="text-ivory font-semibold">1,200+</strong> pieces shipped
                 </span>
                 <span className="hidden sm:inline w-1 h-1 rounded-full bg-ivory-mute/50" aria-hidden />
-                <span>Free shipping above ₹999</span>
+                <span>Free shipping above <FreeShippingThreshold /></span>
               </motion.div>
             </div>
 

@@ -11,7 +11,7 @@ import { useUserAuth } from '@/stores/userAuth'
 import MobileDrawer from '@/components/MobileDrawer'
 import SearchOverlay from '@/components/SearchOverlay'
 import { cn } from '@/lib/cn'
-import { SOCIAL, whatsappLink } from '@/lib/site-config'
+import { CONTACT, waLink } from '@/lib/site-config'
 
 const HIDE_ON_SCROLL_ROUTES = ['/', '/our-story', '/the-craft', '/reviews', '/about']
 
@@ -97,7 +97,7 @@ export default function Header() {
 
             <div className="flex items-center gap-1 lg:gap-2">
               <a
-                href={whatsappLink('Hi Srilatha Art, I would like to know more about your work.')}
+                href={waLink('Hi Srilatha Art, I would like to know more about your work.')}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Chat on WhatsApp"
@@ -112,7 +112,7 @@ export default function Header() {
               </a>
 
               <a
-                href={SOCIAL.instagram}
+                href={CONTACT.social.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"

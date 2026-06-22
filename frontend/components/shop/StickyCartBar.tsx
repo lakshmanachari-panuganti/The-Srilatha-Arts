@@ -6,7 +6,7 @@ import type { Product } from '@/types'
 import { useAddToCart } from '@/hooks/useAddToCart'
 import { useHaptic } from '@/hooks/useHaptic'
 import { formatINR } from '@/lib/format'
-import { whatsappLink } from '@/lib/site-config'
+import { waLink } from '@/lib/site-config'
 
 export default function StickyCartBar({ product }: { product: Product }) {
   const [qty, setQty] = useState(1)
@@ -28,11 +28,11 @@ export default function StickyCartBar({ product }: { product: Product }) {
   // hydration; once mounted we enrich with the canonical product URL so
   // Srilatha gets a clickable link in the WhatsApp thread.
   const [waHref, setWaHref] = useState(() =>
-    whatsappLink(`Hi Srilatha Art, I'd like to ask about "${product.title}"`),
+    waLink(`Hi Srilatha Art, I'd like to ask about "${product.title}"`),
   )
   useEffect(() => {
     setWaHref(
-      whatsappLink(
+      waLink(
         `Hi Srilatha Art, I'd like to ask about "${product.title}"\n${window.location.href}`,
       ),
     )

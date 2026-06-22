@@ -8,7 +8,7 @@ import { MessageCircle, Mail, ArrowRight, Palette, Ruler, Clock, CheckCircle2, X
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import PhotoUploader from '@/components/PhotoUploader'
-import { whatsappLink, emailLink } from '@/lib/site-config'
+import { waLink, mailtoLink } from '@/lib/site-config'
 import type { Product } from '@/types'
 
 // Mirrors VALID_ART_FORMS in backend/src/functions/customOrders.ts.
@@ -313,10 +313,10 @@ export default function CustomOrderClient() {
         <h2 className="font-serif text-xl lg:text-2xl text-ivory mb-3">Prefer to talk?</h2>
         <p className="text-ivory-soft mb-5 text-sm">Reach out on whichever is easiest for you.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="btn-dark">
+          <a href={waLink("Hi Srilatha Art, I'd like to ask about a custom order.")} target="_blank" rel="noopener noreferrer" className="btn-dark">
             <MessageCircle className="w-4 h-4" aria-hidden /> WhatsApp us
           </a>
-          <a href={emailLink()} className="btn-outline">
+          <a href={mailtoLink()} className="btn-outline">
             <Mail className="w-4 h-4" aria-hidden /> Email us
           </a>
         </div>

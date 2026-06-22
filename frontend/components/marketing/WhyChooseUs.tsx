@@ -35,7 +35,7 @@ const processSteps = [
   },
   {
     step: 'II',
-    title: 'Bespoke Detailing',
+    title: 'Custom Detailing',
     description: 'Placing shimmering glass mirrors or hand-painting thousands of high-contrast dot mandalas one dot at a time.',
     icon: Hammer,
   },

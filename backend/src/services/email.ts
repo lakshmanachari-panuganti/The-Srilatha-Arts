@@ -11,6 +11,7 @@
  */
 
 import nodemailer, { Transporter } from 'nodemailer'
+import { CONTACT } from '../config/contact'
 
 interface SendEmailInput {
   to: string
@@ -73,9 +74,9 @@ export async function sendEmail(opts: SendEmailInput): Promise<SendEmailResult> 
   const transporter = getTransporter()
   const senderName = process.env.SMTP_SENDER_NAME || 'Srilatha Art'
   const senderEmail =
-    process.env.SMTP_SENDER_EMAIL || process.env.SMTP_USER || 'noreply@srilatha.art'
+    process.env.SMTP_SENDER_EMAIL || process.env.SMTP_USER || CONTACT.email
   const replyTo =
-    opts.replyTo || process.env.SMTP_REPLY_TO || 'studio@srilatha.art'
+    opts.replyTo || process.env.SMTP_REPLY_TO || CONTACT.email
 
   // De-dupe CC against the primary `to` so the studio (or any duplicate)
   // doesn't receive two copies of the same message.

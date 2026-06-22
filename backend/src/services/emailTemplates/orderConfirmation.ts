@@ -10,6 +10,8 @@
  * mobile clients. No external CSS, no remote fonts, no JS.
  */
 
+import { CONTACT } from '../../config/contact'
+
 export interface OrderConfirmationItem {
   productId: string
   title: string
@@ -312,12 +314,12 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
             <td style="padding:20px 36px 32px 36px;border-top:1px solid ${COLOR.rule};">
               <div style="font-size:12px;color:${COLOR.inkSoft};line-height:1.55;">
                 Need anything? Reply to this email or write to
-                <a href="mailto:studio@srilatha.art" style="color:${COLOR.ink};">studio@srilatha.art</a>.
+                <a href="mailto:${CONTACT.email}" style="color:${COLOR.ink};">${CONTACT.email}</a>.
                 You can also see your order any time at
                 <a href="${escapeHtml(accountOrderUrl)}" style="color:${COLOR.ink};">your account</a>.
               </div>
               <div style="font-size:11px;color:${COLOR.inkMute};margin-top:14px;">
-                Srilatha Art &middot; Hyderabad, India<br/>
+                Srilatha Art &middot; ${CONTACT.studioAddress.line1}, ${CONTACT.studioAddress.line2}, ${CONTACT.studioAddress.city}, ${CONTACT.studioAddress.country}<br/>
                 You're receiving this email because you placed an order with Srilatha Art.
               </div>
             </td>
@@ -356,7 +358,7 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
     `Receipt:   ${viewInvoiceUrl}`,
     `Account:   ${accountOrderUrl}`,
     ``,
-    `Questions? Reply to this email or write to studio@srilatha.art.`,
+    `Questions? Reply to this email or write to ${CONTACT.email}.`,
     `— Srilatha Art`,
   ]
     .filter((l) => l !== '')

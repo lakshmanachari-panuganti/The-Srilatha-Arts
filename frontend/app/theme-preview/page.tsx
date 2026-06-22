@@ -20,6 +20,7 @@ import {
   ExternalLink,
   Info
 } from 'lucide-react'
+import { FreeShippingThreshold } from '@/components/ShippingFigures'
 
 // Define the 4 custom Colorful Lavender Themes
 interface ColorTheme {
@@ -507,7 +508,7 @@ export default function ThemePreviewPage() {
                   className="px-4 py-2.5 text-center text-xs font-bold tracking-widest uppercase transition-colors"
                   style={{ backgroundColor: 'var(--accent)', color: activeTheme.id === 'twilight-obsidian' ? '#000' : '#FFF' }}
                 >
-                  ✨ Free Shipping Across India above ₹999 ✨
+                  ✨ Free Shipping Across India above <FreeShippingThreshold /> ✨
                 </div>
 
                 {/* 3. Hero Showcase Area */}

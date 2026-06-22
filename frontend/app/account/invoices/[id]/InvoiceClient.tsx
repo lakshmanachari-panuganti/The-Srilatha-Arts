@@ -8,7 +8,11 @@ import { ArrowLeft, Download, Loader2, Printer } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
-import { STUDIO_EMAIL, PHONE_DISPLAY, WEBSITE_URL } from '@/lib/site-config'
+import { CONTACT } from '@/lib/site-config'
+
+const STUDIO_EMAIL = CONTACT.email
+const PHONE_DISPLAY = CONTACT.phoneDisplay
+const WEBSITE_URL = CONTACT.websiteUrl
 
 // Shapes mirrored from the orders.ts toApi() - kept minimal to what the
 // invoice actually renders. Unknown fields ride along untouched.
@@ -573,7 +577,7 @@ export default function InvoiceClient() {
             </p>
             <p className="text-sm text-ink-soft leading-relaxed mt-2 max-w-md">
               Every piece from Srilatha Art is individually designed and
-              handmade in our Hyderabad studio.
+              handmade in our studio at {CONTACT.studioAddress.line1}, {CONTACT.studioAddress.line2}, {CONTACT.studioAddress.city}.
             </p>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-8 gap-y-1 text-[12px]">

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, Sparkles, MessageSquare, Palette, Box, MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { fadeUp, stagger } from '@/lib/motion'
-import { whatsappLink } from '@/lib/site-config'
+import { waLink } from '@/lib/site-config'
 
 const steps = [
   {
@@ -50,7 +50,7 @@ export default function CustomOrderCTA() {
                              text-[12px] font-semibold text-blue tracking-[0.10em] uppercase mb-5
                              shadow-[0_0_18px_rgba(59,130,246,0.25)]">
               <Sparkles className="w-3.5 h-3.5" aria-hidden />
-              Bespoke Commission
+              Custom Design
             </span>
             <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl text-ivory tracking-tightest leading-[1.05]">
               Tailored just for you.{' '}
@@ -124,7 +124,7 @@ export default function CustomOrderCTA() {
               <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
             </Link>
             <a
-              href={whatsappLink('Hi Srilatha Art, I would like a custom piece.')}
+              href={waLink('Hi Srilatha Art, I would like a custom piece.')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 min-w-[14rem] h-[2.875rem] px-6
