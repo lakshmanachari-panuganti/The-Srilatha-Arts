@@ -11,21 +11,12 @@ const config: Config = {
       colors: {
         // ── Two-layer token system ─────────────────────────────────
         // Tailwind aliases here resolve to CSS variables defined in
-        // app/globals.css `:root`. The variables are the single source
-        // of truth — retheme by editing :root only. ~200 component
-        // call sites use these names; do not rename them.
-        //
-        // Active theme: AndroAI-inspired bright (white + royal blue
-        // + indigo + cyan). All legacy names ('plum', 'lavender',
-        // 'ivory', 'ink', etc.) are kept and remapped so they
-        // resolve to the new bright palette.
-        //
-        // We use `rgb(var(--…-rgb) / <alpha-value>)` so opacity
-        // modifiers (`bg-plum/40`, `border-ink/10`) compose alpha
-        // at build time.
+        // app/globals.css `:root`. Active theme: AndroAI dark variant
+        // (slate-950 canvas + brightened blue/indigo/cyan accents).
+        // Legacy names ('plum', 'lavender', 'ivory', 'ink') remap so
+        // ~200 component call sites continue to resolve correctly.
         // ─────────────────────────────────────────────────────────
 
-        // Direct named tokens
         blue: {
           DEFAULT: 'rgb(var(--accent-blue-rgb) / <alpha-value>)',
           strong:  'rgb(var(--accent-blue-hover-rgb) / <alpha-value>)',
@@ -38,33 +29,36 @@ const config: Config = {
           DEFAULT: 'rgb(var(--accent-cyan-rgb) / <alpha-value>)',
         },
         slate: {
-          50:  'rgb(var(--bg-main-rgb) / <alpha-value>)',
+          50:  'rgb(var(--text-primary-rgb) / <alpha-value>)',
           100: '#F1F5F9',
           200: '#E2E8F0',
-          300: '#CBD5E1',
+          300: 'rgb(var(--text-secondary-rgb) / <alpha-value>)',
+          400: 'rgb(var(--text-muted-rgb) / <alpha-value>)',
           500: 'rgb(var(--text-muted-rgb) / <alpha-value>)',
-          700: 'rgb(var(--text-secondary-rgb) / <alpha-value>)',
-          900: 'rgb(var(--text-primary-rgb) / <alpha-value>)',
+          700: '#334155',
+          800: '#1E293B',
+          900: 'rgb(var(--bg-surface-rgb) / <alpha-value>)',
+          950: 'rgb(var(--bg-main-rgb) / <alpha-value>)',
         },
 
-        // Surface aliases → bright canvas
+        // Surface aliases → dark canvas
         plum:            'rgb(var(--bg-main-rgb) / <alpha-value>)',
         'plum-light':    'rgb(var(--bg-card-rgb) / <alpha-value>)',
         'plum-warm':     'rgb(var(--bg-surface-rgb) / <alpha-value>)',
-        'lavender-light':'#F1F5F9',
-        'lavender-faint':'#F8FAFC',
-        cream:           '#FFFFFF',
-        'cream-deep':    '#F8FAFC',
+        'lavender-light':'rgba(255,255,255,0.04)',
+        'lavender-faint':'rgb(var(--bg-surface-rgb) / <alpha-value>)',
+        cream:           'rgba(255,255,255,0.04)',
+        'cream-deep':    'rgb(var(--bg-card-rgb) / <alpha-value>)',
         paper:           'rgb(var(--bg-glass-fallback-rgb) / <alpha-value>)',
 
-        // Brand + accent aliases → royal blue / indigo
+        // Brand + accent aliases → brightened royal blue / indigo
         lavender:          'rgb(var(--accent-blue-rgb) / <alpha-value>)',
         'lavender-soft':   'rgb(var(--accent-indigo-rgb) / <alpha-value>)',
-        'lavender-pastel': 'rgb(var(--accent-blue-rgb) / <alpha-value>)',
+        'lavender-pastel': 'rgb(var(--accent-indigo-rgb) / <alpha-value>)',
         'primary-dark':    'rgb(var(--accent-blue-rgb) / <alpha-value>)',
         'primary-burnt':   'rgb(var(--accent-blue-hover-rgb) / <alpha-value>)',
 
-        // Text aliases — primary slate-900, body slate-700, muted slate-500
+        // Text aliases — primary slate-50 (light on dark), body slate-300, muted slate-400
         ivory:        'rgb(var(--text-primary-rgb) / <alpha-value>)',
         'ivory-soft': 'rgb(var(--text-secondary-rgb) / <alpha-value>)',
         'ivory-mute': 'rgb(var(--text-muted-rgb) / <alpha-value>)',
@@ -72,21 +66,17 @@ const config: Config = {
         'ink-soft':   'rgb(var(--text-secondary-rgb) / <alpha-value>)',
         'ink-mute':   'rgb(var(--text-muted-rgb) / <alpha-value>)',
 
-        // Navigation surfaces — frosted white
-        'nav-surface':       'rgba(255,255,255,0.85)',
-        'nav-surface-heavy': 'rgba(255,255,255,0.96)',
+        // Navigation surfaces — frosted dark
+        'nav-surface':       'rgba(15,23,42,0.85)',
+        'nav-surface-heavy': 'rgba(11,17,32,0.95)',
 
         // Glass + overlays
-        'glass-surface': 'rgba(255,255,255,0.72)',
-        'glass-border':  'rgba(15,23,42,0.06)',
-        'overlay-soft':  'rgba(37,99,235,0.06)',
-        'overlay-deep':  'rgba(15,23,42,0.45)',
+        'glass-surface': 'rgba(15,23,42,0.72)',
+        'glass-border':  'rgba(148,163,184,0.10)',
+        'overlay-soft':  'rgba(59,130,246,0.10)',
+        'overlay-deep':  'rgba(0,0,0,0.65)',
       },
       fontFamily: {
-        // Plus Jakarta Sans carries body + UI + headlines (AndroAI
-        // canonical). Cormorant Garamond remains available as font-serif
-        // for italic editorial accents. Pramukh Rounded is reserved
-        // exclusively for the "Srilatha Art" wordmark.
         sans:    ['var(--font-jakarta)', 'var(--font-dm-sans)', 'system-ui', 'sans-serif'],
         display: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
         serif:   ['var(--font-cormorant)', 'Georgia', 'serif'],
@@ -143,8 +133,8 @@ const config: Config = {
           '50%': { transform: 'translateY(-16px) rotate(2deg)' },
         },
         'glow-pulse': {
-          '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
-          '50%': { opacity: '0.85', transform: 'scale(1.04)' },
+          '0%, 100%': { opacity: '0.55', transform: 'scale(1)' },
+          '50%': { opacity: '0.95', transform: 'scale(1.05)' },
         },
         'slow-zoom': {
           '0%': { transform: 'scale(1)' },
@@ -174,12 +164,12 @@ const config: Config = {
       backgroundImage: {
         'paper-grain':
           "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E\")",
-        // Bright gradients — replace obsidian sweeps.
-        'lavender-gradient': 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 50%, #E0E7FF 100%)',
-        'plum-gradient':     'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%)',
-        'hero-aurora':       'radial-gradient(80% 60% at 50% 0%, rgba(37,99,235,0.14), transparent 60%), radial-gradient(60% 60% at 100% 30%, rgba(99,102,241,0.12), transparent 60%), radial-gradient(60% 50% at 0% 80%, rgba(6,182,212,0.08), transparent 60%)',
+        // Dark gradients
+        'lavender-gradient': 'linear-gradient(135deg, #0B1120 0%, #0F172A 50%, #111827 100%)',
+        'plum-gradient':     'linear-gradient(135deg, #0B1120 0%, #0F172A 50%, #111827 100%)',
+        'hero-aurora':       'radial-gradient(80% 60% at 50% 0%, rgba(59,130,246,0.28), transparent 60%), radial-gradient(60% 60% at 100% 30%, rgba(99,102,241,0.22), transparent 60%), radial-gradient(60% 50% at 0% 80%, rgba(34,211,238,0.16), transparent 60%)',
         'brand-gradient':    'linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 100%)',
-        'brand-gradient-soft':'linear-gradient(135deg, rgba(37,99,235,0.10) 0%, rgba(99,102,241,0.08) 100%)',
+        'brand-gradient-soft':'linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(129,140,248,0.14) 100%)',
       },
       maxWidth: {
         '8xl': '88rem',
@@ -187,17 +177,16 @@ const config: Config = {
         container: '1280px',
       },
       boxShadow: {
-        editorial: '0 20px 50px -22px rgba(15,23,42,0.20)',
-        card: '0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -8px rgba(15,23,42,0.10)',
-        'card-hover': '0 2px 4px rgba(15,23,42,0.05), 0 18px 40px -12px rgba(15,23,42,0.18)',
-        soft: '0 1px 4px rgba(15,23,42,0.06)',
-        // Blue glow shadows — used on CTAs, focal cards, hover lifts.
-        // Legacy names retained for backwards compat.
-        'lavender-glow':    '0 4px 14px rgba(37,99,235,0.22)',
-        'lavender-glow-lg': '0 18px 48px rgba(37,99,235,0.22), 0 4px 14px rgba(99,102,241,0.18)',
-        'blue-glow':        '0 4px 14px rgba(37,99,235,0.22)',
-        'blue-glow-lg':     '0 18px 48px rgba(37,99,235,0.22), 0 4px 14px rgba(99,102,241,0.18)',
-        glass: '0 1px 2px rgba(15,23,42,0.04), 0 8px 32px -12px rgba(15,23,42,0.15)',
+        editorial: '0 20px 50px -22px rgba(0,0,0,0.55)',
+        card: '0 1px 2px rgba(0,0,0,0.40), 0 12px 32px -8px rgba(0,0,0,0.50)',
+        'card-hover': '0 2px 4px rgba(0,0,0,0.50), 0 22px 50px -12px rgba(59,130,246,0.25), 0 0 0 1px rgba(59,130,246,0.20)',
+        soft: '0 1px 4px rgba(0,0,0,0.40)',
+        // Neon glow shadows (legacy names retained, blue-routed)
+        'lavender-glow':    '0 0 0 1px rgba(59,130,246,0.40), 0 6px 18px rgba(59,130,246,0.38), 0 0 24px rgba(99,102,241,0.28)',
+        'lavender-glow-lg': '0 0 0 1px rgba(59,130,246,0.60), 0 16px 44px rgba(59,130,246,0.55), 0 0 56px rgba(99,102,241,0.45)',
+        'blue-glow':        '0 0 0 1px rgba(59,130,246,0.40), 0 6px 18px rgba(59,130,246,0.38), 0 0 24px rgba(99,102,241,0.28)',
+        'blue-glow-lg':     '0 0 0 1px rgba(59,130,246,0.60), 0 16px 44px rgba(59,130,246,0.55), 0 0 56px rgba(99,102,241,0.45)',
+        glass: '0 1px 2px rgba(0,0,0,0.40), 0 8px 32px -12px rgba(0,0,0,0.55)',
       },
     },
   },

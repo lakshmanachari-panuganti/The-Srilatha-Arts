@@ -1,0 +1,326 @@
+[
+  {
+    "viewport": "desktop",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "gallery",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "gallery",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "collections",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "product-detail",
+    "category": "layout-shift",
+    "detail": "CLS=0.152"
+  },
+  {
+    "viewport": "desktop",
+    "page": "custom-orders",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "cart",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "cart",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "contact",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "desktop",
+    "page": "about",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "gallery",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "gallery",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "collections",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "product-detail",
+    "category": "layout-shift",
+    "detail": "CLS=0.599"
+  },
+  {
+    "viewport": "tablet",
+    "page": "product-detail",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "custom-orders",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "cart",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "cart",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "contact",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "tablet",
+    "page": "about",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "home",
+    "category": "layout-shift",
+    "detail": "CLS=0.107"
+  },
+  {
+    "viewport": "mobile",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "home",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "gallery",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "gallery",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "collections",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "product-detail",
+    "category": "layout-shift",
+    "detail": "CLS=0.310"
+  },
+  {
+    "viewport": "mobile",
+    "page": "product-detail",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "custom-orders",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "cart",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "cart",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "checkout",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "contact",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  },
+  {
+    "viewport": "mobile",
+    "page": "about",
+    "category": "console-error",
+    "detail": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  }
+]

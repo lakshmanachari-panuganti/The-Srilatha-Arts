@@ -57,7 +57,7 @@ export default function Header() {
           className={cn(
             'transition-all duration-500',
             scrolled
-              ? 'bg-white/85 backdrop-blur-xl backdrop-saturate-150 shadow-card border-b border-slate-200/70'
+              ? 'bg-slate-950/80 backdrop-blur-xl backdrop-saturate-150 shadow-card border-b border-white/[0.06]'
               : 'bg-transparent',
           )}
         >
@@ -78,11 +78,7 @@ export default function Header() {
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              <span className={cn(
-                'font-brand tracking-[0.04em] leading-none transition-colors duration-500',
-                'text-[1.65rem] lg:text-[2.25rem]',
-                scrolled ? 'text-slate-900' : 'text-slate-900',
-              )}>
+              <span className="font-brand tracking-[0.04em] leading-none text-ivory text-[1.65rem] lg:text-[2.25rem]">
                 Srilatha Art
               </span>
             </Link>
@@ -92,7 +88,7 @@ export default function Header() {
                 <Link
                   key={`${l.href}-${l.label}`}
                   href={l.href}
-                  className="text-slate-700 hover:text-blue transition-colors duration-300"
+                  className="text-ivory-soft hover:text-blue transition-colors duration-300"
                 >
                   {l.label}
                 </Link>
@@ -108,7 +104,8 @@ export default function Header() {
                 className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full
                            text-[13px] font-semibold text-white
                            bg-[#25D366] hover:bg-[#1ebe5b]
-                           transition-all duration-300 hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.55)]"
+                           transition-all duration-300
+                           shadow-[0_0_18px_rgba(37,211,102,0.45)] hover:shadow-[0_0_28px_rgba(37,211,102,0.65)]"
               >
                 <MessageCircle className="w-4 h-4" aria-hidden />
                 <span className="hidden lg:inline">WhatsApp</span>
@@ -120,7 +117,7 @@ export default function Header() {
                 rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="hidden sm:inline-flex items-center justify-center min-h-10 min-w-10
-                           text-slate-700 hover:text-blue transition-colors duration-300"
+                           text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <Instagram className="w-5 h-5" aria-hidden />
               </a>
@@ -129,7 +126,7 @@ export default function Header() {
                 onClick={() => setSearchOpen(true)}
                 aria-label="Search"
                 className="min-h-11 min-w-11 flex items-center justify-center
-                           text-slate-700 hover:text-blue transition-colors duration-300"
+                           text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <Search className="w-5 h-5" aria-hidden />
               </button>
@@ -138,12 +135,12 @@ export default function Header() {
                 href={authUser ? '/account' : '/login'}
                 aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
                 className="hidden lg:flex min-h-11 min-w-11 items-center justify-center
-                           text-slate-700 hover:text-blue transition-colors duration-300 relative"
+                           text-ivory-soft hover:text-blue transition-colors duration-300 relative"
               >
                 {authUser ? (
                   <span
                     className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold
-                               bg-brand-gradient-soft text-blue border border-blue/20"
+                               bg-brand-gradient-soft text-blue border border-blue/30"
                   >
                     {authUser.name.charAt(0).toUpperCase()}
                   </span>
@@ -156,7 +153,7 @@ export default function Header() {
                 href="/cart"
                 aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
                 className="relative min-h-11 min-w-11 flex items-center justify-center
-                           text-slate-700 hover:text-blue transition-colors duration-300"
+                           text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <ShoppingBag className="w-5 h-5" aria-hidden />
                 {count > 0 && (
@@ -164,7 +161,7 @@ export default function Header() {
                     className="absolute top-1.5 right-1 min-w-[18px] h-[18px] px-1
                                text-[10px] font-bold leading-[18px] text-center text-white
                                rounded-full bg-gradient-to-br from-blue to-indigo
-                               shadow-[0_2px_8px_rgba(37,99,235,0.45)]"
+                               shadow-[0_0_12px_rgba(59,130,246,0.65)]"
                   >
                     {count > 99 ? '99+' : count}
                   </span>
@@ -175,7 +172,7 @@ export default function Header() {
                 onClick={() => setDrawerOpen(true)}
                 aria-label="Open menu"
                 className="lg:hidden min-h-11 min-w-11 -mr-1 flex items-center justify-center
-                           text-slate-700 hover:text-blue transition-colors duration-300"
+                           text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <Menu className="w-5 h-5" aria-hidden />
               </button>

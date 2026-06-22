@@ -44,10 +44,10 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
       <Link href={`/product/${product.id}`} className="block">
         <div
           className="relative aspect-square overflow-hidden rounded-2xl
-                     bg-gradient-to-br from-slate-50 to-white
-                     border border-slate-200/80
+                     bg-gradient-to-br from-plum-warm to-plum-light
+                     border border-white/10
                      transition-all duration-500
-                     group-hover:border-blue/30
+                     group-hover:border-blue/40
                      group-hover:shadow-card-hover"
         >
           <PictureImage
@@ -67,7 +67,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           <div
             aria-hidden
             className="absolute inset-x-0 top-0 h-20 pointer-events-none
-                       bg-gradient-to-b from-white/40 to-transparent"
+                       bg-gradient-to-b from-black/35 to-transparent"
           />
 
           {/* Badges - top-left. Capped at 2 visible. */}
@@ -76,7 +76,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               const badges: React.ReactNode[] = []
               if (!product.inStock) {
                 badges.push(
-                  <span key="oos" className="sticker bg-slate-200 text-slate-700 shadow-none">
+                  <span key="oos" className="sticker !bg-white/10 !text-ivory-mute shadow-none">
                     Sold Out
                   </span>,
                 )
@@ -109,7 +109,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             })()}
           </div>
 
-          {/* Wishlist heart — white pill with soft shadow */}
+          {/* Wishlist heart — dark pill */}
           <button
             type="button"
             onClick={onWish}
@@ -117,15 +117,15 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             aria-pressed={inWishlist}
             className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full
                        flex items-center justify-center
-                       bg-white/95 backdrop-blur border border-slate-200
-                       text-slate-700 hover:text-blue hover:border-blue/40
+                       bg-slate-950/75 backdrop-blur border border-white/10
+                       text-ivory-soft hover:text-blue hover:border-blue/50
                        active:scale-90 transition-all duration-300
                        shadow-soft"
           >
             <Heart
               className={cn(
                 'w-4 h-4 transition-colors duration-300',
-                inWishlist ? 'fill-blue text-blue' : 'text-slate-500 group-hover:text-blue',
+                inWishlist ? 'fill-blue text-blue' : 'text-ivory-soft group-hover:text-blue',
               )}
               aria-hidden
             />
@@ -152,18 +152,18 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
         </div>
 
         <div className="pt-3 px-0.5">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500 mb-1">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-ivory-mute mb-1">
             {product.category.replace('-', ' ')}
           </p>
           <h3 className="font-display text-[14px] sm:text-[15px] font-semibold
-                         leading-snug text-slate-900 tracking-tight
+                         leading-snug text-ivory tracking-tight
                          line-clamp-2 group-hover:text-blue transition-colors duration-300">
             {product.title}
           </h3>
           <div className="flex items-baseline gap-2 mt-1.5">
-            <span className="text-slate-900 font-bold tabular-nums text-[15px]">{formatINR(product.price)}</span>
+            <span className="text-ivory font-bold tabular-nums text-[15px]">{formatINR(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-xs text-slate-400 line-through tabular-nums">
+              <span className="text-xs text-ivory-mute line-through tabular-nums">
                 {formatINR(product.compareAtPrice)}
               </span>
             )}

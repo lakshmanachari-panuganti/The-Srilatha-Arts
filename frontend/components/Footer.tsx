@@ -51,14 +51,14 @@ export default function Footer() {
   const [newsletterError, setNewsletterError] = useState('')
 
   return (
-    <footer className="relative z-10 mt-24 border-t border-slate-200 bg-white">
+    <footer className="relative z-10 mt-24 border-t border-white/[0.06] bg-plum">
       {/* Soft aurora wash at the top of the footer */}
       <div
         aria-hidden
         className="absolute inset-x-0 top-0 h-72 pointer-events-none opacity-60"
         style={{
           background:
-            'radial-gradient(60% 80% at 50% 0%, rgba(37,99,235,0.07), transparent 70%)',
+            'radial-gradient(60% 80% at 50% 0%, rgba(59,130,246,0.12), transparent 70%)',
         }}
       />
 
@@ -66,13 +66,14 @@ export default function Footer() {
         {/* Newsletter */}
         <div className="text-center max-w-2xl mx-auto mb-14 lg:mb-20">
           <p className="eyebrow justify-center mb-4">Stay in touch</p>
-          <h3 className="font-display text-3xl lg:text-4xl text-slate-900 tracking-tight mb-3">
+          <h3 className="font-display text-3xl lg:text-4xl text-ivory tracking-tight mb-3">
             Updates from the{' '}
-            <span className="bg-gradient-to-r from-blue to-indigo bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                             drop-shadow-[0_0_18px_rgba(59,130,246,0.45)]">
               studio
             </span>
           </h3>
-          <p className="text-slate-600 text-sm lg:text-base mb-6">
+          <p className="text-ivory-soft text-sm lg:text-base mb-6">
             New pieces, studio updates and the occasional discount — sent straight to your inbox. No spam, ever.
           </p>
           {newsletterSubmitted ? (
@@ -114,7 +115,7 @@ export default function Footer() {
             >
               <div className="relative flex-1">
                 <Mail
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ivory-mute"
                   aria-hidden
                 />
                 <label htmlFor="newsletter-email" className="sr-only">Email address</label>
@@ -128,9 +129,9 @@ export default function Footer() {
                   aria-label="Email address"
                   autoComplete="email"
                   className="w-full h-12 pl-11 pr-4 rounded-full
-                             bg-white text-slate-900 placeholder:text-slate-400
-                             border border-slate-200 hover:border-slate-300
-                             focus:border-blue focus:ring-4 focus:ring-blue/15 focus:outline-none
+                             bg-plum-light text-ivory placeholder:text-ivory-mute
+                             border border-white/10 hover:border-white/20
+                             focus:border-blue focus:ring-4 focus:ring-blue/20 focus:outline-none
                              transition-all duration-200"
                 />
               </div>
@@ -149,11 +150,11 @@ export default function Footer() {
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
               <Image src="/Logos/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
-              <span className="font-brand text-3xl text-slate-900 tracking-[0.04em]">
+              <span className="font-brand text-3xl text-ivory tracking-[0.04em]">
                 Srilatha Art
               </span>
             </Link>
-            <p className="text-sm text-slate-600 leading-relaxed max-w-xs">
+            <p className="text-sm text-ivory-soft leading-relaxed max-w-xs">
               Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.
             </p>
 
@@ -162,7 +163,7 @@ export default function Footer() {
                 href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-slate-700 hover:text-blue transition-colors duration-300"
+                className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />
                 WhatsApp · {PHONE_DISPLAY}
@@ -170,7 +171,7 @@ export default function Footer() {
               <br />
               <a
                 href={emailLink()}
-                className="inline-flex items-center gap-2 text-slate-700 hover:text-blue transition-colors duration-300"
+                className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <Mail className="w-4 h-4 text-blue" aria-hidden />
                 {STUDIO_EMAIL}
@@ -178,7 +179,7 @@ export default function Footer() {
               <br />
               <a
                 href={`tel:${PHONE_TEL}`}
-                className="inline-flex items-center gap-2 text-slate-700 hover:text-blue transition-colors duration-300"
+                className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
               >
                 <Phone className="w-4 h-4 text-blue" aria-hidden />
                 {PHONE_DISPLAY}
@@ -209,10 +210,10 @@ export default function Footer() {
         </div>
 
         {/* Mobile brand + contact */}
-        <div className="lg:hidden mt-12 pt-8 text-center border-t border-slate-200">
+        <div className="lg:hidden mt-12 pt-8 text-center border-t border-white/[0.06]">
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
             <Image src="/Logos/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
-            <span className="font-brand text-3xl text-slate-900 tracking-[0.04em]">
+            <span className="font-brand text-3xl text-ivory tracking-[0.04em]">
               Srilatha Art
             </span>
           </Link>
@@ -236,7 +237,7 @@ export default function Footer() {
               href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-slate-700 hover:text-blue transition-colors duration-300"
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />
               WhatsApp · {PHONE_DISPLAY}
@@ -244,7 +245,7 @@ export default function Footer() {
             <br />
             <a
               href={emailLink()}
-              className="inline-flex items-center gap-2 text-slate-700 hover:text-blue transition-colors duration-300"
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               <Mail className="w-4 h-4 text-blue" aria-hidden />
               {STUDIO_EMAIL}
@@ -252,7 +253,7 @@ export default function Footer() {
             <br />
             <a
               href={`tel:${PHONE_TEL}`}
-              className="inline-flex items-center gap-2 text-slate-700 hover:text-blue transition-colors duration-300"
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               <Phone className="w-4 h-4 text-blue" aria-hidden />
               {PHONE_DISPLAY}
@@ -260,9 +261,10 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+        <div className="mt-12 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ivory-mute">
           <p>© {new Date().getFullYear()} Srilatha Art. All rights reserved.</p>
-          <p className="font-serif italic text-base bg-gradient-to-r from-blue to-indigo bg-clip-text text-transparent">
+          <p className="font-serif italic text-base bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                        drop-shadow-[0_0_14px_rgba(59,130,246,0.45)]">
             Handmade with care
           </p>
         </div>
@@ -280,13 +282,13 @@ function FooterColumn({
 }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="lg:py-0 border-b border-slate-200 lg:border-b-0">
+    <div className="lg:py-0 border-b border-white/[0.06] lg:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         className="lg:pointer-events-none w-full flex items-center justify-between py-4 lg:py-0 lg:mb-4
-                   text-[11px] uppercase tracking-[0.22em] font-bold text-slate-900"
+                   text-[11px] uppercase tracking-[0.22em] font-bold text-ivory"
       >
         {title}
         <ChevronDown
@@ -304,7 +306,7 @@ function FooterColumn({
           <li key={l.href}>
             <Link
               href={l.href}
-              className="block py-1.5 text-sm text-slate-600 hover:text-blue transition-colors duration-300"
+              className="block py-1.5 text-sm text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               {l.label}
             </Link>
@@ -331,9 +333,9 @@ function SocialLink({
       rel="noopener noreferrer"
       aria-label={label}
       className="min-w-10 min-h-10 rounded-full flex items-center justify-center
-                 text-slate-600 hover:text-blue
-                 bg-white border border-slate-200 hover:border-blue/40
-                 hover:shadow-soft
+                 text-ivory-soft hover:text-blue
+                 bg-white/[0.04] border border-white/10 hover:border-blue/50
+                 hover:shadow-[0_0_16px_rgba(59,130,246,0.30)]
                  transition-all duration-300"
     >
       {children}

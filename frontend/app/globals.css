@@ -3,79 +3,69 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────
-   Typography system — AndroAI-inspired canonical (2026-06-22)
+   Typography system — AndroAI dark canonical (2026-06-22)
 
    Plus Jakarta Sans     - `font-sans`. Body, UI, prices, buttons,
                            nav, eyebrows, and headlines. Variable
-                           weight (400/500/600/700/800) so font-medium/
-                           semibold/bold/extrabold are real weights.
+                           weight (400/500/600/700/800).
 
-   Cormorant Garamond    - `font-serif`. Editorial italic accents and
-                           rare display flourishes. No longer the
-                           default headline face — Jakarta carries
-                           h1-h6 directly for the modern SaaS feel.
+   Cormorant Garamond    - `font-serif`. Editorial italic accents.
 
-   Pramukh Rounded       - `font-brand`. Reserved exclusively for the
-                           "Srilatha Art" wordmark. Do not use it
-                           elsewhere.
+   Pramukh Rounded       - `font-brand`. "Srilatha Art" wordmark only.
 
    All loaded via next/font/google in app/layout.tsx (and Fontshare
    for brand) and exposed as CSS variables (--font-jakarta,
-   --font-cormorant). next/font self-hosts at build time, generates
-   fallback metrics to prevent CLS, and inlines the font CSS.
+   --font-cormorant).
    ───────────────────────────────────────────────────────────── */
 
 @layer base {
   :root {
     /* ══════════════════════════════════════════════════════════
-       ANDROAI-INSPIRED BRIGHT THEME
-         Foundation:  off-white slate-50 canvas, white surfaces
-         Accents:     royal blue → indigo gradient, cyan highlight
-         Type:        Plus Jakarta Sans, slate-900 ink
+       ANDROAI DARK THEME
+         Foundation:  slate-950 / slate-900 dark canvas
+         Accents:     brightened royal-blue → indigo gradient with
+                      heavy glow halos (AndroAI button signature)
+         Type:        Plus Jakarta Sans, slate-50 ink
 
        Legacy custom-property names (--surface, --text, --brand,
-       --accent, --accent-gold, …) are intentionally preserved and
-       remapped so the ~200 component call sites resolve to the new
-       bright palette without per-component edits. Tailwind aliases
-       in tailwind.config.ts read the same names.
+       --accent, --accent-gold, …) are remapped so the ~200
+       component call sites resolve without per-component edits.
        ══════════════════════════════════════════════════════════ */
 
-    /* ── Foundation — bright canvas ──────────────────────────── */
-    --bg-main:        #F8FAFC;          /* slate-50 base canvas */
-    --bg-main-rgb:    248 250 252;
-    --bg-surface:     #FFFFFF;          /* sections, headers */
-    --bg-surface-rgb: 255 255 255;
-    --bg-card:        #FFFFFF;          /* default panel container */
-    --bg-card-rgb:    255 255 255;
-    --bg-input:       #FFFFFF;          /* form wells */
-    --bg-input-rgb:   255 255 255;
+    /* ── Foundation — dark canvas ────────────────────────────── */
+    --bg-main:        #0B1120;          /* slate-950 w/ navy tint */
+    --bg-main-rgb:    11 17 32;
+    --bg-surface:     #0F172A;          /* slate-900 sections */
+    --bg-surface-rgb: 15 23 42;
+    --bg-card:        #111827;          /* gray-900 panels */
+    --bg-card-rgb:    17 24 39;
+    --bg-input:       #0F172A;
+    --bg-input-rgb:   15 23 42;
 
-    /* Mobile solid fallback for glass surfaces */
-    --bg-glass-fallback:     #FFFFFF;
-    --bg-glass-fallback-rgb: 255 255 255;
+    /* Mobile solid fallback for glass */
+    --bg-glass-fallback:     #0F172A;
+    --bg-glass-fallback-rgb: 15 23 42;
 
-    /* ── Glass surface — frosted white (desktop only) ────────── */
-    --glass-bg:          rgba(255, 255, 255, 0.72);
-    --glass-border:      rgba(15, 23, 42, 0.06);
-    --glass-border-glow: rgba(37, 99, 235, 0.18);
+    /* ── Glass surface — dark frosted (desktop only) ─────────── */
+    --glass-bg:          rgba(15, 23, 42, 0.72);
+    --glass-border:      rgba(148, 163, 184, 0.10);
+    --glass-border-glow: rgba(59, 130, 246, 0.30);
 
-    /* ── Accents — royal blue + indigo + cyan ────────────────── */
-    --accent-blue:        #2563EB;       /* primary CTA, AndroAI signature */
-    --accent-blue-rgb:    37 99 235;
-    --accent-blue-hover:  #1D4ED8;       /* deepened active state */
-    --accent-blue-hover-rgb: 29 78 216;
-    --accent-indigo:      #6366F1;       /* gradient stop, secondary accent */
-    --accent-indigo-rgb:  99 102 241;
-    --accent-indigo-hover:#4F46E5;
-    --accent-indigo-hover-rgb: 79 70 229;
-    --accent-cyan:        #06B6D4;       /* highlight / focus tint */
-    --accent-cyan-rgb:    6 182 212;
-    --ink-light:          #FFFFFF;       /* AA contrast text on blue fills */
+    /* ── Accents — brightened blue/indigo/cyan on dark ───────── */
+    --accent-blue:        #3B82F6;
+    --accent-blue-rgb:    59 130 246;
+    --accent-blue-hover:  #2563EB;
+    --accent-blue-hover-rgb: 37 99 235;
+    --accent-indigo:      #818CF8;
+    --accent-indigo-rgb:  129 140 248;
+    --accent-indigo-hover:#6366F1;
+    --accent-indigo-hover-rgb: 99 102 241;
+    --accent-cyan:        #22D3EE;
+    --accent-cyan-rgb:    34 211 238;
+    --ink-light:          #FFFFFF;
     --ink-light-rgb:      255 255 255;
 
-    /* Legacy gold names re-routed to the new blue accent. Keep so
-       existing .btn-dark / .btn-resin / .btn-glow-gold call sites
-       still resolve correctly. */
+    /* Legacy gold names → blue (preserve component backwards-compat) */
     --accent-gold:        var(--accent-blue);
     --accent-gold-rgb:    var(--accent-blue-rgb);
     --accent-gold-hover:  var(--accent-blue-hover);
@@ -84,44 +74,48 @@
     --ink-dark-rgb:       var(--ink-light-rgb);
 
     /* ── Typography ──────────────────────────────────────────── */
-    --text-primary:     #0F172A;         /* slate-900 headings + primary body */
-    --text-primary-rgb: 15 23 42;
-    --text-secondary:   #334155;         /* slate-700 body */
-    --text-secondary-rgb: 51 65 85;
-    --text-muted:       #64748B;         /* slate-500 captions, metadata */
-    --text-muted-rgb:   100 116 139;
+    --text-primary:     #F8FAFC;
+    --text-primary-rgb: 248 250 252;
+    --text-secondary:   #CBD5E1;
+    --text-secondary-rgb: 203 213 225;
+    --text-muted:       #94A3B8;
+    --text-muted-rgb:   148 163 184;
 
-    /* ── Glow tiers (blue-routed) ────────────────────────────── */
-    --glow-sm: 0 4px 14px rgba(37, 99, 235, 0.22);
-    --glow-md: 0 8px 28px rgba(37, 99, 235, 0.20);
-    --glow-lg: 0 18px 48px rgba(37, 99, 235, 0.22),
-               0 4px 14px rgba(99, 102, 241, 0.18);
+    /* ── Glow tiers — boosted for AndroAI neon button signature ── */
+    --glow-sm: 0 0 0 1px rgba(59, 130, 246, 0.40),
+               0 6px 18px rgba(59, 130, 246, 0.38),
+               0 0 24px rgba(99, 102, 241, 0.28);
+    --glow-md: 0 0 0 1px rgba(59, 130, 246, 0.50),
+               0 10px 28px rgba(59, 130, 246, 0.48),
+               0 0 36px rgba(99, 102, 241, 0.36);
+    --glow-lg: 0 0 0 1px rgba(59, 130, 246, 0.60),
+               0 16px 44px rgba(59, 130, 246, 0.55),
+               0 0 56px rgba(99, 102, 241, 0.45),
+               0 0 80px rgba(34, 211, 238, 0.20);
 
-    /* ── Soft elevation shadows ──────────────────────────────── */
-    --shadow-card:       0 1px 2px rgba(15, 23, 42, 0.04),
-                         0 8px 24px -8px rgba(15, 23, 42, 0.10);
-    --shadow-card-hover: 0 2px 4px rgba(15, 23, 42, 0.05),
-                         0 18px 40px -12px rgba(15, 23, 42, 0.18);
-    --shadow-nav:        0 1px 0 rgba(15, 23, 42, 0.04),
-                         0 8px 24px -12px rgba(15, 23, 42, 0.10);
+    /* ── Elevation shadows ───────────────────────────────────── */
+    --shadow-card:       0 1px 2px rgba(0, 0, 0, 0.40),
+                         0 12px 32px -8px rgba(0, 0, 0, 0.50);
+    --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.50),
+                         0 22px 50px -12px rgba(59, 130, 246, 0.25),
+                         0 0 0 1px rgba(59, 130, 246, 0.20);
+    --shadow-nav:        0 1px 0 rgba(148, 163, 184, 0.05),
+                         0 12px 32px -16px rgba(0, 0, 0, 0.60);
 
-    /* ── Functional status (unchanged) ───────────────────────── */
+    /* ── Functional status ───────────────────────────────────── */
     --ok:         #22c55e;
     --ok-rgb:     34 197 94;
-    --ok-glow:    0 0 20px rgba(34, 197, 94, 0.30);
+    --ok-glow:    0 0 24px rgba(34, 197, 94, 0.45);
     --danger:     #ef4444;
     --danger-rgb: 239 68 68;
-    --danger-glow:0 0 20px rgba(239, 68, 68, 0.30);
+    --danger-glow:0 0 24px rgba(239, 68, 68, 0.45);
     --wa-1:       #25D366;
     --wa-2:       #128C7E;
 
     /* ══════════════════════════════════════════════════════════
-       LEGACY ALIAS LAYER — keeps existing class names resolving
-       against the new bright palette. Do not consume these in
-       new code; reach for the named tokens above directly.
+       LEGACY ALIAS LAYER — routes old names to dark + blue palette
        ══════════════════════════════════════════════════════════ */
 
-    /* Surface aliases */
     --surface:            var(--bg-main);
     --surface-rgb:        var(--bg-main-rgb);
     --surface-raised:     var(--bg-card);
@@ -129,7 +123,6 @@
     --surface-sunken:     var(--bg-surface);
     --surface-sunken-rgb: var(--bg-surface-rgb);
 
-    /* Text aliases */
     --text:           var(--text-primary);
     --text-rgb:       var(--text-primary-rgb);
     --text-body:      var(--text-secondary);
@@ -138,7 +131,6 @@
     --text-dark:      var(--text-primary);
     --text-dark-rgb:  var(--text-primary-rgb);
 
-    /* Brand + accent aliases — route to royal blue */
     --brand:              var(--accent-blue);
     --brand-rgb:          var(--accent-blue-rgb);
     --brand-strong:       var(--accent-blue-hover);
@@ -148,11 +140,9 @@
     --accent-strong:      var(--accent-indigo);
     --accent-strong-rgb:  var(--accent-indigo-rgb);
 
-    /* Borders / rings */
     --border:  var(--glass-border);
     --ring:    var(--accent-blue);
 
-    /* Legacy orchid/coral micro-accents — rerouted to indigo */
     --orchid:         var(--accent-indigo);
     --orchid-rgb:     var(--accent-indigo-rgb);
     --coral:          var(--danger);
@@ -160,18 +150,16 @@
     --terracotta:     var(--accent-indigo-hover);
     --terracotta-rgb: var(--accent-indigo-hover-rgb);
 
-    /* Legacy *-glow tokens — blue-routed */
-    --lav-glow:    rgba(37, 99, 235, 0.40);
-    --orchid-glow: rgba(99, 102, 241, 0.40);
-    --coral-glow:  rgba(239, 68, 68, 0.40);
-    --gold-glow:   rgba(37, 99, 235, 0.40);
+    --lav-glow:    rgba(59, 130, 246, 0.55);
+    --orchid-glow: rgba(129, 140, 248, 0.55);
+    --coral-glow:  rgba(239, 68, 68, 0.55);
+    --gold-glow:   rgba(59, 130, 246, 0.55);
 
-    /* Gloss surface system */
-    --gloss-bg:        rgba(255, 255, 255, 0.65);
-    --gloss-bg-hi:     rgba(255, 255, 255, 0.85);
+    --gloss-bg:        rgba(255, 255, 255, 0.05);
+    --gloss-bg-hi:     rgba(255, 255, 255, 0.10);
     --gloss-border:    var(--glass-border);
     --gloss-border-hi: var(--glass-border-glow);
-    --gloss-sheen:     rgba(255, 255, 255, 0.95);
+    --gloss-sheen:     rgba(255, 255, 255, 0.18);
 
     /* ── Layout heights ──────────────────────────────────────── */
     --banner-h: 0px;
@@ -180,8 +168,8 @@
     /* ── Motion primitives ───────────────────────────────────── */
     --gold-leaf:      var(--accent-indigo);
     --gold-deep:      var(--accent-blue-hover);
-    --mandala-stroke: rgba(37, 99, 235, 0.45);
-    --ink-veil:       rgba(15, 23, 42, 0.06);
+    --mandala-stroke: rgba(59, 130, 246, 0.50);
+    --ink-veil:       rgba(11, 17, 32, 0.92);
     --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
     --ease-pour:      cubic-bezier(0.83, 0, 0.17, 1);
     --ease-gallery:   cubic-bezier(0.65, 0, 0.35, 1);
@@ -214,17 +202,16 @@
     font-variant-numeric: lining-nums;
   }
 
-  /* Soft blue aura behind the page on desktop. Keeps the bright
-     canvas from reading flat against deep imagery. */
+  /* Subtle blue/indigo aurora on the dark canvas (desktop only) */
   @media (min-width: 769px) {
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(60% 50% at 50% -10%, rgba(37, 99, 235, 0.07), transparent 60%),
-        radial-gradient(50% 40% at 100% 0%, rgba(99, 102, 241, 0.06), transparent 65%),
-        radial-gradient(60% 40% at 0% 110%, rgba(6, 182, 212, 0.05), transparent 60%);
+        radial-gradient(70% 50% at 50% -10%, rgba(59, 130, 246, 0.14), transparent 60%),
+        radial-gradient(50% 40% at 100% 0%, rgba(99, 102, 241, 0.10), transparent 65%),
+        radial-gradient(60% 40% at 0% 110%, rgba(34, 211, 238, 0.07), transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
@@ -265,7 +252,7 @@
   }
 
   ::selection {
-    background: rgba(37, 99, 235, 0.18);
+    background: rgba(59, 130, 246, 0.30);
     color: var(--text-primary);
   }
 
@@ -273,14 +260,14 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Custom scrollbar — slate track, blue thumb */
+  /* Scrollbar — slate track, blue thumb */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: var(--bg-main); }
   ::-webkit-scrollbar-thumb {
-    background: rgba(37, 99, 235, 0.40);
+    background: rgba(59, 130, 246, 0.45);
     border-radius: 4px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.65); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.70); }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -335,7 +322,7 @@
     text-wrap: pretty;
   }
 
-  /* ───────────── Buttons ───────────── */
+  /* ───────────── Buttons — AndroAI neon glow signature ───────── */
 
   .btn {
     display: inline-flex;
@@ -343,7 +330,7 @@
     justify-content: center;
     gap: 0.5rem;
     min-height: 2.875rem;
-    padding: 0 1.5rem;
+    padding: 0 1.625rem;
     font-size: 0.9375rem;
     font-weight: 600;
     letter-spacing: -0.005em;
@@ -351,20 +338,19 @@
     border-radius: 999px;
     transition: all 300ms cubic-bezier(0.22, 1, 0.36, 1);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     isolation: isolate;
     cursor: pointer;
     border: none;
   }
   .btn:focus-visible {
     outline: 2px solid var(--accent-blue);
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
   .btn:active { transform: translateY(0) scale(0.98); }
   .btn:disabled { opacity: 0.5; pointer-events: none; }
 
-  /* ── Primary CTA — gradient blue → indigo ──
-     Hover: lift -2px, deepen gradient, expand glow. */
+  /* Primary CTA — gradient blue → indigo with neon halo */
   .btn-dark {
     @apply btn;
     background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 100%);
@@ -372,32 +358,44 @@
     font-weight: 600;
     box-shadow: var(--glow-sm);
   }
+  .btn-dark::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+    opacity: 0.55;
+    filter: blur(14px);
+    z-index: -1;
+    transition: opacity 350ms ease, filter 350ms ease;
+  }
   .btn-dark:hover {
-    background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-indigo-hover) 100%);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo-hover) 100%);
     transform: translateY(-2px);
     box-shadow: var(--glow-lg);
   }
+  .btn-dark:hover::before {
+    opacity: 0.85;
+    filter: blur(20px);
+  }
   .btn-dark:active { transform: translateY(0); }
 
-  /* ── Secondary / Outline ──────────────────
-     Slate hairline, blue hover ring. */
+  /* Secondary / Outline — subtle glass on dark with blue ring on hover */
   .btn-outline {
     @apply btn;
-    background: var(--bg-surface);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
-    border: 1px solid rgba(15, 23, 42, 0.12);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(148, 163, 184, 0.20);
+    box-shadow: none;
   }
   .btn-outline:hover {
     border-color: var(--accent-blue);
-    background: rgba(37, 99, 235, 0.04);
-    color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.10);
     transform: translateY(-2px);
     box-shadow: var(--glow-sm);
   }
   .btn-outline:active { transform: translateY(0); }
 
-  /* Legacy .btn-resin alias — same primary CTA spec. */
   .btn-resin,
   .btn-glow-gold {
     @apply btn;
@@ -406,32 +404,47 @@
     font-weight: 600;
     box-shadow: var(--glow-sm);
   }
+  .btn-resin::before,
+  .btn-glow-gold::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+    opacity: 0.55;
+    filter: blur(14px);
+    z-index: -1;
+    transition: opacity 350ms ease, filter 350ms ease;
+  }
   .btn-resin:hover,
   .btn-glow-gold:hover {
-    background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-indigo-hover) 100%);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo-hover) 100%);
     transform: translateY(-2px);
     box-shadow: var(--glow-lg);
+  }
+  .btn-resin:hover::before,
+  .btn-glow-gold:hover::before {
+    opacity: 0.85;
+    filter: blur(20px);
   }
   .btn-resin:active,
   .btn-glow-gold:active { transform: translateY(0); }
 
   .btn-glow-gold-outline {
     @apply btn;
-    background: var(--bg-surface);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
-    border: 1px solid rgba(15, 23, 42, 0.12);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(148, 163, 184, 0.20);
+    box-shadow: none;
   }
   .btn-glow-gold-outline:hover {
     border-color: var(--accent-blue);
-    background: rgba(37, 99, 235, 0.04);
-    color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.10);
     transform: translateY(-2px);
     box-shadow: var(--glow-sm);
   }
   .btn-glow-gold-outline:active { transform: translateY(0); }
 
-  /* ── Text link — blue, underlined ────────── */
   .btn-link {
     display: inline-flex;
     align-items: center;
@@ -439,17 +452,17 @@
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--accent-blue);
-    border-bottom: 1px solid rgba(37, 99, 235, 0.40);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.45);
     padding-bottom: 0.125rem;
     transition: all 250ms ease;
     letter-spacing: -0.005em;
   }
   .btn-link:hover {
-    color: var(--accent-blue-hover);
-    border-bottom-color: var(--accent-blue);
+    color: var(--accent-indigo);
+    border-bottom-color: var(--accent-indigo);
+    text-shadow: 0 0 12px rgba(59, 130, 246, 0.45);
   }
 
-  /* ── Editorial arrow link ─────────────── */
   .btn-editorial {
     display: inline-flex;
     align-items: center;
@@ -498,7 +511,7 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* Sticker / pill badge */
+  /* Sticker / pill badge — gradient on dark with subtle glow */
   .sticker {
     display: inline-flex;
     align-items: center;
@@ -511,10 +524,9 @@
     border-radius: 999px;
     background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
     color: var(--ink-light);
-    box-shadow: var(--glow-sm);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.40);
   }
 
-  /* Chip rail */
   .chip-rail {
     display: flex;
     gap: 0.5rem;
@@ -536,8 +548,8 @@
     font-size: 0.875rem;
     font-weight: 500;
     border-radius: 999px;
-    border: 1px solid rgba(15, 23, 42, 0.10);
-    background: var(--bg-surface);
+    border: 1px solid rgba(148, 163, 184, 0.20);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text-secondary);
     position: relative;
     overflow: hidden;
@@ -546,10 +558,10 @@
   }
   .chip:hover {
     border-color: var(--accent-blue);
-    background: rgba(37, 99, 235, 0.04);
-    color: var(--accent-blue);
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--text-primary);
     transform: translateY(-1px);
-    box-shadow: var(--glow-sm);
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
   }
   .chip[aria-current='page'],
   .chip.is-active {
@@ -557,7 +569,7 @@
     border-color: transparent;
     color: var(--ink-light);
     font-weight: 600;
-    box-shadow: var(--glow-md);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.40);
   }
 
   .sticky-cta {
@@ -566,20 +578,16 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
-  /* Editorial rule — blue hairline */
   .rule {
     height: 1px;
     background: linear-gradient(to right,
       transparent,
-      rgba(37, 99, 235, 0.45),
-      rgba(99, 102, 241, 0.30),
+      rgba(59, 130, 246, 0.55),
+      rgba(129, 140, 248, 0.40),
       transparent);
   }
 
-  /* ───────────── Glass surface system ─────────────
-     Frosted white — desktop only. Mobile renders a
-     solid white fallback for paint cost.
-     Standard 20px radius across the system. */
+  /* ───────────── Glass surface system (dark frosted) ───────────── */
 
   .glass {
     background: var(--bg-glass-fallback);
@@ -605,40 +613,37 @@
   }
   @media (min-width: 1024px) {
     .glass-strong {
-      background: rgba(255, 255, 255, 0.82);
+      background: rgba(15, 23, 42, 0.78);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
   }
 
-  /* Hover lift — blue halo */
   .glow-hover {
     transition: box-shadow 350ms ease, transform 350ms ease;
   }
   .glow-hover:hover {
-    box-shadow: var(--shadow-card-hover),
-                0 0 0 1px rgba(37, 99, 235, 0.18);
+    box-shadow: var(--shadow-card-hover);
     transform: translateY(-3px);
   }
 
-  /* Kolam decorative dots — blue-tinted */
   .kolam-dots {
-    background-image: radial-gradient(circle, rgba(37, 99, 235, 0.18) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(59, 130, 246, 0.22) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
-  /* ───────────── Resin plate (artwork hero areas) ───────────── */
+  /* ───────────── Resin plate ───────────── */
 
   .resin-plate {
     position: relative;
     border-radius: 16px;
-    background: var(--bg-surface);
+    background: var(--bg-card);
     overflow: hidden;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.65),
-      0 0 0 1px rgba(15, 23, 42, 0.06),
-      0 24px 60px -22px rgba(15, 23, 42, 0.20),
-      0 60px 120px -40px rgba(37, 99, 235, 0.12);
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 0 0 1px rgba(148, 163, 184, 0.10),
+      0 24px 60px -22px rgba(0, 0, 0, 0.55),
+      0 60px 120px -40px rgba(59, 130, 246, 0.18);
     isolation: isolate;
   }
   .resin-plate::before {
@@ -648,8 +653,8 @@
     height: 40%;
     background: linear-gradient(
       180deg,
-      rgba(37, 99, 235, 0.06) 0%,
-      rgba(99, 102, 241, 0.02) 45%,
+      rgba(59, 130, 246, 0.10) 0%,
+      rgba(129, 140, 248, 0.04) 45%,
       transparent 100%
     );
     pointer-events: none;
@@ -662,8 +667,8 @@
     background: linear-gradient(
       115deg,
       transparent 35%,
-      rgba(37, 99, 235, 0.18) 48%,
-      rgba(99, 102, 241, 0.10) 52%,
+      rgba(59, 130, 246, 0.25) 48%,
+      rgba(129, 140, 248, 0.14) 52%,
       transparent 65%
     );
     background-size: 220% 220%;
@@ -689,21 +694,22 @@
     z-index: 5;
     background: radial-gradient(
       260px circle at var(--rx, 50%) var(--ry, 35%),
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(37, 99, 235, 0.10) 28%,
+      rgba(255, 255, 255, 0.30) 0%,
+      rgba(59, 130, 246, 0.18) 28%,
       transparent 55%
     );
     mix-blend-mode: soft-light;
     transition: background 600ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* ── Gradient text — replaces legacy gold-text ──────────── */
+  /* Gradient text — replaces legacy gold-text */
   .gold-text {
     background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 50%, var(--accent-cyan) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: var(--accent-blue);
+    filter: drop-shadow(0 0 18px rgba(59, 130, 246, 0.35));
   }
   @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
     .gold-text { color: var(--accent-blue); }
@@ -712,14 +718,15 @@
   .lavender-text,
   .gold-text-glow {
     color: var(--accent-blue);
+    text-shadow: 0 0 16px rgba(59, 130, 246, 0.50);
   }
 
-  /* ───────────── Premium form inputs ─────────────────── */
+  /* ───────────── Form inputs ───────────── */
   .form-input {
     width: 100%;
     background: var(--bg-input);
     color: var(--text-primary);
-    border: 1px solid rgba(15, 23, 42, 0.10);
+    border: 1px solid rgba(148, 163, 184, 0.18);
     border-radius: 12px;
     padding: 0.75rem 0.875rem;
     font-size: 0.9375rem;
@@ -733,7 +740,7 @@
     color: var(--text-muted);
   }
   .form-input:hover {
-    border-color: rgba(15, 23, 42, 0.18);
+    border-color: rgba(148, 163, 184, 0.30);
   }
   .form-input:focus,
   .form-input:focus-visible {
@@ -741,8 +748,8 @@
     border-color: var(--accent-blue);
     background: var(--bg-input);
     box-shadow:
-      0 0 0 3px rgba(37, 99, 235, 0.14),
-      0 1px 2px rgba(15, 23, 42, 0.04);
+      0 0 0 3px rgba(59, 130, 246, 0.20),
+      0 0 18px rgba(59, 130, 246, 0.25);
   }
   .form-input:disabled {
     opacity: 0.5;
@@ -751,7 +758,7 @@
   select.form-input {
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' fill='none' stroke='%2364748B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5L6 7.5L9 4.5' fill='none' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
     background-repeat: no-repeat;
     background-position: right 0.875rem center;
     padding-right: 2.25rem;
@@ -766,10 +773,7 @@
     margin-bottom: 0.5rem;
   }
 
-  /* ───────────── Focal panels ──────────────────────────
-     Both card-warmglow* aliases now point at the new
-     bright glass surface system. */
-
+  /* Focal panels */
   .card-warmglow,
   .card-warmglow-dark {
     position: relative;
@@ -777,16 +781,16 @@
     background: var(--bg-card);
     border: 1px solid var(--glass-border-glow);
     box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 24px 60px -22px rgba(15, 23, 42, 0.18),
-      var(--glow-sm);
+      0 1px 2px rgba(0, 0, 0, 0.30),
+      0 24px 60px -22px rgba(0, 0, 0, 0.55),
+      0 0 36px rgba(59, 130, 246, 0.18);
     isolation: isolate;
     overflow: hidden;
   }
   @media (min-width: 1024px) {
     .card-warmglow,
     .card-warmglow-dark {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(17, 24, 39, 0.85);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
@@ -799,7 +803,7 @@
     height: 36%;
     background: linear-gradient(
       180deg,
-      rgba(37, 99, 235, 0.04) 0%,
+      rgba(59, 130, 246, 0.06) 0%,
       transparent 100%
     );
     pointer-events: none;
@@ -811,7 +815,6 @@
     z-index: 2;
   }
 
-  /* ── Motion primitives (fade + lift on scroll-into-view) ── */
   .reveal-up {
     opacity: 0;
     transform: translateY(20px);
@@ -843,9 +846,8 @@
 
   .hero-ken-burns { animation: hero-ken-burns 7s ease-out both; }
 
-  /* Soft text shadow utility — kept for legacy callers but de-emphasised */
   .text-shadow-soft {
-    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
   }
 
   .tnum {
@@ -856,13 +858,10 @@
   .text-balance { text-wrap: balance; }
   .text-pretty  { text-wrap: pretty; }
 
-  /* On-dark helpers retained for any component still painting on a
-     gradient hero. On a bright canvas they should rarely fire. */
   .text-on-dark       { color: #ffffff; }
   .text-on-dark-muted { color: rgba(255, 255, 255, 0.75); }
   .text-on-dark-accent { color: var(--accent-cyan); }
 
-  /* On-glass helpers now target dark text on frosted white. */
   .text-on-glass {
     color: var(--text-primary);
     font-weight: 500;
@@ -878,6 +877,19 @@
     font-size: 11px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
+    text-shadow: 0 0 14px rgba(59, 130, 246, 0.45);
+  }
+
+  /* Neon glow utilities — apply to any element for AndroAI-style halo */
+  .glow-blue {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.40),
+                0 6px 18px rgba(59, 130, 246, 0.38),
+                0 0 28px rgba(99, 102, 241, 0.30);
+  }
+  .glow-blue-lg {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.60),
+                0 18px 48px rgba(59, 130, 246, 0.55),
+                0 0 56px rgba(99, 102, 241, 0.45);
   }
 }
 
@@ -886,7 +898,6 @@
   .reveal-up { opacity: 1 !important; transform: none !important; }
 }
 
-/* Mobile motion trim */
 @media (max-width: 768px) {
   .animate-float,
   .animate-glow-pulse,

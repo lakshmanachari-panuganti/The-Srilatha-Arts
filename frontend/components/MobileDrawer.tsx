@@ -77,9 +77,9 @@ export default function MobileDrawer() {
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="fixed top-0 bottom-0 left-0 z-[71] w-[88vw] max-w-sm flex flex-col safe-pt"
             style={{
-              background: '#FFFFFF',
-              borderRight: '1px solid rgba(15, 23, 42, 0.08)',
-              boxShadow: '24px 0 60px -20px rgba(15, 23, 42, 0.18)',
+              background: '#0B1120',
+              borderRight: '1px solid rgba(148, 163, 184, 0.10)',
+              boxShadow: '24px 0 60px -20px rgba(0, 0, 0, 0.65)',
             }}
           >
             {/* ── Header: brand mark + sign-in pill + close ─────────────────── */}
@@ -108,7 +108,7 @@ export default function MobileDrawer() {
                     href="/login"
                     onClick={close}
                     className="text-[11px] uppercase tracking-[0.15em] text-ivory hover:text-lavender-pastel
-                               transition-colors duration-300 border border-slate-200 rounded-full
+                               transition-colors duration-300 border border-white/15 rounded-full
                                px-3 h-8 inline-flex items-center"
                   >
                     Sign in
@@ -127,7 +127,7 @@ export default function MobileDrawer() {
 
             {/* Tagline - sets the premium tone without consuming a row of nav */}
             <p className="flex-none px-5 pb-4 font-serif italic text-base text-ivory-soft/95
-                          border-b border-slate-200">
+                          border-b border-white/[0.06]">
               Handcrafted Art For Modern Homes
             </p>
 
@@ -142,10 +142,10 @@ export default function MobileDrawer() {
                         onClick={close}
                         className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
                                    font-serif text-xl text-ivory
-                                   hover:bg-slate-50 hover:text-blue
+                                   hover:bg-white/[0.06] hover:text-blue
                                    transition-colors duration-300"
                       >
-                        <span className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200
+                        <span className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/10
                                          flex items-center justify-center shrink-0">
                           <item.icon className="w-4 h-4 text-lavender-pastel" aria-hidden />
                         </span>
@@ -174,10 +174,10 @@ export default function MobileDrawer() {
                     href={authUser ? '/account' : '/login?next=/account'}
                     onClick={close}
                     className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
-                               text-ivory hover:bg-slate-50 hover:text-blue
+                               text-ivory hover:bg-white/[0.06] hover:text-blue
                                transition-colors duration-300"
                   >
-                    <span className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200
+                    <span className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/10
                                      flex items-center justify-center shrink-0">
                       <User className="w-4 h-4 text-lavender-pastel" aria-hidden />
                     </span>
@@ -196,10 +196,10 @@ export default function MobileDrawer() {
                     href="/account/wishlist"
                     onClick={close}
                     className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
-                               text-ivory hover:bg-slate-50 hover:text-blue
+                               text-ivory hover:bg-white/[0.06] hover:text-blue
                                transition-colors duration-300"
                   >
-                    <span className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200
+                    <span className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/10
                                      flex items-center justify-center shrink-0">
                       <Heart className="w-4 h-4 text-lavender-pastel" aria-hidden />
                     </span>
@@ -211,10 +211,10 @@ export default function MobileDrawer() {
                     <button
                       onClick={() => { logout(); close() }}
                       className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-xl text-left
-                                 text-ivory-soft hover:bg-slate-50 hover:text-blue
+                                 text-ivory-soft hover:bg-white/[0.06] hover:text-blue
                                  transition-colors duration-300"
                     >
-                      <span className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200
+                      <span className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/10
                                        flex items-center justify-center shrink-0">
                         <LogOut className="w-4 h-4 text-lavender-pastel" aria-hidden />
                       </span>
@@ -294,10 +294,10 @@ function AccordionRow({
         onClick={onToggle}
         className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-xl text-left
                    font-serif text-xl text-ivory
-                   hover:bg-slate-50 hover:text-blue
+                   hover:bg-white/[0.06] hover:text-blue
                    transition-colors duration-300"
       >
-        <span className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200
+        <span className="w-9 h-9 rounded-full bg-white/[0.04] border border-white/10
                          flex items-center justify-center shrink-0">
           <item.icon className="w-4 h-4 text-lavender-pastel" aria-hidden />
         </span>

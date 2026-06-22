@@ -32,32 +32,34 @@ const steps = [
 export default function CustomOrderCTA() {
   return (
     <section className="px-5 lg:px-8 py-20 sm:py-24 lg:py-32 max-w-container mx-auto">
-      <div className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-card">
-        {/* Soft aurora wash in the panel */}
+      <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-plum-warm/70 backdrop-blur-xl shadow-card">
+        {/* Aurora wash in the panel */}
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.7]"
+          className="absolute inset-0 opacity-90"
           style={{
             background:
-              'radial-gradient(60% 50% at 0% 0%, rgba(37,99,235,0.10), transparent 60%), radial-gradient(50% 40% at 100% 100%, rgba(99,102,241,0.10), transparent 60%)',
+              'radial-gradient(60% 50% at 0% 0%, rgba(59,130,246,0.22), transparent 60%), radial-gradient(50% 40% at 100% 100%, rgba(129,140,248,0.20), transparent 60%), radial-gradient(40% 30% at 50% 50%, rgba(34,211,238,0.10), transparent 60%)',
           }}
         />
 
         <div className="relative p-8 sm:p-12 lg:p-16">
           <div className="text-center max-w-3xl mx-auto">
             <span className="inline-flex items-center gap-2 px-3.5 h-8 rounded-full
-                             bg-brand-gradient-soft border border-blue/20
-                             text-[12px] font-semibold text-blue tracking-[0.10em] uppercase mb-5">
+                             bg-blue/10 border border-blue/30
+                             text-[12px] font-semibold text-blue tracking-[0.10em] uppercase mb-5
+                             shadow-[0_0_18px_rgba(59,130,246,0.25)]">
               <Sparkles className="w-3.5 h-3.5" aria-hidden />
               Bespoke Commission
             </span>
-            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl text-slate-900 tracking-tightest leading-[1.05]">
+            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl text-ivory tracking-tightest leading-[1.05]">
               Tailored just for you.{' '}
-              <span className="bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                               drop-shadow-[0_0_20px_rgba(59,130,246,0.45)]">
                 Start a custom design.
               </span>
             </h2>
-            <p className="mt-5 lg:mt-6 text-slate-700 text-base lg:text-lg leading-relaxed max-w-2xl mx-auto">
+            <p className="mt-5 lg:mt-6 text-ivory-soft text-base lg:text-lg leading-relaxed max-w-2xl mx-auto">
               Lippan wedding pieces, resin home decor trays, or a handmade gift set for someone special —
               share your idea and we will guide you through every step of the handmade process.
             </p>
@@ -76,7 +78,7 @@ export default function CustomOrderCTA() {
               className="hidden md:block absolute top-12 left-[16.6%] right-[16.6%] h-px z-0"
               style={{
                 background:
-                  'linear-gradient(to right, transparent, rgba(37,99,235,0.40) 20%, rgba(99,102,241,0.55) 50%, rgba(37,99,235,0.40) 80%, transparent)',
+                  'linear-gradient(to right, transparent, rgba(59,130,246,0.55) 20%, rgba(129,140,248,0.65) 50%, rgba(59,130,246,0.55) 80%, transparent)',
               }}
             />
             {steps.map((s) => {
@@ -86,27 +88,29 @@ export default function CustomOrderCTA() {
                   key={s.step}
                   variants={fadeUp}
                   className="relative z-10 p-6 sm:p-7 rounded-2xl
-                             bg-white border border-slate-200/80 shadow-soft
-                             hover:shadow-card-hover hover:-translate-y-1
+                             bg-plum-light/80 backdrop-blur border border-white/10 shadow-card
+                             hover:shadow-card-hover hover:-translate-y-1 hover:border-blue/30
                              transition-all duration-300"
                 >
                   <div className="flex items-center justify-between mb-5">
                     <span
                       aria-hidden
                       className="font-display text-5xl leading-none font-extrabold
-                                 bg-gradient-to-br from-blue to-indigo bg-clip-text text-transparent"
+                                 bg-gradient-to-br from-blue via-indigo to-cyan bg-clip-text text-transparent
+                                 drop-shadow-[0_0_20px_rgba(59,130,246,0.45)]"
                     >
                       {s.step}
                     </span>
                     <span className="grid place-items-center w-11 h-11 rounded-full
-                                     bg-brand-gradient-soft text-blue border border-blue/15">
+                                     bg-blue/15 text-blue border border-blue/30
+                                     shadow-[0_0_14px_rgba(59,130,246,0.30)]">
                       <Icon className="w-5 h-5" aria-hidden />
                     </span>
                   </div>
-                  <h3 className="font-display text-lg font-bold text-slate-900 mb-2 tracking-tight">
+                  <h3 className="font-display text-lg font-bold text-ivory mb-2 tracking-tight">
                     {s.title}
                   </h3>
-                  <p className="text-slate-600 text-sm lg:text-[15px] leading-relaxed">
+                  <p className="text-ivory-soft text-sm lg:text-[15px] leading-relaxed">
                     {s.description}
                   </p>
                 </motion.div>
@@ -116,7 +120,7 @@ export default function CustomOrderCTA() {
 
           <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link href="/custom-order" className="btn-dark min-w-[14rem] justify-center group">
-              Request Custom Design
+              Order Custom Design
               <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
             </Link>
             <a
@@ -126,7 +130,8 @@ export default function CustomOrderCTA() {
               className="inline-flex items-center justify-center gap-2 min-w-[14rem] h-[2.875rem] px-6
                          rounded-full font-semibold text-white
                          bg-[#25D366] hover:bg-[#1ebe5b]
-                         transition-all duration-300 hover:shadow-[0_8px_24px_-8px_rgba(37,211,102,0.55)]"
+                         shadow-[0_0_24px_rgba(37,211,102,0.45)] hover:shadow-[0_0_36px_rgba(37,211,102,0.65)]
+                         transition-all duration-300"
             >
               <MessageCircle className="w-4 h-4" aria-hidden />
               Chat on WhatsApp
