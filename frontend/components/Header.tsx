@@ -17,7 +17,6 @@ const HIDE_ON_SCROLL_ROUTES = ['/', '/our-story', '/the-craft', '/reviews', '/ab
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
-  { href: '/shop', label: 'Gallery' },
   { href: '/shop', label: 'Collections' },
   { href: '/custom-order', label: 'Custom Orders' },
   { href: '/our-story', label: 'About' },
@@ -84,7 +83,7 @@ export default function Header() {
             </Link>
 
             <nav className="hidden lg:flex items-center gap-7 text-sm font-medium">
-              {NAV_LINKS.slice(0, 5).map((l) => (
+              {NAV_LINKS.map((l) => (
                 <Link
                   key={`${l.href}-${l.label}`}
                   href={l.href}
@@ -116,10 +115,15 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="hidden sm:inline-flex items-center justify-center min-h-10 min-w-10
-                           text-ivory-soft hover:text-blue transition-colors duration-300"
+                className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full
+                           text-[13px] font-semibold text-white
+                           bg-[linear-gradient(45deg,#f09433_0%,#e6683c_25%,#dc2743_50%,#cc2366_75%,#bc1888_100%)]
+                           hover:brightness-110
+                           transition-all duration-300
+                           shadow-[0_0_18px_rgba(220,39,67,0.45)] hover:shadow-[0_0_28px_rgba(220,39,67,0.65)]"
               >
-                <Instagram className="w-5 h-5" aria-hidden />
+                <Instagram className="w-4 h-4" aria-hidden />
+                <span className="hidden lg:inline">Instagram</span>
               </a>
 
               <button
