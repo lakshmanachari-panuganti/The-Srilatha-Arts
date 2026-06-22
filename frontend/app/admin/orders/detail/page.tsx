@@ -193,20 +193,24 @@ function OrderDetail() {
 
   return (
     <div>
-      {/* Back + Header */}
+      {/* Back + Header - order #, customer, and status all read as one unit */}
       <div className="mb-6">
-        <Link href="/admin/orders" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-plum mb-4 transition-colors">
+        <Link href="/admin/orders" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink mb-3 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Orders
         </Link>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-serif text-2xl md:text-3xl text-ink mb-1 tabular-nums">{order.id}</h1>
-            <p className="text-sm text-ink-soft">Placed {formatDate(order.createdAt)}</p>
-          </div>
-          <span className={`self-start inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium ring-1 ring-inset ${STATUS_COLORS[order.status] || 'bg-gray-50 text-gray-700 ring-gray-600/20'}`}>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="font-serif text-2xl md:text-3xl text-ink tabular-nums leading-tight">
+            #{order.id}
+          </h1>
+          <span className="text-ink-mute select-none" aria-hidden>·</span>
+          <span className="text-base md:text-lg text-ink-soft truncate max-w-[16rem]">
+            {order.customerName}
+          </span>
+          <span className={`ml-auto inline-flex items-center px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium ring-1 ring-inset ${STATUS_COLORS[order.status] || 'bg-gray-50 text-gray-700 ring-gray-600/20'}`}>
             {order.status.replace(/_/g, ' ')}
           </span>
         </div>
+        <p className="mt-1.5 text-xs text-ink-mute">Placed {formatDate(order.createdAt)}</p>
       </div>
 
       {/* Return-flow banners - high signal, render at the very top of the
@@ -905,7 +909,7 @@ function NotificationsPanel({
   }
 
   return (
-    <div className="bg-white border border-ink/10 rounded-xl p-4 md:p-6">
+    <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
       <h2 className="font-serif text-lg text-ink mb-1">Invoice &amp; notifications</h2>
       <p className="text-xs text-ink-mute mb-4">
         One PDF per order — used by Download, email attachment and WhatsApp.
@@ -914,7 +918,7 @@ function NotificationsPanel({
       <div className="space-y-3 mb-5">
         <div className="flex items-center justify-between text-sm">
           <span className="text-ink-soft">Invoice number</span>
-          <span className="text-ink font-mono">{order.id}</span>
+          <span className="text-ink font-mono text-xs">{order.id}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-ink-soft">Invoice PDF</span>
@@ -924,14 +928,14 @@ function NotificationsPanel({
                 href={downloadHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs px-3 py-1.5 rounded-md border border-ink/15 hover:bg-cream-deep inline-flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded-md border border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5 inline-flex items-center gap-1.5 transition-colors"
               >
                 <Mail className="w-3.5 h-3.5" aria-hidden /> View
               </a>
               <a
                 href={downloadHref}
                 download={`invoice-${order.id}.pdf`}
-                className="text-xs px-3 py-1.5 rounded-md bg-ink text-white inline-flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded-md bg-lavender text-white font-medium hover:bg-lavender/90 inline-flex items-center gap-1.5 transition-colors"
               >
                 Download
               </a>
@@ -963,7 +967,7 @@ function NotificationsPanel({
           type="button"
           onClick={resendEmail}
           disabled={!isPaid || busyEmail || !order.customerEmail}
-          className="text-xs px-3 py-2 rounded-md border border-ink/15 hover:bg-cream-deep inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-xs px-3 py-2 rounded-md border border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           title={!order.customerEmail ? 'No customer email on file' : ''}
         >
           {busyEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
@@ -973,7 +977,7 @@ function NotificationsPanel({
           type="button"
           onClick={resendWhatsApp}
           disabled={!isPaid || busyWa || !order.customerPhone}
-          className="text-xs px-3 py-2 rounded-md border border-ink/15 hover:bg-cream-deep inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-xs px-3 py-2 rounded-md border border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           title={!order.customerPhone ? 'No customer phone on file' : ''}
         >
           {busyWa ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
