@@ -144,10 +144,8 @@ Set-StrictMode -Version Latest
 # so this script and the deploy script stay in lockstep - if the
 # storage-account naming convention ever changes, both files change
 # together and we only need to verify one source of truth.
-try { Disconnect-AzAccount } catch {}
-$securePassword = ConvertTo-SecureString $env:MY_APPREG_CLIENT_SECRET -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential ($env:MY_APPREG_CLIENT_ID, $securePassword)
-Connect-AzAccount -ServicePrincipal -Tenant $env:MY_APPREG_TENANT_ID -Credential $credential | Out-Null
+
+& "$PSScriptRoot\Azure-Connectivity.ps1"
 
 $AppSlug = 'thesrilathaarts'
 
