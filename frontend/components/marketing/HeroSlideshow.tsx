@@ -129,11 +129,11 @@ export default function HomeHero() {
                 className="mt-9 lg:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center
                            justify-center lg:justify-start gap-3 sm:gap-4"
               >
-                <Link href="/shop" className="btn-dark sm:min-w-[14rem] justify-center group">
+                <Link href="/shop" className="btn-dark !min-h-10 !px-6 !text-[14px] sm:min-w-[12.5rem] justify-center group">
                   Shop Collection
                   <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
                 </Link>
-                <Link href="/custom-order" className="btn-outline sm:min-w-[14rem] justify-center group">
+                <Link href="/custom-order" className="btn-outline !min-h-10 !px-6 !text-[14px] sm:min-w-[12.5rem] justify-center group">
                   Custom Orders
                   <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
                 </Link>

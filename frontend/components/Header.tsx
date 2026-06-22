@@ -100,7 +100,7 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Chat on WhatsApp"
-                className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full
+                className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-full
                            text-[13px] font-semibold text-white
                            bg-[#25D366] hover:bg-[#1ebe5b]
                            transition-all duration-300
@@ -115,7 +115,7 @@ export default function Header() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full
+                className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-full
                            text-[13px] font-semibold text-white
                            bg-[linear-gradient(45deg,#f09433_0%,#e6683c_25%,#dc2743_50%,#cc2366_75%,#bc1888_100%)]
                            hover:brightness-110
