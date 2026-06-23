@@ -41,6 +41,7 @@ import { ChevronLeft, ChevronRight, MessageCircle, ArrowUpRight, ArrowRight, Sho
 import { useAddToCart } from '@/hooks/useAddToCart'
 import { apiFetch } from '@/lib/api'
 import type { Product } from '@/types'
+import { waLink } from '@/lib/site-config'
 
 // ────────────────────────────────────────────────────────────────────
 // Analytics shim — pushes a typed event into window.dataLayer (GA4) and,
@@ -1246,7 +1247,7 @@ function WhatsAppInquiryLink({
     (kind === 'commission'
       ? `Hi Srilatha, I'd like to discuss commissioning a piece inspired by "${work.title}".`
       : `Hi Srilatha, I'd like to discuss "${work.title}" — I've been picturing it on a wall at home.`)
-  const href = `https://wa.me/919999999999?text=${encodeURIComponent(baseMessage)}`
+  const href = waLink(baseMessage)
   return (
     <a
       href={href}

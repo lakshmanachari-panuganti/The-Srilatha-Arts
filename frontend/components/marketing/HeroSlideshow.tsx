@@ -1,78 +1,21 @@
 'use client'
 /**
- * HomeHero — pure-black editorial hero, mobile-first.
+ * HomeHero — AndroAI dark variant.
  *
- * Three-line sequential tagline reveal on a #000 canvas. Each phrase
- * fades up slowly with a one-second pause between lines, so the user
- * reads them as discrete vows rather than a single block of marketing
- * copy. After all three are visible they stay; the supporting
- * subtitle, CTAs, and social row reveal in a quieter trailing wave.
- *
- *   Intentionally handcrafted.        → craftsmanship
- *   Securely delivered.               → care
- *   Forever treasured.                → legacy
- *
- * Period in each line is set in cyber gold — the single accent on the
- * canvas. Headline is Cormorant Garamond (font-serif), sentence case,
- * subtly tracked, generous leading. Layout is centred on mobile and
- * left-aligned from `sm` upward.
- *
- * Animation tempo (calibrated against Apple / Aesop / Aman timing):
- *   t=0.30s  Line 1 starts (1.2s duration → fully visible at 1.50s)
- *   t=1.80s  Line 2 starts after a 0.3s held pause
- *   t=3.30s  Line 3 starts after a 0.3s held pause
- *   t=4.80s  Subtitle reveals
- *   t=5.20s  CTAs reveal
- *   t=5.60s  Social row reveals
- *
- * prefers-reduced-motion freezes everything at its final state — the
- * reader still gets the full hero, just without the choreography.
- *
- * a11y: the three phrases sit inside a single h1; the gold period is a
- * decorative <span aria-hidden> so screen-readers don't say "full stop"
- * three times.
+ * Dark slate canvas with aurora gradient (blue/indigo/cyan radials),
+ * large Plus Jakarta Sans display headline with gradient accent word,
+ * dual neon-glow CTAs, trust strip, floating showcase chip + stat
+ * cards on desktop.
  */
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
-import { SOCIAL, whatsappLink } from '@/lib/site-config'
+import { ArrowRight, Sparkles, Star } from 'lucide-react'
+import { FreeShippingThreshold } from '@/components/ShippingFigures'
 
 const EASE_LUXURY = [0.22, 1, 0.36, 1] as const
-
-interface RevealProps {
-  delay: number
-  duration?: number
-  reduceMotion: boolean
-  className?: string
-  children: React.ReactNode
-  as?: 'span' | 'p' | 'div'
-}
-
-function Reveal({
-  delay,
-  duration = 1.2,
-  reduceMotion,
-  className,
-  children,
-  as = 'span',
-}: RevealProps) {
-  const Tag = motion[as]
-  if (reduceMotion) {
-    return <Tag className={className}>{children}</Tag>
-  }
-  return (
-    <Tag
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration, delay, ease: EASE_LUXURY }}
-      className={className}
-    >
-      {children}
-    </Tag>
-  )
-}
 
 export default function HomeHero() {
   const [reduceMotion, setReduceMotion] = useState(false)
@@ -85,155 +28,209 @@ export default function HomeHero() {
     return () => mql.removeEventListener('change', onChange)
   }, [])
 
-  // Decorative gold period — paired with each tagline line.
-  const Period = () => (
-    <span aria-hidden style={{ color: 'var(--accent-gold)' }}>.</span>
-  )
+  const fade = (delay: number) =>
+    reduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 24 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.9, delay, ease: EASE_LUXURY },
+        }
 
   return (
     <section
       aria-label="Welcome to Srilatha Art"
-      className="relative w-full overflow-hidden"
-      style={{
-        minHeight: '100svh',
-        background: '#000000',
-      }}
+      className="relative w-full overflow-hidden bg-plum"
+      style={{ minHeight: '100svh' }}
     >
-      {/* Soft top vignette — gives the fixed Header glyphs a near-black
-          backing without painting a hard band across the canvas. */}
+      {/* Aurora gradient on dark canvas */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-40 z-[1]"
+        className="absolute inset-0 bg-hero-aurora animate-gradient-shift"
+        style={{ backgroundSize: '200% 200%' }}
+      />
+
+      {/* Floating glow orbs */}
+      <div
+        aria-hidden
+        className="hidden md:block absolute -top-32 -right-24 w-[480px] h-[480px] rounded-full
+                   bg-gradient-to-br from-blue/40 via-indigo/25 to-transparent
+                   blur-3xl animate-float-slow"
+      />
+      <div
+        aria-hidden
+        className="hidden md:block absolute -bottom-40 -left-20 w-[520px] h-[520px] rounded-full
+                   bg-gradient-to-tr from-cyan/25 via-blue/20 to-transparent
+                   blur-3xl animate-float"
+      />
+
+      {/* Dot grid */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.40]"
         style={{
-          background:
-            'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.40) 60%, transparent 100%)',
+          backgroundImage:
+            'radial-gradient(circle, rgba(59,130,246,0.20) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%)',
         }}
       />
 
-      {/* Editorial content. Centred on mobile (the three vows read like
-          a poem and centring respects that); left-aligned from sm up so
-          desktop keeps editorial weight on the left third. */}
-      <div className="relative z-[2] flex items-center" style={{ minHeight: '100svh' }}>
-        <div
-          className="w-full max-w-7xl mx-auto
-                     px-5 sm:px-8 lg:px-16
-                     pt-28 sm:pt-32 pb-28 sm:pb-32"
-        >
-          <div className="max-w-3xl mx-auto sm:mx-0 text-center sm:text-left">
-            <h1
-              className="text-white
-                         text-[3.25rem] leading-[1.05]
-                         sm:text-[5.5rem] sm:leading-[1.02]
-                         lg:text-[7rem] lg:leading-[0.98]
-                         xl:text-[9rem] xl:leading-[0.96]"
-              style={{
-                fontFamily: 'var(--font-italianno), "Allura", "Great Vibes", cursive',
-                fontWeight: 400,
-                letterSpacing: '0',
-                textShadow: 'none',
-              }}
-            >
-              <Reveal as="span" delay={0.30} reduceMotion={reduceMotion} className="block">
-                Intentionally handcrafted<Period />
-              </Reveal>
+      <div className="relative z-10 flex items-center" style={{ minHeight: '100svh' }}>
+        <div className="w-full max-w-container mx-auto px-5 sm:px-8 lg:px-12 pt-28 sm:pt-32 pb-24">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
 
-              <Reveal as="span" delay={1.80} reduceMotion={reduceMotion} className="block">
-                Securely delivered<Period />
-              </Reveal>
+            {/* Left — copy block */}
+            <div className="lg:col-span-7 text-center lg:text-left">
+              <motion.div {...fade(0.05)}>
+                <span className="inline-flex items-center gap-2 h-8 px-3.5
+                                 rounded-full bg-blue/10 backdrop-blur
+                                 border border-blue/30 text-[12px] font-semibold
+                                 text-blue tracking-[0.10em] uppercase
+                                 shadow-[0_0_18px_rgba(59,130,246,0.30)]">
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden />
+                  Handcrafted Resin Art
+                </span>
+              </motion.div>
 
-              <Reveal as="span" delay={3.30} reduceMotion={reduceMotion} className="block">
-                Forever treasured<Period />
-              </Reveal>
-            </h1>
-
-            <Reveal
-              as="p"
-              delay={4.80}
-              duration={0.9}
-              reduceMotion={reduceMotion}
-              className="mt-8 sm:mt-10 mx-auto sm:mx-0 max-w-md sm:max-w-lg text-sm sm:text-base leading-relaxed"
-            >
-              <span style={{ color: 'rgba(255,255,255,0.55)' }}>
-                Each piece is hand-painted in our Hyderabad studio.
-              </span>
-            </Reveal>
-
-            <Reveal
-              as="div"
-              delay={5.20}
-              duration={0.9}
-              reduceMotion={reduceMotion}
-              className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center
-                         justify-center sm:justify-start gap-3 sm:gap-4"
-            >
-              <Link
-                href="/shop"
-                className="btn-glow-gold min-w-0 sm:min-w-[15rem] justify-center"
+              <motion.h1
+                {...fade(0.15)}
+                className="font-display mt-6 sm:mt-7
+                           text-[2.75rem] sm:text-[3.75rem] lg:text-[4.5rem] xl:text-[5.25rem]
+                           leading-[1.02] tracking-tightest text-ivory"
               >
-                Explore Collections
-                <ArrowRight className="w-4 h-4" aria-hidden />
-              </Link>
-              <Link
-                href="/custom-order"
-                className="btn-glow-gold-outline justify-center"
+                Transforming{' '}
+                <span className="relative inline-block">
+                  <span className="bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                                   drop-shadow-[0_0_20px_rgba(59,130,246,0.45)]">
+                    memories
+                  </span>
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-1 left-0 right-0 h-1.5 rounded-full
+                               bg-gradient-to-r from-blue/55 via-indigo/55 to-cyan/55 blur-sm"
+                  />
+                </span>{' '}
+                into timeless artwork.
+              </motion.h1>
+
+              <motion.p
+                {...fade(0.30)}
+                className="mt-6 lg:mt-7 max-w-xl mx-auto lg:mx-0
+                           text-base sm:text-lg text-ivory-soft leading-relaxed"
               >
-                Order a custom piece
-                <ArrowRight className="w-3.5 h-3.5" aria-hidden />
-              </Link>
-            </Reveal>
+                Custom resin creations crafted with precision, creativity and passion —
+                hand-painted in our Hyderabad studio and shipped securely across India.
+              </motion.p>
+
+              <motion.div
+                {...fade(0.45)}
+                className="mt-9 lg:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center
+                           justify-center lg:justify-start gap-3 sm:gap-4"
+              >
+                <Link href="/shop" className="btn-dark !min-h-10 !px-6 !text-[14px] sm:min-w-[12.5rem] justify-center group">
+                  Shop Collection
+                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                </Link>
+                <Link href="/custom-order" className="btn-outline !min-h-10 !px-6 !text-[14px] sm:min-w-[12.5rem] justify-center group">
+                  Custom Orders
+                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
+                </Link>
+              </motion.div>
+
+              {/* Trust strip */}
+              <motion.div
+                {...fade(0.60)}
+                className="mt-10 lg:mt-12 flex flex-wrap items-center justify-center lg:justify-start
+                           gap-x-6 gap-y-2 text-sm text-ivory-mute"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 fill-blue text-blue" aria-hidden />
+                  <strong className="text-ivory font-semibold">4.9</strong>
+                  <span>Customer rating</span>
+                </span>
+                <span className="hidden sm:inline w-1 h-1 rounded-full bg-ivory-mute/50" aria-hidden />
+                <span>
+                  <strong className="text-ivory font-semibold">100+</strong> pieces shipped
+                </span>
+                <span className="hidden sm:inline w-1 h-1 rounded-full bg-ivory-mute/50" aria-hidden />
+                <span>Free shipping above <FreeShippingThreshold /></span>
+              </motion.div>
+            </div>
+
+            {/* Right — floating showcase card (desktop only) */}
+            <motion.div
+              {...fade(0.30)}
+              className="hidden lg:block lg:col-span-5 relative"
+            >
+              <div className="relative aspect-[4/5] max-w-md mx-auto">
+                {/* Glow halo */}
+                <div
+                  aria-hidden
+                  className="absolute -inset-6 rounded-[36px]
+                             bg-gradient-to-br from-blue/40 via-indigo/25 to-cyan/20
+                             blur-3xl"
+                />
+                <div className="relative h-full w-full rounded-[28px] overflow-hidden
+                                bg-plum-light border border-white/10 shadow-card-hover">
+                  <Image
+                    src="/Logos/og-cover.jpg"
+                    alt="Featured artwork from the Srilatha Art studio"
+                    fill
+                    sizes="(min-width: 1024px) 420px, 100vw"
+                    priority
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-x-3 bottom-3 rounded-2xl
+                                  bg-slate-950/75 backdrop-blur-xl
+                                  border border-white/10 px-4 py-3 shadow-card">
+                    <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-blue">
+                      Featured
+                    </p>
+                    <p className="font-display text-base text-ivory mt-0.5">
+                      Vermilion Tide — Resin Mandala
+                    </p>
+                  </div>
+                </div>
+
+                {/* Floating stat cards */}
+                <div className="absolute -left-6 top-12 lg:top-20 rounded-2xl
+                                bg-plum-light/95 backdrop-blur border border-white/10 shadow-card
+                                px-4 py-3 flex items-center gap-3 animate-float">
+                  <span className="grid place-items-center w-9 h-9 rounded-full
+                                   bg-blue/15 text-blue border border-blue/30
+                                   shadow-[0_0_14px_rgba(59,130,246,0.40)]">
+                    <Sparkles className="w-4 h-4" aria-hidden />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-ivory-mute">
+                      Handcrafted
+                    </p>
+                    <p className="text-sm font-semibold text-ivory">in Hyderabad</p>
+                  </div>
+                </div>
+
+                <div className="absolute -right-4 bottom-16 rounded-2xl
+                                bg-plum-light/95 backdrop-blur border border-white/10 shadow-card
+                                px-4 py-3 flex items-center gap-3 animate-float-slow">
+                  <span className="grid place-items-center w-9 h-9 rounded-full
+                                   bg-gradient-to-br from-blue to-indigo text-white
+                                   shadow-[0_0_16px_rgba(59,130,246,0.55)]">
+                    <Star className="w-4 h-4 fill-current" aria-hidden />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-ivory-mute">
+                      Reviews
+                    </p>
+                    <p className="text-sm font-semibold text-ivory">4.9 / 5 stars</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
-
-      {/* Bottom social row. Centred on mobile (the centred composition
-          continues), pinned to the bottom-left from sm up. */}
-      <Reveal
-        as="div"
-        delay={5.60}
-        duration={0.9}
-        reduceMotion={reduceMotion}
-        className="absolute bottom-6 sm:bottom-8 inset-x-0 sm:inset-x-auto sm:left-8 lg:left-16 z-[2]
-                   flex items-center justify-center sm:justify-start gap-3 sm:gap-5
-                   text-[10px] sm:text-[11px] uppercase font-medium"
-      >
-        <span aria-label="Follow Srilatha Art" className="sr-only">
-          Follow Srilatha Art
-        </span>
-        <a
-          href={whatsappLink()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transition-colors duration-300 hover:text-white"
-          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.45)' }}
-        >
-          WhatsApp
-        </a>
-        <span
-          className="w-1 h-1 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.30)' }}
-          aria-hidden
-        />
-        <a
-          href={SOCIAL.instagram}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transition-colors duration-300 hover:text-white"
-          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.45)' }}
-        >
-          Instagram
-        </a>
-        <span
-          className="w-1 h-1 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.30)' }}
-          aria-hidden
-        />
-        <span
-          className="hidden sm:inline"
-          style={{ letterSpacing: '0.18em', color: 'rgba(255,255,255,0.30)' }}
-        >
-          Painting since 2020
-        </span>
-      </Reveal>
     </section>
   )
 }

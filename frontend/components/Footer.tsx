@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { apiFetch, ApiError } from '@/lib/api'
-import { SOCIAL, STUDIO_EMAIL, PHONE_DISPLAY, PHONE_TEL, whatsappLink, emailLink } from '@/lib/site-config'
+import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
 import PinterestIcon from '@/components/icons/PinterestIcon'
 
 const columns = [
@@ -46,28 +46,40 @@ export default function Footer() {
   const [newsletterBusy, setNewsletterBusy] = useState(false)
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
   const [newsletterMessage, setNewsletterMessage] = useState(
-    'Thanks - we’ll send a note when the studio newsletter launches.',
+    'Thanks — we will send a note when the studio newsletter launches.',
   )
   const [newsletterError, setNewsletterError] = useState('')
 
   return (
-    <footer className="relative z-10 mt-20"
-      style={{ borderTop: '1px solid var(--border)', background: 'var(--surface-sunken)' }}
-    >
-      <div className="max-w-6xl mx-auto px-5 lg:px-8 py-14 lg:py-20">
+    <footer className="relative z-10 mt-24 border-t border-white/[0.06] bg-plum">
+      {/* Soft aurora wash at the top of the footer */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-72 pointer-events-none opacity-60"
+        style={{
+          background:
+            'radial-gradient(60% 80% at 50% 0%, rgba(59,130,246,0.12), transparent 70%)',
+        }}
+      />
+
+      <div className="relative max-w-container mx-auto px-5 lg:px-8 py-16 lg:py-20">
         {/* Newsletter */}
-        <div className="text-center max-w-xl mx-auto mb-14 lg:mb-20">
+        <div className="text-center max-w-2xl mx-auto mb-14 lg:mb-20">
           <p className="eyebrow justify-center mb-4">Stay in touch</p>
-          <h3 className="display text-3xl lg:text-4xl mb-3">
-            Updates from the <em className="italic gold-text">studio</em>
+          <h3 className="font-display text-3xl lg:text-4xl text-ivory tracking-tight mb-3">
+            Updates from the{' '}
+            <span className="bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                             drop-shadow-[0_0_18px_rgba(59,130,246,0.45)]">
+              studio
+            </span>
           </h3>
-          <p className="text-ivory-mute text-sm lg:text-base mb-6">
-            New pieces, studio updates and the occasional discount - sent straight to your inbox. No spam, ever.
+          <p className="text-ivory-soft text-sm lg:text-base mb-6">
+            New pieces, studio updates and the occasional discount — sent straight to your inbox. No spam, ever.
           </p>
           {newsletterSubmitted ? (
             <div
               role="status"
-              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-lavender text-center"
+              className="max-w-md mx-auto inline-flex items-center gap-2 text-sm text-blue text-center"
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
               {newsletterMessage}
@@ -116,15 +128,11 @@ export default function Footer() {
                   placeholder="your@email.com"
                   aria-label="Email address"
                   autoComplete="email"
-                  className="w-full h-12 pl-11 pr-4
-                             bg-glass-surface text-ivory placeholder:text-ivory-mute
-                             outline-none transition-all duration-500"
-                  style={{
-                    borderRadius: '24px',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'rgba(200,150,47,0.50)'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(34,27,18,0.12)'}
+                  className="w-full h-12 pl-11 pr-4 rounded-full
+                             bg-plum-light text-ivory placeholder:text-ivory-mute
+                             border border-white/10 hover:border-white/20
+                             focus:border-blue focus:ring-4 focus:ring-blue/20 focus:outline-none
+                             transition-all duration-200"
                 />
               </div>
               <button type="submit" disabled={newsletterBusy} className="btn-dark whitespace-nowrap disabled:opacity-50">
@@ -134,7 +142,7 @@ export default function Footer() {
             </form>
           )}
           {newsletterError && (
-            <p className="mt-2 text-xs text-rose-600">{newsletterError}</p>
+            <p className="mt-2 text-xs text-red-600">{newsletterError}</p>
           )}
         </div>
 
@@ -142,100 +150,133 @@ export default function Footer() {
           <div className="hidden lg:block lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-4">
               <Image src="/Logos/logo.png" alt="" width={48} height={48} className="w-12 h-12" />
-              <span className="font-brand text-3xl text-ivory tracking-[0.06em]">
+              <span className="font-brand text-3xl text-ivory tracking-[0.04em]">
                 Srilatha Art
               </span>
             </Link>
-            <p className="text-sm text-ivory-mute leading-relaxed max-w-xs">
-              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts - made by hand in Hyderabad.
+            <p className="text-sm text-ivory-soft leading-relaxed max-w-xs">
+              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.
             </p>
-            <div className="flex items-center gap-2 mt-5">
-              <SocialLink href={SOCIAL.instagram} label="Instagram">
+
+            <div className="mt-6 space-y-2.5 text-sm">
+              <a
+                href={waLink("Hi Srilatha Art, I'd like to know more about your work.")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
+              >
+                <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />
+                WhatsApp · {CONTACT.phoneDisplay}
+              </a>
+              <br />
+              <a
+                href={mailtoLink()}
+                className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
+              >
+                <Mail className="w-4 h-4 text-blue" aria-hidden />
+                {CONTACT.email}
+              </a>
+              <br />
+              <a
+                href={`tel:${CONTACT.phoneTel}`}
+                className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
+              >
+                <Phone className="w-4 h-4 text-blue" aria-hidden />
+                {CONTACT.phoneDisplay}
+              </a>
+            </div>
+
+            <p className="mt-4 text-xs text-ivory-mute leading-relaxed">
+              {CONTACT.studioAddress.line1}, {CONTACT.studioAddress.line2}<br />
+              {CONTACT.studioAddress.city}, {CONTACT.studioAddress.country}
+            </p>
+
+            <div className="flex items-center gap-2 mt-6">
+              <SocialLink href={CONTACT.social.instagram} label="Instagram">
                 <Instagram className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href={SOCIAL.pinterest} label="Pinterest">
+              <SocialLink href={CONTACT.social.pinterest} label="Pinterest">
                 <PinterestIcon className="w-4 h-4" />
               </SocialLink>
-              <SocialLink href={SOCIAL.facebook} label="Facebook">
+              <SocialLink href={CONTACT.social.facebook} label="Facebook">
                 <Facebook className="w-4 h-4" aria-hidden />
               </SocialLink>
-              <SocialLink href={SOCIAL.youtube} label="YouTube">
+              <SocialLink href={CONTACT.social.youtube} label="YouTube">
                 <Youtube className="w-4 h-4" aria-hidden />
               </SocialLink>
             </div>
           </div>
 
-          <div className="lg:col-span-3 lg:grid lg:grid-cols-3 lg:gap-8"
-            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
-          >
+          <div className="lg:col-span-3 lg:grid lg:grid-cols-3 lg:gap-8">
             {columns.map((col) => (
               <FooterColumn key={col.title} title={col.title} links={col.links} />
             ))}
           </div>
         </div>
 
-        <div className="lg:hidden mt-12 pt-8 text-center"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
-        >
+        {/* Mobile brand + contact */}
+        <div className="lg:hidden mt-12 pt-8 text-center border-t border-white/[0.06]">
           <Link href="/" className="inline-flex items-center gap-2 mb-3">
             <Image src="/Logos/logo.png" alt="" width={36} height={36} className="w-9 h-9" />
-            <span className="font-brand text-3xl text-ivory tracking-[0.06em]">
+            <span className="font-brand text-3xl text-ivory tracking-[0.04em]">
               Srilatha Art
             </span>
           </Link>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <SocialLink href={SOCIAL.instagram} label="Instagram">
+            <SocialLink href={CONTACT.social.instagram} label="Instagram">
               <Instagram className="w-4 h-4" aria-hidden />
             </SocialLink>
-            <SocialLink href={SOCIAL.pinterest} label="Pinterest">
+            <SocialLink href={CONTACT.social.pinterest} label="Pinterest">
               <PinterestIcon className="w-4 h-4" />
             </SocialLink>
-            <SocialLink href={SOCIAL.facebook} label="Facebook">
+            <SocialLink href={CONTACT.social.facebook} label="Facebook">
               <Facebook className="w-4 h-4" aria-hidden />
             </SocialLink>
-            <SocialLink href={SOCIAL.youtube} label="YouTube">
+            <SocialLink href={CONTACT.social.youtube} label="YouTube">
               <Youtube className="w-4 h-4" aria-hidden />
             </SocialLink>
           </div>
 
-          {/* Contact strip - WhatsApp + Email + Phone, all tap-to-action on
-              mobile. Prioritised per audit §7: WhatsApp and Instagram are
-              the two most-used contact channels for a handcrafted Indian
-              brand, so they sit at the top of the visual hierarchy. */}
           <div className="mt-6 space-y-2 text-sm">
             <a
-              href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
+              href={waLink("Hi Srilatha Art, I'd like to know more about your work.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
-              <MessageCircle className="w-4 h-4" aria-hidden />
-              WhatsApp · {PHONE_DISPLAY}
+              <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />
+              WhatsApp · {CONTACT.phoneDisplay}
             </a>
             <br />
             <a
-              href={emailLink()}
-              className="inline-flex items-center gap-2 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+              href={mailtoLink()}
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
-              <Mail className="w-4 h-4" aria-hidden />
-              {STUDIO_EMAIL}
+              <Mail className="w-4 h-4 text-blue" aria-hidden />
+              {CONTACT.email}
             </a>
             <br />
             <a
-              href={`tel:${PHONE_TEL}`}
-              className="inline-flex items-center gap-2 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
+              href={`tel:${CONTACT.phoneTel}`}
+              className="inline-flex items-center gap-2 text-ivory-soft hover:text-blue transition-colors duration-300"
             >
-              <Phone className="w-4 h-4" aria-hidden />
-              {PHONE_DISPLAY}
+              <Phone className="w-4 h-4 text-blue" aria-hidden />
+              {CONTACT.phoneDisplay}
             </a>
           </div>
+
+          <p className="mt-4 text-xs text-ivory-mute leading-relaxed">
+            {CONTACT.studioAddress.line1}, {CONTACT.studioAddress.line2}<br />
+            {CONTACT.studioAddress.city}, {CONTACT.studioAddress.country}
+          </p>
         </div>
 
-        <div className="mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ivory-mute"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
-        >
-          <p>© {new Date().getFullYear()} Srilatha Art.</p>
-          <p className="font-serif italic text-base text-lavender">Handmade with care</p>
+        <div className="mt-12 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-ivory-mute">
+          <p>© {new Date().getFullYear()} Srilatha Art. All rights reserved.</p>
+          <p className="font-serif italic text-base bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                        drop-shadow-[0_0_14px_rgba(59,130,246,0.45)]">
+            Handmade with care
+          </p>
         </div>
       </div>
     </footer>
@@ -251,23 +292,23 @@ function FooterColumn({
 }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="lg:py-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+    <div className="lg:py-0 border-b border-white/[0.06] lg:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="lg:pointer-events-none w-full flex items-center justify-between py-4 lg:py-0 lg:mb-3
-                   text-[11px] uppercase tracking-[0.25em] text-ivory"
+        className="lg:pointer-events-none w-full flex items-center justify-between py-4 lg:py-0 lg:mb-4
+                   text-[11px] uppercase tracking-[0.22em] font-bold text-ivory"
       >
         {title}
         <ChevronDown
-          className={cn('w-4 h-4 lg:hidden transition-transform duration-500', open && 'rotate-180')}
+          className={cn('w-4 h-4 lg:hidden transition-transform duration-300', open && 'rotate-180')}
           aria-hidden
         />
       </button>
       <ul
         className={cn(
-          'overflow-hidden lg:block lg:opacity-100 lg:max-h-none transition-all duration-500',
+          'overflow-hidden lg:block lg:opacity-100 lg:max-h-none transition-all duration-300',
           open ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0 lg:opacity-100',
         )}
       >
@@ -275,7 +316,7 @@ function FooterColumn({
           <li key={l.href}>
             <Link
               href={l.href}
-              className="block py-1.5 text-sm text-ivory-mute hover:text-lavender-pastel transition-colors duration-500"
+              className="block py-1.5 text-sm text-ivory-soft hover:text-blue transition-colors duration-300"
             >
               {l.label}
             </Link>
@@ -301,14 +342,11 @@ function SocialLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="min-w-11 min-h-11 flex items-center justify-center
-                 text-ivory-mute hover:text-lavender-pastel
-                 transition-all duration-500"
-      style={{
-        borderRadius: '24px',
-        border: '1px solid rgba(255,255,255,0.1)',
-        background: 'rgba(255,255,255,0.04)',
-      }}
+      className="min-w-10 min-h-10 rounded-full flex items-center justify-center
+                 text-ivory-soft hover:text-blue
+                 bg-white/[0.04] border border-white/10 hover:border-blue/50
+                 hover:shadow-[0_0_16px_rgba(59,130,246,0.30)]
+                 transition-all duration-300"
     >
       {children}
     </a>

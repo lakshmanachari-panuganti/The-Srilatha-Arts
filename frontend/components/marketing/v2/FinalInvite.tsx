@@ -41,6 +41,7 @@ import {
   useReducedMotion,
 } from 'framer-motion'
 import { MessageCircle, Instagram, Sparkles, ArrowUpRight } from 'lucide-react'
+import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
 
 // ────────────────────────────────────────────────────────────────────
 // Kolam geometry
@@ -102,22 +103,16 @@ const GOLD_ACCENTS: { x: number; y: number; r: number }[] = [
 ]
 
 // ────────────────────────────────────────────────────────────────────
-// External links — placeholders. Replace phone number, IG handle, and
-// email with the studio's real channels before launch.
+// External links — sourced from the centralised CONTACT constant.
 // ────────────────────────────────────────────────────────────────────
 const LINKS = {
-  whatsapp:
-    'https://wa.me/919999999999?text=' +
-    encodeURIComponent(
-      "Hi Srilatha, I'd like to begin a conversation about a piece.",
-    ),
-  instagram: 'https://instagram.com/srilatha.art',
+  whatsapp: waLink("Hi Srilatha, I'd like to begin a conversation about a piece."),
+  instagram: CONTACT.instagramUrl,
   commission: '/custom-order',
-  email: 'mailto:hello@srilatha.art?subject=' +
-    encodeURIComponent('Inquiry from the Studio Vault'),
-  instagramHandle: '@srilatha.art',
-  emailDisplay: 'hello@srilatha.art',
-  phoneDisplay: '+91 99999 99999',
+  email: mailtoLink('Inquiry from the Studio Vault'),
+  instagramHandle: CONTACT.instagramHandleAt,
+  emailDisplay: CONTACT.email,
+  phoneDisplay: CONTACT.phoneDisplay,
 }
 
 export default function FinalInvite() {

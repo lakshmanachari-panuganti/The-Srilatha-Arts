@@ -37,6 +37,7 @@ import PictureImage from '@/components/PictureImage'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, MessageCircle } from 'lucide-react'
 import KolamCursorField from './KolamCursorField'
+import { waLink } from '@/lib/site-config'
 
 interface ArtworkSlide {
   src: string
@@ -327,7 +328,7 @@ export default function HeroExperience() {
                     </Link>
 
                     <a
-                      href="https://wa.me/919999999999?text=Hi%20Srilatha%2C%20I%27d%20like%20to%20commission%20a%20piece."
+                      href={waLink("Hi Srilatha, I'd like to commission a piece.")}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group inline-flex items-center gap-3 text-sm font-semibold uppercase

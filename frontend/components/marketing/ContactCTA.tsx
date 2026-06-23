@@ -2,7 +2,7 @@
 import { MessageCircle, FileText, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { whatsappLink } from '@/lib/site-config'
+import { waLink } from '@/lib/site-config'
 
 export default function ContactCTA() {
   return (
@@ -79,7 +79,7 @@ export default function ContactCTA() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 max-w-md mx-auto"
           >
             <a
-              href={whatsappLink("Hi Srilatha Art, I'd like to ask about a custom order.")}
+              href={waLink("Hi Srilatha Art, I'd like to ask about a custom order.")}
               target="_blank"
               rel="noopener noreferrer"
               className="btn w-full justify-center uppercase tracking-wider font-semibold text-sm px-8 py-4
@@ -105,7 +105,7 @@ export default function ContactCTA() {
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(200,150,47,0.35)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               <FileText className="w-5 h-5" aria-hidden />
-              Bespoke Request
+              Custom Order
             </Link>
           </motion.div>
 

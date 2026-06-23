@@ -4,6 +4,7 @@
  * the customer isn't surprised; sets expectations on the refund timeline.
  */
 import { renderEmail, type BuiltEmail } from './shared'
+import { CONTACT } from '../../config/contact'
 
 export interface OrderCancelledInput {
   orderId: string
@@ -26,7 +27,7 @@ export function buildOrderCancelledEmail(input: OrderCancelledInput): BuiltEmail
       ...(input.cancelReason ? [{ label: 'Reason', value: input.cancelReason }] : []),
     ],
     footerHtml: `
-      <p>If you have any questions, reply to this message or write to studio@srilatha.art.</p>
+      <p>If you have any questions, reply to this message or write to ${CONTACT.email}.</p>
       <p style="margin-top:8px;">&mdash; Srilatha</p>
     `,
   })

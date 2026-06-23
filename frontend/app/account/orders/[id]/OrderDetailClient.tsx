@@ -64,7 +64,9 @@ interface OrderItem {
   qty: number
 }
 interface TimelineEvent {
-  status: string
+  // status is optional because the backend may return note-only events
+  // (e.g. "Shipping address updated") that have no status transition.
+  status?: string
   fromStatus?: string
   note?: string
   by: string
@@ -135,10 +137,16 @@ export default function OrderDetailClient() {
   // /account/orders/* URLs; we read the id from the live pathname after
   // mount.
   const [id, setId] = useState<string | null>(null)
+  // Zustand-persist rehydrates from localStorage asynchronously, so `user`
+  // is null for the first paint even when the customer is signed in. Without
+  // this gate the auth-required effect below redirects to /login on every
+  // refresh / direct-link load before the store has a chance to populate.
+  const [hydrated, setHydrated] = useState(false)
   useEffect(() => {
     const parts = window.location.pathname.split('/').filter(Boolean)
     // /account/orders/<id>/  →  ['account','orders','<id>']
     setId(parts[2] ?? null)
+    setHydrated(true)
   }, [])
 
   const [order, setOrder] = useState<Order | null>(null)
@@ -180,15 +188,18 @@ export default function OrderDetailClient() {
   }, [id])
 
   useEffect(() => {
-    // Auth gate: not signed in → /login?next=/account/orders/<id>
+    // Wait for the auth store to rehydrate before deciding what to do —
+    // otherwise we'd redirect a logged-in customer to /login on every
+    // direct page load.
+    if (!hydrated) return
     if (id && id !== '__shell__' && !user) {
       router.replace('/login?next=' + encodeURIComponent(`/account/orders/${id}`))
       return
     }
     refresh()
-  }, [id, user, router, refresh])
+  }, [hydrated, id, user, router, refresh])
 
-  if (!id || id === '__shell__' || loading) {
+  if (!hydrated || !id || id === '__shell__' || loading) {
     return (
       <main className="max-w-3xl mx-auto px-5 py-12 lg:py-20">
         <div className="flex items-center gap-2 text-sm text-ink-mute">
@@ -338,10 +349,19 @@ export default function OrderDetailClient() {
                         className="absolute -left-[14px] top-4 bottom-[-1rem] w-px bg-ink/15"
                       />
                     )}
+                    {/* Status events get a humanised label; note-only events
+                        (address updates, etc.) use the note text as the title
+                        and skip the duplicate detail line. Falling back to a
+                        generic label keeps a future unknown event shape from
+                        bubbling a TypeError into the global error boundary. */}
                     <p className="text-sm font-medium text-ink">
-                      {STATUS_LABEL[ev.status] || ev.status.replace(/_/g, ' ')}
+                      {ev.status
+                        ? STATUS_LABEL[ev.status] || ev.status.replace(/_/g, ' ')
+                        : ev.note || 'Update'}
                     </p>
-                    {ev.note && <p className="text-xs text-ink-mute mt-0.5">{ev.note}</p>}
+                    {ev.status && ev.note && (
+                      <p className="text-xs text-ink-mute mt-0.5">{ev.note}</p>
+                    )}
                     <p className="text-xs text-ink-mute mt-0.5">
                       {ev.by} · {formatDateTime(ev.createdAt)}
                     </p>

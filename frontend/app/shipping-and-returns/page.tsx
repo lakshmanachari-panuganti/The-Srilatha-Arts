@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FreeShippingThreshold, StandardShippingCharge } from '@/components/ShippingFigures'
 
 export const metadata: Metadata = {
   title: 'Shipping & Returns',
@@ -18,7 +19,7 @@ export default function ShippingPage() {
       <h2 className="font-serif text-2xl lg:text-3xl text-ivory mt-10 mb-3">Shipping</h2>
       <ul className="space-y-3 text-ivory-soft text-base lg:text-lg leading-relaxed">
         <li>• Most orders arrive in <strong>5–7 working days</strong> across India.</li>
-        <li>• <strong>Free shipping</strong> on orders above ₹999. Below that, shipping is a flat ₹99.</li>
+        <li>• <strong>Free shipping</strong> on orders above <FreeShippingThreshold />. Below that, shipping is a flat <StandardShippingCharge />.</li>
         <li>• We ship from Hyderabad. You&apos;ll get a tracking link once your order is dispatched.</li>
         <li>• Every piece is bubble-wrapped and packed in a sturdy box so it arrives safely.</li>
       </ul>

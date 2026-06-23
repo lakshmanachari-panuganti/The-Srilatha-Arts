@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { CONTACT, mailtoLink } from '@/lib/site-config'
 
 export const metadata: Metadata = {
   title: 'Terms of use',
@@ -51,7 +52,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="9. Contact">
-        Questions about these terms? Email us at <a className="text-lavender-pastel hover:underline" href="mailto:studio@srilatha.art">studio@srilatha.art</a> or message us on WhatsApp at +91 91332 66754.
+        Questions about these terms? Email us at <a className="text-lavender-pastel hover:underline" href={mailtoLink()}>{CONTACT.email}</a> or message us on WhatsApp at {CONTACT.phoneDisplay}.
       </Section>
 
       <p className="text-ivory-mute text-sm mt-12">

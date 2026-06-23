@@ -80,10 +80,10 @@ export default function SearchOverlay() {
             transition={{ duration: 0.25 }}
             className="w-full max-w-2xl"
             style={{
-              background: '#0d0f12',
-              border: '1px solid rgba(250, 204, 21, 0.18)',
-              borderRadius: '16px',
-              boxShadow: '0 24px 60px -22px rgba(0,0,0,0.75), 0 0 24px rgba(250,204,21,0.10)',
+              background: '#0F172A',
+              border: '1px solid rgba(148, 163, 184, 0.10)',
+              borderRadius: '20px',
+              boxShadow: '0 24px 60px -22px rgba(0, 0, 0, 0.75), 0 0 24px rgba(59, 130, 246, 0.18)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -99,10 +99,10 @@ export default function SearchOverlay() {
                   className="flex-1 bg-transparent outline-none py-2 text-lg font-serif"
                   style={{
                     color: 'var(--text-primary)',
-                    borderBottom: '1px solid rgba(255,255,255,0.10)',
+                    borderBottom: '1px solid rgba(148,163,184,0.20)',
                   }}
-                  onFocus={(e) => (e.target.style.borderBottomColor = 'rgba(250,204,21,0.55)')}
-                  onBlur={(e) => (e.target.style.borderBottomColor = 'rgba(255,255,255,0.10)')}
+                  onFocus={(e) => (e.target.style.borderBottomColor = 'rgba(59,130,246,0.65)')}
+                  onBlur={(e) => (e.target.style.borderBottomColor = 'rgba(148,163,184,0.20)')}
                 />
                 <button
                   onClick={() => setOpen(false)}
@@ -134,12 +134,12 @@ export default function SearchOverlay() {
               ) : (
                 <ul className="pb-3 max-h-[60vh] overflow-y-auto">
                   {results.map((p) => (
-                    <li key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <li key={p.id} style={{ borderBottom: '1px solid rgba(148,163,184,0.10)' }}>
                       <Link
                         href={`/product/${p.id}`}
                         onClick={() => setOpen(false)}
                         className="flex items-center gap-3 py-3 -mx-2 px-2 transition-colors duration-300 rounded-xl"
-                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(250,204,21,0.06)')}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(59,130,246,0.10)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       >
                         <Image
@@ -150,7 +150,7 @@ export default function SearchOverlay() {
                           className="w-14 h-14 object-contain p-2 rounded-xl"
                           style={{
                             background: 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(148,163,184,0.12)',
                           }}
                         />
                         <div className="flex-1 min-w-0">
