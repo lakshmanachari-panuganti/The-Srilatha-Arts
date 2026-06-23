@@ -42,6 +42,7 @@ import { useAddToCart } from '@/hooks/useAddToCart'
 import { apiFetch } from '@/lib/api'
 import type { Product } from '@/types'
 import { trackEvent, type AnalyticsSource } from './analytics'
+import { waLink } from '@/lib/site-config'
 
 export interface ActionablePiece {
   slug: string
@@ -342,7 +343,7 @@ function WhatsAppInquiryLink({
     (kind === 'commission'
       ? `Hi Srilatha, I'd like to discuss commissioning a piece inspired by "${piece.title}".`
       : `Hi Srilatha, I'd like to discuss "${piece.title}" — I've been picturing it on a wall at home.`)
-  const href = `https://wa.me/919999999999?text=${encodeURIComponent(baseMessage)}`
+  const href = waLink(baseMessage)
   return (
     <a
       href={href}

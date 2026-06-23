@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare, ShieldCheck, Gift, Pencil } from 'lucide-react'
+import { FreeShippingThreshold } from '@/components/ShippingFigures'
 import { CATEGORY_BY_SLUG } from '@/data/categories'
 import { formatINR, discountPct } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
@@ -36,7 +37,7 @@ function Pill({ label }: { label: string }) {
   )
 }
 
-function Feature({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: string }) {
+function Feature({ icon: Icon, label }: { icon: React.ComponentType<{ className?: string }>; label: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 text-sm text-ink/85">
       <span className="w-9 h-9 rounded-full bg-paper text-lavender flex items-center justify-center shrink-0">
@@ -346,7 +347,7 @@ export default function ProductDetailClient() {
           <div className="card-cream p-4 sm:p-5 mb-7 grid grid-cols-2 gap-3 sm:gap-4">
             <Feature icon={Hand} label="Handmade by Srilatha" />
             <Feature icon={Sparkles} label={`Ships in ${p.timeToMake}`} />
-            <Feature icon={Truck} label="Free shipping above ₹999" />
+            <Feature icon={Truck} label={<>Free shipping above <FreeShippingThreshold /></>} />
             <Feature icon={ShieldCheck} label="7-day easy returns" />
           </div>
 

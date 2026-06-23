@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Tag, Pencil, Trash2, ToggleLeft, ToggleRight, ExternalLink, Clock, X } from 'lucide-react'
 import { formatDate } from '@/lib/format'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, ApiError } from '@/lib/api'
 
 type AnnouncementTheme = 'gold' | 'festive-pink' | 'muted'
 
@@ -128,7 +128,12 @@ export default function AdminAnnouncementsPage() {
       closeForm()
     } catch (err) {
       console.error('Failed to save announcement', err)
-      alert('Failed to save announcement. Please try again.')
+      const detail = err instanceof ApiError
+        ? `${err.message}${err.status ? ` (HTTP ${err.status})` : ''}`
+        : err instanceof Error
+          ? err.message
+          : 'Unknown error'
+      alert(`Failed to save announcement.\n\n${detail}`)
     } finally {
       setSaving(false)
     }
@@ -217,7 +222,7 @@ export default function AdminAnnouncementsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
                 maxLength={200}
                 placeholder="e.g. FLAT 30% OFF on all orders · Ends Sunday"
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               />
             </div>
 
@@ -228,7 +233,7 @@ export default function AdminAnnouncementsPage() {
                 value={form.href}
                 onChange={(e) => setForm((f) => ({ ...f, href: e.target.value }))}
                 placeholder="/shop"
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               />
             </div>
 
@@ -239,7 +244,7 @@ export default function AdminAnnouncementsPage() {
                 value={form.linkedCouponCode}
                 onChange={(e) => setForm((f) => ({ ...f, linkedCouponCode: e.target.value.toUpperCase() }))}
                 placeholder="SRILATHA30"
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm font-mono text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               />
             </div>
 
@@ -248,7 +253,7 @@ export default function AdminAnnouncementsPage() {
               <select
                 value={form.theme}
                 onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value as AnnouncementTheme }))}
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               >
                 <option value="gold">Gold</option>
                 <option value="festive-pink">Festive Pink</option>
@@ -263,7 +268,7 @@ export default function AdminAnnouncementsPage() {
                 value={form.priority}
                 onChange={(e) => setForm((f) => ({ ...f, priority: Number(e.target.value) }))}
                 min={1}
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               />
             </div>
 
@@ -273,7 +278,7 @@ export default function AdminAnnouncementsPage() {
                 type="date"
                 value={form.startDate}
                 onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent [color-scheme:dark]"
               />
             </div>
 
@@ -283,7 +288,7 @@ export default function AdminAnnouncementsPage() {
                 type="date"
                 value={form.endDate}
                 onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent [color-scheme:dark]"
               />
             </div>
 
@@ -293,7 +298,7 @@ export default function AdminAnnouncementsPage() {
                 id="ann-active"
                 checked={form.active}
                 onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))}
-                className="rounded"
+                className="rounded accent-lavender"
               />
               <label htmlFor="ann-active" className="text-sm text-ink">Active (show in banner)</label>
             </div>

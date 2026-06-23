@@ -1,42 +1,56 @@
 /**
- * Centralised brand contact info - change here, not in 12 places.
+ * Centralised brand contact info — single source of truth for the studio's
+ * phone, WhatsApp, email, Instagram, hours and postal address.
  *
- * Updated 2026-05-26 with the canonical srilatha.art brand handles
- * supplied by the studio. Replaces the legacy `thesrilathaarts`
- * handles that survived in the codebase from the pre-rebrand era.
+ * Backend mirrors this shape at backend/src/config/contact.ts (the frontend
+ * is statically exported and the backend ships as a separate Azure Functions
+ * package, so they can't share a module without splitting into a workspace).
+ * Keep the two files in sync.
  */
 
-// International format, no '+'. The 91 prefix is required by wa.me.
-export const WHATSAPP_NUMBER = '919133266754'
+export const CONTACT = {
+  // International format without '+'. The '91' prefix is required by wa.me.
+  whatsappE164: '919052380325',
+  whatsappDisplay: '+91 90523 80325',
+  phoneDisplay: '+91 90523 80325',
+  phoneTel: '+919052380325',
 
-// Display version for tel: links and visible UI.
-export const PHONE_DISPLAY = '+91 91332 66754'
-export const PHONE_TEL = '+919133266754'
+  email: 'studio@srilatha.art',
 
-export const STUDIO_EMAIL = 'studio@srilatha.art'
+  studioAddress: {
+    line1: 'Chilkanagar',
+    line2: 'Uppal',
+    city: 'Hyderabad',
+    region: 'Telangana',
+    country: 'India',
+    countryCode: 'IN',
+  },
 
-export const WEBSITE_URL = 'https://www.srilatha.art'
+  instagramHandle: 'srilatha.art',
+  instagramHandleAt: '@srilatha.art',
+  instagramUrl: 'https://instagram.com/srilatha.art',
 
-export const SOCIAL = {
-  instagram: 'https://instagram.com/srilatha.art',
-  facebook: 'https://facebook.com/srilatha.art',
-  pinterest: 'https://pinterest.com/srilatha_art',
-  youtube: 'https://youtube.com/@srilatha_art',
+  hours: 'Mon–Sat · 10am–7pm IST',
+
+  websiteUrl: 'https://www.srilatha.art',
+
+  social: {
+    instagram: 'https://instagram.com/srilatha.art',
+    facebook: 'https://facebook.com/srilatha.art',
+    pinterest: 'https://pinterest.com/srilatha_art',
+    youtube: 'https://youtube.com/@srilatha_art',
+  },
 } as const
 
-export const INSTAGRAM_HANDLE = '@srilatha.art'
-
-/** Build a wa.me link with an optional prefilled message. */
-export function whatsappLink(message?: string): string {
-  const base = `https://wa.me/${WHATSAPP_NUMBER}`
-  return message ? `${base}?text=${encodeURIComponent(message)}` : base
-}
+/** Build a wa.me link with a prefilled message. */
+export const waLink = (text: string): string =>
+  `https://wa.me/${CONTACT.whatsappE164}?text=${encodeURIComponent(text)}`
 
 /** Build a mailto: link with optional subject + body. */
-export function emailLink(subject?: string, body?: string): string {
+export const mailtoLink = (subject?: string, body?: string): string => {
   const params = new URLSearchParams()
   if (subject) params.set('subject', subject)
   if (body) params.set('body', body)
   const qs = params.toString()
-  return `mailto:${STUDIO_EMAIL}${qs ? '?' + qs : ''}`
+  return `mailto:${CONTACT.email}${qs ? '?' + qs : ''}`
 }

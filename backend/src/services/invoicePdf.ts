@@ -15,6 +15,7 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import sharp from 'sharp'
+import { CONTACT } from '../config/contact'
 
 // ─── Brand palette (mirrors frontend/app/globals.css :root) ────────
 type RGB = [number, number, number]
@@ -26,14 +27,11 @@ const GOLD: RGB = [184, 138, 45]
 const GOLD_DEEP: RGB = [138, 106, 26]
 const PAPER: RGB = [253, 252, 248]
 
-// ─── Brand contact lines (mirror frontend/lib/site-config.ts) ──────
-// Kept in sync manually - both the frontend invoice and this server
-// version need to read identical values. Pulling from a shared package
-// would mean splitting site-config into a workspace, which is more
-// surgery than the value warrants today.
-const STUDIO_EMAIL = 'studio@srilatha.art'
-const PHONE_DISPLAY = '+91 91332 66754'
-const WEBSITE_HOST = 'srilatha.art'
+// Brand contact lines come from the shared backend constant, which
+// mirrors frontend/lib/site-config.ts (see backend/src/config/contact.ts).
+const STUDIO_EMAIL = CONTACT.email
+const PHONE_DISPLAY = CONTACT.phoneDisplay
+const WEBSITE_HOST = CONTACT.websiteHost
 
 export interface InvoiceItem {
   productId: string
@@ -466,7 +464,7 @@ export async function buildInvoicePdf(
   doc.setFontSize(10)
   doc.setTextColor(...INK_SOFT)
   const bodyMsg =
-    'Every piece from Srilatha Art is individually designed and handmade in our Hyderabad studio.'
+    `Every piece from Srilatha Art is individually designed and handmade in our studio at ${CONTACT.studioAddress.line1}, ${CONTACT.studioAddress.line2}, ${CONTACT.studioAddress.city}.`
   doc.splitTextToSize(bodyMsg, pageW - margin * 2).forEach((line: string) => {
     doc.text(line, margin, y)
     y += 14

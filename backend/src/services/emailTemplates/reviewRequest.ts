@@ -5,6 +5,7 @@
  * product.
  */
 import { renderEmail, type BuiltEmail } from './shared'
+import { CONTACT } from '../../config/contact'
 
 export interface ReviewRequestInput {
   orderId: string
@@ -13,7 +14,7 @@ export interface ReviewRequestInput {
 }
 
 export function buildReviewRequestEmail(input: ReviewRequestInput): BuiltEmail {
-  const site = (input.siteUrl || 'https://www.srilatha.art').replace(/\/+$/, '')
+  const site = (input.siteUrl || CONTACT.websiteUrl).replace(/\/+$/, '')
 
   return renderEmail({
     subject: `How's your piece living with you?`,
@@ -27,8 +28,8 @@ export function buildReviewRequestEmail(input: ReviewRequestInput): BuiltEmail {
     detailRows: [{ label: 'Order', value: input.orderId }],
     cta: { label: 'Leave a review', href: `${site}/account/orders` },
     footerHtml: `
-      <p>You can also reply here, write to studio@srilatha.art, or tag us on
-      Instagram <a href="https://instagram.com/srilatha.art" style="color:#8a6a1a;">@srilatha.art</a>.</p>
+      <p>You can also reply here, write to ${CONTACT.email}, or tag us on
+      Instagram <a href="${CONTACT.instagramUrl}" style="color:#8a6a1a;">${CONTACT.instagramHandleAt}</a>.</p>
       <p style="margin-top:8px;">&mdash; Srilatha</p>
     `,
   })

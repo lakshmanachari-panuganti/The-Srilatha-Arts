@@ -25,6 +25,8 @@
  * Every template stays a thin function that fills in this shape.
  */
 
+import { CONTACT } from '../../config/contact'
+
 export interface BuiltEmail {
   subject: string
   html: string
@@ -142,7 +144,7 @@ export function renderEmail(input: EmailLayoutInput): BuiltEmail {
           <tr>
             <td style="padding:24px 32px 12px;border-bottom:1px solid ${COLOR.rule};">
               <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:0.02em;color:${COLOR.ink};">Srilatha Art</p>
-              <p style="margin:4px 0 0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:${COLOR.inkMute};">Handcrafted in Hyderabad</p>
+              <p style="margin:4px 0 0;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:${COLOR.inkMute};">Handcrafted in ${CONTACT.studioAddress.line2}, ${CONTACT.studioAddress.city}</p>
             </td>
           </tr>
           <!-- Body -->
@@ -159,7 +161,7 @@ export function renderEmail(input: EmailLayoutInput): BuiltEmail {
           <tr>
             <td style="padding:20px 32px 24px;border-top:1px solid ${COLOR.rule};background:${COLOR.paperDeep};">
               <p style="margin:0;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${COLOR.inkMute};text-align:center;">
-                Srilatha Art · Hyderabad · studio@srilatha.art
+                Srilatha Art · ${CONTACT.studioAddress.line1}, ${CONTACT.studioAddress.line2}, ${CONTACT.studioAddress.city} · ${CONTACT.email}
               </p>
             </td>
           </tr>
@@ -193,7 +195,7 @@ function renderPlainText(input: EmailLayoutInput): string {
   lines.push(stripTags(input.footerHtml))
   lines.push('')
   lines.push('—')
-  lines.push('Srilatha Art · Hyderabad · studio@srilatha.art')
+  lines.push(`Srilatha Art · ${CONTACT.studioAddress.line1}, ${CONTACT.studioAddress.line2}, ${CONTACT.studioAddress.city} · ${CONTACT.email}`)
   return lines.join('\n')
 }
 

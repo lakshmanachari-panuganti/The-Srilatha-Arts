@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Mail, Menu, Phone, Search, ShoppingBag, User } from 'lucide-react'
+import { Instagram, Mail, Menu, MessageCircle, Phone, Search, ShoppingBag, User } from 'lucide-react'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
 import { useCart, cartCount } from '@/stores/cart'
 import { useUI } from '@/stores/ui'
@@ -11,13 +11,17 @@ import { useUserAuth } from '@/stores/userAuth'
 import MobileDrawer from '@/components/MobileDrawer'
 import SearchOverlay from '@/components/SearchOverlay'
 import { cn } from '@/lib/cn'
-import { PHONE_DISPLAY, PHONE_TEL, STUDIO_EMAIL } from '@/lib/site-config'
+import { CONTACT, waLink } from '@/lib/site-config'
 
-// Routes where the header is allowed to hide-on-scroll-down. Home + brand
-// pages tolerate it. PDP, cart, checkout, account need the cart icon + search
-// always reachable - hiding the header on those pages strands the user away
-// from key actions (audit §4).
 const HIDE_ON_SCROLL_ROUTES = ['/', '/our-story', '/the-craft', '/reviews', '/about']
+
+const NAV_LINKS = [
+  { href: '/', label: 'Home' },
+  { href: '/shop', label: 'Collections' },
+  { href: '/custom-order', label: 'Custom Orders' },
+  { href: '/our-story', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+] as const
 
 export default function Header() {
   const dir = useScrollDirection(8)
@@ -44,145 +48,161 @@ export default function Header() {
     <>
       <header
         className={cn(
-          'fixed inset-x-0 z-50 transition-transform duration-500',
-          'top-[var(--banner-h)]',
+          'fixed inset-x-0 z-50 transition-transform duration-500 top-[var(--banner-h)]',
           hidden ? '-translate-y-full' : 'translate-y-0',
         )}
       >
         <div
           className={cn(
-            'mx-auto flex items-center justify-between px-4 lg:px-8 h-20 lg:h-28',
             'transition-all duration-500',
             scrolled
-              ? 'glass-strong'
-              : 'bg-plum/85',
+              ? 'bg-slate-950/80 backdrop-blur-xl backdrop-saturate-150 shadow-card border-b border-white/[0.06]'
+              : 'bg-transparent',
           )}
-          style={{ borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent' }}
         >
-          {/* Left: logo + brand name (all viewports) - branding-first focal point */}
-          <div className="flex items-center min-w-0">
+          <div className="max-w-container mx-auto flex items-center justify-between px-4 lg:px-8 h-16 lg:h-20">
             <Link
               href="/"
               aria-label="Srilatha Art - home"
-              className="flex items-center gap-2.5 min-w-0"
+              className="flex items-center gap-2.5 min-w-0 shrink-0"
             >
               <Image
                 src="/Logos/logo.png"
                 alt="Srilatha Art"
-                width={112}
-                height={112}
+                width={96}
+                height={96}
                 priority
                 className={cn(
-                  'w-[68px] h-[68px] lg:w-28 lg:h-28 object-contain transition-all duration-500 shrink-0',
-                  'drop-shadow-[0_2px_6px_rgba(34,27,18,0.10)]',
+                  'w-[44px] h-[44px] lg:w-[56px] lg:h-[56px] object-contain shrink-0 transition-all duration-500',
                   scrolled ? 'opacity-100' : 'opacity-95',
                 )}
               />
-              <span className="font-brand tracking-[0.06em] text-ivory text-[2.25rem] leading-none lg:text-5xl lg:leading-normal">
+              <span className="font-brand tracking-[0.04em] leading-none text-ivory text-[1.65rem] lg:text-[2.25rem]">
                 Srilatha Art
               </span>
             </Link>
+
+            <nav className="hidden lg:flex items-center gap-7 text-sm font-medium">
+              {NAV_LINKS.map((l) => (
+                <Link
+                  key={`${l.href}-${l.label}`}
+                  href={l.href}
+                  className="text-ivory-soft hover:text-blue transition-colors duration-300"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="flex items-center gap-1 lg:gap-2">
+              <a
+                href={waLink('Hi Srilatha Art, I would like to know more about your work.')}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Chat on WhatsApp"
+                className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-full
+                           text-[13px] font-semibold text-white
+                           bg-[#25D366] hover:bg-[#1ebe5b]
+                           transition-all duration-300
+                           shadow-[0_0_18px_rgba(37,211,102,0.45)] hover:shadow-[0_0_28px_rgba(37,211,102,0.65)]"
+              >
+                <MessageCircle className="w-4 h-4" aria-hidden />
+                <span className="hidden lg:inline">WhatsApp</span>
+              </a>
+
+              <a
+                href={CONTACT.social.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-full
+                           text-[13px] font-semibold text-white
+                           bg-[linear-gradient(45deg,#f09433_0%,#e6683c_25%,#dc2743_50%,#cc2366_75%,#bc1888_100%)]
+                           hover:brightness-110
+                           transition-all duration-300
+                           shadow-[0_0_18px_rgba(220,39,67,0.45)] hover:shadow-[0_0_28px_rgba(220,39,67,0.65)]"
+              >
+                <Instagram className="w-4 h-4" aria-hidden />
+                <span className="hidden lg:inline">Instagram</span>
+              </a>
+
+              <button
+                onClick={() => setSearchOpen(true)}
+                aria-label="Search"
+                className="min-h-11 min-w-11 flex items-center justify-center
+                           text-ivory-soft hover:text-blue transition-colors duration-300"
+              >
+                <Search className="w-5 h-5" aria-hidden />
+              </button>
+
+              <Link
+                href={authUser ? '/account' : '/login'}
+                aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
+                className="hidden lg:flex min-h-11 min-w-11 items-center justify-center
+                           text-ivory-soft hover:text-blue transition-colors duration-300 relative"
+              >
+                {authUser ? (
+                  <span
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold
+                               bg-brand-gradient-soft text-blue border border-blue/30"
+                  >
+                    {authUser.name.charAt(0).toUpperCase()}
+                  </span>
+                ) : (
+                  <User className="w-5 h-5" aria-hidden />
+                )}
+              </Link>
+
+              <Link
+                href="/cart"
+                aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
+                className="relative min-h-11 min-w-11 flex items-center justify-center
+                           text-ivory-soft hover:text-blue transition-colors duration-300"
+              >
+                <ShoppingBag className="w-5 h-5" aria-hidden />
+                {count > 0 && (
+                  <span
+                    className="absolute top-1.5 right-1 min-w-[18px] h-[18px] px-1
+                               text-[10px] font-bold leading-[18px] text-center text-white
+                               rounded-full bg-gradient-to-br from-blue to-indigo
+                               shadow-[0_0_12px_rgba(59,130,246,0.65)]"
+                  >
+                    {count > 99 ? '99+' : count}
+                  </span>
+                )}
+              </Link>
+
+              <button
+                onClick={() => setDrawerOpen(true)}
+                aria-label="Open menu"
+                className="lg:hidden min-h-11 min-w-11 -mr-1 flex items-center justify-center
+                           text-ivory-soft hover:text-blue transition-colors duration-300"
+              >
+                <Menu className="w-5 h-5" aria-hidden />
+              </button>
+            </div>
           </div>
 
-          {/* Right: on mobile, icons row stacked above contact links; on desktop, single row */}
-          <div className="flex flex-col items-end gap-1 lg:flex-row lg:items-center lg:gap-1">
-            <div className="flex items-center gap-1">
-            <nav className="hidden lg:flex items-center gap-8 text-sm mr-2 font-medium tracking-[0.06em] uppercase">
-              <Link href="/shop" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                Collections
-              </Link>
-              <Link href="/custom-order" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                Custom orders
-              </Link>
-              <Link href="/our-story" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                About
-              </Link>
-              <Link href="/contact" className="text-ivory-soft hover:text-lavender-pastel transition-colors duration-500">
-                Contact
-              </Link>
-            </nav>
-            <button
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className="min-h-11 min-w-11 flex items-center justify-center
-                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
+          <div className="lg:hidden flex flex-col items-end gap-1 px-4 pb-2 -mt-1 text-[13px] text-ivory-soft">
+            <a
+              href={`mailto:${CONTACT.email}`}
+              className="inline-flex items-center gap-2 hover:text-blue transition-colors duration-300"
             >
-              <Search className="w-5 h-5" aria-hidden />
-            </button>
-            {/* Account / Login icon - desktop only */}
-            <Link
-              href={authUser ? '/account' : '/login'}
-              aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
-              className="hidden lg:flex min-h-11 min-w-11 items-center justify-center
-                         text-ivory hover:text-lavender-pastel transition-colors duration-500 relative"
+              <Mail className="w-4 h-4 text-blue" aria-hidden />
+              <span>{CONTACT.email}</span>
+            </a>
+            <a
+              href={`tel:${CONTACT.phoneTel}`}
+              className="inline-flex items-center gap-2 hover:text-blue transition-colors duration-300"
             >
-              {authUser ? (
-                <span
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold
-                             bg-lavender-pastel/30 text-ivory border border-lavender-pastel/40"
-                >
-                  {authUser.name.charAt(0).toUpperCase()}
-                </span>
-              ) : (
-                <User className="w-5 h-5" aria-hidden />
-              )}
-            </Link>
-            <Link
-              href="/cart"
-              aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
-              className="relative min-h-11 min-w-11 flex items-center justify-center
-                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
-            >
-              <ShoppingBag className="w-5 h-5" aria-hidden />
-              {count > 0 && (
-                <span
-                  className="absolute top-2 right-1.5 min-w-[18px] h-[18px] px-1
-                             text-[10px] font-bold leading-[18px] text-center text-plum"
-                  style={{
-                    borderRadius: '24px',
-                    background: 'linear-gradient(135deg, var(--brand), var(--brand-strong))',
-                  }}
-                >
-                  {count > 99 ? '99+' : count}
-                </span>
-              )}
-            </Link>
-            {/* Hamburger - mobile only, rightmost */}
-            <button
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Open menu"
-              className="lg:hidden min-h-11 min-w-11 -mr-2 flex items-center justify-center
-                         text-ivory hover:text-lavender-pastel transition-colors duration-500"
-            >
-              <Menu className="w-5 h-5" aria-hidden />
-            </button>
-            </div>
-
-            {/* Contact links - mobile only, below the icons row */}
-            <div className="flex flex-col items-end gap-0.5 text-[10px] leading-tight lg:hidden">
-              <a
-                href={`mailto:${STUDIO_EMAIL}`}
-                aria-label={`Email ${STUDIO_EMAIL}`}
-                className="flex items-center gap-1.5 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
-              >
-                <Mail className="w-3 h-3 text-lavender shrink-0" aria-hidden />
-                <span className="truncate max-w-[148px]">{STUDIO_EMAIL}</span>
-              </a>
-              <a
-                href={`tel:${PHONE_TEL}`}
-                aria-label={`Call ${PHONE_DISPLAY}`}
-                className="flex items-center gap-1.5 text-ivory-soft hover:text-lavender-pastel transition-colors duration-300"
-              >
-                <Phone className="w-3 h-3 text-lavender shrink-0" aria-hidden />
-                <span className="truncate max-w-[148px]">{PHONE_DISPLAY}</span>
-              </a>
-            </div>
+              <Phone className="w-4 h-4 text-blue" aria-hidden />
+              <span>{CONTACT.phoneDisplay}</span>
+            </a>
           </div>
         </div>
       </header>
 
-      {/* Spacer so content doesn't slide under the fixed header */}
-      <div aria-hidden className="h-[calc(var(--banner-h)+5rem)] lg:h-[calc(var(--banner-h)+7.5rem)]" />
+      <div aria-hidden className="h-[calc(var(--banner-h)+7rem)] lg:h-[calc(var(--banner-h)+5rem)]" />
 
       <MobileDrawer />
       <SearchOverlay />

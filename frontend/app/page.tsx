@@ -11,12 +11,9 @@ import ContactCTA from '@/components/marketing/ContactCTA'
 export default function HomePage() {
   return (
     <>
-      {/* 1. Hero - full-bleed slideshow with overlaid brand promise + CTAs.
-            Negative top pulls the hero under the fixed Header (which reserves
-            5rem / 7.5rem via its own spacer) so the photograph reaches the
-            top of the viewport. The warm scrim already covers the area where
-            the header sits, so contrast for the header glyphs is preserved. */}
-      <div className="-mt-20 lg:-mt-28">
+      {/* Pull hero under the transparent header (header reserves 4rem mobile
+          / 5rem desktop via its own spacer). */}
+      <div className="-mt-16 lg:-mt-20">
         <HomeHero />
       </div>
 

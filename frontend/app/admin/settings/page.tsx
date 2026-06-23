@@ -6,6 +6,7 @@ import {
   AlertCircle, Check, Loader2, BadgePercent,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import { CONTACT } from '@/lib/site-config'
 
 interface ShippingConfig {
   baseCharge: number
@@ -79,8 +80,8 @@ function GeneralSection() {
       <h2 className="font-serif text-xl text-ink mb-4">General</h2>
       <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-6">
         <FieldRow label="Store name"        defaultValue="Srilatha Art" />
-        <FieldRow label="Contact email"     defaultValue="studio@srilatha.art" type="email" />
-        <FieldRow label="WhatsApp number"   defaultValue="+91 91332 66754" type="tel" />
+        <FieldRow label="Contact email"     defaultValue={CONTACT.email} type="email" />
+        <FieldRow label="WhatsApp number"   defaultValue={CONTACT.phoneDisplay} type="tel" />
         <p className="text-xs text-ink-mute">
           (These fields aren&apos;t wired to a backend yet - they&apos;re for layout only.)
         </p>

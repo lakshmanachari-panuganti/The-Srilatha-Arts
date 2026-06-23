@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { MessageCircle } from 'lucide-react'
-import { whatsappLink } from '@/lib/site-config'
+import { waLink } from '@/lib/site-config'
 
 // Persistent WhatsApp shortcut. WhatsApp is the dominant contact channel for
 // a handcrafted Indian D2C brand - the footer already has a link, but a
@@ -35,7 +35,7 @@ export default function FloatingWhatsApp() {
 
   return (
     <a
-      href={whatsappLink("Hi Srilatha Art, I'd like to ask about a piece I saw on the site.")}
+      href={waLink("Hi Srilatha Art, I'd like to ask about a piece I saw on the site.")}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"

@@ -8,7 +8,11 @@ import { ArrowLeft, Download, Loader2, Printer } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
-import { STUDIO_EMAIL, PHONE_DISPLAY, WEBSITE_URL } from '@/lib/site-config'
+import { CONTACT } from '@/lib/site-config'
+
+const STUDIO_EMAIL = CONTACT.email
+const PHONE_DISPLAY = CONTACT.phoneDisplay
+const WEBSITE_URL = CONTACT.websiteUrl
 
 // Shapes mirrored from the orders.ts toApi() - kept minimal to what the
 // invoice actually renders. Unknown fields ride along untouched.
@@ -153,7 +157,11 @@ export default function InvoiceClient() {
     setDownloading(true)
     try {
       const url = order.invoiceUrl || `/invoices/${encodeURIComponent(order.id)}.pdf`
-      const res = await fetch(url, { credentials: 'include' })
+      // The invoice URL is cross-origin (Function App) and the HMAC token
+      // in the query string is the auth — no cookies needed. Including
+      // credentials forces a credentialed CORS check that the PDF endpoint
+      // can't satisfy with a wildcard origin echo.
+      const res = await fetch(url)
       if (!res.ok) {
         if (res.status === 404) {
           throw new Error('Receipt is being generated. Please refresh in a moment.')
@@ -573,7 +581,7 @@ export default function InvoiceClient() {
             </p>
             <p className="text-sm text-ink-soft leading-relaxed mt-2 max-w-md">
               Every piece from Srilatha Art is individually designed and
-              handmade in our Hyderabad studio.
+              handmade in our studio at {CONTACT.studioAddress.line1}, {CONTACT.studioAddress.line2}, {CONTACT.studioAddress.city}.
             </p>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-8 gap-y-1 text-[12px]">
@@ -603,6 +611,14 @@ export default function InvoiceClient() {
              without affecting on-screen perception of "white". */
           background:
             linear-gradient(180deg, #ffffff 0%, #fdfcf8 100%);
+          /* Re-point the ink scale to dark slate inside the sheet only.
+             Outside the sheet, ink/ink-soft/ink-mute stay light for the
+             dark site chrome. Tailwind's text-ink / border-ink / divide-ink
+             utilities all read these vars, so the whole printed surface
+             flips to readable contrast in one place — no per-element edits. */
+          --text-primary-rgb: 15 23 42;     /* slate-900 — headings, totals */
+          --text-secondary-rgb: 51 65 85;   /* slate-700 — body copy */
+          --text-muted-rgb: 100 116 139;    /* slate-500 — labels, meta */
         }
         .invoice-trim {
           height: 4px;

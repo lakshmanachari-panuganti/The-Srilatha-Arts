@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FreeShippingThreshold, StandardShippingCharge } from '@/components/ShippingFigures'
 
 export const metadata: Metadata = {
   title: 'Common questions',
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/faq/' },
 }
 
-const faqs = [
+const faqs: { q: string; a: React.ReactNode }[] = [
   {
     q: 'Are your pieces really handmade?',
     a: 'Yes - every single one. We make each piece by hand in our Hyderabad studio. That means no two pieces look exactly alike, and tiny differences are part of what makes them special.',
@@ -22,7 +23,12 @@ const faqs = [
   },
   {
     q: 'Is shipping free?',
-    a: 'Shipping is free on orders above ₹999. Below that, it\'s a flat ₹99 anywhere in India.',
+    a: (
+      <>
+        Shipping is free on orders above <FreeShippingThreshold />. Below that, it&apos;s a flat{' '}
+        <StandardShippingCharge /> anywhere in India.
+      </>
+    ),
   },
   {
     q: 'Can I order a custom piece?',

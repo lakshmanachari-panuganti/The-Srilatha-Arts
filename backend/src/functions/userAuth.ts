@@ -9,7 +9,6 @@ import {
   hashPassword,
   comparePassword,
   buildAuthCookie,
-  buildClearCookie,
   extractToken,
   extractTokenFromCookie,
   verifyToken,
@@ -369,25 +368,10 @@ app.http('googleAuth', {
   handler: googleAuth,
 })
 
-// ─── POST /api/auth/logout ───────────────────────────────────
-// Clears the httpOnly tsa_token cookie. No auth required - clearing an
-// already-expired or missing cookie is harmless.
-
-export async function userLogout(
-  request: HttpRequest,
-  _context: InvocationContext,
-): Promise<HttpResponseInit> {
-  const origin = request.headers.get('origin')
-  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
-  return jsonResponse({ ok: true }, 200, { 'Set-Cookie': buildClearCookie() }, origin)
-}
-
-app.http('userLogout', {
-  methods: ['POST', 'OPTIONS'],
-  route: 'api/auth/logout',
-  authLevel: 'anonymous',
-  handler: userLogout,
-})
+// POST /api/auth/logout is registered in auth.ts (`authLogout`). A second
+// registration here used to win or lose the route race on host startup,
+// emitting `The 'userLogout' function is in error: The route specified
+// conflicts with the route defined by function 'authLogout'.`
 
 // ─── PATCH /api/auth/profile ─────────────────────────────────
 // Lets a Google-authenticated user set their display name and phone after

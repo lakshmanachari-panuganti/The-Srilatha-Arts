@@ -30,6 +30,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import { BlobServiceClient } from '@azure/storage-blob'
 import { DefaultAzureCredential } from '@azure/identity'
 import { invoiceRequiresToken, verifyInvoiceToken } from '../services/orderNumber'
+import { corsHeaders } from '../utils/response'
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
 const credential = new DefaultAzureCredential()
@@ -42,6 +43,17 @@ async function downloadInvoice(
   request: HttpRequest,
   context: InvocationContext,
 ): Promise<HttpResponseInit> {
+  // CORS — the PDF is fetched cross-origin from the SWA front-end via the
+  // INVOICE_PUBLIC_URL_BASE (Function App) URL because Free-tier SWA can't
+  // proxy /api/* to a linked backend. Without these headers the browser
+  // blocks the response and the user sees "Failed to fetch".
+  const origin = request.headers.get('origin')
+  const cors = corsHeaders(origin)
+
+  if (request.method === 'OPTIONS') {
+    return { status: 204, headers: cors }
+  }
+
   const raw = request.params.file || ''
   // Strip the .pdf suffix if present so callers can use either path.
   // Also strip a leading slash if the wildcard happened to include it.
@@ -52,7 +64,7 @@ async function downloadInvoice(
   // keeps the route compatible with the legacy TSA-YYYY-HEX format
   // (for orders that pre-date the migration) and any future ID scheme.
   if (!/^[A-Za-z0-9_-]{4,32}$/.test(name)) {
-    return { status: 400, body: 'Invalid invoice id' }
+    return { status: 400, headers: cors, body: 'Invalid invoice id' }
   }
 
   // HMAC gate: post-cutover 16-digit IDs must carry a valid ?token=.
@@ -64,7 +76,7 @@ async function downloadInvoice(
       // 404 (not 401/403) so an attacker brute-forcing IDs cannot
       // distinguish "this ID exists but you don't have the token" from
       // "this ID does not exist" — same response in both cases.
-      return { status: 404, body: 'Invoice not found' }
+      return { status: 404, headers: cors, body: 'Invoice not found' }
     }
   }
 
@@ -75,11 +87,11 @@ async function downloadInvoice(
   try {
     const exists = await blob.exists()
     if (!exists) {
-      return { status: 404, body: 'Invoice not found' }
+      return { status: 404, headers: cors, body: 'Invoice not found' }
     }
     const download = await blob.download()
     if (!download.readableStreamBody) {
-      return { status: 500, body: 'Empty blob stream' }
+      return { status: 500, headers: cors, body: 'Empty blob stream' }
     }
     // Buffer the response - Functions handles streaming via Buffer/string
     // body. Invoices are small (~50KB) so this is cheap and avoids
@@ -93,6 +105,7 @@ async function downloadInvoice(
     return {
       status: 200,
       headers: {
+        ...cors,
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="invoice-${name}.pdf"`,
         'Cache-Control': 'private, max-age=300',
@@ -101,12 +114,12 @@ async function downloadInvoice(
     }
   } catch (err) {
     context.error('downloadInvoice failed', err)
-    return { status: 500, body: 'Failed to load invoice' }
+    return { status: 500, headers: cors, body: 'Failed to load invoice' }
   }
 }
 
 app.http('downloadInvoice', {
-  methods: ['GET'],
+  methods: ['GET', 'OPTIONS'],
   route: 'api/invoices/{*file}',
   authLevel: 'anonymous',
   handler: downloadInvoice,

@@ -346,12 +346,21 @@ async function getOrderTimeline(
     const order = await getOrderByOwner(user.userId, orderId)
     if (!order) return errorResponse('Order not found', 404, origin)
 
-    // Customer sees only non-internal events
+    // Customer sees only status transitions + customer-visible notes (e.g.
+    // "Shipping address updated"). Notification log events — channel email /
+    // whatsapp / message — are internal plumbing and would render with no
+    // title on the customer page (toStatus is undefined for them), which
+    // previously threw a TypeError on `.replace()` and crashed the page.
     const events = await getOrderEvents(orderId, false)
+    const visible = events.filter((e) => {
+      if (e.channel === 'status') return !!e.toStatus
+      if (e.channel === 'note') return !!e.note
+      return false
+    })
     return jsonResponse(
       {
-        events: events.map((e) => ({
-          status: e.toStatus,
+        events: visible.map((e) => ({
+          status: e.toStatus || undefined,
           fromStatus: e.fromStatus || undefined,
           note: e.note || undefined,
           by: e.byRole === 'customer' ? 'You' : 'Srilatha Art',

@@ -1,7 +1,7 @@
 {
   "name": "the-srilatha-arts",
   "version": "1.0.0",
-  "description": "",
+  "description": "Premium handcrafted-art e-commerce - Next.js frontend (static export hosted\r on Azure Static Web Apps) + Azure Functions backend on Azure Table Storage.",
   "main": "index.js",
   "directories": {
     "doc": "docs"

@@ -35,7 +35,7 @@ const processSteps = [
   },
   {
     step: 'II',
-    title: 'Bespoke Detailing',
+    title: 'Custom Detailing',
     description: 'Placing shimmering glass mirrors or hand-painting thousands of high-contrast dot mandalas one dot at a time.',
     icon: Hammer,
   },
@@ -55,24 +55,27 @@ const processSteps = [
 
 export default function WhyChooseUs() {
   return (
-    <section className="px-5 lg:px-8 py-16 sm:py-24 lg:py-32 max-w-7xl mx-auto border-t border-glass-border/30">
+    <section className="px-5 lg:px-8 py-16 sm:py-24 lg:py-28 max-w-container mx-auto border-t border-white/[0.06]">
       <div className="grid md:grid-cols-12 gap-12 lg:gap-16 items-start mb-24">
         {/* Left Side: Why Choose Us */}
-        <div className="md:col-span-5 md:sticky md:top-36">
-          <span className="eyebrow text-lavender mb-4">Our Quality Promise</span>
-          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
-            Why Choose <br />
-            <em className="italic text-lavender-pastel">Srilatha Art</em>
+        <div className="md:col-span-5 md:sticky md:top-32">
+          <span className="eyebrow mb-4">Our Quality Promise</span>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl tracking-tightest text-ivory mb-5 leading-[1.05]">
+            Why choose{' '}
+            <span className="bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                             drop-shadow-[0_0_18px_rgba(59,130,246,0.45)]">
+              Srilatha Art
+            </span>
           </h2>
-          <p className="text-ivory-soft text-lg leading-relaxed mb-8 font-normal">
-            We believe that premium home decor should tell a story of dedication, authenticity, and unparalleled craft.
-            Every creation is treated as a unique masterwork, built from high-grade raw components and handled with exceptional care.
+          <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-8">
+            Premium home decor should tell a story of dedication, authenticity and unparalleled craft.
+            Every creation is treated as a unique masterwork, built from high-grade raw components and handled with care.
           </p>
-          <div className="card p-6">
-            <p className="text-sm font-semibold tracking-wider uppercase text-ivory mb-2 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-gold)' }} /> Shipping Guarantee
+          <div className="rounded-2xl bg-plum-light/70 backdrop-blur border border-white/10 shadow-card p-5">
+            <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-blue mb-2 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" aria-hidden /> Shipping Guarantee
             </p>
-            <p className="text-ivory-soft text-sm leading-relaxed font-normal">
+            <p className="text-ivory-soft text-sm leading-relaxed">
               Any damage in transit is fully covered. We will immediately replace or refund any piece that does not arrive perfectly.
             </p>
           </div>
@@ -101,24 +104,25 @@ export default function WhyChooseUs() {
                   className="absolute left-0 top-0 bottom-0 w-1"
                   style={{
                     background:
-                      'linear-gradient(180deg, #fef3c7 0%, #facc15 50%, #eab308 100%)',
+                      'linear-gradient(180deg, #2563EB 0%, #6366F1 50%, #06B6D4 100%)',
                   }}
                 />
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center"
                   style={{
-                    background: 'rgba(250,204,21,0.08)',
-                    border: '1px solid rgba(250,204,21,0.25)',
-                    color: 'var(--accent-gold)',
+                    background: 'rgba(59,130,246,0.12)',
+                    border: '1px solid rgba(59,130,246,0.30)',
+                    color: 'var(--accent-blue)',
+                    boxShadow: '0 0 18px rgba(59,130,246,0.28)',
                   }}
                 >
                   <Icon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-sans text-lg font-semibold tracking-wide text-ivory mb-2 uppercase">
+                  <h3 className="font-display text-base lg:text-lg font-bold tracking-tight text-ivory mb-2">
                     {diff.title}
                   </h3>
-                  <p className="text-ivory-soft text-sm lg:text-base leading-relaxed font-normal">
+                  <p className="text-ivory-soft text-sm lg:text-base leading-relaxed">
                     {diff.description}
                   </p>
                 </div>
@@ -129,14 +133,18 @@ export default function WhyChooseUs() {
       </div>
 
       {/* Handmade Process Section */}
-      <div className="border-t border-glass-border/30 pt-16 sm:pt-24 lg:pt-32">
-        <div className="text-center max-w-3xl mx-auto mb-16 lg:mb-24">
-          <span className="eyebrow text-lavender justify-center mb-4">Behind the Scenes</span>
-          <h2 className="display text-4xl sm:text-5xl lg:text-7xl mb-6 uppercase">
-            The Handmade <em className="italic text-lavender-pastel">Process</em>
+      <div className="border-t border-white/[0.06] pt-16 sm:pt-24 lg:pt-28">
+        <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16">
+          <span className="eyebrow justify-center mb-4">Behind the Scenes</span>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl tracking-tightest text-ivory mb-5 leading-[1.05]">
+            The handmade{' '}
+            <span className="bg-gradient-to-r from-blue via-indigo to-cyan bg-clip-text text-transparent
+                             drop-shadow-[0_0_18px_rgba(59,130,246,0.45)]">
+              process
+            </span>
           </h2>
-          <p className="text-ivory-soft text-lg lg:text-xl leading-relaxed font-normal">
-            Take a glimpse into the slow, careful stages of how our handcrafted home decor comes to life.
+          <p className="text-ivory-soft text-base lg:text-lg leading-relaxed">
+            A glimpse into the slow, careful stages of how each piece comes to life.
           </p>
         </div>
 
@@ -154,7 +162,7 @@ export default function WhyChooseUs() {
             className="hidden lg:block absolute top-14 left-[12.5%] right-[12.5%] h-px z-0"
             style={{
               background:
-                'linear-gradient(to right, transparent, rgba(250,204,21,0.40) 18%, rgba(250,204,21,0.40) 82%, transparent)',
+                'linear-gradient(to right, transparent, rgba(37,99,235,0.45) 18%, rgba(99,102,241,0.45) 82%, transparent)',
             }}
           />
           {processSteps.map((step) => {
@@ -175,18 +183,18 @@ export default function WhyChooseUs() {
                     <span
                       className="w-8 h-8 rounded-full flex items-center justify-center"
                       style={{
-                        background: 'rgba(250,204,21,0.08)',
-                        border: '1px solid rgba(250,204,21,0.25)',
-                        color: 'var(--accent-gold)',
+                        background: 'rgba(37,99,235,0.08)',
+                        border: '1px solid rgba(37,99,235,0.20)',
+                        color: 'var(--accent-blue)',
                       }}
                     >
                       <step.icon className="w-4 h-4" />
                     </span>
                   </div>
-                  <h3 className="font-sans text-base font-semibold tracking-wide text-ivory mb-2 uppercase">
+                  <h3 className="font-display text-base font-bold tracking-tight text-ivory mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-ivory-soft text-sm leading-relaxed font-normal">
+                  <p className="text-ivory-soft text-sm leading-relaxed">
                     {step.description}
                   </p>
                 </div>

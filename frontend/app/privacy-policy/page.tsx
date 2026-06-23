@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { CONTACT, mailtoLink } from '@/lib/site-config'
 
 export const metadata: Metadata = {
   title: 'Privacy policy',
@@ -67,7 +68,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Contact">
-        Privacy questions? Email <a className="text-lavender-pastel hover:underline" href="mailto:studio@srilatha.art">studio@srilatha.art</a>.
+        Privacy questions? Email <a className="text-lavender-pastel hover:underline" href={mailtoLink()}>{CONTACT.email}</a>.
       </Section>
 
       <p className="text-ivory-mute text-sm mt-12">

@@ -76,7 +76,7 @@ interface ConversationDetail {
 }
 
 function formatPhoneDisplay(phone: string): string {
-  // Render E.164-without-plus as "+91 91332 66754" style for readability.
+  // Render E.164-without-plus as "+91 90523 80325" style for readability.
   if (!phone) return ''
   if (phone.length === 12 && phone.startsWith('91')) {
     return `+91 ${phone.slice(2, 7)} ${phone.slice(7)}`

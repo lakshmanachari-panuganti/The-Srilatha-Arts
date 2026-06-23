@@ -1,15 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Mail, MessageCircle, Instagram, Clock, MapPin, Phone } from 'lucide-react'
-import {
-  SOCIAL,
-  INSTAGRAM_HANDLE,
-  STUDIO_EMAIL,
-  PHONE_DISPLAY,
-  PHONE_TEL,
-  whatsappLink,
-  emailLink,
-} from '@/lib/site-config'
+import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
 import PinterestIcon from '@/components/icons/PinterestIcon'
 
 export const metadata: Metadata = {
@@ -32,50 +24,54 @@ export default function ContactPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
         <ContactCard
-          href={whatsappLink("Hi Srilatha Art, I'd like to know more about your work.")}
+          href={waLink("Hi Srilatha Art, I'd like to know more about your work.")}
           icon={MessageCircle}
           label="WhatsApp"
-          value={PHONE_DISPLAY}
+          value={CONTACT.phoneDisplay}
           note="Fastest way to reach us"
         />
         <ContactCard
-          href={emailLink()}
+          href={mailtoLink()}
           icon={Mail}
           label="Email"
-          value={STUDIO_EMAIL}
+          value={CONTACT.email}
           note="For detailed questions"
         />
         <ContactCard
-          href={SOCIAL.instagram}
+          href={CONTACT.social.instagram}
           icon={Instagram}
           label="Instagram"
-          value={INSTAGRAM_HANDLE}
+          value={CONTACT.instagramHandleAt}
           note="See work in progress"
         />
         <ContactCard
-          href={SOCIAL.pinterest}
+          href={CONTACT.social.pinterest}
           icon={PinterestIcon}
           label="Pinterest"
           value="@srilatha_art"
           note="Save and curate boards"
         />
         <ContactCard
-          href={`tel:${PHONE_TEL}`}
+          href={`tel:${CONTACT.phoneTel}`}
           icon={Phone}
           label="Phone"
-          value={PHONE_DISPLAY}
-          note="Mon–Sat, 10 am – 7 pm"
+          value={CONTACT.phoneDisplay}
+          note={CONTACT.hours}
         />
-        <Card icon={Clock} label="Hours" value="Mon–Sat, 10 am – 7 pm" note="We rest on Sundays" />
+        <Card icon={Clock} label="Hours" value={CONTACT.hours} note="We rest on Sundays" />
       </div>
 
       <div className="rounded-2xl border border-glass-border bg-plum-light/30 p-5 lg:p-6 flex items-start gap-3">
         <MapPin className="w-5 h-5 text-lavender-pastel shrink-0 mt-0.5" aria-hidden />
         <div>
-          <p className="text-ivory font-medium mb-1">We don&apos;t have a walk-in store</p>
+          <p className="text-ivory font-medium mb-1">Studio address</p>
           <p className="text-ivory-soft text-sm leading-relaxed">
-            We create all our handmade art from our studio in Hyderabad. To order, please use the website or
-            message us - we ship anywhere in India.
+            {CONTACT.studioAddress.line1}, {CONTACT.studioAddress.line2}<br />
+            {CONTACT.studioAddress.city}, {CONTACT.studioAddress.region}, {CONTACT.studioAddress.country}
+          </p>
+          <p className="text-ivory-mute text-xs leading-relaxed mt-2">
+            We don&apos;t have a walk-in store — we create everything from this studio.
+            To order, please use the website or message us. We ship anywhere in India.
           </p>
         </div>
       </div>
