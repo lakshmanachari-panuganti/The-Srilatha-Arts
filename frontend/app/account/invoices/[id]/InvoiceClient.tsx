@@ -157,7 +157,11 @@ export default function InvoiceClient() {
     setDownloading(true)
     try {
       const url = order.invoiceUrl || `/invoices/${encodeURIComponent(order.id)}.pdf`
-      const res = await fetch(url, { credentials: 'include' })
+      // The invoice URL is cross-origin (Function App) and the HMAC token
+      // in the query string is the auth — no cookies needed. Including
+      // credentials forces a credentialed CORS check that the PDF endpoint
+      // can't satisfy with a wildcard origin echo.
+      const res = await fetch(url)
       if (!res.ok) {
         if (res.status === 404) {
           throw new Error('Receipt is being generated. Please refresh in a moment.')
@@ -607,6 +611,14 @@ export default function InvoiceClient() {
              without affecting on-screen perception of "white". */
           background:
             linear-gradient(180deg, #ffffff 0%, #fdfcf8 100%);
+          /* Re-point the ink scale to dark slate inside the sheet only.
+             Outside the sheet, ink/ink-soft/ink-mute stay light for the
+             dark site chrome. Tailwind's text-ink / border-ink / divide-ink
+             utilities all read these vars, so the whole printed surface
+             flips to readable contrast in one place — no per-element edits. */
+          --text-primary-rgb: 15 23 42;     /* slate-900 — headings, totals */
+          --text-secondary-rgb: 51 65 85;   /* slate-700 — body copy */
+          --text-muted-rgb: 100 116 139;    /* slate-500 — labels, meta */
         }
         .invoice-trim {
           height: 4px;

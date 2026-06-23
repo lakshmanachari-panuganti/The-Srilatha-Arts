@@ -5,7 +5,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
   .map((o) => o.trim())
   .filter(Boolean)
 
-function corsHeaders(origin?: string | null): Record<string, string> {
+export function corsHeaders(origin?: string | null): Record<string, string> {
   // Echo the request origin if it's in our allowlist, otherwise fall back to first allowed.
   // Allowing credentials requires a single explicit origin (not '*').
   const matched =
