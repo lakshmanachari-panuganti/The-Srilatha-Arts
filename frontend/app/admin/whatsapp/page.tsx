@@ -178,20 +178,20 @@ export default function WhatsAppInbox() {
   return (
     <div className="h-[calc(100vh-100px)] flex flex-col lg:flex-row gap-4">
       {/* ── Left rail: conversations list ─────────────────────────── */}
-      <aside className="lg:w-[340px] flex flex-col bg-white border border-ink/10 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-ink/10 flex items-center gap-2">
+      <aside className="lg:w-[340px] flex flex-col bg-plum-light border border-white/10 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-ink-soft" />
           <h1 className="font-serif text-base text-ink">
             WhatsApp inbox
           </h1>
           {totalUnread > 0 && (
-            <span className="ml-auto text-[11px] px-2 py-0.5 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 rounded-full">
+            <span className="ml-auto text-[11px] px-2 py-0.5 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30 rounded-full">
               {totalUnread} new
             </span>
           )}
         </div>
 
-        <div className="px-3 py-2 border-b border-ink/10">
+        <div className="px-3 py-2 border-b border-white/10">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-mute" />
             <input
@@ -199,7 +199,7 @@ export default function WhatsAppInbox() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search phone, name, message…"
-              className="w-full pl-8 pr-3 py-1.5 text-sm border border-ink/15 rounded-md focus:outline-none focus:ring-1 focus:ring-ink/30"
+              className="w-full pl-8 pr-3 py-1.5 text-sm bg-plum border border-white/10 rounded-md text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent"
             />
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function WhatsAppInbox() {
               <Loader2 className="w-4 h-4 animate-spin" /> Loading…
             </div>
           ) : listErr ? (
-            <div className="p-4 text-sm text-red-600">{listErr}</div>
+            <div className="p-4 text-sm text-red-300">{listErr}</div>
           ) : filtered.length === 0 ? (
             <div className="p-6 text-sm text-ink-mute flex flex-col items-center gap-2 text-center">
               <Inbox className="w-6 h-6 text-ink-mute" />
@@ -229,7 +229,7 @@ export default function WhatsAppInbox() {
                     <button
                       type="button"
                       onClick={() => setSelected(c.phone)}
-                      className={`w-full text-left px-4 py-3 border-b border-ink/5 hover:bg-cream-deep transition-colors ${isActive ? 'bg-cream-deep' : ''}`}
+                      className={`w-full text-left px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors ${isActive ? 'bg-white/[0.07]' : ''}`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
@@ -266,7 +266,7 @@ export default function WhatsAppInbox() {
 
       {/* ── Main pane: thread + related ───────────────────────────── */}
       <section className="flex-1 grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4 min-h-0">
-        <div className="bg-white border border-ink/10 rounded-xl flex flex-col overflow-hidden">
+        <div className="bg-plum-light border border-white/10 rounded-xl flex flex-col overflow-hidden">
           {!selected ? (
             <div className="m-auto p-8 text-sm text-ink-mute flex flex-col items-center gap-3">
               <MessageCircle className="w-8 h-8 text-ink-mute" />
@@ -277,12 +277,12 @@ export default function WhatsAppInbox() {
               <Loader2 className="w-4 h-4 animate-spin" /> Loading conversation…
             </div>
           ) : detailErr ? (
-            <div className="m-4 p-4 text-sm bg-red-50 text-red-700 rounded">
+            <div className="m-4 p-4 text-sm bg-red-500/10 text-red-300 border border-red-500/30 rounded">
               {detailErr}
             </div>
           ) : detail ? (
             <>
-              <header className="px-5 py-3 border-b border-ink/10">
+              <header className="px-5 py-3 border-b border-white/10">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-serif text-lg text-ink">
@@ -304,7 +304,7 @@ export default function WhatsAppInbox() {
                 </div>
               </header>
 
-              <div className="flex-1 overflow-y-auto px-5 py-4 bg-cream-deep/40">
+              <div className="flex-1 overflow-y-auto px-5 py-4 bg-plum/60">
                 {detail.messages.length === 0 ? (
                   <div className="text-sm text-ink-mute text-center mt-12">
                     No messages yet on this thread.
@@ -318,8 +318,8 @@ export default function WhatsAppInbox() {
                           <div
                             className={`max-w-[80%] px-3 py-2 rounded-2xl shadow-sm text-sm whitespace-pre-wrap break-words ${
                               isOut
-                                ? 'bg-emerald-50 text-ink rounded-tr-sm'
-                                : 'bg-white text-ink border border-ink/10 rounded-tl-sm'
+                                ? 'bg-emerald-500/15 text-ink border border-emerald-400/25 rounded-tr-sm'
+                                : 'bg-slate-800 text-ink border border-white/10 rounded-tl-sm'
                             }`}
                           >
                             {m.templateName && (
@@ -334,7 +334,7 @@ export default function WhatsAppInbox() {
                                   href={m.mediaUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-ink underline inline-flex items-center gap-1"
+                                  className="text-xs text-lavender hover:text-lavender-soft underline inline-flex items-center gap-1"
                                 >
                                   View attachment <ExternalLink className="w-3 h-3" />
                                 </a>
@@ -345,7 +345,7 @@ export default function WhatsAppInbox() {
                               {isOut && <StatusIcon status={m.status} />}
                             </div>
                             {m.statusError && (
-                              <div className="text-[10px] text-red-600 mt-0.5">{m.statusError}</div>
+                              <div className="text-[10px] text-red-400 mt-0.5">{m.statusError}</div>
                             )}
                           </div>
                         </li>
@@ -359,8 +359,8 @@ export default function WhatsAppInbox() {
         </div>
 
         {/* Right context column: linked orders + invoices */}
-        <aside className="hidden xl:flex flex-col bg-white border border-ink/10 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-ink/10">
+        <aside className="hidden xl:flex flex-col bg-plum-light border border-white/10 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-white/10">
             <h2 className="font-serif text-sm text-ink">Linked orders</h2>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -372,12 +372,12 @@ export default function WhatsAppInbox() {
               detail.relatedOrders.map((o) => (
                 <div
                   key={o.id}
-                  className="border border-ink/10 rounded-md p-3 text-xs space-y-1"
+                  className="border border-white/10 bg-plum/40 rounded-md p-3 text-xs space-y-1"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <Link
                       href={`/admin/orders/detail?id=${encodeURIComponent(o.id)}`}
-                      className="font-mono text-ink hover:underline truncate"
+                      className="font-mono text-lavender hover:text-lavender-soft hover:underline truncate"
                     >
                       {o.id}
                     </Link>
@@ -394,7 +394,7 @@ export default function WhatsAppInbox() {
                       href={o.invoiceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-ink hover:underline"
+                      className="inline-flex items-center gap-1 text-lavender hover:text-lavender-soft hover:underline"
                     >
                       View invoice <ExternalLink className="w-3 h-3" />
                     </a>

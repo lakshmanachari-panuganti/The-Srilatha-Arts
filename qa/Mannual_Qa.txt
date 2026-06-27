@@ -1,0 +1,17 @@
+After every successful merge to <develop> test the following
+
+1. Ensure qa@srilatha.art is able to successfully log in to the application.
+2. Ensure that the user is able to place an order and complete the checkout process without any errors using TEST Razorpay keys.
+3. Verify that the order is reflected in the admin panel and the order details are correct.
+4. Check that the email notifications for order confirmation and payment receipt are sent to the user.
+5. Test the WhatsApp integration by sending a test message to the configured WhatsApp number and verify that it is received correctly.
+6. Ensure that the user is able to view and download the receipt of the order from their account.
+7. Verify that the application is able to handle multiple concurrent users without any performance issues.
+8. Check that the application is able to handle edge cases, such as invalid input, network errors, and server errors gracefully.
+9. Ensure that the application is secure and that sensitive user data is protected.
+10. Test the application on different browsers (Chrome, Firefox, Safari, Edge) to ensure compatibility and consistent behavior.
+
+
+#later - But Not Urgent
+1. Ensure that the application is responsive and works correctly on different devices and screen sizes.
+2. Verify that the application is able to handle different payment methods and that the payment process is smooth and error-free especially from PRD - UPI

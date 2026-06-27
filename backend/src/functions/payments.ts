@@ -45,6 +45,7 @@ import { trackEvent as trackTelemetry, trackException } from '../utils/telemetry
 import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
 import { generateOrderNumber } from '../services/orderNumber'
 import { finalizeOrderAfterPayment } from '../services/orderFulfillment'
+import { evaluateCoupon } from '../services/couponEvaluation'
 import type { OrderItemSnapshot, OrderStatus } from '../types'
 
 // ─── POST /api/razorpay/create-order ─────────────────────────
@@ -177,8 +178,45 @@ async function createPaymentOrder(
     // Shipping is admin-configurable via /admin/settings. computeShippingAmount
     // applies the free-threshold and the effective (possibly discounted) charge.
     const shippingCfg = await getShippingConfig()
-    const shippingAmount = computeShippingAmount(subtotal, shippingCfg)
-    const totalAmount = subtotal + shippingAmount
+    const baseShippingAmount = computeShippingAmount(subtotal, shippingCfg)
+
+    // ── Coupon application ──────────────────────────────────────────
+    // The cart UI shows a preview total using /coupons/validate, but
+    // we must re-evaluate here against server-priced items so the
+    // customer is charged what we calculated, not what the client claimed.
+    // A coupon that fails revalidation (expired, used up, doesn't meet
+    // min spend after server pricing) rolls inventory back and returns
+    // a clear error so the user can remove or change the code.
+    let discountAmount = 0
+    let shippingDiscount = 0
+    let appliedCouponCode = ''
+    const rawCouponCode = (body.couponCode || '').trim()
+    if (rawCouponCode) {
+      const couponResult = await evaluateCoupon(
+        rawCouponCode,
+        itemSnapshots.map((s) => ({
+          productId: s.productId,
+          category: s.category,
+          price: s.price,
+          qty: s.qty,
+        })),
+        userEmail !== 'guest' ? userEmail : undefined,
+        context,
+      )
+      if (!couponResult.valid) {
+        await rollbackReservations()
+        return errorResponse(couponResult.message, 400, origin)
+      }
+      appliedCouponCode = couponResult.code
+      if (couponResult.appliedTo === 'shipping') {
+        shippingDiscount = Math.min(couponResult.discountAmount, baseShippingAmount)
+      } else {
+        discountAmount = Math.min(couponResult.discountAmount, subtotal)
+      }
+    }
+
+    const shippingAmount = Math.max(0, baseShippingAmount - shippingDiscount)
+    const totalAmount = Math.max(0, subtotal - discountAmount) + shippingAmount
     const displayTotal = totalAmount / 100
 
     const internalOrderId = await generateOrderNumber()
@@ -228,8 +266,8 @@ async function createPaymentOrder(
       displayTotal,
       subtotal,
       shippingAmount,
-      discountAmount: 0,
-      couponCode: body.couponCode || '',
+      discountAmount: discountAmount + shippingDiscount,
+      couponCode: appliedCouponCode,
       customerName: body.customerName,
       customerEmail: email,
       customerPhone: body.customerPhone,
