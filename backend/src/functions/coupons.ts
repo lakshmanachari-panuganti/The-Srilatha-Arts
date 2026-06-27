@@ -21,7 +21,6 @@ import {
   upsertCoupon,
   deleteCoupon,
   getCouponRedemptions,
-  getCouponRedemptionsByUser,
   Row,
 } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
@@ -29,8 +28,7 @@ import { requireUser } from '../middleware/userGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse, noContent } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
-import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
-import { randomUUID } from 'crypto'
+import { evaluateCoupon } from '../services/couponEvaluation'
 
 // Supported types have full discount calculation logic.
 // BUY_X_GET_Y is defined in the type system but not yet implemented -
@@ -101,165 +99,31 @@ async function validateCoupon(
     }
 
     if (!body.code) return errorResponse('Coupon code is required', 400, origin)
-    const code = body.code.toUpperCase().trim()
 
     // Per-user / first-time-only checks must run against the authenticated
-    // session - previously this trusted a `userId` field from the request
-    // body, which let any client claim to be a different user (or "no user")
-    // to bypass these limits.
+    // session - never trust a userId field from the request body.
     const authedUser = requireUser(request)
     const userId = authedUser?.userId
 
-    const coupon = await getCoupon(code)
-    if (!coupon) {
+    const result = await evaluateCoupon(body.code, body.items || [], userId, context)
+
+    if (!result.valid) {
       return jsonResponse(
-        { valid: false, reason: 'INVALID', message: 'This coupon code does not exist' },
+        { valid: false, reason: result.reason, message: result.message },
         200,
         {},
         origin,
       )
-    }
-
-    // Check active
-    if (coupon.active === false) {
-      return jsonResponse(
-        { valid: false, reason: 'INACTIVE', message: 'This coupon is no longer active' },
-        200,
-        {},
-        origin,
-      )
-    }
-
-    // Check date range
-    const now = Date.now()
-    if (coupon.startDate && new Date(String(coupon.startDate)).getTime() > now) {
-      return jsonResponse(
-        { valid: false, reason: 'INACTIVE', message: 'This coupon is not yet active' },
-        200,
-        {},
-        origin,
-      )
-    }
-    if (coupon.endDate && new Date(String(coupon.endDate)).getTime() < now) {
-      return jsonResponse(
-        { valid: false, reason: 'EXPIRED', message: 'This coupon has expired' },
-        200,
-        {},
-        origin,
-      )
-    }
-
-    // Check usage limit
-    if (coupon.usageLimit && (coupon.currentUsage ?? 0) >= coupon.usageLimit) {
-      return jsonResponse(
-        { valid: false, reason: 'USED', message: 'This coupon has reached its usage limit' },
-        200,
-        {},
-        origin,
-      )
-    }
-
-    // Check per-user limit
-    if (userId && coupon.perUserLimit) {
-      const userRedemptions = await getCouponRedemptionsByUser(code, userId)
-      if (userRedemptions.length >= coupon.perUserLimit) {
-        return jsonResponse(
-          { valid: false, reason: 'USED', message: 'You have already used this coupon' },
-          200,
-          {},
-          origin,
-        )
-      }
-    }
-
-    // First-time-only coupons must require a logged-in user - anonymous
-    // visitors cannot claim them. Previously, omitting userId from the body
-    // silently passed this check.
-    if (coupon.firstTimeOnly) {
-      if (!userId) {
-        return jsonResponse(
-          { valid: false, reason: 'INACTIVE', message: 'Please sign in to apply this coupon' },
-          200,
-          {},
-          origin,
-        )
-      }
-      const allRedemptions = await getCouponRedemptionsByUser(code, userId)
-      if (allRedemptions.length > 0) {
-        return jsonResponse(
-          { valid: false, reason: 'USED', message: 'This coupon is for first-time buyers only' },
-          200,
-          {},
-          origin,
-        )
-      }
-    }
-
-    // Calculate discount
-    let cartTotal = 0
-    if (body.items) {
-      for (const item of body.items) {
-        cartTotal += item.price * item.qty
-      }
-    }
-
-    // Check min order amount
-    if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
-      const needed = ((coupon.minOrderAmount - cartTotal) / 100).toFixed(0)
-      return jsonResponse(
-        {
-          valid: false,
-          reason: 'MIN_SPEND',
-          message: `Minimum order ₹${(coupon.minOrderAmount / 100).toFixed(0)} required (add ₹${needed} more)`,
-        },
-        200,
-        {},
-        origin,
-      )
-    }
-
-    let discount = 0
-    let appliedTo: 'cart' | 'shipping' = 'cart'
-
-    switch (coupon.type) {
-      case 'PERCENTAGE':
-        discount = Math.floor(cartTotal * (coupon.value / 100))
-        if (coupon.maxDiscount) discount = Math.min(discount, coupon.maxDiscount)
-        break
-      case 'FIXED_AMOUNT':
-        discount = coupon.value
-        break
-      case 'FREE_SHIPPING':
-        // The discount must equal whatever shipping would have been
-        // charged on this cart - looking that up dynamically so it
-        // matches the admin-configured rate (including any active
-        // shipping discount and the free-threshold rule).
-        {
-          const cfg = await getShippingConfig()
-          discount = computeShippingAmount(cartTotal, cfg)
-          appliedTo = 'shipping'
-        }
-        break
-      default:
-        // BUY_X_GET_Y or any unknown type - creation is blocked by admin validation,
-        // but existing rows with this type should not silently grant a discount.
-        context.warn(`validateCoupon: coupon "${code}" has unsupported type "${coupon.type}" - treating as invalid`)
-        return jsonResponse(
-          { valid: false, reason: 'INVALID', message: 'This coupon type is not currently supported' },
-          200,
-          {},
-          origin,
-        )
     }
 
     return jsonResponse(
       {
         valid: true,
-        code,
-        discountAmount: discount,
-        displayDiscount: discount / 100,
-        appliedTo,
-        message: coupon.description || `Coupon ${code} applied!`,
+        code: result.code,
+        discountAmount: result.discountAmount,
+        displayDiscount: result.discountAmount / 100,
+        appliedTo: result.appliedTo,
+        message: result.message,
       },
       200,
       {},

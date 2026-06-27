@@ -252,7 +252,7 @@ export default function AdminCouponsPage() {
                   value={form.code}
                   onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
                   placeholder="SAVE20"
-                  className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-lavender"
+                  className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute font-mono uppercase focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
                 />
               </div>
             )}
@@ -262,7 +262,7 @@ export default function AdminCouponsPage() {
               <select
                 value={form.type}
                 onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as CouponType }))}
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               >
                 <option value="PERCENTAGE">Percentage Off (%)</option>
                 <option value="FIXED_AMOUNT">Fixed Amount (₹)</option>
@@ -281,7 +281,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
                   min={0}
                   placeholder={form.type === 'PERCENTAGE' ? '20' : '200'}
-                  className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                  className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
                 />
               </div>
             )}
@@ -293,7 +293,7 @@ export default function AdminCouponsPage() {
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 placeholder="Flat 20% off site-wide"
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               />
             </div>
 
@@ -305,7 +305,7 @@ export default function AdminCouponsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, minOrderAmount: e.target.value }))}
                 min={0}
                 placeholder="999"
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               />
             </div>
 
@@ -318,7 +318,7 @@ export default function AdminCouponsPage() {
                   onChange={(e) => setForm((f) => ({ ...f, maxDiscount: e.target.value }))}
                   min={0}
                   placeholder="500"
-                  className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                  className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
                 />
               </div>
             )}
@@ -329,7 +329,7 @@ export default function AdminCouponsPage() {
                 type="date"
                 value={form.startDate}
                 onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent [color-scheme:dark]"
               />
             </div>
 
@@ -339,7 +339,7 @@ export default function AdminCouponsPage() {
                 type="date"
                 value={form.endDate}
                 onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent [color-scheme:dark]"
               />
             </div>
 
@@ -351,7 +351,7 @@ export default function AdminCouponsPage() {
                 onChange={(e) => setForm((f) => ({ ...f, usageLimit: e.target.value }))}
                 min={1}
                 placeholder="Unlimited"
-                className="w-full px-3 h-10 bg-white border border-ink/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-lavender"
+                className="w-full px-3 h-10 bg-plum border border-ink/10 rounded-lg text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender focus:border-transparent"
               />
             </div>
 

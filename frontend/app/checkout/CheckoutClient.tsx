@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import {
   ArrowRight, Lock, ShieldCheck, Truck,
   Pencil, Trash2, Plus, Check, X as XIcon,
+  Tag, CheckCircle2,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { useCart, cartSubtotal } from '@/stores/cart'
@@ -228,6 +229,19 @@ export default function CheckoutClient() {
   const [freeThresholdRs, setFreeThresholdRs] = useState(FALLBACK_FREE_THRESHOLD_RS)
   const [shippingDiscountLabel, setShippingDiscountLabel] = useState<string | undefined>(undefined)
 
+  // Coupon state. Mirrors the cart-page model so a user landing on
+  // /checkout directly (skipping /cart) can still apply a code, and the
+  // backend re-evaluates server-side at order creation time.
+  const [couponInput, setCouponInput] = useState('')
+  const [couponResult, setCouponResult] = useState<{
+    code: string
+    displayDiscount: number
+    appliedTo: 'cart' | 'shipping'
+    message: string
+  } | null>(null)
+  const [couponError, setCouponError] = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+
   useEffect(() => {
     let cancelled = false
     apiFetch<ShippingConfigApi>('/shipping-settings')
@@ -243,14 +257,66 @@ export default function CheckoutClient() {
   }, [])
 
   const subtotal = cartSubtotal(items)
-  const shipping =
+  const couponDiscount = couponResult?.appliedTo === 'cart' ? couponResult.displayDiscount : 0
+  const baseShipping =
     subtotal === 0
       ? 0
       : subtotal >= freeThresholdRs
         ? 0
         : shippingEffectiveRs
-  const total = subtotal + shipping
-  const adminShippingDiscountActive = shippingEffectiveRs < shippingBaseRs && shipping > 0
+  const couponShippingDiscount =
+    couponResult?.appliedTo === 'shipping' ? Math.min(couponResult.displayDiscount, baseShipping) : 0
+  const shipping = Math.max(0, baseShipping - couponShippingDiscount)
+  const total = Math.max(0, subtotal - couponDiscount) + shipping
+  const adminShippingDiscountActive = shippingEffectiveRs < shippingBaseRs && baseShipping > 0
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase()
+    if (!code) return
+    setCouponLoading(true)
+    setCouponError('')
+    try {
+      const data = await apiFetch<{
+        valid: boolean
+        code?: string
+        displayDiscount?: number
+        appliedTo?: string
+        message: string
+      }>('/coupons/validate', {
+        method: 'POST',
+        body: {
+          code,
+          items: items.map((i) => ({
+            productId: i.productId,
+            category: i.category,
+            price: Math.round(i.price * 100), // rupees → paise
+            qty: i.quantity,
+          })),
+        },
+      })
+      if (data.valid) {
+        setCouponResult({
+          code: data.code!,
+          displayDiscount: data.displayDiscount!,
+          appliedTo: (data.appliedTo as 'cart' | 'shipping') ?? 'cart',
+          message: data.message,
+        })
+        setCouponInput('')
+      } else {
+        setCouponError(data.message)
+        setCouponResult(null)
+      }
+    } catch {
+      setCouponError('Could not validate coupon. Please try again.')
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setCouponResult(null)
+    setCouponError('')
+  }
 
   // Prefill name/phone/email from the signed-in user on first render.
   useEffect(() => {
@@ -450,6 +516,7 @@ export default function CheckoutClient() {
           customerName: s.fullName.trim(),
           customerPhone: s.phone.trim(),
           customerEmail: (s.email.trim() || user?.email || '') || undefined,
+          couponCode: couponResult?.code || undefined,
         },
       })
 
@@ -826,11 +893,19 @@ export default function CheckoutClient() {
 
           <dl className="mt-5 space-y-2.5 text-sm border-t border-ink/10 pt-5 tabular-nums">
             <Row label="Subtotal" value={formatINR(subtotal)} />
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-emerald-600">
+                <dt>Coupon ({couponResult!.code})</dt>
+                <dd>−{formatINR(couponDiscount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between text-ink-soft">
               <dt>Shipping</dt>
               <dd className="text-ink flex items-baseline gap-2">
                 {shipping === 0 ? (
-                  <span className="text-emerald-600 font-semibold">Free</span>
+                  <span className="text-emerald-600 font-semibold">
+                    {couponShippingDiscount > 0 ? 'Free (coupon)' : 'Free'}
+                  </span>
                 ) : adminShippingDiscountActive ? (
                   <>
                     <span className="text-ink-mute line-through">{formatINR(shippingBaseRs)}</span>
@@ -841,7 +916,7 @@ export default function CheckoutClient() {
                 )}
               </dd>
             </div>
-            {adminShippingDiscountActive && shippingDiscountLabel && (
+            {adminShippingDiscountActive && shipping > 0 && shippingDiscountLabel && (
               <p className="-mt-1 text-xs text-emerald-700">
                 {shippingDiscountLabel}
               </p>
@@ -851,6 +926,53 @@ export default function CheckoutClient() {
               <dd className="font-serif text-xl">{formatINR(total)}</dd>
             </div>
           </dl>
+
+          {/* Coupon input */}
+          <div className="mt-5 border-t border-ink/10 pt-5">
+            {couponResult ? (
+              <div className="flex items-center justify-between rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm">
+                <span className="flex items-center gap-2 text-emerald-700 font-medium">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
+                  {couponResult.message}
+                </span>
+                <button
+                  type="button"
+                  onClick={removeCoupon}
+                  aria-label="Remove coupon"
+                  className="text-emerald-500 hover:text-emerald-700 ml-2"
+                >
+                  <XIcon className="w-4 h-4" aria-hidden />
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-mute" aria-hidden />
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon() } }}
+                      placeholder="Coupon code"
+                      className="w-full pl-8 pr-3 h-10 rounded-full border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="h-10 px-4 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors whitespace-nowrap"
+                  >
+                    {couponLoading ? '…' : 'Apply'}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="text-xs text-red-600 px-1">{couponError}</p>
+                )}
+              </div>
+            )}
+          </div>
 
           {error && (
             <p role="alert" className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
