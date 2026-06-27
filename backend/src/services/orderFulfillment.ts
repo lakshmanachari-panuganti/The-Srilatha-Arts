@@ -30,6 +30,9 @@ import {
   mergeOrder,
   getOrderItems,
   appendOrderEvent,
+  getCoupon,
+  upsertCoupon,
+  createCouponRedemption,
   Row,
 } from './tableStorage'
 import { buildInvoicePdf } from './invoicePdf'
@@ -174,6 +177,13 @@ export async function finalizeOrderAfterPayment(
   const orderId = order.rowKey as string
   const invoiceUrl = await ensureInvoicePdf(order, context)
 
+  // Record coupon redemption + bump currentUsage on the coupon row.
+  // Idempotent: createCouponRedemption uses orderId as the rowKey, so a
+  // re-run (verify + webhook both landing) errors with EntityAlreadyExists
+  // and the increment is skipped. A non-fatal failure here must not block
+  // invoice / notifications - the order itself is already captured.
+  await recordCouponRedemption(order, context)
+
   // ── Enqueue WhatsApp ─────────────────────────────────────────────
   // Soft-skip if no phone or WhatsApp isn't configured at the consumer
   // side; the queue consumer will record the skip in its event log.
@@ -220,6 +230,54 @@ export async function finalizeOrderAfterPayment(
   }
 
   return invoiceUrl
+}
+
+/**
+ * Idempotently record that the coupon on this order has been redeemed.
+ * Uses orderId as the redemption rowKey so a duplicate call (verify +
+ * webhook both finalizing) is rejected by table storage and we skip the
+ * coupon currentUsage increment. Soft-fails: a failure here does not
+ * block invoice generation or notifications.
+ */
+async function recordCouponRedemption(order: Row, context: InvocationContext): Promise<void> {
+  const code = ((order.couponCode as string) || '').trim().toUpperCase()
+  const discountAmount = Number(order.discountAmount ?? 0)
+  if (!code || discountAmount <= 0) return
+
+  const orderId = order.rowKey as string
+  const userEmail = (order.partitionKey as string) || ''
+  const now = new Date().toISOString()
+
+  try {
+    await createCouponRedemption({
+      partitionKey: code,
+      rowKey: orderId,
+      userEmail,
+      discountAmount,
+      redeemedAt: now,
+    })
+  } catch (err: any) {
+    // Already redeemed (verify + webhook race) - safe to no-op without
+    // double-incrementing the coupon usage counter.
+    if (err?.statusCode === 409) return
+    context.warn(`recordCouponRedemption: createCouponRedemption failed for ${orderId}/${code}`, err)
+    return
+  }
+
+  try {
+    const coupon = await getCoupon(code)
+    if (!coupon) return
+    const next = {
+      ...coupon,
+      currentUsage: Number(coupon.currentUsage ?? 0) + 1,
+      updatedAt: now,
+    } as Row
+    await upsertCoupon(next)
+  } catch (err) {
+    // The redemption row is recorded so admins still see it; the counter
+    // will drift but is recoverable from the redemptions table.
+    context.warn(`recordCouponRedemption: incrementing currentUsage failed for ${code}`, err)
+  }
 }
 
 function parseAddress(raw: unknown): InvoiceOrderShippingAddress | undefined {
