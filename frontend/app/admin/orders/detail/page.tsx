@@ -85,8 +85,10 @@ interface AdminOrder {
   emailSentAt?: string
   emailAttempts?: number
   emailLastError?: string
-  whatsappStatus?: 'pending' | 'sent' | 'failed'
+  whatsappStatus?: 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
   whatsappSentAt?: string
+  whatsappDeliveredAt?: string
+  whatsappReadAt?: string
   whatsappLastError?: string
   createdAt: string
   updatedAt: string
@@ -830,31 +832,83 @@ function AddInternalNote({ orderId, onAdded }: { orderId: string; onAdded: () =>
 // order_confirmation_new_artwork WhatsApp template, with resend
 // buttons that round-trip through the notifications queue (which is
 // the single delivery path - admin actions never bypass it).
+//
+// WhatsApp gets the full Meta lifecycle from the webhook
+// (sent → delivered → read | failed). Email is Gmail SMTP, which only
+// reports sent/failed at handoff time - no Delivered/Bounced webhooks
+// are available unless we migrate providers, so we don't pretend
+// otherwise in the UI.
 
-interface NotificationStatusProps {
-  label: string
-  status?: 'pending' | 'sent' | 'failed'
-  at?: string
-  error?: string
-  attempts?: number
+// Visual tone shared by the status pill and the resend button border.
+// 'green' = delivered/read/sent ok, 'red' = failed, 'amber' = pending,
+// 'grey' = no signal yet (e.g. unpaid order, no resend ever fired).
+type StatusTone = 'green' | 'red' | 'amber' | 'grey'
+
+interface NotificationStatusInfo {
+  tone: StatusTone
+  label: string         // human-friendly: 'Read', 'Delivered', 'Sent', 'Failed', 'Pending', 'Not sent'
+  at?: string           // best timestamp for the current state
 }
 
-function NotificationStatusRow({ label, status, at, error, attempts }: NotificationStatusProps) {
-  const tone =
-    status === 'sent' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' :
-    status === 'failed' ? 'bg-red-50 text-red-700 ring-red-600/20' :
-    status === 'pending' ? 'bg-amber-50 text-amber-700 ring-amber-600/20' :
-    'bg-zinc-50 text-zinc-600 ring-zinc-600/15'
-  const label2 = status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Not sent'
+// Pick the most informative state to display. For WhatsApp this means
+// preferring the latest lifecycle ack we've received: Read > Delivered
+// > Sent. Failed always wins (admin needs to see it). For Email,
+// 'sent' is the terminal state Gmail SMTP can confirm.
+function emailStatusInfo(o: AdminOrder): NotificationStatusInfo {
+  const s = o.emailStatus
+  if (s === 'failed') return { tone: 'red',   label: 'Failed',  at: o.emailSentAt }
+  if (s === 'sent')   return { tone: 'green', label: 'Sent',    at: o.emailSentAt }
+  if (s === 'pending')return { tone: 'amber', label: 'Pending', at: o.emailSentAt }
+  return { tone: 'grey', label: 'Not sent' }
+}
+
+function whatsappStatusInfo(o: AdminOrder): NotificationStatusInfo {
+  const s = o.whatsappStatus
+  if (s === 'failed')    return { tone: 'red',   label: 'Failed',    at: o.whatsappSentAt }
+  if (s === 'read')      return { tone: 'green', label: 'Read',      at: o.whatsappReadAt || o.whatsappDeliveredAt || o.whatsappSentAt }
+  if (s === 'delivered') return { tone: 'green', label: 'Delivered', at: o.whatsappDeliveredAt || o.whatsappSentAt }
+  if (s === 'sent')      return { tone: 'green', label: 'Sent',      at: o.whatsappSentAt }
+  if (s === 'pending')   return { tone: 'amber', label: 'Pending',   at: o.whatsappSentAt }
+  return { tone: 'grey', label: 'Not sent' }
+}
+
+const PILL_CLASSES: Record<StatusTone, string> = {
+  green: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+  red:   'bg-red-50 text-red-700 ring-red-600/20',
+  amber: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+  grey:  'bg-zinc-50 text-zinc-600 ring-zinc-600/15',
+}
+
+// Button border + hover tint mirrors the status pill so the admin can
+// scan delivery health from the buttons alone. Greyed-out state stays
+// neutral.
+const BUTTON_TONE_CLASSES: Record<StatusTone, string> = {
+  green: 'border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-400',
+  red:   'border-red-500/40 text-red-300 hover:bg-red-500/10 hover:border-red-400',
+  amber: 'border-amber-500/40 text-amber-300 hover:bg-amber-500/10 hover:border-amber-400',
+  grey:  'border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5',
+}
+
+function NotificationStatusRow({
+  label,
+  info,
+  error,
+  attempts,
+}: {
+  label: string
+  info: NotificationStatusInfo
+  error?: string
+  attempts?: number
+}) {
   return (
     <div className="flex items-start justify-between gap-3 text-sm">
       <div className="text-ink-soft">{label}</div>
       <div className="text-right">
-        <span className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ring-1 ring-inset ${tone}`}>
-          {label2}{typeof attempts === 'number' && attempts > 1 ? ` · ${attempts} tries` : ''}
+        <span className={`inline-flex items-center px-2 py-0.5 text-xs rounded-full ring-1 ring-inset ${PILL_CLASSES[info.tone]}`}>
+          {info.label}{typeof attempts === 'number' && attempts > 1 ? ` · ${attempts} tries` : ''}
         </span>
-        {at && (
-          <div className="text-[11px] text-ink-mute mt-1">{formatDate(at)}</div>
+        {info.at && (
+          <div className="text-[11px] text-ink-mute mt-1">{formatDate(info.at)}</div>
         )}
         {error && (
           <div className="text-[11px] text-red-600 mt-1 max-w-[16rem] truncate" title={error}>{error}</div>
@@ -878,6 +932,19 @@ function NotificationsPanel({
   const isPaid = (order.paymentStatus || '').toUpperCase() === 'CAPTURED'
   const downloadHref = order.invoiceUrl || `/invoices/${encodeURIComponent(order.id)}.pdf`
 
+  const emailInfo = emailStatusInfo(order)
+  const waInfo = whatsappStatusInfo(order)
+
+  // After a resend the queue takes a few seconds and Meta's webhook
+  // callbacks trickle in over ~30s. Quietly poll so the status pill
+  // and button color flip without the admin having to refresh.
+  const pollAfterResend = useCallback(async () => {
+    for (let i = 0; i < 6; i++) {
+      await new Promise((r) => setTimeout(r, 5000))
+      try { await onChanged() } catch { /* swallow - we'll try again */ }
+    }
+  }, [onChanged])
+
   async function resendEmail() {
     setMsg(null); setBusyEmail(true)
     try {
@@ -886,6 +953,7 @@ function NotificationsPanel({
       })
       setMsg({ kind: 'ok', text: 'Email re-queued. It will go out in a few seconds.' })
       await onChanged()
+      pollAfterResend()
     } catch (e) {
       setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Could not resend email' })
     } finally {
@@ -901,6 +969,7 @@ function NotificationsPanel({
       })
       setMsg({ kind: 'ok', text: 'WhatsApp re-queued. It will go out in a few seconds.' })
       await onChanged()
+      pollAfterResend()
     } catch (e) {
       setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Could not resend WhatsApp' })
     } finally {
@@ -949,15 +1018,13 @@ function NotificationsPanel({
       <div className="border-t border-ink/10 pt-4 space-y-3">
         <NotificationStatusRow
           label="Confirmation email"
-          status={order.emailStatus}
-          at={order.emailSentAt}
+          info={emailInfo}
           error={order.emailLastError}
           attempts={order.emailAttempts}
         />
         <NotificationStatusRow
           label="WhatsApp confirmation"
-          status={order.whatsappStatus}
-          at={order.whatsappSentAt}
+          info={waInfo}
           error={order.whatsappLastError}
         />
       </div>
@@ -967,8 +1034,9 @@ function NotificationsPanel({
           type="button"
           onClick={resendEmail}
           disabled={!isPaid || busyEmail || !order.customerEmail}
-          className="text-xs px-3 py-2 rounded-md border border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          title={!order.customerEmail ? 'No customer email on file' : ''}
+          className={`text-xs px-3 py-2 rounded-md border inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${BUTTON_TONE_CLASSES[emailInfo.tone]}`}
+          title={!order.customerEmail ? 'No customer email on file' : `Delivery status: ${emailInfo.label}`}
+          aria-label={`Resend email (currently ${emailInfo.label})`}
         >
           {busyEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           Resend email
@@ -977,8 +1045,9 @@ function NotificationsPanel({
           type="button"
           onClick={resendWhatsApp}
           disabled={!isPaid || busyWa || !order.customerPhone}
-          className="text-xs px-3 py-2 rounded-md border border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          title={!order.customerPhone ? 'No customer phone on file' : ''}
+          className={`text-xs px-3 py-2 rounded-md border inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${BUTTON_TONE_CLASSES[waInfo.tone]}`}
+          title={!order.customerPhone ? 'No customer phone on file' : `Delivery status: ${waInfo.label}`}
+          aria-label={`Resend WhatsApp (currently ${waInfo.label})`}
         >
           {busyWa ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
           Resend WhatsApp
