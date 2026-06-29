@@ -462,6 +462,10 @@ export async function getUser(email: string): Promise<Row | null> {
   }
 }
 
+export async function getAllUsers(): Promise<Row[]> {
+  return listAll('users', odata`PartitionKey eq ${'customer'}`)
+}
+
 export async function getUserByGoogleId(googleId: string): Promise<Row | null> {
   const rows = await listAll('users', odata`googleId eq ${googleId}`)
   return rows[0] ?? null

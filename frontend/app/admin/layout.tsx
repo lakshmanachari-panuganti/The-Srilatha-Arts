@@ -118,20 +118,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Link
                   key={item.name}
                   href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-lavender-pastel/30 text-plum'
-                      : 'text-ink-soft hover:bg-lavender-pastel/30 hover:text-plum'
+                      ? 'bg-blue/20 text-white ring-1 ring-inset ring-blue/40 shadow-[inset_3px_0_0_0_rgb(var(--accent-blue-rgb))]'
+                      : 'text-ink-soft hover:bg-white/5 hover:text-ink'
                   }`}
                 >
-                  <item.icon className="w-4 h-4" />
+                  <item.icon className={`w-4 h-4 ${isActive ? 'text-blue' : ''}`} />
                   {item.name}
                 </Link>
               )
             })}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-700/10 w-full transition-colors mt-4"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-300 rounded-lg hover:bg-rose-500/10 hover:text-rose-200 w-full transition-colors mt-4"
             >
               <LogOut className="w-4 h-4" />
               Sign out
@@ -158,13 +159,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.name}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-lavender-pastel/30 text-plum'
-                    : 'text-ink-soft hover:bg-lavender-pastel/30 hover:text-plum'
+                    ? 'bg-blue/20 text-white ring-1 ring-inset ring-blue/40 shadow-[inset_3px_0_0_0_rgb(var(--accent-blue-rgb))]'
+                    : 'text-ink-soft hover:bg-white/5 hover:text-ink'
                 }`}
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className={`w-4 h-4 ${isActive ? 'text-blue' : ''}`} />
                 {item.name}
               </Link>
             )
@@ -180,7 +182,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           )}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-700/10 w-full transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-300 rounded-lg hover:bg-rose-500/10 hover:text-rose-200 w-full transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Sign out

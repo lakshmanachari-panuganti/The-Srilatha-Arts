@@ -6,11 +6,12 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
   ArrowRight, Lock, ShieldCheck, Truck,
-  Pencil, Trash2, Plus, Check, X as XIcon,
+  Pencil, Trash2, Plus, Minus, Check, X as XIcon,
   Tag, CheckCircle2,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { useCart, cartSubtotal } from '@/stores/cart'
+import type { CartItem } from '@/types'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 import { usePinLookup } from '@/hooks/usePinLookup'
@@ -157,6 +158,8 @@ export default function CheckoutClient() {
   const items = useCart((s) => s.items)
   const hydrated = useCart((s) => s.hydrated)
   const clear = useCart((s) => s.clear)
+  const setQty = useCart((s) => s.setQty)
+  const removeItem = useCart((s) => s.remove)
   const user = useUserAuth((s) => s.user)
 
   // Auth gate: /checkout is only meaningful for signed-in users. Send the
@@ -317,6 +320,76 @@ export default function CheckoutClient() {
     setCouponResult(null)
     setCouponError('')
   }
+
+  // Decrease handler: gates the 1 → 0 step behind a confirm so the customer
+  // doesn't drop a piece by mistake. Anything above 1 just calls setQty,
+  // which mirrors the cart-page +/- behaviour.
+  const handleDecrease = (item: CartItem) => {
+    if (item.quantity > 1) {
+      setQty(item.productId, item.quantity - 1)
+      return
+    }
+    if (confirm(`Remove "${item.title}" from your order?`)) {
+      removeItem(item.productId)
+    }
+  }
+
+  const handleIncrease = (item: CartItem) => {
+    setQty(item.productId, item.quantity + 1)
+  }
+
+  const handleRemove = (item: CartItem) => {
+    if (confirm(`Remove "${item.title}" from your order?`)) {
+      removeItem(item.productId)
+    }
+  }
+
+  // Re-validate the applied coupon whenever cart line quantities change.
+  // The displayDiscount was computed against the prior snapshot, so a qty
+  // change makes it stale and can invalidate min-order rules. Debounced to
+  // coalesce rapid +/- clicks. The backend re-validates again at order
+  // creation, so a transient network failure here is non-fatal.
+  useEffect(() => {
+    if (!couponResult) return
+    const code = couponResult.code
+    const handle = setTimeout(async () => {
+      try {
+        const data = await apiFetch<{
+          valid: boolean
+          code?: string
+          displayDiscount?: number
+          appliedTo?: string
+          message: string
+        }>('/coupons/validate', {
+          method: 'POST',
+          body: {
+            code,
+            items: items.map((i) => ({
+              productId: i.productId,
+              category: i.category,
+              price: Math.round(i.price * 100),
+              qty: i.quantity,
+            })),
+          },
+        })
+        if (data.valid) {
+          setCouponResult({
+            code: data.code!,
+            displayDiscount: data.displayDiscount!,
+            appliedTo: (data.appliedTo as 'cart' | 'shipping') ?? 'cart',
+            message: data.message,
+          })
+        } else {
+          setCouponResult(null)
+          setCouponError(data.message)
+        }
+      } catch {
+        /* keep current snapshot; backend re-validates at /razorpay/create-order */
+      }
+    }, 400)
+    return () => clearTimeout(handle)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items])
 
   // Prefill name/phone/email from the signed-in user on first render.
   useEffect(() => {
@@ -884,9 +957,39 @@ export default function CheckoutClient() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-ink truncate">{item.title}</p>
-                  <p className="text-xs text-ink-mute">Qty {item.quantity}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <div className="inline-flex items-center h-7 rounded-full border border-ink/15 bg-paper">
+                      <button
+                        type="button"
+                        onClick={() => handleDecrease(item)}
+                        aria-label={`Decrease quantity of ${item.title}`}
+                        className="w-7 h-7 flex items-center justify-center text-ink-soft hover:text-ink"
+                      >
+                        <Minus className="w-3 h-3" aria-hidden />
+                      </button>
+                      <span className="min-w-[1.5rem] text-center text-ink text-xs font-semibold tabular-nums">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleIncrease(item)}
+                        aria-label={`Increase quantity of ${item.title}`}
+                        className="w-7 h-7 flex items-center justify-center text-ink-soft hover:text-ink"
+                      >
+                        <Plus className="w-3 h-3" aria-hidden />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(item)}
+                      aria-label={`Remove ${item.title}`}
+                      className="text-ink-mute hover:text-red-500 p-1 -m-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm font-semibold text-ink tabular-nums">{formatINR(item.price * item.quantity)}</p>
+                <p className="text-sm font-semibold text-ink tabular-nums self-start">{formatINR(item.price * item.quantity)}</p>
               </li>
             ))}
           </ul>
