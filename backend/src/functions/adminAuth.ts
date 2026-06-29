@@ -14,6 +14,7 @@ import {
 import { getAdmin, updateAdmin, getAllAdmins, createAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
+import { verifyCaptcha } from '../services/captcha'
 import { getClientIp } from '../utils/clientIp'
 
 // ─── POST /api/auth/admin/login ──────────────────────────────
@@ -37,6 +38,13 @@ export async function adminLogin(
     const body = (await request.json()) as {
       username?: string
       password?: string
+      captchaToken?: string
+    }
+
+    const captcha = await verifyCaptcha(body.captchaToken, 'admin_login', ip)
+    if (!captcha.ok) {
+      context.warn(`adminLogin: captcha rejected (${captcha.reason})`)
+      return errorResponse('CAPTCHA verification failed. Please try again.', 400, origin)
     }
 
     if (!body.username || !body.password) {

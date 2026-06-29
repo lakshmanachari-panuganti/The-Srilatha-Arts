@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
+import { getCaptchaToken } from '@/lib/captcha'
 import { useWishlist } from '@/stores/wishlist'
 import { useCart } from '@/stores/cart'
 
@@ -55,13 +56,14 @@ export const useUserAuth = create<UserAuthState>()(
       loginWithGoogle: async (credential: string) => {
         set({ isLoading: true, error: null })
         try {
+          const captchaToken = await getCaptchaToken('google_login')
           const res = await apiFetch<{
             user: AuthUser
             token: string
             needsProfileSetup: boolean
           }>('/auth/google', {
             method: 'POST',
-            body: { credential },
+            body: { credential, captchaToken },
           })
           setApiAuthToken(res.token)
           set({
@@ -83,9 +85,10 @@ export const useUserAuth = create<UserAuthState>()(
       loginWithEmail: async (email: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
+          const captchaToken = await getCaptchaToken('login')
           const res = await apiFetch<{ user: AuthUser; token: string }>('/auth/login', {
             method: 'POST',
-            body: { email, password },
+            body: { email, password, captchaToken },
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
@@ -100,9 +103,10 @@ export const useUserAuth = create<UserAuthState>()(
       register: async (name: string, email: string, password: string, phone: string) => {
         set({ isLoading: true, error: null })
         try {
+          const captchaToken = await getCaptchaToken('register')
           const res = await apiFetch<{ user: AuthUser; token: string }>('/auth/register', {
             method: 'POST',
-            body: { name, email, password, phone: phone || undefined },
+            body: { name, email, password, phone: phone || undefined, captchaToken },
           })
           setApiAuthToken(res.token)
           set({ user: res.user, token: res.token, isLoading: false, error: null })
