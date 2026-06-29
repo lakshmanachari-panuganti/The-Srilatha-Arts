@@ -5,27 +5,11 @@
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
-import { getAllOrders, getAllProducts } from '../services/tableStorage'
-import { TableClient } from '@azure/data-tables'
-import { DefaultAzureCredential } from '@azure/identity'
+import { getAllOrders, getAllProducts, getAllUsers } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 
 const PENDING_PACK_STATUSES = new Set(['PLACED', 'CONFIRMED', 'CRAFTING'])
-
-async function getAllUsers(): Promise<number> {
-  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
-  const client = new TableClient(
-    `https://${accountName}.table.core.windows.net`,
-    'users',
-    new DefaultAzureCredential(),
-  )
-  let count = 0
-  for await (const _ of client.listEntities({ queryOptions: { select: ['RowKey'] } })) {
-    count++
-  }
-  return count
-}
 
 async function adminGetStats(
   request: HttpRequest,
@@ -41,11 +25,12 @@ async function adminGetStats(
     const now = Date.now()
     const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
 
-    const [orders, products, totalCustomers] = await Promise.all([
+    const [orders, products, users] = await Promise.all([
       getAllOrders(),
       getAllProducts(),
-      getAllUsers().catch(() => 0),
+      getAllUsers().catch(() => []),
     ])
+    const totalCustomers = users.length
 
     let totalRevenue = 0
     let ordersLast30Days = 0
