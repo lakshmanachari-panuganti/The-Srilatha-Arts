@@ -36,6 +36,7 @@ import {
   Row,
 } from '../services/tableStorage'
 import { listAlerts } from '../services/notificationAlerts'
+import { probeV2Reachability, V2ProbeResult } from '../services/whatsappV2Client'
 
 type Severity = 'critical' | 'warning' | 'info' | 'ok'
 
@@ -77,6 +78,7 @@ interface WorkflowStage {
     | 'invoice_generation'
     | 'email_notification'
     | 'whatsapp_notification'
+    | 'whatsapp_inbox'
     | 'database'
     | 'external_api'
     | 'app_configuration'
@@ -226,6 +228,26 @@ const VAR_SPECS: VarSpec[] = [
     category: 'whatsapp',
     required: false,
     description: 'Webhook verification token (must match Meta dashboard config).',
+  },
+  {
+    name: 'WHATSAPP_V2_API_BASE_URL',
+    category: 'whatsapp',
+    required: true,
+    description: 'Base URL of the centralized v2 WhatsApp service (e.g. https://func-srilathaartwhatsappv2.azurewebsites.net/api). Backend reads inbound history from here.',
+    validate: (v) => (/^https?:\/\/.+\/api$/.test(v) ? null : 'should be https://<host>/api (no trailing slash)'),
+  },
+  {
+    name: 'WHATSAPP_V2_AUDIENCE',
+    category: 'whatsapp',
+    required: true,
+    description: 'AAD audience (Application ID URI) of v2’s app registration, used for MI token acquisition.',
+    validate: (v) => (/^api:\/\//.test(v) ? null : 'should start with api://'),
+  },
+  {
+    name: 'WHATSAPP_V2_FUNCTION_KEY',
+    category: 'whatsapp',
+    required: false,
+    description: 'v2 function key, only needed until v2’s admin functions move to authLevel:anonymous behind Easy Auth.',
   },
 
   // ── Storage / queues ───────────────────────────────────────────
@@ -619,6 +641,7 @@ function rollupWorkflow(
   storageProbe: ProbeResult,
   queueDepths: QueueDepth[],
   recent: RecentFailures,
+  v2Probe: V2ProbeResult,
 ): WorkflowStage[] {
   const byName = new Map(vars.map((v) => [v.name, v]))
   const stages: WorkflowStage[] = []
@@ -687,6 +710,27 @@ function rollupWorkflow(
     recentFailures: recent.whatsappFailedCount,
     lastFailureAt: lastWaErr?.createdAt,
     lastError: lastWaErr?.error,
+  })
+
+  // WhatsApp inbox — does the backend reach the centralized v2 service?
+  // Distinct from whatsapp_notification (which is outbound-credential-only).
+  // This stage hits v2 live so a route/AAD/CORS regression surfaces here.
+  let inboxSev: Severity = 'ok'
+  let inboxSummary = `v2 reachable (${v2Probe.conversationCount ?? 0} conversations, ${v2Probe.latencyMs}ms).`
+  if (!v2Probe.configured) {
+    inboxSev = 'critical'
+    inboxSummary = `WHATSAPP_V2_* settings missing — admin inbox cannot read inbound messages. (${v2Probe.error ?? ''})`
+  } else if (!v2Probe.ok) {
+    inboxSev = 'critical'
+    inboxSummary = `v2 ${v2Probe.endpoint} → ${v2Probe.statusCode ?? 'no response'} ${v2Probe.error ?? ''}`.trim()
+  }
+  stages.push({
+    stage: 'whatsapp_inbox',
+    status: inboxSev === 'critical' ? 'down' : 'ok',
+    severity: inboxSev,
+    summary: inboxSummary,
+    recentFailures: 0,
+    lastError: v2Probe.ok ? undefined : v2Probe.error,
   })
 
   // Database
@@ -787,11 +831,12 @@ async function adminDiagnostics(
     const configVars = auditConfig()
     const crossFindings = pairwiseFindings(configVars)
 
-    const [smtpProbe, storageProbe, queueDepths, recent] = await Promise.all([
+    const [smtpProbe, storageProbe, queueDepths, recent, v2Probe] = await Promise.all([
       probeSmtp(),
       probeStorage(),
       probeQueueDepths().catch(() => [] as QueueDepth[]),
       computeRecentFailures(),
+      probeV2Reachability(),
     ])
 
     const workflow = rollupWorkflow(
@@ -800,6 +845,7 @@ async function adminDiagnostics(
       storageProbe,
       queueDepths,
       recent,
+      v2Probe,
     )
 
     const overallSeverity: Severity = workflow.some((s) => s.severity === 'critical')

@@ -127,3 +127,90 @@ export async function fetchV2Messages(phone: string): Promise<V2Message[] | null
   )
   return data?.messages ?? null
 }
+
+// ─── Diagnostic probe ────────────────────────────────────────
+
+export interface V2ProbeResult {
+  ok: boolean
+  configured: boolean
+  endpoint: string
+  statusCode?: number
+  conversationCount?: number
+  latencyMs: number
+  error?: string
+}
+
+/**
+ * Live probe used by /api/admin/diagnostics. Hits the conversations endpoint
+ * with the website backend MI token + function key (current dual-auth state)
+ * and reports HTTP outcome. Unlike v2Fetch above, this surfaces the failure
+ * mode rather than swallowing it, so the admin dashboard can show DOWN when
+ * the backend cannot read the v2 inbox.
+ *
+ * `endpoint` is the path actually called — when a route mismatch occurs (e.g.
+ * `/conversationsList` while v2 exposes `/conversations`), the path shown in
+ * the diagnostic tile is the smoking gun the operator needs to see.
+ */
+export async function probeV2Reachability(): Promise<V2ProbeResult> {
+  const t0 = Date.now()
+  const path = '/conversationsList'
+
+  if (!isV2Configured()) {
+    return {
+      ok: false,
+      configured: false,
+      endpoint: path,
+      latencyMs: Date.now() - t0,
+      error: 'WHATSAPP_V2_API_BASE_URL and/or WHATSAPP_V2_AUDIENCE missing',
+    }
+  }
+
+  try {
+    const token = await getV2Token()
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 8000)
+
+    const separator = path.includes('?') ? '&' : '?'
+    const url = V2_FUNCTION_KEY
+      ? `${V2_BASE_URL}${path}${separator}code=${encodeURIComponent(V2_FUNCTION_KEY)}`
+      : `${V2_BASE_URL}${path}`
+
+    const resp = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    })
+    clearTimeout(timer)
+
+    if (!resp.ok) {
+      return {
+        ok: false,
+        configured: true,
+        endpoint: path,
+        statusCode: resp.status,
+        latencyMs: Date.now() - t0,
+        error: `${resp.status} ${resp.statusText}`,
+      }
+    }
+
+    const data = (await resp.json()) as { conversations?: V2Conversation[] }
+    return {
+      ok: true,
+      configured: true,
+      endpoint: path,
+      statusCode: resp.status,
+      conversationCount: data?.conversations?.length ?? 0,
+      latencyMs: Date.now() - t0,
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      configured: true,
+      endpoint: path,
+      latencyMs: Date.now() - t0,
+      error: err instanceof Error ? err.message : String(err),
+    }
+  }
+}
