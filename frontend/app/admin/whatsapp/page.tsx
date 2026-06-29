@@ -25,6 +25,7 @@ import {
   Loader2,
   Inbox,
   Send,
+  ArrowLeft,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { formatINR, formatDate } from '@/lib/format'
@@ -145,6 +146,43 @@ export default function WhatsAppInbox() {
   // operator down while they're reading history. Set true when sending so the
   // composer's own optimistic message always scrolls into view.
   const stickToBottomRef = useRef(true)
+
+  // Mobile navigation — WhatsApp-style two-screen model on small viewports
+  // (list → tap → chat → back → list). Desktop ignores this state and renders
+  // both panes side-by-side via responsive classes.
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
+
+  const openConversation = useCallback((phone: string) => {
+    setSelected(phone)
+    setMobileView('chat')
+    // Push a history entry so the OS/browser back gesture returns to the list
+    // instead of leaving the whole admin route. The popstate handler below
+    // catches it.
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.pushState({ whatsappChat: phone }, '')
+      } catch {
+        // Some embedded webviews disallow pushState — fall through silently.
+      }
+    }
+  }, [])
+
+  const goBackToList = useCallback(() => {
+    setMobileView('list')
+    if (typeof window !== 'undefined' && window.history.state?.whatsappChat) {
+      // Pop the entry we pushed so the URL stack stays clean.
+      window.history.back()
+    }
+  }, [])
+
+  // Phone hardware back / browser back returns to list rather than the
+  // previous admin page.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onPop = () => setMobileView('list')
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   const refreshList = useCallback(async (opts: { silent?: boolean } = {}) => {
     if (!opts.silent) setListErr('')
@@ -389,9 +427,11 @@ export default function WhatsAppInbox() {
   )
 
   return (
-    <div className="h-[calc(100vh-100px)] flex flex-col lg:flex-row gap-4">
+    <div className="h-[calc(100dvh-100px)] lg:h-[calc(100vh-100px)] flex flex-col lg:flex-row lg:gap-4">
       {/* ── Left rail: conversations list ─────────────────────────── */}
-      <aside className="lg:w-[340px] flex flex-col bg-plum-light border border-white/10 rounded-xl overflow-hidden">
+      <aside
+        className={`${mobileView === 'chat' ? 'hidden' : 'flex'} lg:flex lg:w-[340px] flex-col bg-plum-light lg:border lg:border-white/10 lg:rounded-xl overflow-hidden flex-1 lg:flex-initial min-h-0`}
+      >
         <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-ink-soft" />
           <h1 className="font-serif text-base text-ink">
@@ -408,11 +448,15 @@ export default function WhatsAppInbox() {
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-mute" />
             <input
-              type="text"
+              type="search"
+              inputMode="search"
+              autoComplete="off"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search phone, name, message…"
-              className="w-full pl-8 pr-3 py-1.5 text-sm bg-plum border border-white/10 rounded-md text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent"
+              // text-base (16px) on mobile prevents iOS Safari from zooming
+              // the whole layout when the search input is tapped.
+              className="w-full pl-8 pr-3 py-2 lg:py-1.5 text-base lg:text-sm bg-plum border border-white/10 rounded-md text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent"
             />
           </div>
         </div>
@@ -441,8 +485,8 @@ export default function WhatsAppInbox() {
                   <li key={c.phone}>
                     <button
                       type="button"
-                      onClick={() => setSelected(c.phone)}
-                      className={`w-full text-left px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors ${isActive ? 'bg-white/[0.07]' : ''}`}
+                      onClick={() => openConversation(c.phone)}
+                      className={`w-full text-left px-4 py-3.5 border-b border-white/5 hover:bg-white/5 active:bg-white/[0.08] transition-colors touch-manipulation ${isActive ? 'bg-white/[0.07]' : ''}`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
@@ -478,10 +522,12 @@ export default function WhatsAppInbox() {
       </aside>
 
       {/* ── Main pane: thread + related ───────────────────────────── */}
-      <section className="flex-1 grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4 min-h-0">
-        <div className="bg-plum-light border border-white/10 rounded-xl flex flex-col overflow-hidden">
+      <section
+        className={`${mobileView === 'list' ? 'hidden' : 'flex'} lg:grid flex-1 grid-cols-1 xl:grid-cols-[1fr_300px] lg:gap-4 min-h-0`}
+      >
+        <div className="bg-plum-light lg:border lg:border-white/10 lg:rounded-xl flex flex-col overflow-hidden min-h-0 flex-1">
           {!selected ? (
-            <div className="m-auto p-8 text-sm text-ink-mute flex flex-col items-center gap-3">
+            <div className="m-auto p-8 text-sm text-ink-mute hidden lg:flex flex-col items-center gap-3">
               <MessageCircle className="w-8 h-8 text-ink-mute" />
               <div>Pick a conversation to read.</div>
             </div>
@@ -495,13 +541,21 @@ export default function WhatsAppInbox() {
             </div>
           ) : detail ? (
             <>
-              <header className="px-5 py-3 border-b border-white/10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-serif text-lg text-ink">
+              <header className="px-3 lg:px-5 py-2.5 lg:py-3 border-b border-white/10 bg-plum-light shrink-0">
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <button
+                    type="button"
+                    onClick={goBackToList}
+                    aria-label="Back to inbox"
+                    className="lg:hidden -ml-1 w-10 h-10 inline-flex items-center justify-center rounded-full hover:bg-white/5 active:bg-white/10 text-ink shrink-0 touch-manipulation"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-serif text-base lg:text-lg text-ink truncate">
                       {detail.conversation.customerName || formatPhoneDisplay(detail.conversation.phone)}
                     </div>
-                    <div className="text-xs text-ink-mute">
+                    <div className="text-[11px] lg:text-xs text-ink-mute truncate">
                       {formatPhoneDisplay(detail.conversation.phone)}
                       {detail.conversation.customerEmail ? ` · ${detail.conversation.customerEmail}` : ''}
                     </div>
@@ -510,9 +564,11 @@ export default function WhatsAppInbox() {
                     href={`https://wa.me/${detail.conversation.phone}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-ink-soft hover:text-ink inline-flex items-center gap-1.5"
+                    aria-label="Open on WhatsApp"
+                    className="text-xs text-ink-soft hover:text-ink inline-flex items-center gap-1.5 shrink-0"
                   >
-                    Open on WhatsApp <ExternalLink className="w-3 h-3" />
+                    <span className="hidden sm:inline">Open on WhatsApp</span>
+                    <ExternalLink className="w-4 h-4 lg:w-3 lg:h-3" />
                   </a>
                 </div>
               </header>
@@ -520,7 +576,7 @@ export default function WhatsAppInbox() {
               <div
                 ref={messagesScrollRef}
                 onScroll={handleMessagesScroll}
-                className="flex-1 overflow-y-auto px-5 py-4 bg-plum/60"
+                className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 lg:px-5 lg:py-4 bg-plum/60"
               >
                 {detail.messages.length === 0 ? (
                   <div className="text-sm text-ink-mute text-center mt-12">
@@ -533,7 +589,7 @@ export default function WhatsAppInbox() {
                       return (
                         <li key={m.rowKey} className={`flex ${isOut ? 'justify-end' : 'justify-start'}`}>
                           <div
-                            className={`max-w-[80%] px-3 py-2 rounded-2xl shadow-sm text-sm whitespace-pre-wrap break-words ${
+                            className={`max-w-[85%] lg:max-w-[80%] px-3 py-2 rounded-2xl shadow-sm text-[15px] lg:text-sm whitespace-pre-wrap break-words ${
                               isOut
                                 ? 'bg-emerald-500/15 text-ink border border-emerald-400/25 rounded-tr-sm'
                                 : 'bg-slate-800 text-ink border border-white/10 rounded-tl-sm'
@@ -574,7 +630,7 @@ export default function WhatsAppInbox() {
               </div>
 
               {/* ── Composer ─────────────────────────────────────── */}
-              <div className="border-t border-white/10 bg-plum/80 px-4 py-3">
+              <div className="border-t border-white/10 bg-plum/80 px-3 lg:px-4 py-2.5 lg:py-3 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
                 {sendErr && (
                   <div className="mb-2 text-xs text-red-300 bg-red-500/10 border border-red-500/30 rounded px-2.5 py-1.5">
                     {sendErr}
@@ -592,32 +648,45 @@ export default function WhatsAppInbox() {
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     onKeyDown={(e) => {
-                      // Enter sends, Shift+Enter inserts a newline.
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        sendReply()
+                      if (e.key !== 'Enter' || e.shiftKey) return
+                      // Touch-primary devices (iOS Safari, Android Chrome):
+                      // Enter inserts a newline — the WhatsApp/iMessage
+                      // convention. Sending requires tapping the Send button.
+                      // Desktop (pointer: fine): Enter sends, Shift+Enter
+                      // newlines, matching the chat-app convention there.
+                      if (
+                        typeof window !== 'undefined' &&
+                        window.matchMedia?.('(pointer: coarse)').matches
+                      ) {
+                        return
                       }
+                      e.preventDefault()
+                      sendReply()
                     }}
-                    rows={2}
+                    rows={1}
                     maxLength={4096}
-                    placeholder="Type a reply…  (Enter to send, Shift+Enter for new line)"
+                    placeholder="Type a reply…"
                     disabled={sending}
-                    className="flex-1 resize-none text-sm bg-plum border border-white/10 rounded-md px-3 py-2 text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent disabled:opacity-60"
+                    // text-base (16px) on mobile prevents iOS Safari from
+                    // auto-zooming when the input is focused (Apple zooms
+                    // anything smaller than 16px font-size).
+                    className="flex-1 resize-none text-base lg:text-sm bg-plum border border-white/10 rounded-2xl lg:rounded-md px-3.5 py-2.5 lg:py-2 text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent disabled:opacity-60 max-h-[40dvh] overflow-y-auto"
                   />
                   <button
                     type="submit"
                     disabled={sending || !replyText.trim()}
-                    className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                    aria-label="Send reply"
+                    className="inline-flex items-center justify-center gap-1.5 h-11 lg:h-9 w-11 lg:w-auto lg:px-4 rounded-full lg:rounded-md bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0 touch-manipulation"
                   >
                     {sending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 lg:w-4 lg:h-4 animate-spin" />
                     ) : (
-                      <Send className="w-4 h-4" />
+                      <Send className="w-5 h-5 lg:w-4 lg:h-4" />
                     )}
-                    {sending ? 'Sending…' : 'Send'}
+                    <span className="hidden lg:inline">{sending ? 'Sending…' : 'Send'}</span>
                   </button>
                 </form>
-                <p className="text-[10px] text-ink-mute mt-1.5">
+                <p className="hidden lg:block text-[10px] text-ink-mute mt-1.5">
                   Free-form replies require the customer to have messaged within
                   the last 24 hours (WhatsApp policy). Outside that window, use a
                   template from the order page.
