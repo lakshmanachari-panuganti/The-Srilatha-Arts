@@ -16,6 +16,7 @@ import { DefaultAzureCredential } from '@azure/identity'
 
 const V2_BASE_URL = process.env.WHATSAPP_V2_API_BASE_URL || ''
 const V2_AUDIENCE = process.env.WHATSAPP_V2_AUDIENCE || ''
+const V2_FUNCTION_KEY = process.env.WHATSAPP_V2_FUNCTION_KEY || ''
 
 // Reuse credential instance across calls (caches tokens internally).
 let credential: DefaultAzureCredential | null = null
@@ -51,7 +52,13 @@ async function v2Fetch<T>(path: string, timeoutMs = 8000): Promise<T | null> {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
 
-    const resp = await fetch(`${V2_BASE_URL}${path}`, {
+    // Build URL with function key if available (needed while v2 has authLevel:'function')
+    const separator = path.includes('?') ? '&' : '?'
+    const url = V2_FUNCTION_KEY
+      ? `${V2_BASE_URL}${path}${separator}code=${encodeURIComponent(V2_FUNCTION_KEY)}`
+      : `${V2_BASE_URL}${path}`
+
+    const resp = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
@@ -86,16 +93,19 @@ export interface V2Message {
   rowKey?: string
   direction: 'inbound' | 'outbound'
   waMessageId?: string
+  wamid?: string
   contextMessageId?: string
   type?: string
   templateName?: string
   text?: string
+  body?: string
   mediaUrl?: string
   mediaCaption?: string
   orderId?: string
   invoiceId?: string
   status?: string
   statusError?: string
+  contactName?: string
   createdAt?: string
   updatedAt?: string
 }

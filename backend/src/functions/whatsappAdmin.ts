@@ -325,19 +325,20 @@ function mergeMessages(localMessages: Row[], v2Messages: V2Message[] | null): Ro
   // messages that v2 might also track once sends are routed through it)
   if (v2Messages) {
     for (const v2Msg of v2Messages) {
-      const wamid = v2Msg.waMessageId || ''
+      const wamid = v2Msg.waMessageId || v2Msg.wamid || ''
       if (wamid && seen.has(wamid)) continue
       if (wamid) seen.add(wamid)
       // Convert V2Message to Row-like shape for messageToApi()
+      // v2 stores message content in `body` field; fall back to `text`
       result.push({
         partitionKey: '',
         rowKey: v2Msg.rowKey || `${v2Msg.createdAt}_${v2Msg.direction}_${wamid}`,
         direction: v2Msg.direction,
-        waMessageId: wamid,
+        waMessageId: wamid || v2Msg.wamid || '',
         contextMessageId: v2Msg.contextMessageId || '',
         type: v2Msg.type || 'text',
         templateName: v2Msg.templateName || '',
-        text: v2Msg.text || '',
+        text: v2Msg.body || v2Msg.text || '',
         mediaUrl: v2Msg.mediaUrl || '',
         mediaCaption: v2Msg.mediaCaption || '',
         orderId: v2Msg.orderId || '',
