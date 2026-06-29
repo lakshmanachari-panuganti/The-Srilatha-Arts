@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Mail,
   MessageCircle,
+  Inbox,
   Database,
   IndianRupee,
   FileText,
@@ -68,6 +69,7 @@ interface WorkflowStage {
     | 'invoice_generation'
     | 'email_notification'
     | 'whatsapp_notification'
+    | 'whatsapp_inbox'
     | 'database'
     | 'external_api'
     | 'app_configuration'
@@ -133,6 +135,7 @@ const STAGE_LABEL: Record<WorkflowStage['stage'], string> = {
   invoice_generation: 'Invoice generation',
   email_notification: 'Email notification',
   whatsapp_notification: 'WhatsApp notification',
+  whatsapp_inbox: 'WhatsApp inbox (v2)',
   database: 'Database',
   external_api: 'External APIs / queues',
   app_configuration: 'App Settings',
@@ -144,6 +147,7 @@ const STAGE_ICON: Record<WorkflowStage['stage'], React.ElementType> = {
   invoice_generation: FileText,
   email_notification: Mail,
   whatsapp_notification: MessageCircle,
+  whatsapp_inbox: Inbox,
   database: Database,
   external_api: Cable,
   app_configuration: SettingsIcon,
