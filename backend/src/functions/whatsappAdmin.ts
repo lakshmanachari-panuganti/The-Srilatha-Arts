@@ -38,6 +38,7 @@ import {
   isV2Configured,
   fetchV2Conversations,
   fetchV2Messages,
+  sendV2Message,
   V2Conversation,
   V2Message,
 } from '../services/whatsappV2Client'
@@ -358,6 +359,72 @@ function mergeMessages(localMessages: Row[], v2Messages: V2Message[] | null): Ro
   return result
 }
 
+// ─── POST /api/admin/whatsapp/conversations/{phone}/send ─────
+
+async function adminSendMessage(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const admin = requireAdmin(request)
+  if (!admin) return errorResponse('Unauthorized', 401, origin)
+
+  const phone = request.params.phone
+  if (!phone) return errorResponse('Missing phone', 400, origin)
+
+  if (!isV2Configured()) {
+    return errorResponse('Centralized WhatsApp service is not configured', 503, origin)
+  }
+
+  let body: { text?: unknown }
+  try {
+    body = (await request.json()) as { text?: unknown }
+  } catch {
+    return errorResponse('Invalid JSON body', 400, origin)
+  }
+
+  const text = typeof body.text === 'string' ? body.text.trim() : ''
+  if (!text) return errorResponse('Reply text is required', 400, origin)
+  if (text.length > 4096) return errorResponse('Reply text exceeds 4096 characters', 400, origin)
+
+  try {
+    const result = await sendV2Message(phone, text)
+    if (!result.ok) {
+      // 502 — upstream service rejected. Surface v2's error verbatim so the
+      // admin sees "outside 24h window" / "invalid recipient" / etc.
+      return errorResponse(result.error || 'WhatsApp send failed', 502, origin)
+    }
+
+    const now = new Date().toISOString()
+    return jsonResponse(
+      {
+        message: {
+          rowKey: `${now}_outbound_${result.messageId || 'pending'}`,
+          direction: 'outbound' as const,
+          waMessageId: result.messageId || '',
+          type: 'text',
+          text,
+          status: 'sent' as const,
+          createdAt: now,
+          updatedAt: now,
+        },
+      },
+      200,
+      {},
+      origin,
+    )
+  } catch (err) {
+    context.error('adminSendMessage failed', err)
+    return errorResponse(
+      err instanceof Error ? err.message : 'Failed to send message',
+      500,
+      origin,
+    )
+  }
+}
+
 // ─── Route registrations ─────────────────────────────────────
 
 app.http('adminListConversations', {
@@ -372,4 +439,11 @@ app.http('adminGetConversation', {
   route: 'api/admin/whatsapp/conversations/{phone}',
   authLevel: 'anonymous',
   handler: adminGetConversation,
+})
+
+app.http('adminSendMessage', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/admin/whatsapp/conversations/{phone}/send',
+  authLevel: 'anonymous',
+  handler: adminSendMessage,
 })

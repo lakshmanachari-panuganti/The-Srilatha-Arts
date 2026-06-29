@@ -13,7 +13,7 @@
  * docs/TODO-2026-06-04.md for the reply phase.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   Search,
@@ -24,6 +24,7 @@ import {
   ExternalLink,
   Loader2,
   Inbox,
+  Send,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { formatINR, formatDate } from '@/lib/format'
@@ -53,10 +54,12 @@ interface WhatsAppMessage {
   mediaCaption?: string
   orderId?: string
   invoiceId?: string
-  status?: 'sent' | 'delivered' | 'read' | 'failed'
+  status?: 'sent' | 'delivered' | 'read' | 'failed' | 'sending'
   statusError?: string
   createdAt: string
   updatedAt: string
+  /** Set on optimistic messages until the server confirms or rejects. */
+  optimisticId?: string
 }
 
 interface RelatedOrder {
@@ -110,6 +113,8 @@ function StatusIcon({ status }: { status?: WhatsAppMessage['status'] }) {
     return <Check className="w-3.5 h-3.5 text-ink-mute" aria-label="Sent" />
   if (status === 'failed')
     return <AlertCircle className="w-3.5 h-3.5 text-red-500" aria-label="Failed" />
+  if (status === 'sending')
+    return <Loader2 className="w-3.5 h-3.5 text-ink-mute animate-spin" aria-label="Sending" />
   return null
 }
 
@@ -122,6 +127,13 @@ export default function WhatsAppInbox() {
   const [detail, setDetail] = useState<ConversationDetail | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [detailErr, setDetailErr] = useState('')
+
+  // Composer state
+  const [replyText, setReplyText] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sendErr, setSendErr] = useState('')
+  const messagesEndRef = useRef<HTMLLIElement | null>(null)
+  const composerRef = useRef<HTMLTextAreaElement | null>(null)
 
   const refreshList = useCallback(async () => {
     setListErr('')
@@ -168,6 +180,95 @@ export default function WhatsAppInbox() {
   useEffect(() => {
     if (selected) refreshDetail(selected)
   }, [selected, refreshDetail])
+
+  // Reset composer when switching threads — don't carry a draft across phones.
+  useEffect(() => {
+    setReplyText('')
+    setSendErr('')
+  }, [selected])
+
+  // Auto-scroll to the newest message when a thread loads or a reply is sent.
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [detail?.messages.length])
+
+  const sendReply = useCallback(async () => {
+    const text = replyText.trim()
+    if (!text || sending || !selected || !detail) return
+
+    const optimisticId = `optimistic-${Date.now()}`
+    const now = new Date().toISOString()
+    const optimistic: WhatsAppMessage = {
+      rowKey: optimisticId,
+      optimisticId,
+      direction: 'outbound',
+      waMessageId: '',
+      type: 'text',
+      text,
+      status: 'sending',
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    setDetail((d) => (d ? { ...d, messages: [...d.messages, optimistic] } : d))
+    setReplyText('')
+    setSendErr('')
+    setSending(true)
+
+    try {
+      const r = await apiFetch<{ message: WhatsAppMessage }>(
+        `/admin/whatsapp/conversations/${encodeURIComponent(selected)}/send`,
+        { method: 'POST', body: { text } },
+      )
+      // Replace optimistic with confirmed.
+      setDetail((d) =>
+        d
+          ? {
+              ...d,
+              messages: d.messages.map((m) =>
+                m.optimisticId === optimisticId ? r.message : m,
+              ),
+            }
+          : d,
+      )
+      // Keep the inbox left rail in sync — bump preview + last-message-at.
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.phone === selected
+            ? {
+                ...c,
+                lastMessageAt: r.message.createdAt,
+                lastMessagePreview: text,
+                lastDirection: 'outbound',
+              }
+            : c,
+        ),
+      )
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Send failed'
+      setSendErr(message)
+      // Mark the optimistic bubble as failed so the operator knows nothing
+      // got through (and can retype/retry).
+      setDetail((d) =>
+        d
+          ? {
+              ...d,
+              messages: d.messages.map((m) =>
+                m.optimisticId === optimisticId
+                  ? { ...m, status: 'failed', statusError: message }
+                  : m,
+              ),
+            }
+          : d,
+      )
+      // Restore the draft so the operator doesn't have to retype.
+      setReplyText(text)
+    } finally {
+      setSending(false)
+      // Return focus so they can keep typing without grabbing the mouse.
+      composerRef.current?.focus()
+    }
+  }, [replyText, sending, selected, detail])
 
   const filtered = useMemo(() => conversations, [conversations])
   const totalUnread = useMemo(
@@ -351,8 +452,60 @@ export default function WhatsAppInbox() {
                         </li>
                       )
                     })}
+                    <li ref={messagesEndRef} aria-hidden="true" />
                   </ul>
                 )}
+              </div>
+
+              {/* ── Composer ─────────────────────────────────────── */}
+              <div className="border-t border-white/10 bg-plum/80 px-4 py-3">
+                {sendErr && (
+                  <div className="mb-2 text-xs text-red-300 bg-red-500/10 border border-red-500/30 rounded px-2.5 py-1.5">
+                    {sendErr}
+                  </div>
+                )}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    sendReply()
+                  }}
+                  className="flex items-end gap-2"
+                >
+                  <textarea
+                    ref={composerRef}
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    onKeyDown={(e) => {
+                      // Enter sends, Shift+Enter inserts a newline.
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        sendReply()
+                      }
+                    }}
+                    rows={2}
+                    maxLength={4096}
+                    placeholder="Type a reply…  (Enter to send, Shift+Enter for new line)"
+                    disabled={sending}
+                    className="flex-1 resize-none text-sm bg-plum border border-white/10 rounded-md px-3 py-2 text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent disabled:opacity-60"
+                  />
+                  <button
+                    type="submit"
+                    disabled={sending || !replyText.trim()}
+                    className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
+                  >
+                    {sending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    {sending ? 'Sending…' : 'Send'}
+                  </button>
+                </form>
+                <p className="text-[10px] text-ink-mute mt-1.5">
+                  Free-form replies require the customer to have messaged within
+                  the last 24 hours (WhatsApp policy). Outside that window, use a
+                  template from the order page.
+                </p>
               </div>
             </>
           ) : null}

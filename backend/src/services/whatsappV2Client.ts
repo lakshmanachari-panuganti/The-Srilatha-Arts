@@ -235,6 +235,94 @@ export async function fetchV2Messages(phone: string): Promise<V2Message[] | null
   return rows.map(normalizeMessage)
 }
 
+// ─── Send (admin reply) ──────────────────────────────────────
+
+export interface V2SendResult {
+  ok: boolean
+  messageId?: string
+  statusCode?: number
+  error?: string
+}
+
+/**
+ * POST a free-form text reply through v2's send endpoint.
+ *
+ * Meta only allows free-form messages within the 24-hour customer-service
+ * window (last inbound from this phone < 24h ago). Outside that window v2
+ * will reject with an error; we surface it verbatim.
+ *
+ * Unlike v2Fetch (read paths, swallows errors), this surfaces the failure
+ * mode — admin replies are user-initiated and silent failures would be
+ * confusing.
+ */
+export async function sendV2Message(phone: string, text: string): Promise<V2SendResult> {
+  if (!isV2Configured()) {
+    return { ok: false, error: 'WHATSAPP_V2_API_BASE_URL/AUDIENCE not configured' }
+  }
+  const trimmed = text.trim()
+  if (!trimmed) return { ok: false, error: 'Reply text is empty' }
+  if (trimmed.length > 4096) {
+    return { ok: false, error: 'Reply text exceeds 4096 characters' }
+  }
+
+  try {
+    const token = await getV2Token()
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+
+    const path = '/messages/send'
+    const separator = path.includes('?') ? '&' : '?'
+    const url = V2_FUNCTION_KEY
+      ? `${V2_BASE_URL}${path}${separator}code=${encodeURIComponent(V2_FUNCTION_KEY)}`
+      : `${V2_BASE_URL}${path}`
+
+    // Send the most explicit shape we can. v2 wraps Meta's Cloud API so it
+    // should recognize `to` + `type: text` + `text: { body }`. If v2 expects
+    // a flatter shape, extend the alias list in the same spirit as the read
+    // normalizers above.
+    const body = JSON.stringify({
+      to: phone,
+      type: 'text',
+      text: { body: trimmed },
+    })
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body,
+      signal: controller.signal,
+    })
+    clearTimeout(timer)
+
+    if (!resp.ok) {
+      let errBody = ''
+      try {
+        errBody = (await resp.text()).slice(0, 500)
+      } catch {
+        // ignore
+      }
+      return {
+        ok: false,
+        statusCode: resp.status,
+        error: `v2 ${resp.status} ${resp.statusText}${errBody ? ` · ${errBody}` : ''}`,
+      }
+    }
+
+    const data = (await resp.json()) as Raw
+    const messageId =
+      firstString(data, ['messageId', 'wamid', 'waMessageId', 'id']) ??
+      // Meta-style: { messages: [{ id }] }
+      firstString(((data?.messages as Raw[] | undefined)?.[0] ?? {}) as Raw, ['id', 'messageId'])
+    return { ok: true, statusCode: resp.status, messageId }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) }
+  }
+}
+
 // ─── Diagnostic probe ────────────────────────────────────────
 
 export interface V2ProbeResult {
