@@ -716,7 +716,10 @@ function rollupWorkflow(
   // Distinct from whatsapp_notification (which is outbound-credential-only).
   // This stage hits v2 live so a route/AAD/CORS regression surfaces here.
   let inboxSev: Severity = 'ok'
-  let inboxSummary = `v2 reachable (${v2Probe.conversationCount ?? 0} conversations, ${v2Probe.latencyMs}ms).`
+  const sampleSuffix = v2Probe.sampleKeys?.length
+    ? ` · row keys: ${v2Probe.sampleKeys.join(', ')}`
+    : ''
+  let inboxSummary = `v2 reachable (${v2Probe.conversationCount ?? 0} conversations, ${v2Probe.latencyMs}ms).${sampleSuffix}`
   if (!v2Probe.configured) {
     inboxSev = 'critical'
     inboxSummary = `WHATSAPP_V2_* settings missing — admin inbox cannot read inbound messages. (${v2Probe.error ?? ''})`

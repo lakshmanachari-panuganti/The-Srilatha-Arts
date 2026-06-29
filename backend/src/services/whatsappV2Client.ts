@@ -110,22 +110,129 @@ export interface V2Message {
   updatedAt?: string
 }
 
+// ─── Normalizers ──────────────────────────────────────────────
+//
+// v2 was built independently and uses slightly different field names than
+// the website backend. Rather than coupling v2 to our schema, we accept
+// the variants we've seen and normalize on the way in. Each lookup tries
+// the website's canonical name first, then v2's likely aliases, then the
+// Azure Tables system `Timestamp` field which is always populated.
+//
+// If a new field name appears in production we add it here, not in v2.
+
+type Raw = Record<string, unknown>
+
+function firstString(obj: Raw, keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = obj[k]
+    if (typeof v === 'string' && v.length > 0) return v
+    if (typeof v === 'number' && Number.isFinite(v)) return String(v)
+  }
+  return undefined
+}
+
+function normalizeTimestamp(obj: Raw, keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = obj[k]
+    if (typeof v === 'string' && v.length > 0) {
+      const t = new Date(v).getTime()
+      if (!Number.isNaN(t)) return new Date(t).toISOString()
+    }
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      // Treat values that look like seconds as seconds; otherwise ms.
+      const ms = v < 1e12 ? v * 1000 : v
+      return new Date(ms).toISOString()
+    }
+  }
+  return undefined
+}
+
+function normalizeConversation(raw: Raw): V2Conversation {
+  const phone =
+    firstString(raw, ['phone', 'partitionKey', 'rowKey', 'contactPhone', 'from']) ?? ''
+  const lastMessageAt =
+    normalizeTimestamp(raw, [
+      'lastMessageAt',
+      'lastMessageTime',
+      'lastMessageTimestamp',
+      'lastActivityAt',
+      'lastInteractionAt',
+      'updatedAt',
+      'Timestamp',
+    ]) ?? ''
+  const createdAt = normalizeTimestamp(raw, ['createdAt', 'firstMessageAt']) ?? ''
+  const updatedAt = normalizeTimestamp(raw, ['updatedAt', 'Timestamp']) ?? lastMessageAt
+  const unreadRaw = raw['unreadCount']
+  const lastDirRaw = raw['lastDirection']
+  return {
+    phone,
+    customerName: firstString(raw, ['customerName', 'contactName', 'name', 'pushName', 'profileName']) ?? '',
+    customerEmail: firstString(raw, ['customerEmail', 'email']) ?? '',
+    lastMessageAt,
+    lastMessagePreview:
+      firstString(raw, ['lastMessagePreview', 'lastMessage', 'preview', 'body', 'text']) ?? '',
+    lastDirection: lastDirRaw === 'inbound' || lastDirRaw === 'outbound' ? lastDirRaw : undefined,
+    unreadCount: typeof unreadRaw === 'number' ? unreadRaw : Number(unreadRaw ?? 0) || 0,
+    createdAt,
+    updatedAt,
+  }
+}
+
+function normalizeMessage(raw: Raw): V2Message {
+  const dirRaw = raw['direction']
+  const direction: V2Message['direction'] =
+    dirRaw === 'inbound' || dirRaw === 'outbound' ? dirRaw : 'inbound'
+  return {
+    rowKey: firstString(raw, ['rowKey', 'id']),
+    direction,
+    waMessageId: firstString(raw, ['waMessageId', 'wamid', 'messageId', 'id']),
+    contextMessageId: firstString(raw, ['contextMessageId', 'contextId', 'replyTo']),
+    type: firstString(raw, ['type', 'messageType']),
+    templateName: firstString(raw, ['templateName', 'template']),
+    text: firstString(raw, ['text', 'body', 'message']),
+    mediaUrl: firstString(raw, ['mediaUrl', 'attachmentUrl', 'documentUrl']),
+    mediaCaption: firstString(raw, ['mediaCaption', 'caption']),
+    orderId: firstString(raw, ['orderId']),
+    invoiceId: firstString(raw, ['invoiceId']),
+    status: firstString(raw, ['status']),
+    statusError: firstString(raw, ['statusError', 'errorMessage', 'error']),
+    contactName: firstString(raw, ['contactName', 'customerName', 'pushName', 'profileName']),
+    createdAt:
+      normalizeTimestamp(raw, ['createdAt', 'sentAt', 'receivedAt', 'Timestamp']) ?? '',
+    updatedAt: normalizeTimestamp(raw, ['updatedAt', 'Timestamp']) ?? '',
+  }
+}
+
+// ─── Public API ──────────────────────────────────────────────
+
 /**
  * Fetch conversation list from v2. Returns null on any failure.
  */
 export async function fetchV2Conversations(): Promise<V2Conversation[] | null> {
-  const data = await v2Fetch<{ conversations?: V2Conversation[] }>('/conversations')
-  return data?.conversations ?? null
+  const data = await v2Fetch<{ conversations?: Raw[]; items?: Raw[] } | Raw[]>(
+    '/conversations',
+  )
+  const rows = Array.isArray(data) ? data : (data?.conversations ?? data?.items)
+  if (!rows) return null
+  return rows.map(normalizeConversation).filter((c) => c.phone)
 }
 
 /**
  * Fetch all messages for a phone from v2. Returns null on any failure.
+ *
+ * v2's purpose-built detail route is /api/conversations/{phone} — same path
+ * shape as contactsGet. Tried /messages?phone=… first; that returned 200 with
+ * an empty `.messages` array (phone query not supported), which surfaced as
+ * "Conversation not found" in the admin UI for v2-only threads.
  */
 export async function fetchV2Messages(phone: string): Promise<V2Message[] | null> {
-  const data = await v2Fetch<{ messages?: V2Message[] }>(
-    `/messages?phone=${encodeURIComponent(phone)}`,
-  )
-  return data?.messages ?? null
+  const data = await v2Fetch<
+    | { messages?: Raw[]; items?: Raw[]; conversation?: Raw }
+    | Raw[]
+  >(`/conversations/${encodeURIComponent(phone)}`)
+  const rows = Array.isArray(data) ? data : (data?.messages ?? data?.items)
+  if (!rows) return null
+  return rows.map(normalizeMessage)
 }
 
 // ─── Diagnostic probe ────────────────────────────────────────
@@ -136,6 +243,10 @@ export interface V2ProbeResult {
   endpoint: string
   statusCode?: number
   conversationCount?: number
+  /** Keys of v2's first conversation row. Surfaces the raw shape so we can
+   *  spot field-name drift between v2 and the website backend without
+   *  redeploying. */
+  sampleKeys?: string[]
   latencyMs: number
   error?: string
 }
@@ -195,13 +306,18 @@ export async function probeV2Reachability(): Promise<V2ProbeResult> {
       }
     }
 
-    const data = (await resp.json()) as { conversations?: V2Conversation[] }
+    const data = (await resp.json()) as
+      | { conversations?: Raw[]; items?: Raw[] }
+      | Raw[]
+    const rows = Array.isArray(data) ? data : (data?.conversations ?? data?.items ?? [])
+    const sampleKeys = rows[0] && typeof rows[0] === 'object' ? Object.keys(rows[0]) : undefined
     return {
       ok: true,
       configured: true,
       endpoint: path,
       statusCode: resp.status,
-      conversationCount: data?.conversations?.length ?? 0,
+      conversationCount: rows.length,
+      sampleKeys,
       latencyMs: Date.now() - t0,
     }
   } catch (err) {
