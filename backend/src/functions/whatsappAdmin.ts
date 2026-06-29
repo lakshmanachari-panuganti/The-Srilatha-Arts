@@ -39,6 +39,7 @@ import {
   fetchV2Conversations,
   fetchV2Messages,
   sendV2Message,
+  markV2ConversationRead,
   V2Conversation,
   V2Message,
 } from '../services/whatsappV2Client'
@@ -190,6 +191,28 @@ async function adminGetConversation(
         unreadCount: 0,
         updatedAt: now,
       })
+    }
+
+    // Also mark v2 as read so the centralized inbox count drops to 0
+    // (and Meta receives a read-receipt, turning the customer's double
+    // grey ticks blue). Fire-and-forget — v2 failures must not block
+    // the operator from seeing the thread, and the next poll will retry
+    // implicitly the next time the thread is opened/refreshed.
+    if (isV2Configured()) {
+      void markV2ConversationRead(phone).then(
+        (ok) => {
+          if (!ok) {
+            context.warn(`adminGetConversation: v2 mark-read for ${phone} returned not-ok`)
+          }
+        },
+        (err) => {
+          context.warn(
+            `adminGetConversation: v2 mark-read for ${phone} threw: ${
+              err instanceof Error ? err.message : String(err)
+            }`,
+          )
+        },
+      )
     }
 
     // Build conversation summary from local or synthesize from v2 data.

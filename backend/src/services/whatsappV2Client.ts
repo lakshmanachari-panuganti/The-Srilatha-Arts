@@ -310,6 +310,45 @@ export async function fetchV2Messages(phone: string): Promise<V2Message[] | null
   return rows.map(normalizeMessage)
 }
 
+// ─── Mark conversation read ──────────────────────────────────
+
+/**
+ * POST to v2's mark-read endpoint so the centralized inbox no longer
+ * shows the thread as unread.
+ *
+ * Idempotent — calling on a thread that's already at 0 is a no-op. We
+ * return a boolean instead of throwing because the admin's "open thread"
+ * flow must succeed even when v2 is briefly unreachable; the caller logs
+ * and moves on.
+ */
+export async function markV2ConversationRead(phone: string): Promise<boolean> {
+  if (!isV2Configured() || !phone) return false
+  try {
+    const token = await getV2Token()
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 6000)
+
+    const path = `/conversations/${encodeURIComponent(phone)}/read`
+    const separator = path.includes('?') ? '&' : '?'
+    const url = V2_FUNCTION_KEY
+      ? `${V2_BASE_URL}${path}${separator}code=${encodeURIComponent(V2_FUNCTION_KEY)}`
+      : `${V2_BASE_URL}${path}`
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    })
+    clearTimeout(timer)
+    return resp.ok
+  } catch {
+    return false
+  }
+}
+
 // ─── Send (admin reply) ──────────────────────────────────────
 
 export interface V2SendResult {

@@ -190,10 +190,19 @@ export default function WhatsAppInbox() {
       const r = await apiFetch<{ conversations: ConversationSummary[] }>(
         `/admin/whatsapp/conversations${query ? `?q=${encodeURIComponent(query)}` : ''}`,
       )
-      setConversations(r.conversations || [])
+      const incoming = r.conversations || []
+      // The currently-open thread is being actively read — force its unread
+      // count to 0 even if v2's mark-read is still propagating. Otherwise the
+      // 30s list poll would briefly reintroduce the badge between thread-open
+      // and v2's centralized counter resetting.
+      setConversations(
+        selected
+          ? incoming.map((c) => (c.phone === selected ? { ...c, unreadCount: 0 } : c))
+          : incoming,
+      )
       // Auto-select the first conversation when nothing is selected yet
-      if (!selected && (r.conversations || []).length > 0) {
-        setSelected(r.conversations[0].phone)
+      if (!selected && incoming.length > 0) {
+        setSelected(incoming[0].phone)
       }
     } catch (e) {
       if (!opts.silent) {
