@@ -16,6 +16,7 @@ import {
 import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
+import { verifyCaptcha } from '../services/captcha'
 import { OAuth2Client } from 'google-auth-library'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { getClientIp } from '../utils/clientIp'
@@ -46,6 +47,13 @@ export async function userRegister(
       email?: string
       phone?: string
       password?: string
+      captchaToken?: string
+    }
+
+    const captcha = await verifyCaptcha(body.captchaToken, 'register', ip)
+    if (!captcha.ok) {
+      context.warn(`userRegister: captcha rejected (${captcha.reason})`)
+      return errorResponse('CAPTCHA verification failed. Please try again.', 400, origin)
     }
 
     if (!body.email || !body.password || !body.name) {
@@ -146,6 +154,13 @@ export async function userLogin(
     const body = (await request.json()) as {
       email?: string
       password?: string
+      captchaToken?: string
+    }
+
+    const captcha = await verifyCaptcha(body.captchaToken, 'login', ip)
+    if (!captcha.ok) {
+      context.warn(`userLogin: captcha rejected (${captcha.reason})`)
+      return errorResponse('CAPTCHA verification failed. Please try again.', 400, origin)
     }
 
     if (!body.email || !body.password) {
@@ -237,7 +252,17 @@ export async function googleAuth(
   }
 
   try {
-    const body = (await request.json()) as { credential?: string }
+    const body = (await request.json()) as {
+      credential?: string
+      captchaToken?: string
+    }
+
+    const captcha = await verifyCaptcha(body.captchaToken, 'google_login', ip)
+    if (!captcha.ok) {
+      context.warn(`googleAuth: captcha rejected (${captcha.reason})`)
+      return errorResponse('CAPTCHA verification failed. Please try again.', 400, origin)
+    }
+
     if (!body.credential) {
       return errorResponse('Google credential is required', 400, origin)
     }
