@@ -114,7 +114,7 @@ export interface V2Message {
  * Fetch conversation list from v2. Returns null on any failure.
  */
 export async function fetchV2Conversations(): Promise<V2Conversation[] | null> {
-  const data = await v2Fetch<{ conversations?: V2Conversation[] }>('/conversationsList')
+  const data = await v2Fetch<{ conversations?: V2Conversation[] }>('/conversations')
   return data?.conversations ?? null
 }
 
@@ -123,7 +123,7 @@ export async function fetchV2Conversations(): Promise<V2Conversation[] | null> {
  */
 export async function fetchV2Messages(phone: string): Promise<V2Message[] | null> {
   const data = await v2Fetch<{ messages?: V2Message[] }>(
-    `/messagesList?phone=${encodeURIComponent(phone)}`,
+    `/messages?phone=${encodeURIComponent(phone)}`,
   )
   return data?.messages ?? null
 }
@@ -153,7 +153,7 @@ export interface V2ProbeResult {
  */
 export async function probeV2Reachability(): Promise<V2ProbeResult> {
   const t0 = Date.now()
-  const path = '/conversationsList'
+  const path = '/conversations'
 
   if (!isV2Configured()) {
     return {
