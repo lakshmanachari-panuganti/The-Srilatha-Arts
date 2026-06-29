@@ -87,15 +87,21 @@ function formatPhoneDisplay(phone: string): string {
   return `+${phone}`
 }
 
-function formatRelative(iso: string): string {
+function formatRelative(iso: string | undefined): string {
+  // Empty / missing / unparseable → hide the badge entirely instead of
+  // rendering "Invalid Date". v2 occasionally returns rows without a
+  // recognized timestamp field; falling back to an empty render is far
+  // less noisy than a fake date.
+  if (!iso) return ''
   try {
     const t = new Date(iso).getTime()
+    if (Number.isNaN(t)) return ''
     const diff = Date.now() - t
     if (diff < 60_000) return 'just now'
     if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
     if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
     if (diff < 7 * 86_400_000) return `${Math.floor(diff / 86_400_000)}d ago`
-    return new Date(iso).toLocaleDateString('en-IN', {
+    return new Date(t).toLocaleDateString('en-IN', {
       day: 'numeric',
       month: 'short',
     })
@@ -133,10 +139,15 @@ export default function WhatsAppInbox() {
   const [sending, setSending] = useState(false)
   const [sendErr, setSendErr] = useState('')
   const messagesEndRef = useRef<HTMLLIElement | null>(null)
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null)
   const composerRef = useRef<HTMLTextAreaElement | null>(null)
+  // Track scroll proximity to the bottom so background polls don't yank the
+  // operator down while they're reading history. Set true when sending so the
+  // composer's own optimistic message always scrolls into view.
+  const stickToBottomRef = useRef(true)
 
-  const refreshList = useCallback(async () => {
-    setListErr('')
+  const refreshList = useCallback(async (opts: { silent?: boolean } = {}) => {
+    if (!opts.silent) setListErr('')
     try {
       const r = await apiFetch<{ conversations: ConversationSummary[] }>(
         `/admin/whatsapp/conversations${query ? `?q=${encodeURIComponent(query)}` : ''}`,
@@ -147,9 +158,11 @@ export default function WhatsAppInbox() {
         setSelected(r.conversations[0].phone)
       }
     } catch (e) {
-      setListErr(e instanceof Error ? e.message : 'Could not load conversations')
+      if (!opts.silent) {
+        setListErr(e instanceof Error ? e.message : 'Could not load conversations')
+      }
     } finally {
-      setLoadingList(false)
+      if (!opts.silent) setLoadingList(false)
     }
   }, [query, selected])
 
@@ -157,29 +170,104 @@ export default function WhatsAppInbox() {
     refreshList()
   }, [refreshList])
 
-  const refreshDetail = useCallback(async (phone: string) => {
-    setLoadingDetail(true)
-    setDetailErr('')
-    try {
-      const r = await apiFetch<ConversationDetail>(
-        `/admin/whatsapp/conversations/${encodeURIComponent(phone)}`,
-      )
-      setDetail(r)
-      // Optimistically clear unread badge in the list now that the
-      // backend has reset it.
-      setConversations((prev) =>
-        prev.map((c) => (c.phone === phone ? { ...c, unreadCount: 0 } : c)),
-      )
-    } catch (e) {
-      setDetailErr(e instanceof Error ? e.message : 'Could not load conversation')
-    } finally {
-      setLoadingDetail(false)
-    }
-  }, [])
+  /**
+   * Reconcile a fresh server payload with the current local thread so
+   * background polls don't blow away in-flight optimistic bubbles.
+   *
+   * Keep frontend-only messages (optimisticId set) that don't yet have a
+   * matching wamid in the server response. Once the server reflects the
+   * wamid, drop the local copy and let the server's version (with the
+   * authoritative delivery/read status) win.
+   *
+   * Cross-thread case: if the prev belongs to a different phone (operator
+   * switched threads), don't merge — just take the server payload as-is.
+   */
+  const reconcileMessages = useCallback(
+    (server: WhatsAppMessage[], current: WhatsAppMessage[]): WhatsAppMessage[] => {
+      const serverWamids = new Set(server.map((m) => m.waMessageId).filter(Boolean))
+      const frontendOnly = current.filter((m) => {
+        if (!m.optimisticId) return false
+        if (m.waMessageId && serverWamids.has(m.waMessageId)) return false
+        return true
+      })
+      // Server rows are already chronological from the backend merger;
+      // append optimistic ones at the end (newest).
+      return [...server, ...frontendOnly]
+    },
+    [],
+  )
+
+  const refreshDetail = useCallback(
+    async (phone: string, opts: { silent?: boolean } = {}) => {
+      if (!opts.silent) setLoadingDetail(true)
+      if (!opts.silent) setDetailErr('')
+      try {
+        const r = await apiFetch<ConversationDetail>(
+          `/admin/whatsapp/conversations/${encodeURIComponent(phone)}`,
+        )
+        setDetail((prev) => {
+          if (!prev || prev.conversation.phone !== r.conversation.phone) return r
+          return { ...r, messages: reconcileMessages(r.messages, prev.messages) }
+        })
+        // Optimistically clear unread badge in the list now that the
+        // backend has reset it.
+        setConversations((prev) =>
+          prev.map((c) => (c.phone === phone ? { ...c, unreadCount: 0 } : c)),
+        )
+      } catch (e) {
+        if (!opts.silent) {
+          setDetailErr(e instanceof Error ? e.message : 'Could not load conversation')
+        }
+      } finally {
+        if (!opts.silent) setLoadingDetail(false)
+      }
+    },
+    [reconcileMessages],
+  )
 
   useEffect(() => {
     if (selected) refreshDetail(selected)
   }, [selected, refreshDetail])
+
+  // ── Background polling ───────────────────────────────────────
+  // Open thread: 10s. Surfaces delivered/read receipts (Meta callbacks land
+  // at v2 within 1–5s of a real delivery) and new inbound messages from the
+  // customer. Paused while the tab is hidden so we don't burn cycles on
+  // backgrounded windows; refresh immediately when the operator refocuses.
+  useEffect(() => {
+    if (!selected) return
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      refreshDetail(selected, { silent: true })
+    }
+    const id = window.setInterval(tick, 10_000)
+    const onVis = () => {
+      if (!document.hidden) refreshDetail(selected, { silent: true })
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [selected, refreshDetail])
+
+  // Inbox left-rail: 30s. Picks up new conversations from customers who
+  // haven't been contacted before, and refreshes unread counts.
+  useEffect(() => {
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.hidden) return
+      refreshList({ silent: true })
+    }
+    const id = window.setInterval(tick, 30_000)
+    const onVis = () => {
+      if (!document.hidden) refreshList({ silent: true })
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [refreshList])
 
   // Reset composer when switching threads — don't carry a draft across phones.
   useEffect(() => {
@@ -187,10 +275,27 @@ export default function WhatsAppInbox() {
     setSendErr('')
   }, [selected])
 
-  // Auto-scroll to the newest message when a thread loads or a reply is sent.
+  // Auto-scroll to the newest message ONLY when the operator is already
+  // near the bottom — otherwise a background-poll-delivered inbound would
+  // yank them out of the history they're reading. The composer's own send
+  // sets stickToBottomRef = true so newly sent messages always scroll in.
   useEffect(() => {
+    if (!stickToBottomRef.current) return
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [detail?.messages.length])
+
+  // Track scroll proximity so we know whether to follow new bubbles.
+  const handleMessagesScroll = useCallback(() => {
+    const el = messagesScrollRef.current
+    if (!el) return
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+    stickToBottomRef.current = distanceFromBottom < 120
+  }, [])
+
+  // Re-stick whenever a new thread is opened (fresh thread = scroll to bottom).
+  useEffect(() => {
+    stickToBottomRef.current = true
+  }, [selected])
 
   const sendReply = useCallback(async () => {
     const text = replyText.trim()
@@ -210,6 +315,9 @@ export default function WhatsAppInbox() {
       updatedAt: now,
     }
 
+    // Force scroll on send so the operator sees their own message land,
+    // even if they were scrolled up.
+    stickToBottomRef.current = true
     setDetail((d) => (d ? { ...d, messages: [...d.messages, optimistic] } : d))
     setReplyText('')
     setSendErr('')
@@ -220,13 +328,17 @@ export default function WhatsAppInbox() {
         `/admin/whatsapp/conversations/${encodeURIComponent(selected)}/send`,
         { method: 'POST', body: { text } },
       )
-      // Replace optimistic with confirmed.
+      // Replace optimistic with confirmed but PRESERVE optimisticId so the
+      // poll reconciler keeps this bubble alive until v2's /conversations
+      // payload starts including it (a few seconds of eventual consistency).
+      // Once v2 returns the wamid, reconcile drops this copy and the
+      // server-side row (with its newer delivered/read status) takes over.
       setDetail((d) =>
         d
           ? {
               ...d,
               messages: d.messages.map((m) =>
-                m.optimisticId === optimisticId ? r.message : m,
+                m.optimisticId === optimisticId ? { ...r.message, optimisticId } : m,
               ),
             }
           : d,
@@ -405,7 +517,11 @@ export default function WhatsAppInbox() {
                 </div>
               </header>
 
-              <div className="flex-1 overflow-y-auto px-5 py-4 bg-plum/60">
+              <div
+                ref={messagesScrollRef}
+                onScroll={handleMessagesScroll}
+                className="flex-1 overflow-y-auto px-5 py-4 bg-plum/60"
+              >
                 {detail.messages.length === 0 ? (
                   <div className="text-sm text-ink-mute text-center mt-12">
                     No messages yet on this thread.

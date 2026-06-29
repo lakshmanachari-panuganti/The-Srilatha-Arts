@@ -131,25 +131,77 @@ function firstString(obj: Raw, keys: string[]): string | undefined {
   return undefined
 }
 
+// Plausibility floor: anything before 2020-01-01 is almost certainly noise
+// (an Azure Table row index, a phone digit run, etc.) rather than a real
+// message timestamp. This keeps the "scan any field" fallback below from
+// latching onto something stupid.
+const PLAUSIBLE_TS_MIN_MS = Date.UTC(2020, 0, 1)
+const PLAUSIBLE_TS_MAX_MS = Date.UTC(2100, 0, 1)
+
+function tryParseDate(v: string): number | null {
+  // JS Date is lenient about ISO but trips on the "2026-06-29 18:00:00" form
+  // (space separator, no Z). Normalise both before parsing.
+  const candidates = [v, v.replace(' ', 'T'), v.replace(' ', 'T') + 'Z']
+  for (const c of candidates) {
+    const t = new Date(c).getTime()
+    if (!Number.isNaN(t) && t >= PLAUSIBLE_TS_MIN_MS && t < PLAUSIBLE_TS_MAX_MS) return t
+  }
+  return null
+}
+
+function tryParseNumeric(v: number): number | null {
+  if (!Number.isFinite(v)) return null
+  // Seconds-since-epoch land in ~1e9..1e10; milliseconds in ~1e12..1e13. Anything
+  // smaller is too short to be a time, anything larger is way past 2100.
+  const ms = v < 1e12 ? v * 1000 : v
+  if (ms < PLAUSIBLE_TS_MIN_MS || ms >= PLAUSIBLE_TS_MAX_MS) return null
+  return ms
+}
+
 function normalizeTimestamp(obj: Raw, keys: string[]): string | undefined {
   for (const k of keys) {
     const v = obj[k]
-    if (typeof v === 'string' && v.length > 0) {
-      const t = new Date(v).getTime()
-      if (!Number.isNaN(t)) return new Date(t).toISOString()
+    if (typeof v === 'string' && v.length >= 8) {
+      const t = tryParseDate(v)
+      if (t !== null) return new Date(t).toISOString()
     }
-    if (typeof v === 'number' && Number.isFinite(v)) {
-      // Treat values that look like seconds as seconds; otherwise ms.
-      const ms = v < 1e12 ? v * 1000 : v
-      return new Date(ms).toISOString()
+    if (typeof v === 'number') {
+      const t = tryParseNumeric(v)
+      if (t !== null) return new Date(t).toISOString()
     }
   }
   return undefined
 }
 
+// Last-resort fallback when none of the named keys hit — scan every field
+// for a value that parses to a plausible timestamp. Useful when v2 introduces
+// a field name we didn't anticipate (e.g. "sentTime", "Timestamp@odata.type").
+// We score candidates so message-creation fields win over generic update
+// fields when both exist.
+function discoverTimestamp(obj: Raw, preferRegex: RegExp): string | undefined {
+  let preferredMs: number | undefined
+  let fallbackMs: number | undefined
+  for (const [k, v] of Object.entries(obj)) {
+    let ms: number | null = null
+    if (typeof v === 'string' && v.length >= 8) ms = tryParseDate(v)
+    else if (typeof v === 'number') ms = tryParseNumeric(v)
+    if (ms === null) continue
+    if (preferRegex.test(k)) {
+      if (preferredMs === undefined || ms < preferredMs) preferredMs = ms
+    } else if (fallbackMs === undefined) {
+      fallbackMs = ms
+    }
+  }
+  const winner = preferredMs ?? fallbackMs
+  return winner !== undefined ? new Date(winner).toISOString() : undefined
+}
+
 function normalizeConversation(raw: Raw): V2Conversation {
   const phone =
     firstString(raw, ['phone', 'partitionKey', 'rowKey', 'contactPhone', 'from']) ?? ''
+  // lastMessageAt powers the inbox sort + "X mins ago" badge — the most
+  // visible "Invalid Date" symptom. Try canonical names, then scan any field
+  // that looks like a recency timestamp.
   const lastMessageAt =
     normalizeTimestamp(raw, [
       'lastMessageAt',
@@ -159,9 +211,15 @@ function normalizeConversation(raw: Raw): V2Conversation {
       'lastInteractionAt',
       'updatedAt',
       'Timestamp',
-    ]) ?? ''
-  const createdAt = normalizeTimestamp(raw, ['createdAt', 'firstMessageAt']) ?? ''
-  const updatedAt = normalizeTimestamp(raw, ['updatedAt', 'Timestamp']) ?? lastMessageAt
+    ]) ??
+    discoverTimestamp(raw, /last|activity|interact|recent|updated|timestamp/i) ??
+    ''
+  const createdAt =
+    normalizeTimestamp(raw, ['createdAt', 'firstMessageAt']) ??
+    discoverTimestamp(raw, /created|first|start/i) ??
+    ''
+  const updatedAt =
+    normalizeTimestamp(raw, ['updatedAt', 'Timestamp']) ?? lastMessageAt
   const unreadRaw = raw['unreadCount']
   const lastDirRaw = raw['lastDirection']
   return {
@@ -197,9 +255,26 @@ function normalizeMessage(raw: Raw): V2Message {
     status: firstString(raw, ['status']),
     statusError: firstString(raw, ['statusError', 'errorMessage', 'error']),
     contactName: firstString(raw, ['contactName', 'customerName', 'pushName', 'profileName']),
+    // createdAt drives the bubble's "X mins ago" footer and the chronological
+    // sort. When v2 surfaces a field we didn't anticipate, fall back to the
+    // first plausible timestamp on the row (preferring creation-shaped names).
     createdAt:
-      normalizeTimestamp(raw, ['createdAt', 'sentAt', 'receivedAt', 'Timestamp']) ?? '',
-    updatedAt: normalizeTimestamp(raw, ['updatedAt', 'Timestamp']) ?? '',
+      normalizeTimestamp(raw, [
+        'createdAt',
+        'sentAt',
+        'receivedAt',
+        'messageTimestamp',
+        'sentTimestamp',
+        'timestamp',
+        'time',
+        'Timestamp',
+      ]) ??
+      discoverTimestamp(raw, /created|sent|received|message|timestamp|time|date/i) ??
+      '',
+    updatedAt:
+      normalizeTimestamp(raw, ['updatedAt', 'modifiedAt', 'Timestamp']) ??
+      discoverTimestamp(raw, /updated|modified|delivered|read/i) ??
+      '',
   }
 }
 
