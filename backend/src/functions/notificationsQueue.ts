@@ -208,6 +208,19 @@ async function sendTransitionEmail(input: SendTransitionEmailInput): Promise<voi
       template: templateKey,
       orderId,
     })
+    // Same rationale as sendOrderConfirmationEmail — surface on dashboard
+    // even though we're not throwing for retry. isFinal=true because no
+    // queue retry can succeed until the env var is set.
+    await recordAlert({
+      orderId,
+      channel: 'email',
+      operation: templateKey,
+      customerName: (order.customerName as string) || vars.customerName || '',
+      customerContact: recipient,
+      reason: 'SMTP not configured (SMTP_USER/SMTP_PASS missing)',
+      attempt: (context.triggerMetadata?.dequeueCount as number | undefined) ?? 1,
+      isFinal: true,
+    })
     return
   }
 
@@ -366,6 +379,25 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       emailStatus: 'failed',
       emailLastError: errMsg,
       updatedAt: new Date().toISOString(),
+    })
+    // Surface on the dashboard. isFinal=true because no queue retry can
+    // recover from a missing env var — operator action is required.
+    await recordAlert({
+      orderId,
+      channel: 'email',
+      operation: 'order_confirmed',
+      customerName: (order.customerName as string) || '',
+      customerContact: recipient,
+      reason: errMsg,
+      attempt: (dequeueCount ?? 1) as number,
+      isFinal: true,
+    })
+    notify(context, 'warn', {
+      channel: 'email',
+      template: 'order_confirmed',
+      outcome: 'config_missing',
+      orderId,
+      to: recipient,
     })
     return
   }
@@ -629,11 +661,22 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
     return
   }
   if (!isWhatsAppConfigured()) {
-    context.warn(`sendWhatsAppTemplate(${templateKey}): WhatsApp env vars not set`)
+    const errMsg = 'WhatsApp Cloud API not configured (WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID missing)'
+    context.warn(`sendWhatsAppTemplate(${templateKey}): ${errMsg}`)
     await mergeOrder(order.partitionKey as string, orderId, {
       whatsappStatus: 'failed',
-      whatsappLastError: 'WhatsApp Cloud API not configured',
+      whatsappLastError: errMsg,
       updatedAt: new Date().toISOString(),
+    })
+    await recordAlert({
+      orderId,
+      channel: 'whatsapp',
+      operation: templateKey,
+      customerName: (order.customerName as string) || customerName,
+      customerContact: customerPhone,
+      reason: errMsg,
+      attempt: (context.triggerMetadata?.dequeueCount as number | undefined) ?? 1,
+      isFinal: true,
     })
     return
   }

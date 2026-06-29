@@ -231,24 +231,70 @@ async function applyStatusUpdate(
     errorMsg,
   )
 
-  // Reflect failures back onto the order so the admin notification
-  // panel turns red without anyone having to dig into the message
-  // log. Delivered/read are quieter - we don't flip the order rollup
-  // for those, they're informational.
-  if (st.status === 'failed' && row.orderId) {
+  // Reflect the lifecycle back onto the order so the admin notification
+  // panel can show the real delivery state (Sent → Delivered → Read, or
+  // Failed) without anyone having to dig into the per-message log.
+  // Status only ratchets forward - a late 'sent' ack never overwrites a
+  // 'delivered' or 'read', so out-of-order Meta callbacks don't lie.
+  if (row.orderId) {
     try {
       const order = await getOrderById(row.orderId as string)
       if (order) {
-        await mergeOrder(order.partitionKey as string, order.rowKey as string, {
-          whatsappStatus: 'failed',
-          whatsappLastError: errorMsg || 'Delivery failed',
-          updatedAt: new Date().toISOString(),
-        })
+        const merged = buildWaStatusMerge(
+          (order.whatsappStatus as string) || '',
+          st.status,
+          st.timestamp,
+          errorMsg,
+        )
+        if (merged) {
+          await mergeOrder(order.partitionKey as string, order.rowKey as string, {
+            ...merged,
+            updatedAt: new Date().toISOString(),
+          })
+        }
       }
     } catch (err) {
-      context.warn('whatsappWebhook: could not reflect failed status on order', err)
+      context.warn('whatsappWebhook: could not reflect status on order', err)
     }
   }
+}
+
+// Decide which fields to merge onto the order rollup for a given
+// inbound status callback. Returns null when the new status would be a
+// downgrade (e.g. 'sent' arriving after we already saw 'read') so we
+// can skip the storage write entirely.
+//
+// Forward order: pending(0) < sent(1) < delivered(2) < read(3).
+// Failed is sticky once set - a later success ack does NOT clear it,
+// because by the time delivered/read could arrive the customer has
+// usually already retried via the resend button.
+function buildWaStatusMerge(
+  current: string,
+  next: 'sent' | 'delivered' | 'read' | 'failed',
+  metaTsSeconds: string | undefined,
+  errorMsg: string | undefined,
+): Record<string, unknown> | null {
+  const rank: Record<string, number> = { '': 0, pending: 0, sent: 1, delivered: 2, read: 3 }
+  const at = metaTsSeconds
+    ? new Date(Number(metaTsSeconds) * 1000).toISOString()
+    : new Date().toISOString()
+
+  if (next === 'failed') {
+    return {
+      whatsappStatus: 'failed',
+      whatsappLastError: errorMsg || 'Delivery failed',
+    }
+  }
+  // Once failed, leave failed in place - a partial success after a
+  // failure tends to confuse the admin panel more than help it.
+  if (current === 'failed') return null
+  if ((rank[next] ?? 0) <= (rank[current] ?? 0)) return null
+
+  const merge: Record<string, unknown> = { whatsappStatus: next, whatsappLastError: '' }
+  if (next === 'sent') merge.whatsappSentAt = at
+  if (next === 'delivered') merge.whatsappDeliveredAt = at
+  if (next === 'read') merge.whatsappReadAt = at
+  return merge
 }
 
 function extractText(msg: MetaInboundMessage): string {

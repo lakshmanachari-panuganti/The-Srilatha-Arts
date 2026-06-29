@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { formatINR } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
 import NotificationAlertsCard from '@/components/admin/NotificationAlertsCard'
+import SystemDiagnosticsCard from '@/components/admin/SystemDiagnosticsCard'
 
 interface DashboardStats {
   totalRevenue: number
@@ -64,6 +65,10 @@ export default function AdminDashboardPage() {
         <h1 className="font-serif text-3xl text-ink mb-1">Overview</h1>
         <p className="text-ink-soft text-sm">Welcome back to the Srilatha Art studio dashboard.</p>
       </header>
+
+      {/* System Diagnostics — always renders; surfaces App Settings gaps,
+          live SMTP probe, queue depth, and any silent-failure footprint. */}
+      <SystemDiagnosticsCard />
 
       {/* Notification Alerts — only renders when there are open alerts. */}
       <NotificationAlertsCard />

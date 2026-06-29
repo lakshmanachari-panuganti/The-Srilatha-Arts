@@ -75,6 +75,8 @@ function toApi(row: Row) {
     emailLastError: row.emailLastError || undefined,
     whatsappStatus: row.whatsappStatus || undefined,
     whatsappSentAt: row.whatsappSentAt || undefined,
+    whatsappDeliveredAt: row.whatsappDeliveredAt || undefined,
+    whatsappReadAt: row.whatsappReadAt || undefined,
     whatsappLastError: row.whatsappLastError || undefined,
     // Return-flow metadata so the admin order detail page can render the
     // customer's reason / comment / photos and any prior decline / refund.

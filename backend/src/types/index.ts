@@ -116,8 +116,15 @@ export interface OrderEntity {
   emailSentAt?: string                 // ISO timestamp of the last successful send
   emailAttempts?: number               // total attempts across queue retries
   emailLastError?: string              // error from the last failed attempt
-  whatsappStatus?: 'pending' | 'sent' | 'failed'
-  whatsappSentAt?: string
+  // WhatsApp uses the full Meta lifecycle. The Cloud API webhook walks
+  // each outbound message through sent → delivered → read; failed can
+  // arrive at any point. Status only ratchets forward on the order
+  // rollup (a later 'sent' never overwrites a 'read'), so the admin
+  // panel reflects the highest signal we've received.
+  whatsappStatus?: 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
+  whatsappSentAt?: string         // first 'sent' ack from Meta
+  whatsappDeliveredAt?: string    // 'delivered' ack (handset reachable)
+  whatsappReadAt?: string         // 'read' ack (blue ticks - only if user has read receipts on)
   whatsappLastError?: string
   createdAt: string
   updatedAt: string
