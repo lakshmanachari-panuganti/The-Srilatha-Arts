@@ -153,10 +153,9 @@ $config = @{
         CorsOrigins    = @(
             'http://localhost:3000',
             'https://delightful-mushroom-062e18100.7.azurestaticapps.net',
-            # 2026-07-03 security assessment L5: unexplained external origin.
-            # Not the DEV SWA host and not documented anywhere in the repo.
-            # Leaving in place until the owner confirms it can be removed
-            # (removal is a one-liner; add an entry back if a project breaks).
+            # DEV SWA custom domain (verified 2026-07-03 via
+            # `az staticwebapp show ... --query customDomains`).
+            # Same site as the delightful-mushroom default host above.
             'https://www.lucky1.online'
         )
         WebsiteUrl     = 'delightful-mushroom-062e18100.7.azurestaticapps.net'
