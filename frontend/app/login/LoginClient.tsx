@@ -7,7 +7,6 @@ import { useCart } from '@/stores/cart'
 import { useWishlist } from '@/stores/wishlist'
 import { useToast } from '@/stores/toast'
 import { consumePendingIntent, peekPendingIntent, type PendingIntent } from '@/lib/pendingIntent'
-import { isCaptchaEnabled, prewarmCaptcha } from '@/lib/captcha'
 
 /**
  * Replays a queued "add to cart / wishlist" intent after a successful
@@ -145,22 +144,6 @@ export default function LoginClient() {
   const [queuedIntent, setQueuedIntent] = useState<PendingIntent | null>(null)
   useEffect(() => {
     setQueuedIntent(peekPendingIntent())
-  }, [])
-
-  // Show the reCAPTCHA privacy notice + prewarm the script when the
-  // backend tells us CAPTCHA is on. In DEV this stays false and the
-  // user sees no badge.
-  const [captchaOn, setCaptchaOn] = useState(false)
-  useEffect(() => {
-    let cancelled = false
-    isCaptchaEnabled().then((on) => {
-      if (cancelled) return
-      setCaptchaOn(on)
-      if (on) prewarmCaptcha()
-    })
-    return () => {
-      cancelled = true
-    }
   }, [])
 
   useEffect(() => {
@@ -518,30 +501,6 @@ export default function LoginClient() {
               and{' '}
               <a href="/privacy-policy" className="underline hover:text-ivory-soft">Privacy policy</a>.
             </p>
-
-            {captchaOn && (
-              <p className="mt-3 text-[10px] text-center text-ivory-mute font-sans leading-relaxed">
-                Protected by reCAPTCHA — Google&apos;s{' '}
-                <a
-                  href="https://policies.google.com/privacy"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline hover:text-ivory-soft"
-                >
-                  Privacy
-                </a>
-                {' '}and{' '}
-                <a
-                  href="https://policies.google.com/terms"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline hover:text-ivory-soft"
-                >
-                  Terms
-                </a>{' '}
-                apply.
-              </p>
-            )}
           </div>
         </div>
       </div>
