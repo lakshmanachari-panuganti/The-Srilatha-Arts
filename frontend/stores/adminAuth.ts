@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
-import { getCaptchaToken } from '@/lib/captcha'
 
 interface AdminUser {
   username: string
@@ -31,12 +30,11 @@ export const useAdminAuth = create<AdminAuthState>()(
       login: async (username: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
-          const captchaToken = await getCaptchaToken('admin_login')
           const res = await apiFetch<{ user: AdminUser; token: string }>(
             '/auth/admin/login',
             {
               method: 'POST',
-              body: { username, password, captchaToken },
+              body: { username, password },
             },
           )
           set({ user: res.user, token: res.token, isLoading: false, error: null })

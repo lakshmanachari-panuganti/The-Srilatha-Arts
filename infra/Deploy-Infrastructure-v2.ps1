@@ -763,20 +763,6 @@ foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
     }
 }
 
-# ── 5.5  reCAPTCHA v3 secret placeholder (PRD only) ──────────────
-# Created in PRD so the Function App's @Microsoft.KeyVault(...) reference
-# resolves to a value (even if it's the placeholder "replace-me") instead
-# of failing. The operator pastes the real secret from the reCAPTCHA admin
-# console after first deploy. DEV does not need this — CAPTCHA_ENABLED=false.
-if ($Environment -eq 'PRD') {
-    if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RecaptchaSecret' -ErrorAction SilentlyContinue) {
-        Write-Skip "RecaptchaSecret already present - left as-is"
-    } else {
-        Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'RecaptchaSecret' `
-            -SecretValue (ConvertTo-SecureString 'replace-me' -AsPlainText -Force) | Out-Null
-        Write-Success "Stored placeholder : RecaptchaSecret  (paste the v3 secret from https://www.google.com/recaptcha/admin)"
-    }
-}
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -815,16 +801,6 @@ if ($existingJson) {
     }
 }
 
-# CAPTCHA is enforced in PRD, disabled in DEV. The secret stays in the
-# environment Key Vault as `RecaptchaSecret`; the site key is public and
-# is set as a plain app setting (empty placeholder if not yet pasted).
-$captchaEnabledForEnv = if ($Environment -eq 'PRD') { 'true' } else { 'false' }
-$captchaSecretRef     = if ($Environment -eq 'PRD') {
-    "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RecaptchaSecret)"
-} else {
-    ''
-}
-
 # ALWAYS-OVERWRITE
 $alwaysOverwrite = @{
     'AzureWebJobsStorage__accountName'      = $envCfg.StorageAccount
@@ -845,8 +821,6 @@ $alwaysOverwrite = @{
     'REVIEW_QUEUE_NAME'                     = 'review-requests'
     'INVOICE_CONTAINER'                     = 'invoices'
     'USER_UPLOAD_CONTAINER'                 = 'user-uploads'
-    'CAPTCHA_ENABLED'                       = $captchaEnabledForEnv
-    'RECAPTCHA_SECRET'                      = $captchaSecretRef
     # Direct Function-App URL used to build the WhatsApp / email
     # "view invoice" link. Bypasses the SWA in front of
     # PUBLIC_SITE_URL, which on the Free tier cannot proxy /api/* to
@@ -884,11 +858,7 @@ $emptyIfAbsent = @(
     'WHATSAPP_WABA_ID',
     'WHATSAPP_WEBHOOK_VERIFY_TOKEN',
     'WHATSAPP_APP_SECRET',
-    'SMTP_PASS',
-    # reCAPTCHA v3 site key is public and is also returned by /api/config
-    # to the SPA. Created as an empty placeholder so the operator can
-    # paste the value from the reCAPTCHA admin console.
-    'RECAPTCHA_SITE_KEY'
+    'SMTP_PASS'
 )
 foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
@@ -902,10 +872,16 @@ foreach ($k in $emptyIfAbsent) {
 # but Azure's PATCH semantics leave unmentioned keys in place — that
 # is why deletion needs its own call.
 $removeIfPresent = @(
-    'COOKIE_DOMAIN'  # security audit 2026-06-07: cookies are host-only
-                     # (azurewebsites.net vs srilatha.art is not a
-                     # subdomain relationship; any Domain= we set is
-                     # rejected by the browser per RFC 6265 §5.3).
+    'COOKIE_DOMAIN',  # security audit 2026-06-07: cookies are host-only
+                      # (azurewebsites.net vs srilatha.art is not a
+                      # subdomain relationship; any Domain= we set is
+                      # rejected by the browser per RFC 6265 §5.3).
+    # CAPTCHA removed from the app entirely — clear the settings from any
+    # environment that had them wired for the reCAPTCHA v3 experiment.
+    'CAPTCHA_ENABLED',
+    'RECAPTCHA_SECRET',
+    'RECAPTCHA_SITE_KEY',
+    'RECAPTCHA_SCORE_THRESHOLD'
 )
 $settingsToDelete = @()
 foreach ($k in $removeIfPresent) {
