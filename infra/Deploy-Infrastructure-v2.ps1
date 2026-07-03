@@ -1022,7 +1022,12 @@ $removeIfPresent = @(
     # keeping the plain IK encourages deprecated ingest path.
     'APPINSIGHTS_INSTRUMENTATIONKEY',
     # Sec Phase 2 / M6: not applicable on Linux Consumption FA.
-    'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+    'WEBSITES_ENABLE_APP_SERVICE_STORAGE',
+    # 2026-07-03 audit: stray FA app setting literally named 'slotSetting'
+    # created by a mis-quoted `az functionapp config appsettings set` that
+    # folded the 'slotSetting' JSON property name into a setting name.
+    # Not read by any code path.
+    'slotSetting'
 )
 $settingsToDelete = @()
 foreach ($k in $removeIfPresent) {
