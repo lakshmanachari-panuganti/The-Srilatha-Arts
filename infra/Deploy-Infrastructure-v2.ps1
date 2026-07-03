@@ -518,6 +518,22 @@ if ($showExit -eq 0 -and $functionAppJson) {
     Write-Success "Function App created         : $($envCfg.FunctionApp)"
 }
 
+# ── 2.4a  Function App HTTPS-only enforcement (Sec Phase 1 / C1) ──
+# Enforce HTTPS on the Function App: reject any HTTP request at the
+# platform edge. Idempotent — checked before write. Applies to both
+# DEV and PRD. Rollback: --set httpsOnly=false.
+if ($functionApp.httpsOnly -eq $true) {
+    Write-Skip "Function App httpsOnly       : already true"
+} else {
+    az functionapp update `
+        --name           $envCfg.FunctionApp `
+        --resource-group $envCfg.ResourceGroup `
+        --set            httpsOnly=true `
+        --output         none
+    if ($LASTEXITCODE -ne 0) { throw "Failed to enable httpsOnly on Function App." }
+    Write-Success "Function App httpsOnly       : enabled"
+}
+
 # ── 2.5  Key Vault ───────────────────────────────────────────────
 $keyVault = Get-AzKeyVault `
     -ResourceGroupName $envCfg.ResourceGroup `
@@ -655,6 +671,20 @@ if ($storageAccount.AllowBlobPublicAccess -ne $true) {
     Write-Success "Public blob access enabled"
 } else {
     Write-Skip "Public blob access already enabled"
+}
+
+# ── 4.3a  Storage minimum TLS version (Sec Phase 1 / C2) ─────────
+# Enforce TLS 1.2 as the minimum for all storage-account data plane
+# traffic (blob, queue, table, file). Idempotent. Rollback:
+# Set-AzStorageAccount -MinimumTlsVersion TLS1_0.
+if ($storageAccount.MinimumTlsVersion -eq 'TLS1_2') {
+    Write-Skip "Storage minimumTlsVersion    : already TLS1_2"
+} else {
+    Set-AzStorageAccount `
+        -ResourceGroupName   $envCfg.ResourceGroup `
+        -Name                $envCfg.StorageAccount `
+        -MinimumTlsVersion   'TLS1_2' | Out-Null
+    Write-Success "Storage minimumTlsVersion    : set to TLS1_2 (was $($storageAccount.MinimumTlsVersion))"
 }
 
 # ── 4.4  Blob containers ─────────────────────────────────────────
