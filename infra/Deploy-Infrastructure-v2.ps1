@@ -560,6 +560,23 @@ if ($keyVault) {
         throw "Existing Key Vault is not in RBAC authorization mode. Fix it then re-run."
     }
     Write-Success "Key Vault RBAC mode          : confirmed"
+
+    # ── 2.5a  KV purge protection (Sec Phase 2 / H3) ──────────────
+    # Purge protection is IRREVERSIBLE once enabled. Applied to both
+    # DEV and PRD so a deleted secret cannot be permanently wiped
+    # inside the 90-day soft-delete window (would force JWT / CSRF /
+    # invoice signing-key regeneration and log every user out).
+    if ($keyVault.EnablePurgeProtection -eq $true) {
+        Write-Skip "Key Vault purgeProtection   : already enabled"
+    } else {
+        az keyvault update `
+            --name              $envCfg.KeyVault `
+            --resource-group    $envCfg.ResourceGroup `
+            --enable-purge-protection true `
+            --output            none
+        if ($LASTEXITCODE -ne 0) { throw "Failed to enable Key Vault purge protection." }
+        Write-Success "Key Vault purgeProtection   : enabled (irreversible)"
+    }
 } else {
     Write-Info "Creating Key Vault           : $($envCfg.KeyVault)"
     $kvParams = @{
@@ -568,11 +585,9 @@ if ($keyVault) {
         Location                = $envCfg.Location
         Sku                     = 'Standard'
         EnableRbacAuthorization = $true
+        EnablePurgeProtection   = $true  # both envs (Sec Phase 2 / H3)
     }
-    if ($Environment -eq 'PRD') {
-        $kvParams['EnablePurgeProtection'] = $true
-        Write-Info "PRD: purge protection enabled on Key Vault"
-    }
+    Write-Info "Purge protection enabled on Key Vault (irreversible)"
     $keyVault = New-AzKeyVault @kvParams
     Write-Success "Key Vault created            : $($envCfg.KeyVault)"
 }
@@ -802,6 +817,38 @@ foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
     }
 }
 
+# ── 5.5  Application Insights connection string (Sec Phase 2 / H1) ─
+# Contains the Ingestion Key — treat as secret. Sourced from the App
+# Insights resource we already fetched, so no operator paste needed.
+# Refreshed every deploy in case the AI resource is rotated.
+Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'ApplicationInsightsConnectionString' `
+    -SecretValue (ConvertTo-SecureString $appInsights.ConnectionString -AsPlainText -Force) | Out-Null
+Write-Success "Stored secret : ApplicationInsightsConnectionString (refreshed from AI resource)"
+
+# ── 5.6  Operator-paste placeholders (Sec Phase 2 / H1) ──────────
+# Third-party secrets migrated from inline app settings. Populated by
+# infra\Migrate-SecretsToKeyVault.ps1 on the first Phase 2 rollout.
+# Placeholders are seeded here so the @Microsoft.KeyVault(...) refs
+# in the app settings block always resolve — even on a fresh env
+# where the operator hasn't pasted real values yet.
+$operatorSecretPlaceholders = @(
+    'WhatsappAccessToken',
+    'WhatsappAppSecret',
+    'WhatsappWebhookVerifyToken',
+    'WhatsappV2FunctionKey',
+    'SmtpPass',
+    'AzureOpenAIApiKey'
+)
+foreach ($name in $operatorSecretPlaceholders) {
+    if (Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name -ErrorAction SilentlyContinue) {
+        Write-Skip "$name already present - left as-is"
+    } else {
+        Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name $name `
+            -SecretValue (ConvertTo-SecureString 'replace-me' -AsPlainText -Force) | Out-Null
+        Write-Success "Stored placeholder : $name  (run Migrate-SecretsToKeyVault.ps1 or paste real value)"
+    }
+}
+
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -841,14 +888,30 @@ if ($existingJson) {
 }
 
 # ALWAYS-OVERWRITE
+# All secret values live in Key Vault (Sec Phase 2 / H1). Run
+# infra\Migrate-SecretsToKeyVault.ps1 first if seeding a new env — it
+# copies the current inline values into KV under the canonical names
+# referenced below before this script flips the app settings.
 $alwaysOverwrite = @{
     'AzureWebJobsStorage__accountName'      = $envCfg.StorageAccount
     'AzureWebJobsStorage__blobServiceUri'   = "https://$($envCfg.StorageAccount).blob.core.windows.net"
     'AzureWebJobsStorage__queueServiceUri'  = "https://$($envCfg.StorageAccount).queue.core.windows.net"
     'AzureWebJobsStorage__tableServiceUri'  = "https://$($envCfg.StorageAccount).table.core.windows.net"
+    # ── Cryptographic signing keys ────────────────────────────────
     'JWT_SECRET'                            = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=JwtSecret)"
     'CSRF_SIGNING_KEY'                      = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=CsrfSigningKey)"
     'INVOICE_SIGNING_KEY'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=InvoiceSigningKey)"
+    # ── Third-party API secrets (Sec Phase 2 / H1) ────────────────
+    'WHATSAPP_ACCESS_TOKEN'                 = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappAccessToken)"
+    'WHATSAPP_APP_SECRET'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappAppSecret)"
+    'WHATSAPP_WEBHOOK_VERIFY_TOKEN'         = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappWebhookVerifyToken)"
+    'WHATSAPP_V2_FUNCTION_KEY'              = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappV2FunctionKey)"
+    'RAZORPAY_KEY_ID'                       = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayKeyId)"
+    'RAZORPAY_KEY_SECRET'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayKeySecret)"
+    'RAZORPAY_WEBHOOK_SECRET'               = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayWebhookSecret)"
+    'SMTP_PASS'                             = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=SmtpPass)"
+    'AZURE_OPENAI_API_KEY'                  = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=AzureOpenAIApiKey)"
+    # ── Non-secret infra values ───────────────────────────────────
     'AZURE_STORAGE_ACCOUNT_NAME'            = $envCfg.StorageAccount
     'BLOB_BASE_URL'                         = "https://$($envCfg.StorageAccount).blob.core.windows.net"
     'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
@@ -866,8 +929,11 @@ $alwaysOverwrite = @{
     # the linked backend and silently returns the SPA's index.html —
     # which WhatsApp Cloud then caches as the "document".
     'INVOICE_PUBLIC_URL_BASE'               = "https://$($envCfg.FunctionApp).azurewebsites.net/api/invoices"
-    'APPLICATIONINSIGHTS_CONNECTION_STRING' = $appInsights.ConnectionString
-    'APPINSIGHTS_INSTRUMENTATIONKEY'        = $appInsights.InstrumentationKey
+    # App Insights connection string is a secret (contains IngestionKey).
+    # Written to KV in Phase 5.6 below so the reference always resolves,
+    # even when Deploy-Infrastructure-v2.ps1 is run on a fresh env
+    # before Migrate-SecretsToKeyVault.ps1.
+    'APPLICATIONINSIGHTS_CONNECTION_STRING' = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=ApplicationInsightsConnectionString)"
 }
 foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$k] }
 
@@ -889,15 +955,11 @@ foreach ($k in $defaultIfAbsent.Keys) {
     }
 }
 
-# EMPTY-IF-ABSENT
+# EMPTY-IF-ABSENT (secrets migrated to KV in Phase 2 removed from this list)
 $emptyIfAbsent = @(
     'INVOICE_LOGO_URL',
-    'WHATSAPP_ACCESS_TOKEN',
     'WHATSAPP_PHONE_NUMBER_ID',
-    'WHATSAPP_WABA_ID',
-    'WHATSAPP_WEBHOOK_VERIFY_TOKEN',
-    'WHATSAPP_APP_SECRET',
-    'SMTP_PASS'
+    'WHATSAPP_WABA_ID'
 )
 foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
@@ -920,7 +982,19 @@ $removeIfPresent = @(
     'CAPTCHA_ENABLED',
     'RECAPTCHA_SECRET',
     'RECAPTCHA_SITE_KEY',
-    'RECAPTCHA_SCORE_THRESHOLD'
+    'RECAPTCHA_SCORE_THRESHOLD',
+    # Sec Phase 2 / H4 prep: shared-key storage conn string acts as a
+    # backdoor around the MI-based AzureWebJobsStorage__* variants that
+    # the app already uses. Removing it is a prerequisite for setting
+    # allowSharedKeyAccess=false on the storage account.
+    'AzureWebJobsStorage',
+    # Sec Phase 2 / M6: legacy Functions dashboard, retired years ago.
+    'AzureWebJobsDashboard',
+    # Sec Phase 2 / M6: superseded by APPLICATIONINSIGHTS_CONNECTION_STRING;
+    # keeping the plain IK encourages deprecated ingest path.
+    'APPINSIGHTS_INSTRUMENTATIONKEY',
+    # Sec Phase 2 / M6: not applicable on Linux Consumption FA.
+    'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
 )
 $settingsToDelete = @()
 foreach ($k in $removeIfPresent) {
