@@ -49,12 +49,7 @@
     "AZURE_OPENAI_ENDPOINT": "https://<resource-name>.openai.azure.com",
     "AZURE_OPENAI_API_KEY": "your-azure-openai-api-key",
     "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-4o",
-    "AZURE_OPENAI_API_VERSION": "2024-08-01-preview",
-    "_comment_captcha": "Google reCAPTCHA v3. Enforced in PRD only. Leave CAPTCHA_ENABLED=false locally so dev logins don't need a token. To test enforcement, set CAPTCHA_ENABLED=true and paste the v3 secret + site key from https://www.google.com/recaptcha/admin (the site key is also exposed via /api/config so the SPA can render the badge).",
-    "CAPTCHA_ENABLED": "false",
-    "RECAPTCHA_SECRET": "",
-    "RECAPTCHA_SITE_KEY": "",
-    "RECAPTCHA_SCORE_THRESHOLD": "0.5"
+    "AZURE_OPENAI_API_VERSION": "2024-08-01-preview"
   },
   "Host": {
     "CORS": "http://localhost:3000",

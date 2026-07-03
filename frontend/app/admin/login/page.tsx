@@ -1,31 +1,17 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { useAdminAuth } from '@/stores/adminAuth'
-import { isCaptchaEnabled, prewarmCaptcha } from '@/lib/captcha'
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [captchaOn, setCaptchaOn] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const { login, isLoading, error, clearError } = useAdminAuth()
-
-  useEffect(() => {
-    let cancelled = false
-    isCaptchaEnabled().then((on) => {
-      if (cancelled) return
-      setCaptchaOn(on)
-      if (on) prewarmCaptcha()
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -133,30 +119,6 @@ export default function AdminLoginPage() {
         <p className="text-center text-xs text-ink-mute mt-8">
           Protected by Srilatha Art Platform Security
         </p>
-
-        {captchaOn && (
-          <p className="text-center text-[10px] text-ink-mute mt-2 leading-relaxed">
-            Protected by reCAPTCHA — Google&apos;s{' '}
-            <a
-              href="https://policies.google.com/privacy"
-              target="_blank"
-              rel="noreferrer"
-              className="underline hover:text-ink-soft"
-            >
-              Privacy
-            </a>
-            {' '}and{' '}
-            <a
-              href="https://policies.google.com/terms"
-              target="_blank"
-              rel="noreferrer"
-              className="underline hover:text-ink-soft"
-            >
-              Terms
-            </a>{' '}
-            apply.
-          </p>
-        )}
       </main>
     </div>
   )
