@@ -482,6 +482,30 @@ if (-not $appInsights.ConnectionString) {
     throw "Application Insights '$($envCfg.AppInsights)' has no ConnectionString. The resource may still be provisioning - wait 30s and re-run."
 }
 
+# ── 2.3a  Log Analytics workspace (Sec Phase 3 / M5) ─────────────
+# Dedicated workspace in the env's own RG for Function App diagnostic
+# logs. App Insights' own managed workspace lives in a locked "ai_..._managed"
+# RG that carries a Microsoft-owned deny assignment, so we cannot write
+# diagnostic settings there. A small workspace here is cheap and gives
+# us KQL over FunctionAppLogs + AllMetrics.
+$logAnalyticsName = "log-$AppSlug-$($Environment.ToLower())"
+$logAnalytics = Get-AzOperationalInsightsWorkspace `
+    -ResourceGroupName $envCfg.ResourceGroup `
+    -Name              $logAnalyticsName `
+    -ErrorAction       SilentlyContinue
+if ($logAnalytics) {
+    Write-Skip "Log Analytics workspace exists : $logAnalyticsName"
+} else {
+    Write-Info "Creating Log Analytics workspace: $logAnalyticsName"
+    $logAnalytics = New-AzOperationalInsightsWorkspace `
+        -ResourceGroupName $envCfg.ResourceGroup `
+        -Name              $logAnalyticsName `
+        -Location          $envCfg.Location `
+        -Sku               'PerGB2018' `
+        -RetentionInDays   30
+    Write-Success "Log Analytics workspace created: $logAnalyticsName"
+}
+
 # ── 2.4  Function App (Linux Consumption, Node 22) ───────────────
 # All Function App operations use az CLI.
 # Az.Functions v4.3.2 has a GetRuntimeName.ContainsKey() null-key bug
@@ -1074,6 +1098,58 @@ if ($faCorsNeedsUpdate) {
     Write-Success "Function App CORS updated for: $($envCfg.CorsOrigins -join ', ')"
 } else {
     Write-Skip "Function App CORS already correct - no update needed"
+}
+
+# ── 6.3  Diagnostic settings on Function App (Sec Phase 3 / M5) ──
+# Stream FunctionAppLogs + AllMetrics into the dedicated Log Analytics
+# workspace created in Phase 2.3a. Gives us KQL over auth events,
+# throttling, and platform errors that survives outside the AI
+# retention window.
+$workspaceId = $logAnalytics.ResourceId
+$desiredDiagName = 'send-to-workspace'
+$faId = $faResource.ResourceId
+$existingDiag = az monitor diagnostic-settings show `
+    --name           $desiredDiagName `
+    --resource       $faId `
+    --output         json 2>$null
+if ($LASTEXITCODE -eq 0 -and $existingDiag) {
+    Write-Skip "Diagnostic settings           : '$desiredDiagName' already present"
+} else {
+    az monitor diagnostic-settings create `
+        --name        $desiredDiagName `
+        --resource    $faId `
+        --workspace   $workspaceId `
+        --logs        '[{\"categoryGroup\":\"allLogs\",\"enabled\":true}]' `
+        --metrics     '[{\"category\":\"AllMetrics\",\"enabled\":true}]' `
+        --output      none
+    if ($LASTEXITCODE -ne 0) { throw "Failed to create diagnostic settings on Function App." }
+    Write-Success "Diagnostic settings           : '$desiredDiagName' created → $($logAnalytics.Name)"
+}
+
+# ── 6.4  Application Insights disableLocalAuth (Sec Phase 3 / M4) ─
+# Force AAD-authenticated telemetry ingest. Function App MI already has
+# Monitoring Metrics Publisher on the AI resource (Phase 7), so the AAD
+# path is set up. Disabling local auth blocks the deprecated
+# InstrumentationKey-based ingest path.
+$aiLocalAuthDisabled = $appInsights.DisableLocalAuth
+if ($aiLocalAuthDisabled -eq $true) {
+    Write-Skip "App Insights disableLocalAuth : already true"
+} else {
+    az monitor app-insights component update `
+        --app             $envCfg.AppInsights `
+        --resource-group  $envCfg.ResourceGroup `
+        --disable-local-auth true `
+        --output          none 2>$null
+    # Fallback via ARM REST if the CLI subcommand doesn't accept the flag
+    if ($LASTEXITCODE -ne 0) {
+        $aiPath = "/subscriptions/$($context.Subscription.Id)/resourceGroups/$($envCfg.ResourceGroup)/providers/microsoft.insights/components/$($envCfg.AppInsights)?api-version=2020-02-02"
+        $patchBody = @{ properties = @{ DisableLocalAuth = $true } } | ConvertTo-Json -Depth 5 -Compress
+        $r = Invoke-AzRestMethod -Method PATCH -Path $aiPath -Payload $patchBody
+        if ($r.StatusCode -notin @(200, 201)) {
+            throw "Failed to set DisableLocalAuth on App Insights (HTTP $($r.StatusCode)): $($r.Content)"
+        }
+    }
+    Write-Success "App Insights disableLocalAuth : set to true"
 }
 
 
