@@ -1136,30 +1136,25 @@ if ($LASTEXITCODE -eq 0 -and $existingDiag) {
 }
 
 # ── 6.4  Application Insights disableLocalAuth (Sec Phase 3 / M4) ─
-# Force AAD-authenticated telemetry ingest. Function App MI already has
-# Monitoring Metrics Publisher on the AI resource (Phase 7), so the AAD
-# path is set up. Disabling local auth blocks the deprecated
-# InstrumentationKey-based ingest path.
-$aiLocalAuthDisabled = $appInsights.DisableLocalAuth
-if ($aiLocalAuthDisabled -eq $true) {
-    Write-Skip "App Insights disableLocalAuth : already true"
-} else {
-    az monitor app-insights component update `
-        --app             $envCfg.AppInsights `
-        --resource-group  $envCfg.ResourceGroup `
-        --disable-local-auth true `
-        --output          none 2>$null
-    # Fallback via ARM REST if the CLI subcommand doesn't accept the flag
-    if ($LASTEXITCODE -ne 0) {
-        $aiPath = "/subscriptions/$($context.Subscription.Id)/resourceGroups/$($envCfg.ResourceGroup)/providers/microsoft.insights/components/$($envCfg.AppInsights)?api-version=2020-02-02"
-        $patchBody = @{ properties = @{ DisableLocalAuth = $true } } | ConvertTo-Json -Depth 5 -Compress
-        $r = Invoke-AzRestMethod -Method PATCH -Path $aiPath -Payload $patchBody
-        if ($r.StatusCode -notin @(200, 201)) {
-            throw "Failed to set DisableLocalAuth on App Insights (HTTP $($r.StatusCode)): $($r.Content)"
-        }
-    }
-    Write-Success "App Insights disableLocalAuth : set to true"
-}
+# BLOCKED pending code change. The `applicationinsights` v2.9 SDK in
+# backend/src/utils/telemetry.ts calls `.setup(connectionString).start()`
+# with no AAD credential, and the Azure Functions runtime auto-collect
+# path also uses IK-based ingest. Setting DisableLocalAuth=true here on
+# 2026-07-03 broke all AI ingest (0 requests, dependencies, exceptions
+# reaching the workspace).
+#
+# Two prerequisites before we can flip this on:
+#   1. Update telemetry.ts to pass `.setAADCredential(new DefaultAzureCredential())`
+#      or migrate to `@azure/monitor-opentelemetry`.
+#   2. Confirm the Functions Consumption-plan runtime honours the new
+#      credential path (as of 2026, this is only fully supported on
+#      the Flex Consumption / Premium tiers with specific host.json
+#      config; on the classic Consumption plan the runtime request
+#      collection may continue to use IK, forcing us to leave local
+#      auth enabled).
+#
+# Once telemetry.ts is updated, re-enable this block and remove the guard.
+Write-Skip "App Insights disableLocalAuth : deferred pending code change (see comment)"
 
 
 # ─────────────────────────────────────────────────────────────────
