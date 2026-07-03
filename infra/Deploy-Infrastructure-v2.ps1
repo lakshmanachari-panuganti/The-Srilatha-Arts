@@ -122,7 +122,12 @@
 param(
     [Parameter()]
     [ValidateSet('DEV', 'PRD')]
-    [string]$Environment = 'DEV'
+    [string]$Environment = 'DEV',
+
+    # Skip the interactive PRD confirmation prompt. Required when running
+    # from CI / non-interactive PowerShell sessions. Assume the caller has
+    # verified they intend to touch PRD.
+    [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
@@ -347,8 +352,12 @@ Write-Host @"
 
 if ($Environment -eq 'PRD') {
     Write-Host "`n  ⚠  You are about to modify PRODUCTION infrastructure." -ForegroundColor Red
-    $confirm = Read-Host "  Type 'yes' to continue"
-    if ($confirm -ne 'yes') { Write-Info "Aborted by operator."; exit 0 }
+    if ($Force) {
+        Write-Host "  -Force supplied - skipping interactive confirmation." -ForegroundColor Yellow
+    } else {
+        $confirm = Read-Host "  Type 'yes' to continue"
+        if ($confirm -ne 'yes') { Write-Info "Aborted by operator."; exit 0 }
+    }
 }
 
 
