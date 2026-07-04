@@ -428,6 +428,49 @@ export async function upsertOrderByStatus(row: Row): Promise<void> {
   await client.upsertEntity(row as any, 'Replace')
 }
 
+// ─── ORDERS BY RAZORPAY ID (secondary index - audit H3) ─────
+//
+// Reverse-map from razorpayOrderId → internal orderId so the
+// /razorpay/verify and webhook paths can find our order via a single-row
+// point lookup instead of a full-table scan. Written at order-creation
+// time; read only when the client-supplied internalOrderId isn't
+// available. If the lookup ever misses, the caller can still fall back
+// to the scan (kept as last-resort in payments.ts).
+
+export async function upsertOrderByRazorpayId(
+  razorpayOrderId: string,
+  internalOrderId: string,
+  userEmail: string,
+): Promise<void> {
+  const client = await ensureTable('ordersByRazorpayId')
+  await client.upsertEntity(
+    {
+      partitionKey: 'razorpay',
+      rowKey: razorpayOrderId,
+      internalOrderId,
+      userEmail,
+      createdAt: new Date().toISOString(),
+    } as any,
+    'Replace',
+  )
+}
+
+export async function getInternalOrderIdByRazorpay(
+  razorpayOrderId: string,
+): Promise<{ internalOrderId: string; userEmail: string } | null> {
+  const client = getTableClient('ordersByRazorpayId')
+  try {
+    const row = (await client.getEntity('razorpay', razorpayOrderId)) as Row
+    return {
+      internalOrderId: String(row.internalOrderId),
+      userEmail: String(row.userEmail),
+    }
+  } catch (err: any) {
+    if (err.statusCode === 404) return null
+    throw err
+  }
+}
+
 export async function deleteOrderByStatus(status: string, rowKey: string): Promise<void> {
   const client = getTableClient('ordersByStatus')
   try {
@@ -941,6 +984,16 @@ export async function getRateLimitCounter(key: string): Promise<Row | null> {
 export async function upsertRateLimitCounter(counter: Row): Promise<void> {
   const client = getTableClient('rateLimits')
   await client.upsertEntity(counter as any, 'Replace')
+}
+
+export async function deleteRateLimitCounter(key: string): Promise<void> {
+  const client = getTableClient('rateLimits')
+  try {
+    await client.deleteEntity('counter', key)
+  } catch (error: any) {
+    if (error.statusCode === 404) return
+    throw error
+  }
 }
 
 // ─── CONFIG ──────────────────────────────────────────────────

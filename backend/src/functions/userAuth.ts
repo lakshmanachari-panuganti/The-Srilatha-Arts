@@ -15,7 +15,7 @@ import {
 } from '../services/auth'
 import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
-import { checkAndIncrement } from '../services/rateLimit'
+import { checkAndIncrement, resetRateLimit } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { getClientIp } from '../utils/clientIp'
@@ -153,6 +153,21 @@ export async function userLogin(
     }
 
     const email = body.email.toLowerCase().trim()
+
+    // Per-account lockout (audit H1). Second counter keyed on the account,
+    // not the IP, so a distributed / rotating-IP credential-stuffing attack
+    // can't get more than 10 guesses per hour per email regardless of how
+    // many source IPs it uses. Successful login clears the counter.
+    const accountLockKey = `login_fail:${email}`
+    const accountCheck = await checkAndIncrement(accountLockKey, 10, 60 * 60_000)
+    if (!accountCheck.allowed) {
+      return errorResponse(
+        'This account has been temporarily locked after too many failed attempts. Please try again later.',
+        429,
+        origin,
+      )
+    }
+
     const user = await getUser(email)
 
     if (!user || user.isActive === false) {
@@ -171,6 +186,10 @@ export async function userLogin(
     if (!valid) {
       return errorResponse('Invalid email or password', 401, origin)
     }
+
+    // Success — clear the per-account counter so future logins after some
+    // sporadic failures don't hit an unexpected 429.
+    await resetRateLimit(accountLockKey)
 
     // Update last login
     await updateUser({ ...user, lastLogin: new Date().toISOString() })

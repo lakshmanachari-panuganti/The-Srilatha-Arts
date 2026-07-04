@@ -34,6 +34,8 @@ import {
   restoreStock,
   InsufficientStockError,
   StockConcurrencyError,
+  upsertOrderByRazorpayId,
+  getInternalOrderIdByRazorpay,
   Row,
 } from '../services/tableStorage'
 import { requireUser } from '../middleware/userGuard'
@@ -313,6 +315,16 @@ async function createPaymentOrder(
       updatedAt: now,
     })
 
+    // Write the razorpayOrderId → internalOrderId index so verify + webhook
+    // can point-lookup instead of scanning the whole orders table (audit H3).
+    // Failure here is non-fatal — the scan fallback in verify/webhook still
+    // works, we just pay O(n) instead of O(1). Log so ops can spot drift.
+    try {
+      await upsertOrderByRazorpayId(rzpOrder.id, internalOrderId, userEmail)
+    } catch (indexErr) {
+      context.warn('createPaymentOrder: ordersByRazorpayId upsert failed (falling back to scan on verify)', indexErr)
+    }
+
     return jsonResponse(
       {
         order: {
@@ -379,14 +391,25 @@ async function verifyPayment(
       return errorResponse('Payment signature verification failed', 400, origin)
     }
 
-    // Find our internal order. Prefer the client-supplied id (1-row lookup),
-    // fall back to a scan-by-razorpayOrderId since the partition key (user
-    // email) isn't directly known from the Razorpay response.
+    // Find our internal order. Preference order:
+    //   1. Client-supplied internalOrderId (single-row lookup, hot path).
+    //   2. Secondary index ordersByRazorpayId (audit H3 — point lookup).
+    //   3. Full-table scan (last-resort fallback when the index misses,
+    //      e.g. a legacy order created before the index was introduced).
     let order: Row | null = null
     if (body.internalOrderId) {
       order = await getOrderById(body.internalOrderId)
     }
     if (!order) {
+      const indexed = await getInternalOrderIdByRazorpay(body.razorpayOrderId)
+      if (indexed) {
+        order = await getOrderById(indexed.internalOrderId)
+      }
+    }
+    if (!order) {
+      // Scan fallback — kept for legacy orders. Emit telemetry so a spike
+      // in scan-usage signals the index write is misfiring.
+      context.warn(`verifyPayment: falling back to scan for razorpayOrderId=${body.razorpayOrderId}`)
       const candidates = await getAllOrders()
       order = candidates.find((o) => o.razorpayOrderId === body.razorpayOrderId) || null
     }
@@ -659,13 +682,25 @@ async function razorpayWebhook(
     return { status: 200, body: 'ignored - no order/payment id' }
   }
 
-  // Lookup our internal order. Today: full table scan.
-  // TODO: add an ordersByRazorpayId secondary index when volume grows.
-  const orders = await getAllOrders()
-  const order = orders.find((o) =>
-    (razorpayOrderId && o.razorpayOrderId === razorpayOrderId) ||
-    (razorpayPaymentId && o.razorpayPaymentId === razorpayPaymentId),
-  )
+  // Lookup order. Prefer the ordersByRazorpayId secondary index (audit H3)
+  // when we have a razorpayOrderId (payment events do; refund.processed
+  // does via payload.payment.entity.order_id). Otherwise fall back to a
+  // scan by razorpayPaymentId (refund events sometimes only supply that).
+  let order: Row | null = null
+  if (razorpayOrderId) {
+    const indexed = await getInternalOrderIdByRazorpay(razorpayOrderId)
+    if (indexed) {
+      order = await getOrderById(indexed.internalOrderId)
+    }
+  }
+  if (!order) {
+    context.warn(`razorpayWebhook: index miss, scanning (event=${event}, orderId=${razorpayOrderId}, paymentId=${razorpayPaymentId})`)
+    const orders = await getAllOrders()
+    order = orders.find((o) =>
+      (razorpayOrderId && o.razorpayOrderId === razorpayOrderId) ||
+      (razorpayPaymentId && o.razorpayPaymentId === razorpayPaymentId),
+    ) || null
+  }
   if (!order) {
     context.warn(`razorpayWebhook: no internal order matched (event=${event}, orderId=${razorpayOrderId}, paymentId=${razorpayPaymentId})`)
     return { status: 200, body: 'ignored - unknown order' }
