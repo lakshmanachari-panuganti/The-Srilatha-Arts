@@ -176,8 +176,13 @@ describe('buildAuthCookie', () => {
     expect(buildAuthCookie('tok')).toContain('Secure')
   })
 
-  it('is SameSite=Lax', () => {
-    expect(buildAuthCookie('tok')).toContain('SameSite=Lax')
+  it('is SameSite=None (cross-site cookie for SWA↔Function App auth)', () => {
+    // Cookie must travel cross-site because the SPA (Static Web Apps) and
+    // the API (Function App) live on different registrable domains. Any
+    // regression to Lax breaks the cookie-only auth path introduced by
+    // security audit C1 and forces the codebase back onto JWT-in-localStorage.
+    expect(buildAuthCookie('tok')).toContain('SameSite=None')
+    expect(buildAuthCookie('tok')).not.toContain('SameSite=Lax')
   })
 
   it('uses 24-hour Max-Age for admin sessions', () => {

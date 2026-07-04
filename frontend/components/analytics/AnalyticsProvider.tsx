@@ -91,60 +91,40 @@ export default function AnalyticsProvider() {
 
   return (
     <>
-      {/* GA4 — only loads when ID is configured AND visitor accepted */}
+      {/* GA4 loader script — external, so no inline JS. */}
       {consent === 'accepted' && GA4_ID && (
-        <>
-          <Script
-            id="ga4-loader"
-            strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
-          />
-          <Script
-            id="ga4-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA4_ID}', { anonymize_ip: true, send_page_view: true });
-              `,
-            }}
-          />
-        </>
+        <Script
+          id="ga4-loader"
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
+        />
       )}
 
-      {/* Meta Pixel — only loads when ID is configured AND visitor accepted */}
+      {/* Meta Pixel noscript pixel — no JS, safe under strict CSP. */}
       {consent === 'accepted' && META_PIXEL_ID && (
-        <>
-          <Script
-            id="meta-pixel-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                !function(f,b,e,v,n,t,s)
-                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t,s)}(window, document,'script',
-                'https://connect.facebook.net/en_US/fbevents.js');
-                fbq('init', '${META_PIXEL_ID}');
-                fbq('track', 'PageView');
-              `,
-            }}
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            alt=""
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
           />
-          <noscript>
-            <img
-              height="1"
-              width="1"
-              style={{ display: 'none' }}
-              alt=""
-              src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-            />
-          </noscript>
-        </>
+        </noscript>
+      )}
+
+      {/* Unified init — external file reads GA4/Meta IDs from data-* attrs
+          and wires window.dataLayer + window.fbq. Externalising this block
+          is what lets us drop 'unsafe-inline' from the CSP script-src
+          (security audit C2). */}
+      {consent === 'accepted' && (GA4_ID || META_PIXEL_ID) && (
+        <Script
+          id="analytics-init"
+          strategy="afterInteractive"
+          src="/analytics-init.js"
+          data-ga4-id={GA4_ID || ''}
+          data-meta-pixel-id={META_PIXEL_ID || ''}
+        />
       )}
 
       {/* Consent banner — shows only when the visitor hasn't decided yet.

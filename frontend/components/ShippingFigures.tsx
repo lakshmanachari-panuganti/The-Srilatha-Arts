@@ -2,6 +2,7 @@
 
 import { useShippingConfig } from '@/hooks/useShippingConfig'
 import { formatINR } from '@/lib/format'
+import { SHIPPING_DEFAULTS } from '@/lib/site-config'
 
 /**
  * Small client islands that render the admin-controlled shipping numbers.
@@ -9,27 +10,24 @@ import { formatINR } from '@/lib/format'
  * product feature strip, hero strip) so the page stays SEO-friendly while
  * the live ₹ values track whatever admin has saved in /admin/settings.
  *
- * Rendering policy:
- *   - While the API call is in flight, render an em-dash placeholder. The
- *     fetch is on the order of a few hundred ms on the first paint and
- *     React Query caches the result for the rest of the session, so this
- *     only affects the very first page-load.
- *   - On error / network failure, the placeholder stays — the page text
- *     around it still reads sensibly (e.g. "Free shipping above —" is
- *     visibly broken, which is preferable to silently lying with a value
- *     that may not match what the cart will enforce).
+ * Rendering policy (post-audit C4):
+ *   - Before the live fetch resolves, we render a sensible DEFAULT from
+ *     lib/site-config so the sentence around us always reads completely
+ *     (e.g. "Free shipping above ₹2,000" rather than "Free shipping above —").
+ *   - Once the live value arrives, we swap it in seamlessly.
+ *   - If the fetch fails, the default stays — trustworthy fallback, not
+ *     a dangling dash. The default is kept in sync with the live admin
+ *     value; the cart enforces the live value at checkout regardless.
  */
-
-const PLACEHOLDER = '—'
 
 export function FreeShippingThreshold() {
   const { data } = useShippingConfig()
-  if (!data) return <>{PLACEHOLDER}</>
-  return <>{formatINR(data.shipping.freeThreshold / 100)}</>
+  const paise = data?.shipping.freeThreshold ?? SHIPPING_DEFAULTS.freeThresholdPaise
+  return <>{formatINR(paise / 100)}</>
 }
 
 export function StandardShippingCharge() {
   const { data } = useShippingConfig()
-  if (!data) return <>{PLACEHOLDER}</>
-  return <>{formatINR(data.shipping.effectiveCharge / 100)}</>
+  const paise = data?.shipping.effectiveCharge ?? SHIPPING_DEFAULTS.effectiveChargePaise
+  return <>{formatINR(paise / 100)}</>
 }

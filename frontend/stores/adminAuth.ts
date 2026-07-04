@@ -80,13 +80,14 @@ export const useAdminAuth = create<AdminAuthState>()(
     }),
     {
       name: 'tsa-admin-auth',
-      partialize: (state) => ({ user: state.user, token: state.token }),
-      onRehydrateStorage: () => (state) => {
-        // Restore the token into apiFetch after a page refresh. Scope to
-        // the admin slot so a concurrent userAuth rehydration cannot
-        // overwrite it (and vice versa).
-        if (state?.token) setApiAuthToken(state.token, 'admin')
-      },
+      // Only persist non-secret identity. The admin JWT is delivered as a
+      // cross-site HttpOnly cookie (`tsa_token`) issued by the backend, so
+      // apiFetch's `credentials: 'include'` re-authenticates every admin
+      // request without any JS-readable token. Storing the JWT here
+      // previously exposed the admin session to any XSS — see audit C1.
+      partialize: (state) => ({ user: state.user }),
+      // No rehydrate hook needed: the auth cookie carries the session and
+      // apiFetch will use it directly on the next admin API call.
     },
   ),
 )

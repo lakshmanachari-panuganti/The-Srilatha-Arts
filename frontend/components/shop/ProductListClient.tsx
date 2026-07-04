@@ -27,8 +27,35 @@ function GridSkeleton() {
   )
 }
 
+// Distinct network / server error state — separate from the "no products
+// yet" empty state so the visitor knows the fault is transient and can
+// retry rather than assume the studio is bare. Audit C4.
+function GridErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="px-5 py-16 text-center max-w-md mx-auto">
+      <p className="font-display text-2xl text-ivory mb-2">
+        We couldn&apos;t load the pieces
+      </p>
+      <p className="text-sm text-ivory-mute mb-5">
+        The studio is having a moment — please try again in a second.
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center justify-center min-h-10 px-5 text-xs font-semibold uppercase
+                   text-white rounded-full bg-gradient-to-br from-blue to-indigo
+                   hover:from-blue-strong hover:to-indigo-strong
+                   shadow-lavender-glow transition-colors duration-300"
+        style={{ letterSpacing: '0.14em' }}
+      >
+        Try again
+      </button>
+    </div>
+  )
+}
+
 export default function ProductListClient({ filter = 'all', category, showCount = false }: Props) {
-  const { data: products = [], isLoading } = useQuery<Product[]>({
+  const { data: products = [], isLoading, isError, refetch } = useQuery<Product[]>({
     queryKey: ['products', filter, category],
     queryFn: async () => {
       let path = '/products'
@@ -40,9 +67,11 @@ export default function ProductListClient({ filter = 'all', category, showCount 
       return res.products || []
     },
     staleTime: 60_000,
+    retry: 1,
   })
 
   if (isLoading) return <GridSkeleton />
+  if (isError) return <GridErrorState onRetry={() => refetch()} />
 
   return (
     <>
