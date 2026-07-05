@@ -1,0 +1,32 @@
+1. order_confirmation_v1
+
+Trigger:
+Order Status:
+CONFIRMED -> CRAFTING
+
+Variables:
+{{1}} Customer Name
+{{2}} Order Number
+{{3}} Store Contact Number
+
+Template:
+Hi {{1}},
+
+Thank you for placing your order with Srilatha Art.
+
+Your order {{2}} has been successfully confirmed.
+
+📄 Your invoice is attached for reference.
+
+Each piece we create is handcrafted with passion, ensuring a unique artistic experience for every customer.
+
+We appreciate your trust and support ❤️
+
+If you have any questions, please feel free to contact us -
+📞 Call/WhatsApp: {{3}}
+✉️ Email: studio@srilatha.art
+🌐 www.srilatha.art
+
+-Srilatha Art
+
+

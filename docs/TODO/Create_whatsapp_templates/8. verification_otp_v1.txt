@@ -1,0 +1,10 @@
+8. verification_otp_v1
+
+Trigger:
+User requests password reset
+
+Variables:
+{{1}} OTP Code
+
+Template:
+{{1}} is your verification code.
