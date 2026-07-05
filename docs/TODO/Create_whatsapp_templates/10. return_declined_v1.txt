@@ -1,0 +1,26 @@
+10. return_declined_v1
+
+Trigger:
+Return Request Declined
+
+Variables:
+{{1}} Customer Name
+{{2}} Order Number
+{{3}} Store Contact Number
+
+Template:
+Hello {{1}},
+
+We regret to inform you that your return request for order {{2}} has been declined.
+
+This decision was made in accordance with our return policy. 
+
+https://www.srilatha.art/shipping-and-returns
+
+If you have any questions or need further clarification, please feel free to contact us -
+
+📞 Call/WhatsApp: {{3}}
+✉️ Email: studio@srilatha.art
+🌐 www.srilatha.art
+
+*-Srilatha Art*
