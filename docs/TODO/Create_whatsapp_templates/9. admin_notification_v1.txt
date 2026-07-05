@@ -1,0 +1,31 @@
+9. admin_notification_v1
+
+Trigger:
+Customer submits a Custom Order request on /custom-order
+
+Category:
+UTILITY
+
+Recipients:
+Each phone number in the STUDIO_ADMINS_WHATSAPP_GROUP Function App setting
+(comma-separated). Empty / malformed entries are ignored. Failing to notify
+one admin does not stop the fan-out to the rest.
+
+Variables:
+{{1}} Customer Name
+{{2}} Mobile Number
+
+Buttons:
+URL (static): https://www.srilatha.art/admin/custom-orders
+
+Template:
+Hi Studio Admin,
+
+A new custom order request has been received on srilatha.art.
+
+Customer Name: {{1}}
+Mobile Number: {{2}}
+
+Please review the request in the Admin Dashboard and follow up with the customer.
+
+🌐 www.srilatha.art

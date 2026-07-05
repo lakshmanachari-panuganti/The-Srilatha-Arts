@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Package, MapPin, LogOut, Heart, ChevronRight,
   Pencil, Trash2, Plus, Check, X as XIcon, FileText,
@@ -130,9 +130,17 @@ function emptyAddress(): AddressForm {
 
 export default function AccountClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const user = useUserAuth((s) => s.user)
   const logout = useUserAuth((s) => s.logout)
-  const [tab, setTab] = useState<Tab>('orders')
+  // Honour ?tab=profile|orders|addresses so external CTAs (e.g. the
+  // "complete your profile" prompt on /custom-order) can deep-link
+  // straight to the right tab.
+  const initialTab: Tab = (() => {
+    const raw = searchParams?.get('tab')
+    return raw === 'profile' || raw === 'addresses' || raw === 'orders' ? raw : 'orders'
+  })()
+  const [tab, setTab] = useState<Tab>(initialTab)
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => setHydrated(true), [])

@@ -993,7 +993,11 @@ foreach ($k in $defaultIfAbsent.Keys) {
 $emptyIfAbsent = @(
     'INVOICE_LOGO_URL',
     'WHATSAPP_PHONE_NUMBER_ID',
-    'WHATSAPP_WABA_ID'
+    'WHATSAPP_WABA_ID',
+    # Comma-separated WhatsApp numbers (E.164) that receive the
+    # admin_notification template on every new custom-order submission.
+    # Empty here so operators set it per environment via Update-AppSettings-v2.
+    'STUDIO_ADMINS_WHATSAPP_GROUP'
 )
 foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
