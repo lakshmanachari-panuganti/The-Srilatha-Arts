@@ -1,4 +1,4 @@
-7. order_on_hold
+7. order_on_hold_v1
 
 Trigger:
 Order Status:
@@ -26,4 +26,4 @@ If you have any questions, please feel free to contact us -
 ✉️ Email: studio@srilatha.art
 🌐 www.srilatha.art
 
--Srilatha Art
+*-Srilatha Art*

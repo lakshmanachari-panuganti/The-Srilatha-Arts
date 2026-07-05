@@ -7,6 +7,7 @@ import { formatINR } from '@/lib/format'
 import { apiFetch } from '@/lib/api'
 import NotificationAlertsCard from '@/components/admin/NotificationAlertsCard'
 import SystemDiagnosticsCard from '@/components/admin/SystemDiagnosticsCard'
+import CustomOrdersInboxCard from '@/components/admin/CustomOrdersInboxCard'
 
 interface DashboardStats {
   totalRevenue: number
@@ -72,6 +73,11 @@ export default function AdminDashboardPage() {
 
       {/* Notification Alerts — only renders when there are open alerts. */}
       <NotificationAlertsCard />
+
+      {/* Custom Order Inbox — highlights newly arrived customer inquiries so
+          they're impossible to miss at a glance. Amber-tinted when there is
+          work to do; muted when the inbox is clear. */}
+      <CustomOrdersInboxCard />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">

@@ -13,7 +13,7 @@ import {
 } from '../services/auth'
 import { getAdmin, updateAdmin, getAllAdmins, createAdmin } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
-import { checkAndIncrement } from '../services/rateLimit'
+import { checkAndIncrement, resetRateLimit } from '../services/rateLimit'
 import { getClientIp } from '../utils/clientIp'
 
 // ─── POST /api/auth/admin/login ──────────────────────────────
@@ -44,6 +44,23 @@ export async function adminLogin(
     }
 
     const username = body.username.toLowerCase().trim()
+
+    // Per-account lockout (audit H1). A rotating-IP distributed attack can't
+    // exhaust the per-IP counter above because it's keyed on the source IP;
+    // this second counter is keyed on the account and blocks brute-force
+    // even if every request comes from a distinct IP. 5 failures per hour
+    // per admin account. Reset on successful login.
+    const accountLockKey = `admin_login_fail:${username}`
+    const accountCheck = await checkAndIncrement(accountLockKey, 5, 60 * 60_000)
+    if (!accountCheck.allowed) {
+      context.warn(`adminLogin: account lockout triggered for username=${username}`)
+      return errorResponse(
+        'This account has been temporarily locked after too many failed attempts. Please try again later.',
+        429,
+        origin,
+      )
+    }
+
     const admin = await getAdmin(username)
 
     if (!admin || admin.isActive === false) {
@@ -54,6 +71,10 @@ export async function adminLogin(
     if (!valid) {
       return errorResponse('Invalid credentials', 401, origin)
     }
+
+    // Success — clear the account lockout counter so the next legitimate
+    // login after some sporadic failures doesn't get an unexpected 429.
+    await resetRateLimit(accountLockKey)
 
     // Update last login
     await updateAdmin({ ...admin, lastLogin: new Date().toISOString() })

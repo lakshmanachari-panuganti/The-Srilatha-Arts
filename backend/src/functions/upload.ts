@@ -29,6 +29,10 @@ import { randomUUID } from 'crypto'
 import sharp from 'sharp'
 
 const MAX_CUSTOMER_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+// Admin uploads are used for hero + product photography — allow larger
+// originals (the sharp pipeline downscales to 1200 anyway) but still cap
+// so an oversized file can't exhaust memory or fill the container.
+const MAX_ADMIN_FILE_SIZE = 15 * 1024 * 1024 // 15 MB
 
 // Magic-byte signatures used to verify an uploaded file is actually an image.
 // Filename extensions are user-controlled and not trusted.
@@ -90,10 +94,21 @@ async function adminUpload(request: HttpRequest, context: InvocationContext): Pr
     const seoTitle = request.query.get('title') || undefined
     const file = await parseMultipartFile(request)
     if (!file) return errorResponse('No file provided', 400, origin)
+    // Size + magic-byte checks BEFORE anything reads the image bytes further.
+    // Audit H2: the admin path used to skip the size cap so an oversized or
+    // booby-trapped upload could reach uploadProductImage / sharp with no
+    // bound.
+    if (file.buffer.length > MAX_ADMIN_FILE_SIZE) {
+      return errorResponse('File too large (max 15 MB)', 400, origin)
+    }
     if (!detectImageMime(file.buffer)) {
       return errorResponse('File must be a JPEG, PNG, or WEBP image', 400, origin)
     }
 
+    // uploadProductImage passes the buffer through sharp, which re-encodes
+    // to webp and strips any embedded metadata/scripts — the customer path
+    // relies on the same sharp pipeline. Both paths now have the same
+    // magic-byte MIME check + a size cap + a sharp re-encode.
     const result = await uploadProductImage(file.buffer, category, file.name, { seoTitle })
     return jsonResponse({ image: result }, 201, {}, origin)
   } catch (err) {

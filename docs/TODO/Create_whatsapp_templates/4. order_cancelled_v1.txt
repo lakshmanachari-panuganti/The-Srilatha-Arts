@@ -1,20 +1,23 @@
-1. order_crafting
+4. order_cancelled_v1
 
 Trigger:
 Order Status:
-CONFIRMED -> CRAFTING
+-> CANCELLED
 
 Variables:
 {{1}} Customer Name
 {{2}} Order Number
 {{3}} Store Contact Number
 
+
 Template:
 Hello {{1}},
 
-We have started crafting your order {{2}}.
+Your order {{2}} has been cancelled.
 
-We are handmaking your artwork with care, and we will keep you updated at each stage.
+If any payment was captured, the refund (if applicable) will be processed as per our policy.
+
+https://www.srilatha.art/shipping-and-returns
 
 If you have any questions, please feel free to contact us -
 
@@ -22,4 +25,4 @@ If you have any questions, please feel free to contact us -
 ✉️ Email: studio@srilatha.art
 🌐 www.srilatha.art
 
--Srilatha Art
+*-Srilatha Art*

@@ -49,4 +49,9 @@ frontend/next-env.d.ts
 
 test-results/
 playwright-report/
-C:\repos\The-Srilatha-Arts\.claude\settings.json
+
+# VS Code / Copilot local config
+.claude/
+
+# Azure Functions local settings (contains secrets — never commit)
+**/local.settings*.json

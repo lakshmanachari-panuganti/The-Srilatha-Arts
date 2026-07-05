@@ -3,7 +3,7 @@
  * Used by coupon validate (5/min/IP) and login (20 failures/hour).
  */
 
-import { getRateLimitCounter, upsertRateLimitCounter } from './tableStorage'
+import { getRateLimitCounter, upsertRateLimitCounter, deleteRateLimitCounter } from './tableStorage'
 
 export interface RateLimitResult {
   allowed: boolean
@@ -52,4 +52,18 @@ export async function checkAndIncrement(
   })
 
   return { allowed: true, remaining: limit - count, resetAt }
+}
+
+/**
+ * Clear a rate-limit counter. Called after a successful login so a legit
+ * user's next attempt (after some sporadic wrong guesses) doesn't hit a
+ * stale 429. Best-effort: a failure here is logged but not rethrown
+ * because the caller's action (login success) has already happened.
+ */
+export async function resetRateLimit(key: string): Promise<void> {
+  try {
+    await deleteRateLimitCounter(key)
+  } catch {
+    // Row may already be gone (never created, or cleaned up) — that's fine.
+  }
 }

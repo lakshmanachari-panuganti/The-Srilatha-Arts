@@ -65,12 +65,12 @@ jobs:
           NODE_ENV: production
         run: npm run build
 
-      - name: Run Lighthouse CI
+      - name: Run Lighthouse CI (fails PR on a11y/LCP/CLS/TBT regression)
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        # 0.14.x = current stable line; pin to a minor so a future major
-        # release doesn't silently change the assertion format.
+        # Audit M3: assertions in .lighthouserc.json are now "error" for
+        # accessibility, best-practices, and Core Web Vitals (LCP/CLS/TBT).
+        # This step will fail the PR if any of those regress past the
+        # Google "good" thresholds; performance/SEO stay "warn" because
+        # their category score has real run-to-run variance.
         run: |
           npx --yes @lhci/cli@0.14.x autorun
-        # `autorun` exits non-zero only on hard assertion failures. The
-        # config uses "warn" thresholds, so this step succeeds even when
-        # a score dips — the PR comment still surfaces the regression.

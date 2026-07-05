@@ -1,0 +1,45 @@
+# Dependabot config — automated security updates for both npm workspaces.
+# Introduced by security audit H4. The security.yml workflow already
+# fails builds on high/critical vulns; Dependabot opens the PRs that
+# take them out proactively so we're not just gating, we're patching.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: '03:00'
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - backend
+    commit-message:
+      prefix: 'chore(deps,backend)'
+      include: scope
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: '03:00'
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - frontend
+    commit-message:
+      prefix: 'chore(deps,frontend)'
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: 'chore(deps,ci)'
+      include: scope

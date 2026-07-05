@@ -163,12 +163,17 @@ export const useUserAuth = create<UserAuthState>()(
     }),
     {
       name: 'tsa-user-auth',
-      partialize: (s) => ({ user: s.user, token: s.token }),
+      // Only persist non-secret identity. The JWT itself is delivered as a
+      // cross-site HttpOnly cookie (`tsa_token`) issued by the backend, so
+      // apiFetch's `credentials: 'include'` re-authenticates every request
+      // without any JS-readable token. Storing the JWT here previously
+      // meant any XSS could exfiltrate it — see security audit item C1.
+      partialize: (s) => ({ user: s.user }),
       onRehydrateStorage: () => (state) => {
-        if (state?.token) {
-          setApiAuthToken(state.token)
+        if (state?.user) {
           // After page reload, pull the latest server wishlist for the
           // restored session so the heart icons reflect cross-device state.
+          // The auth cookie carries the session; no in-memory token needed.
           syncUserDataAfterAuth()
         }
       },

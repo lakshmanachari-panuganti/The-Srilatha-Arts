@@ -1,8 +1,8 @@
-3. order_delivered
+1. order_crafting_v1
 
 Trigger:
 Order Status:
-SHIPPED -> DELIVERED
+CONFIRMED -> CRAFTING
 
 Variables:
 {{1}} Customer Name
@@ -12,9 +12,9 @@ Variables:
 Template:
 Hello {{1}},
 
-Your order {{2}} has been delivered.
+We have started crafting your order {{2}}.
 
-We hope your artwork has reached you safely and brings beauty to your space.
+We are handmaking your artwork with care, and we will keep you updated at each stage.
 
 If you have any questions, please feel free to contact us -
 
