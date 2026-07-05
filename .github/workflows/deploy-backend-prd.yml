@@ -79,17 +79,18 @@ jobs:
             --settings "WEBSITE_RUN_FROM_PACKAGE=1" \
             --output none
 
-      - name: Deploy to Azure Functions (OneDeploy via AAD/OIDC)
-        # `az functionapp deploy --type zip` uses OneDeploy over AAD — no
-        # SCM basic auth, no publish profile, no storage access from CI.
-        # Requires the CI SP's `Website Contributor` role on this Function
-        # App (granted in Deploy-Infrastructure-v2.ps1 §9.4). The runtime
-        # mounts the zip locally per WEBSITE_RUN_FROM_PACKAGE=1.
+      - name: Deploy to Azure Functions (Kudu ZipDeploy via AAD/OIDC)
+        # OneDeploy (`az functionapp deploy --type zip`) is not supported
+        # on Linux Consumption plans and returns "This API isn't available
+        # in this environment yet". `az functionapp deployment source
+        # config-zip` uses the Kudu ZipDeploy endpoint which IS supported
+        # on Linux Consumption and works over the AAD token from OIDC
+        # login (no SCM basic auth, no publish profile). Requires the CI
+        # SP's `Website Contributor` role on the Function App.
         run: |
           set -euo pipefail
-          az functionapp deploy \
+          az functionapp deployment source config-zip \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_FUNCTIONAPP_NAME" \
-            --src-path "$RUNNER_TEMP/deploy.zip" \
-            --type zip
+            --src "$RUNNER_TEMP/deploy.zip"
           echo "Deploy succeeded"
