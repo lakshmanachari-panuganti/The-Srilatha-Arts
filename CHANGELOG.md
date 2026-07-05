@@ -8,6 +8,175 @@ is dated.
 
 ---
 
+## 2026-07-05 · Security hardening rollout — Phases 1–4 (DEV + PRD) and app-layer audit tiers 1–3
+
+Executed the 2026-07-03 security assessment findings across both environments,
+then landed three tiers of app-code hardening on top. All Phase 1–4 infra
+changes are live on both `func-thesrilathaarts-dev` and `func-thesrilathaarts-prd`
+and verified healthy end-to-end.
+
+### Implemented — Infra (Phases 1–4)
+
+**Phase 1 · Critical**
+- `httpsOnly = true` on both Function Apps (was accepting cleartext HTTP).
+- Storage `minimumTlsVersion = TLS1_2` on both accounts (was `TLS1_0`).
+
+**Phase 2 · High**
+- 10 inline app-setting secrets migrated to `@Microsoft.KeyVault(...)` refs
+  on both envs: `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`,
+  `WHATSAPP_WEBHOOK_VERIFY_TOKEN`, `WHATSAPP_V2_FUNCTION_KEY`,
+  `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`,
+  `SMTP_PASS`, `AZURE_OPENAI_API_KEY`, `APPLICATIONINSIGHTS_CONNECTION_STRING`.
+- Key Vault `enablePurgeProtection = true` on both vaults (irreversible).
+- 4 obsolete app settings deleted: `AzureWebJobsStorage` (inline conn
+  string), `AzureWebJobsDashboard`, `APPINSIGHTS_INSTRUMENTATIONKEY`,
+  `WEBSITES_ENABLE_APP_SERVICE_STORAGE`.
+- New idempotent script `infra/Migrate-SecretsToKeyVault.ps1` (reads inline
+  app setting values, writes to KV under canonical camelCase names; `-Overwrite`
+  and `-Force` flags for CI/PRD).
+
+**Phase 3 · Medium**
+- Dedicated Log Analytics workspace `log-thesrilathaarts-<env>` (PerGB2018,
+  30-day retention) in each env's own RG (App Insights' own managed workspace
+  carries a Microsoft deny assignment and cannot be a diagnostic target).
+- Function App diagnostic setting `send-to-workspace` streaming
+  `allLogs` + `AllMetrics` into the LA workspace.
+- **Deferred:** App Insights `disableLocalAuth = true` — first attempt on
+  DEV blocked all telemetry ingest because the `applicationinsights` v2.9
+  SDK in `backend/src/utils/telemetry.ts` is not AAD-aware. Reverted; script
+  now skips the block until SDK is upgraded.
+
+**Phase 4 · Low / hygiene**
+- New idempotent script `infra/Cleanup-KeyVault.ps1`. Whitelist of the
+  13 canonical secret names actually referenced by the deploy script; every
+  other KV entry gets soft-deleted (90-day recovery). Sets 1-year `expires`
+  attribute on the canonical set. Applied to both envs:
+  - DEV KV: 52 non-canonical entries soft-deleted, 13 canonical got 1y expiry.
+  - PRD KV: 40 non-canonical entries soft-deleted, 13 canonical got 1y expiry.
+- Stray `slotSetting` Function App app-setting purged on both envs
+  (created by an earlier mis-quoted `az functionapp config appsettings set`).
+
+**Infra script quality**
+- Added `-Force` switch to `Deploy-Infrastructure-v2.ps1` so PRD runs can
+  proceed non-interactively (CI, agent, piped).
+- Reordered comments in the DEV CORS block to correctly identify
+  `www.lucky1.online` as the DEV SWA's custom domain.
+
+### Implemented — App code (audit tiers 1–3)
+
+**Tier 1**
+- Removed JWT from `localStorage` on the SPA. The admin JWT is now
+  delivered only as the cross-site `HttpOnly` `tsa_token` cookie; the
+  Zustand stores persist only non-secret identity (`user`), and `apiFetch`
+  re-authenticates via `credentials: 'include'`. Closes XSS exfiltration
+  path C1 in the app-code audit.
+- Hardened Content Security Policy in `frontend/staticwebapp.config.json`.
+- Patched vulnerable transitive dependencies.
+- Storefront rendering fixes.
+
+**Tier 2**
+- Per-admin-account lockout on `/api/auth/admin/login` (5 failed attempts
+  per hour per username, reset on success). Protects against distributed
+  rotating-IP brute force that the per-IP limiter alone cannot catch.
+- Upload size cap on `/api/upload`.
+- Razorpay order-index optimisation.
+- CI audit gate: `npm audit --production` required to pass in the backend
+  and frontend workflows.
+
+**Tier 3**
+- Responsive image variants for product photography.
+- Coupon evaluation test coverage.
+- Hard Lighthouse budget gate in CI (blocks PRs that regress perf).
+- Order stock-rollback service for failed / cancelled orders.
+
+### Implemented — Features (parallel to security work)
+
+- Admin WhatsApp fan-out for custom-order submissions. Every custom-order
+  creation now sends the `admin_notification` template to every number in
+  `STUDIO_ADMINS_WHATSAPP_GROUP`. Failures per admin are isolated; one
+  admin's send failure does not block the rest. New service:
+  `backend/src/services/adminNotifications.ts`.
+- New admin dashboard tile: **Custom Orders inbox** card
+  (`frontend/components/admin/CustomOrdersInboxCard.tsx`) surfacing recent
+  submissions.
+- New WhatsApp templates: order status updates, return-declined with
+  customer notification details, verification OTP.
+- Infra/CI: switched backend deploy off `WEBSITE_RUN_FROM_PACKAGE` (which
+  required a 10-year SAS URL) back to local-mode (`WEBSITE_RUN_FROM_PACKAGE=1`).
+  Removes the long-lived SAS from PRD app settings. First attempt used
+  `az functionapp deploy --type zip` (OneDeploy) which is **not**
+  supported on Linux Consumption; corrected to
+  `az functionapp deployment source config-zip` (Kudu ZipDeploy) — works
+  on Linux Consumption and still authenticates via OIDC.
+
+### Deferred / not implemented — still open
+
+Reasons vary from "needs external work" to "needs an architectural
+decision I did not want to make unilaterally".
+
+**High**
+- **H2 · Split DEV/PRD external credentials.** WhatsApp Business phone
+  number + access token, Meta App Secret, Google OAuth client, Azure
+  OpenAI API key, and the WhatsApp v2 function key are currently identical
+  in both envs. DEV can send messages via PRD's phone number. Needs
+  external portal work in Meta Business Manager + Google Cloud Console
+  + a dedicated DEV Azure OpenAI resource.
+- **H4 · Disable `allowSharedKeyAccess` on storage.** Prerequisite:
+  migrate `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` from shared-key to
+  identity-based content share. That migration is delicate on Linux
+  Consumption.
+- **H5 · Disable `allowBlobPublicAccess`.** Would break anonymous product
+  image loading. Needs a CDN or SAS-signed URL design first.
+
+**Medium**
+- **M2 · Shorten `WEBSITE_RUN_FROM_PACKAGE` SAS.** Superseded on PRD by
+  the `OneDeploy` switch above; DEV still uses `WEBSITE_RUN_FROM_PACKAGE`
+  and has the 10-year SAS. Should switch DEV to the same OneDeploy path.
+- **M3 · Restrict Key Vault `publicNetworkAccess`.** Requires an
+  allowlist design (deployer SP + FA MI + GH Actions IPs). Risk of
+  locking out the deployer SP without one.
+- **M4 · Enable `disableLocalAuth` on Application Insights.** Prereq:
+  `backend/src/utils/telemetry.ts` upgraded to supply an AAD credential
+  to `appInsights.setup(...)`, or migrated to
+  `@azure/monitor-opentelemetry`. Confirm Linux Consumption runtime
+  honours the new credential path before flipping.
+
+**Low**
+- **L6 · Defender for Cloud on Standard tier** for Key Vault and Storage
+  in PRD (cost decision).
+
+### Verification (both envs, 2026-07-04)
+
+- FA `httpsOnly = true`, Node 22 LTS, FTPS-only.
+- Storage `minimumTlsVersion = TLS1_2`, HTTPS-only.
+- KV `enablePurgeProtection = true`, RBAC mode, 13 canonical secrets with
+  1-year expiries.
+- 13 KV refs on each Function App, all resolving to real secret values.
+- Log Analytics workspaces created and receiving `FunctionAppLogs` +
+  `AzureMetrics`.
+- Application Insights ingesting request telemetry via connection string.
+- `/api/health` returns `status: ok`, all 4 probes (storage, razorpay,
+  whatsapp, email) green.
+- Smoke tests on `/api/products`, `/api/auth/csrf`, `/api/auth/me`,
+  `/api/announcements`, `/api/pincode/{pin}` all return 200.
+- Frontend loads on both SWA hosts; CORS preflight from SWA → FA
+  returns 204 with correct origin echo and `Access-Control-Allow-Credentials: true`.
+
+### PRs merged (for the infra + hardening work)
+
+- Phase 1: #48 → develop, #49 → main
+- `-Force` switch: #50 → develop, #51 → main
+- Phase 2: #52 → develop, #53 → main
+- Phase 3: #54 → develop, #55 → main
+- Phase 4: #56 → develop, #57 → main
+- `slotSetting` audit fix: #58 → develop, #59 → main
+- M4 defer: #60 → develop, #61 → main
+- `lucky1.online` comment fix: #62 → develop, #63 → main
+- App audit tiers 1–3 + admin notifications + WhatsApp templates + OneDeploy:
+  #64 → develop, #65 → main
+
+---
+
 ## 2026-06-12 · Hero — Italianno script + tighter tempo
 
 User asked for a cursive script face like the "Angela White" reference
