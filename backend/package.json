@@ -14,7 +14,7 @@
     "@azure/data-tables": "^13.2.2",
     "@azure/functions": "^4.5.0",
     "@azure/identity": "^4.4.0",
-    "@azure/storage-blob": "^12.17.0",
+    "@azure/storage-blob": "^12.33.0",
     "@azure/storage-queue": "^12.16.0",
     "applicationinsights": "^2.9.8",
     "bcryptjs": "^2.4.3",
