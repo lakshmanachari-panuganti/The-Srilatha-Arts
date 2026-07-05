@@ -944,6 +944,13 @@ $alwaysOverwrite = @{
     'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
     'ENVIRONMENT'                           = $Environment
     'FUNCTIONS_WORKER_RUNTIME'              = 'node'
+    # Run-from-package mode. `1` = local-mount (deploy workflow uploads the
+    # zip via OneDeploy over AAD/OIDC; runtime mounts from the SCM host).
+    # Explicitly asserted here so a re-run of this script never accidentally
+    # re-introduces a SAS-URL value (Phase 3/4 experimented with URL mode
+    # but that stored a SAS token in an app setting — an anti-pattern
+    # since secrets belong in Key Vault or referenced via managed identity).
+    'WEBSITE_RUN_FROM_PACKAGE'              = '1'
     'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
     'NOTIFICATIONS_QUEUE_NAME'              = 'notifications-out'
     'WEBHOOKS_QUEUE_NAME'                   = 'webhooks-in'
@@ -986,7 +993,11 @@ foreach ($k in $defaultIfAbsent.Keys) {
 $emptyIfAbsent = @(
     'INVOICE_LOGO_URL',
     'WHATSAPP_PHONE_NUMBER_ID',
-    'WHATSAPP_WABA_ID'
+    'WHATSAPP_WABA_ID',
+    # Comma-separated WhatsApp numbers (E.164) that receive the
+    # admin_notification template on every new custom-order submission.
+    # Empty here so operators set it per environment via Update-AppSettings-v2.
+    'STUDIO_ADMINS_WHATSAPP_GROUP'
 )
 foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
@@ -1365,7 +1376,14 @@ foreach ($fc in $federatedSubjects) {
     Write-Success "Federated credential added : $($fc.Name)"
 }
 
-# 9.4  RBAC: minimal role for zipdeploy on the Function App resource
+# 9.4  RBAC: minimal role for zipdeploy on the Function App resource.
+# Website Contributor is intentionally the ONLY role granted to the CI SP —
+# it covers `az functionapp deploy --type zip` (OneDeploy over AAD, no
+# SCM basic auth) and updating app settings via `az functionapp config
+# appsettings set`. No storage-account access is granted: the deploy
+# workflow runs in WEBSITE_RUN_FROM_PACKAGE=1 (local-mount) mode, so
+# there is no blob upload from CI to worry about. Keeps the CI blast
+# radius as small as possible.
 $ciRoleOutcome = Assign-AzRoleIfMissing `
     -ObjectId           $ciSp.id `
     -RoleDefinitionName 'Website Contributor' `

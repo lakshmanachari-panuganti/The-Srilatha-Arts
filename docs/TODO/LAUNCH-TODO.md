@@ -121,6 +121,7 @@ all dispatch flows through there.
 - [ ] (Optional) Add a second BCC for ops handover, e.g. `studio@srilatha.art,admin@srilatha.art`
 - [ ] Gmail-side: add a filter on `cc:studio@srilatha.art` → sub-label `srilatha-art/customer-audit` so the audit volume doesn't flood the primary inbox
 - [ ] Set `RESERVATION_TIMEOUT_MINUTES` to 30 (or leave unset for the default)
+- [ ] Set `STUDIO_ADMINS_WHATSAPP_GROUP` on the prd Function App. Comma-separated WhatsApp numbers (E.164 or `+91 …`) that should receive the `admin_notification` template every time a customer submits a Custom Order request. Invalid/empty entries are ignored; failures to notify one admin do not stop the rest. Leave unset to disable the fan-out.
 
 ### Tasks (Meta Business Manager — WhatsApp template approvals)
 
@@ -135,6 +136,7 @@ moment Meta approval lands. Templates that need to go from 🟡 READY → ✅ LI
 - [ ] `order_delivered` (NEW — needs to be authored + submitted in Meta)
 - [ ] `review_request`
 - [ ] `return_declined` (existing READY template, not yet wired to a transition handler)
+- [ ] `admin_notification` (NEW — studio-facing custom-order arrival ping; body variables `{{1}}` customer name, `{{2}}` mobile number; static URL button pointing at `/admin/custom-orders`. Full copy in `docs/TODO/Create_whatsapp_templates/9. admin_notification.txt`)
 
 The WhatsApp template body wording for each is in `docs/templates/template_definition.md`. The
 matching email versions auto-generate from `backend/src/services/emailTemplates/*.ts` — wording

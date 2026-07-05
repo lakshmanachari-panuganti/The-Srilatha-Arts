@@ -1,0 +1,64 @@
+name: Security audit
+
+# Runs on every PR to develop + main and on push to develop + main, and
+# nightly at 03:15 UTC so freshly published advisories catch us before
+# the next deploy. Two independent audits (backend + frontend) run in
+# parallel so one failing doesn't mask the other.
+#
+# Audit level = high — fails the build on any high or critical
+# vulnerability in production dependencies. Moderates are surfaced in
+# the log but don't block the pipeline; they get triaged manually.
+#
+# Introduced by security audit H4 — the C3 CVEs (Nodemailer, uuid,
+# jspdf) went unnoticed at merge time because no such gate existed.
+
+on:
+  pull_request:
+    branches: [main, develop, ai-driven1]
+    paths:
+      - 'backend/package*.json'
+      - 'frontend/package*.json'
+      - '.github/workflows/security.yml'
+  push:
+    branches: [main, develop, ai-driven1]
+    paths:
+      - 'backend/package*.json'
+      - 'frontend/package*.json'
+      - '.github/workflows/security.yml'
+  schedule:
+    - cron: '15 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: security-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: npm audit (${{ matrix.workdir }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workdir: [backend, frontend]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install (${{ matrix.workdir }})
+        working-directory: ${{ matrix.workdir }}
+        run: npm ci --no-audit --no-fund
+
+      - name: Audit production dependencies (fail on high/critical)
+        working-directory: ${{ matrix.workdir }}
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit summary — all severities (informational)
+        if: always()
+        working-directory: ${{ matrix.workdir }}
+        run: npm audit --omit=dev || true

@@ -8,6 +8,19 @@
  * Keep the two files in sync.
  */
 
+/**
+ * Sensible shipping defaults rendered before the live /shipping-settings
+ * response arrives (or if the request fails entirely). Kept in sync with
+ * the current admin-configured values so the visible copy is truthful
+ * even when JS or the API is slow; the hook overrides these once the
+ * live values load. Security audit C4 — the store must never show a
+ * dangling "Free shipping above —".
+ */
+export const SHIPPING_DEFAULTS = {
+  freeThresholdPaise: 200000,      // ₹2,000
+  effectiveChargePaise: 12000,     // ₹120
+} as const
+
 export const CONTACT = {
   // International format without '+'. The '91' prefix is required by wa.me.
   whatsappE164: '919052380325',

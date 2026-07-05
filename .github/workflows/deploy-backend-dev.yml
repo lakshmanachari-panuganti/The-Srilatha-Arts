@@ -76,17 +76,30 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy to Azure Functions (az CLI zipdeploy)
-        # OIDC-authenticated deploy via the Azure CLI. Replaces the publish-
-        # profile + Kudu basic-auth path, removing the long-lived secret
-        # entirely. Federated credential on the SP grants a short-lived
-        # token scoped to this repo + the `develop` and `feature/ai-driven`
-        # branches.
+      - name: Ensure RunFromPackage=1 (idempotent)
+        # Belt-and-braces: assert local-mount mode so a stray Portal edit
+        # can't silently flip us back to a SAS-URL value. No-op if already 1.
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
-          az functionapp deployment source config-zip \
+          az functionapp config appsettings set \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_FUNCTIONAPP_NAME" \
-            --src "$RUNNER_TEMP/deploy.zip"
+            --settings "WEBSITE_RUN_FROM_PACKAGE=1" \
+            --output none
+
+      - name: Deploy to Azure Functions (OneDeploy via AAD/OIDC)
+        # `az functionapp deploy --type zip` uses OneDeploy over AAD — no
+        # SCM basic auth, no publish profile, no storage access from CI.
+        # Requires the CI SP's `Website Contributor` role on this Function
+        # App (granted in Deploy-Infrastructure-v2.ps1 §9.4). The runtime
+        # mounts the zip locally per WEBSITE_RUN_FROM_PACKAGE=1.
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          az functionapp deploy \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_FUNCTIONAPP_NAME" \
+            --src-path "$RUNNER_TEMP/deploy.zip" \
+            --type zip
           echo "Deploy succeeded"

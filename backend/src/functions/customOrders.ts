@@ -12,13 +12,15 @@ import {
   listCustomOrders,
   getCustomOrder,
   updateCustomOrder,
+  getUser,
   Row,
 } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
+import { requireUser } from '../middleware/userGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
-import { enqueueNotification } from '../services/queue'
+import { notifyStudioAdmins } from '../services/adminNotifications'
 import { randomUUID } from 'crypto'
 import { TableClient } from '@azure/data-tables'
 import { DefaultAzureCredential } from '@azure/identity'
@@ -87,6 +89,43 @@ async function submitCustomOrder(
   const csrfFail = enforceCsrf(request, origin)
   if (csrfFail) return csrfFail
 
+  // Auth gate. Custom-order requests are contact-intent inquiries — we need a
+  // durable way to reach the customer back, which is the profile's job.
+  const authed = requireUser(request)
+  if (!authed) {
+    return errorResponse(
+      'Please sign in to submit a custom order request.',
+      401,
+      origin,
+    )
+  }
+
+  // Profile gate. The customer's stored name + phone are the values studio
+  // staff will actually use to follow up, so both must be present before we
+  // accept the request. Enforced server-side (independent of the form body)
+  // so an incomplete-profile user cannot bypass by typing values into the
+  // frontend.
+  const profile = await getUser(authed.userId)
+  if (!profile || profile.isActive === false) {
+    return errorResponse('User account not found. Please sign in again.', 401, origin)
+  }
+  const profileName = typeof profile.name === 'string' ? profile.name.trim() : ''
+  const profilePhone = typeof profile.phone === 'string' ? profile.phone.trim() : ''
+  if (!profileName || !profilePhone) {
+    // Use jsonResponse directly so we can attach a machine-readable code —
+    // the frontend keys off `PROFILE_INCOMPLETE` to show the account CTA
+    // without pattern-matching on the message text.
+    return jsonResponse(
+      {
+        error: 'Please update your profile with your name and mobile number before submitting a custom order request.',
+        code: 'PROFILE_INCOMPLETE',
+      },
+      400,
+      {},
+      origin,
+    )
+  }
+
   // Rate limit: 3/hour/IP
   const ip = getClientIp(request)
   const rateCheck = await checkAndIncrement(`custom_order:${ip}`, 3, 3600_000)
@@ -107,27 +146,19 @@ async function submitCustomOrder(
       budget?: string
     }
 
-    if (!body.customerName) return errorResponse('Name is required', 400, origin)
-    if (!body.customerPhone && !body.customerEmail) {
-      return errorResponse('Phone or email is required', 400, origin)
-    }
     if (!body.artForm) return errorResponse('Art form is required', 400, origin)
     if (!body.description) return errorResponse('Description is required', 400, origin)
 
-    const customerName = body.customerName.trim()
+    // Name / phone come from the trusted profile - the body values (if any)
+    // are ignored so admins always see the same identity that appears on
+    // the customer's account.
+    const customerName = profileName
+    const customerPhone = profilePhone
+    const customerEmail = authed.userId
     const description = body.description.trim()
 
-    if (customerName.length > 100) {
-      return errorResponse('Name must be 100 characters or less', 400, origin)
-    }
     if (description.length > 2000) {
       return errorResponse('Description must be 2000 characters or less', 400, origin)
-    }
-    if (body.customerPhone && body.customerPhone.trim().length > 20) {
-      return errorResponse('Phone must be 20 characters or less', 400, origin)
-    }
-    if (body.customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.customerEmail.trim())) {
-      return errorResponse('Invalid email format', 400, origin)
     }
     if (!VALID_ART_FORMS.includes(body.artForm.toLowerCase())) {
       return errorResponse(`Art form must be one of: ${VALID_ART_FORMS.join(', ')}`, 400, origin)
@@ -148,8 +179,8 @@ async function submitCustomOrder(
       inquiryId,
       status: 'NEW',
       customerName,
-      customerEmail: body.customerEmail?.toLowerCase().trim() || '',
-      customerPhone: body.customerPhone?.trim() || '',
+      customerEmail: customerEmail.toLowerCase(),
+      customerPhone,
       artForm: body.artForm.toLowerCase(),
       size: body.size || '',
       palette: body.palette || '',
@@ -162,24 +193,24 @@ async function submitCustomOrder(
 
     await createCustomOrder(row)
 
-    // Notify admin about new inquiry
+    // Fan out a WhatsApp notification to every configured studio admin.
+    // notifyStudioAdmins never throws - per-admin errors are isolated and
+    // logged, an empty / unconfigured admin list is a warn-and-continue.
     try {
-      await enqueueNotification({
-        userEmail: 'admin',
-        channel: 'email',
-        templateKey: 'custom_order_new',
-        vars: {
-          customerName: body.customerName,
-          artForm: body.artForm,
-          inquiryId,
-        },
+      const fanout = await notifyStudioAdmins({
+        customerName,
+        customerPhone,
+        context,
       })
+      context.log(
+        `submitCustomOrder: studio-admin fan-out for ${inquiryId} — attempted=${fanout.attempted} succeeded=${fanout.succeeded} failed=${fanout.failed} skipped=${fanout.skipped}`,
+      )
     } catch (notifyErr) {
-      // Non-fatal - admin will see it in the dashboard, but log so we know the queue is unhealthy.
-      context.warn('submitCustomOrder: admin notification enqueue failed (non-fatal)', {
-        inquiryId,
-        error: String(notifyErr),
-      })
+      // Defensive: notifyStudioAdmins is documented as non-throwing, but if
+      // that contract is ever broken we still don't want to fail the submit.
+      context.warn(
+        `submitCustomOrder: unexpected fan-out error for ${inquiryId} (non-fatal): ${String(notifyErr)}`,
+      )
     }
 
     return jsonResponse(

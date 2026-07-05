@@ -70,13 +70,26 @@ export function isEmailConfigured(): boolean {
   return Boolean(process.env.SMTP_USER && process.env.SMTP_PASS)
 }
 
+// Belt-and-braces defence against CRLF-based header injection. Nodemailer
+// already refuses \r/\n in envelope fields, but any customer-controlled
+// value that reaches a header (subject, reply-to, sender name) is stripped
+// here so a compromised upstream can't smuggle new headers.
+// Also strips U+2028 / U+2029 which some parsers accept as line breaks.
+export function stripCrlf(s: string): string {
+  // \x0d \x0a \x09 = CR, LF, TAB. \u2028 \u2029 = Unicode line/para separators.
+  return s.replace(/[\x09\x0a\x0d\u2028\u2029]+/g, ' ').trim()
+}
+
 export async function sendEmail(opts: SendEmailInput): Promise<SendEmailResult> {
   const transporter = getTransporter()
-  const senderName = process.env.SMTP_SENDER_NAME || 'Srilatha Art'
-  const senderEmail =
-    process.env.SMTP_SENDER_EMAIL || process.env.SMTP_USER || CONTACT.email
-  const replyTo =
-    opts.replyTo || process.env.SMTP_REPLY_TO || CONTACT.email
+  const senderName = stripCrlf(process.env.SMTP_SENDER_NAME || 'Srilatha Art')
+  const senderEmail = stripCrlf(
+    process.env.SMTP_SENDER_EMAIL || process.env.SMTP_USER || CONTACT.email,
+  )
+  const replyTo = stripCrlf(
+    opts.replyTo || process.env.SMTP_REPLY_TO || CONTACT.email,
+  )
+  const subject = stripCrlf(opts.subject)
 
   // De-dupe CC against the primary `to` so the studio (or any duplicate)
   // doesn't receive two copies of the same message.
@@ -89,10 +102,10 @@ export async function sendEmail(opts: SendEmailInput): Promise<SendEmailResult> 
 
   const info = await transporter.sendMail({
     from: { name: senderName, address: senderEmail },
-    to: opts.to,
+    to: stripCrlf(opts.to),
     cc,
     replyTo,
-    subject: opts.subject,
+    subject,
     text: opts.text,
     html: opts.html,
     attachments: opts.attachments?.map((a) => ({

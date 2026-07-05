@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { MessageCircle, Mail, ArrowRight, Palette, Ruler, Clock, CheckCircle2, X as XIcon } from 'lucide-react'
+import { MessageCircle, Mail, ArrowRight, Palette, Ruler, Clock, CheckCircle2, UserRound, X as XIcon } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
 import { useUserAuth } from '@/stores/userAuth'
 import PhotoUploader from '@/components/PhotoUploader'
@@ -40,6 +40,17 @@ export default function CustomOrderClient() {
   const user = useUserAuth((s) => s.user)
   const searchParams = useSearchParams()
   const sourceId = searchParams?.get('source') || null
+
+  // Auth + profile gate. Custom-order requests fan out a WhatsApp ping to
+  // studio admins that includes the customer's name + mobile number, so we
+  // insist the profile has both before the form is shown. The backend
+  // enforces the same rule via a 400 { code: 'PROFILE_INCOMPLETE' } — the
+  // frontend gate is UX polish, not the source of truth.
+  const [authGateHydrated, setAuthGateHydrated] = useState(false)
+  useEffect(() => setAuthGateHydrated(true), [])
+  const profileName = user?.name?.trim() || ''
+  const profilePhone = user?.phone?.trim() || ''
+  const profileIncomplete = !profileName || !profilePhone
 
   const [form, setForm] = useState({
     customerName: user?.name || '',
@@ -102,14 +113,17 @@ export default function CustomOrderClient() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((s) => ({ ...s, [k]: e.target.value }))
 
+  const [profileServerBlocked, setProfileServerBlocked] = useState(false)
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setErr('')
-    // Required-field validation - mirror the backend exactly so users see
-    // the issue inline before a round-trip.
-    if (!form.customerName.trim()) { setErr('Please enter your name.'); return }
-    if (!form.customerPhone.trim() && !form.customerEmail.trim()) {
-      setErr('Please share either a phone number or an email so we can reach you.')
+    // Belt-and-braces: the gate above already prevents the form from
+    // rendering when the profile is incomplete, but re-check here so a
+    // signed-in user whose profile was cleared in another tab still
+    // gets the right message instead of a generic backend error.
+    if (profileIncomplete) {
+      setProfileServerBlocked(true)
       return
     }
     if (!form.description.trim()) { setErr('Please describe what you have in mind.'); return }
@@ -136,6 +150,16 @@ export default function CustomOrderClient() {
     } catch (e) {
       if (e instanceof ApiError && e.status === 429) {
         setErr('You’ve sent a few requests already in the last hour. Please try again later or message us on WhatsApp.')
+      } else if (
+        e instanceof ApiError &&
+        e.status === 400 &&
+        e.body &&
+        typeof e.body === 'object' &&
+        (e.body as { code?: string }).code === 'PROFILE_INCOMPLETE'
+      ) {
+        setProfileServerBlocked(true)
+      } else if (e instanceof ApiError && e.status === 401) {
+        setErr('Please sign in to submit a custom order request.')
       } else {
         setErr(e instanceof Error ? e.message : 'Could not submit. Please try again.')
       }
@@ -160,6 +184,26 @@ export default function CustomOrderClient() {
           <Link href="/account" className="btn-outline">Go to my account</Link>
         </div>
       </main>
+    )
+  }
+
+  // Signed-out state: send them to /login with a return URL so they land
+  // back on the form after auth. Wait for hydration so we don't flash the
+  // gate at logged-in users whose store is still rehydrating from
+  // localStorage.
+  if (authGateHydrated && !user) {
+    return <ProfileGate mode="signed_out" />
+  }
+  // Signed-in but profile lacks name or phone → point them at the profile
+  // tab. Same UI is reused if the backend rejects with PROFILE_INCOMPLETE
+  // (see profileServerBlocked).
+  if (authGateHydrated && user && (profileIncomplete || profileServerBlocked)) {
+    return (
+      <ProfileGate
+        mode="profile_incomplete"
+        missingName={!profileName}
+        missingPhone={!profilePhone}
+      />
     )
   }
 
@@ -325,6 +369,68 @@ export default function CustomOrderClient() {
       <p className="text-ivory-soft text-sm text-center mt-8">
         Prefer to browse first? <Link href="/shop" className="text-lavender-pastel hover:underline inline-flex items-center gap-1">See our ready-made pieces <ArrowRight className="w-3.5 h-3.5" aria-hidden /></Link>
       </p>
+    </main>
+  )
+}
+
+function ProfileGate({
+  mode,
+  missingName,
+  missingPhone,
+}: {
+  mode: 'signed_out' | 'profile_incomplete'
+  missingName?: boolean
+  missingPhone?: boolean
+}) {
+  const nextPath = '/custom-order'
+  const isSignedOut = mode === 'signed_out'
+  const missingBoth = missingName && missingPhone
+  const missingLabel = missingBoth
+    ? 'your name and mobile number'
+    : missingName
+      ? 'your name'
+      : 'your mobile number'
+
+  return (
+    <main className="max-w-2xl mx-auto px-5 py-20 lg:py-28 text-center">
+      <div className="w-14 h-14 rounded-full bg-lavender-pastel/15 text-lavender-pastel mx-auto mb-4 flex items-center justify-center">
+        <UserRound className="w-7 h-7" aria-hidden />
+      </div>
+      <p className="eyebrow justify-center mb-3">Custom orders</p>
+      <h1 className="display text-3xl md:text-4xl mb-4">
+        {isSignedOut
+          ? <>Sign in to <em className="italic gold-text">continue</em></>
+          : <>One more <em className="italic gold-text">step</em></>}
+      </h1>
+      <p className="text-ivory-soft text-base mb-8 leading-relaxed">
+        {isSignedOut
+          ? 'Custom order requests are handled personally by our studio, so we need to know how to reach you. Please sign in — or create an account in under a minute — and we\'ll bring you right back here.'
+          : `Please add ${missingLabel} to your profile so we can follow up on your custom order request. It only takes a minute.`}
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        {isSignedOut ? (
+          <>
+            <Link
+              href={`/login?next=${encodeURIComponent(nextPath)}`}
+              className="btn-dark"
+            >
+              Sign in or create account <ArrowRight className="w-4 h-4" aria-hidden />
+            </Link>
+            <Link href="/shop" className="btn-outline">
+              Keep browsing
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link href="/account?tab=profile" className="btn-dark">
+              Update my profile <ArrowRight className="w-4 h-4" aria-hidden />
+            </Link>
+            <Link href="/shop" className="btn-outline">
+              Keep browsing
+            </Link>
+          </>
+        )}
+      </div>
     </main>
   )
 }
