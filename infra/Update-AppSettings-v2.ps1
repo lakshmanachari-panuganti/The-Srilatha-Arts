@@ -13,6 +13,8 @@
       WHATSAPP_PHONE_NUMBER_ID
       WHATSAPP_WABA_ID
       WHATSAPP_WEBHOOK_VERIFY_TOKEN
+      STUDIO_ADMINS_WHATSAPP_GROUP
+      STORE_CONTACT_NUMBER
 
     All parameters are optional, but at least one must be supplied.
 
@@ -44,6 +46,15 @@
 
 .PARAMETER WhatsAppWebhookVerifyToken
     Arbitrary token used to verify the WhatsApp webhook subscription handshake.
+
+.PARAMETER StudioAdminsWhatsAppGroup
+    Comma-separated list of studio admin WhatsApp numbers (E.164 or 10-digit
+    Indian). Every entry receives the admin_notification_v1 template when a
+    new custom order lands. Non-secret.
+
+.PARAMETER StoreContactNumber
+    Customer-facing Call/WhatsApp number injected as {{Store Contact Number}}
+    in every *_v1 transactional template. Non-secret.
 
 .EXAMPLE
     # Update only the SMTP password on DEV
@@ -108,7 +119,18 @@ param(
     [string]$WhatsAppWabaId,
 
     [Parameter(Mandatory = $false)]
-    [string]$WhatsAppWebhookVerifyToken
+    [string]$WhatsAppWebhookVerifyToken,
+
+    [Parameter(Mandatory = $false)]
+    [string]$StudioAdminsWhatsAppGroup,
+
+    [Parameter(Mandatory = $false)]
+    [string]$StoreContactNumber,
+
+    # Skip the interactive PRD confirmation prompt. Required when running
+    # from CI / non-interactive PowerShell sessions. Assume the caller has
+    # verified they intend to touch PRD.
+    [switch]$Force
 )
 
 $ErrorActionPreference = 'Stop'
@@ -158,6 +180,8 @@ if ($PSBoundParameters.ContainsKey('WhatsAppAppSecret')) { $settingsToApply['WHA
 if ($PSBoundParameters.ContainsKey('WhatsAppPhoneNumberId')) { $settingsToApply['WHATSAPP_PHONE_NUMBER_ID'] = $WhatsAppPhoneNumberId.Trim() }
 if ($PSBoundParameters.ContainsKey('WhatsAppWabaId')) { $settingsToApply['WHATSAPP_WABA_ID'] = $WhatsAppWabaId.Trim() }
 if ($PSBoundParameters.ContainsKey('WhatsAppWebhookVerifyToken')) { $settingsToApply['WHATSAPP_WEBHOOK_VERIFY_TOKEN'] = $WhatsAppWebhookVerifyToken }
+if ($PSBoundParameters.ContainsKey('StudioAdminsWhatsAppGroup')) { $settingsToApply['STUDIO_ADMINS_WHATSAPP_GROUP'] = $StudioAdminsWhatsAppGroup.Trim() }
+if ($PSBoundParameters.ContainsKey('StoreContactNumber')) { $settingsToApply['STORE_CONTACT_NUMBER'] = $StoreContactNumber.Trim() }
 
 if ($settingsToApply.Count -eq 0) {
     throw "No settings provided. Supply at least one parameter to update."
@@ -171,8 +195,10 @@ foreach ($entry in $settingsToApply.GetEnumerator()) {
     }
 }
 
-# Safe to display URL; all others are masked.
-$urlSetting = 'INVOICE_LOGO_URL'
+# Safe to display these; all others are masked. Non-secret operator values
+# (contact numbers, admin group) are printed verbatim so the operator can
+# confirm exactly what will be written.
+$displaySettings = @('INVOICE_LOGO_URL', 'STUDIO_ADMINS_WHATSAPP_GROUP', 'STORE_CONTACT_NUMBER')
 
 # ─── 4. Authenticate via service principal ────────────────────────────────
 & "$PSScriptRoot\Azure-Connectivity.ps1"
@@ -202,12 +228,16 @@ Write-Host ''
 
 # ─── 7. PRD gate ───────────────────────────────────────────────────────────
 if ($Environment -eq 'prd') {
-    Write-Host "  ⚠  You are about to update app settings on PRODUCTION." -ForegroundColor Red
-    $prompt = "  Type 'yes' to update '$($envCfg.FunctionAppName)' in subscription '$($ctx.Subscription.Name)'"
-    $prdConfirm = Read-Host $prompt
-    if ($prdConfirm -ne 'yes') {
-        Write-Host "Aborted by operator." -ForegroundColor Yellow
-        exit 0
+    if ($Force) {
+        Write-Host "  ⚠  PRD confirmation bypassed via -Force. Proceeding." -ForegroundColor Yellow
+    } else {
+        Write-Host "  ⚠  You are about to update app settings on PRODUCTION." -ForegroundColor Red
+        $prompt = "  Type 'yes' to update '$($envCfg.FunctionAppName)' in subscription '$($ctx.Subscription.Name)'"
+        $prdConfirm = Read-Host $prompt
+        if ($prdConfirm -ne 'yes') {
+            Write-Host "Aborted by operator." -ForegroundColor Yellow
+            exit 0
+        }
     }
 }
 
@@ -245,7 +275,7 @@ if ($existing) {
     foreach ($s in $existing | Sort-Object name) {
         # `value` can be $null for unresolved Key Vault references - guard with ??.
         $len = ($s.value ?? '').Length
-        if ($s.name -eq $urlSetting) {
+        if ($displaySettings -contains $s.name) {
             Write-Host ("  {0} = {1}  (will overwrite)" -f $s.name, $s.value)
         } else {
             Write-Host ("  {0} = ******** ({1} chars, will overwrite)" -f $s.name, $len)
@@ -323,7 +353,7 @@ Write-Host "OK. $($envCfg.FunctionAppName) now has the following updated setting
 Write-Host ''
 
 foreach ($entry in $settingsToApply.GetEnumerator() | Sort-Object Key) {
-    if ($entry.Key -eq $urlSetting) {
+    if ($displaySettings -contains $entry.Key) {
         Write-Host ("  {0} = {1}" -f $entry.Key, $entry.Value) -ForegroundColor White
     } else {
         Write-Host ("  {0} = ******** ({1} chars)" -f $entry.Key, $entry.Value.Length) -ForegroundColor White
