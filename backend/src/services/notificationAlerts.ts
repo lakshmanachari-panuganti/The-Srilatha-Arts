@@ -1,5 +1,5 @@
 /**
- * Notification alerts — the single surface the admin sees for any
+ * Notification alerts - the single surface the admin sees for any
  * customer-facing communication failure or anomaly.
  *
  * Alerts cover:
@@ -13,20 +13,20 @@
  *      a composite dedup key so repeated failures of the same notification
  *      update the same row (incrementing attempts) instead of flooding.
  *   2. The queue retries. If the retry succeeds, `clearAlert` deletes the
- *      open row — the failure was transient and is no longer actionable.
+ *      open row - the failure was transient and is no longer actionable.
  *   3. If the queue exhausts retries (attempt === maxDequeueCount), the
  *      alert's `isFinal` flips to true. Dashboard renders this in red.
- *   4. Admin acknowledges via `acknowledgeAlert`. Row stays for audit —
+ *   4. Admin acknowledges via `acknowledgeAlert`. Row stays for audit -
  *      `status` flips from 'open' to 'acknowledged' so the dashboard
  *      hides it, but the historical record is preserved.
  *
  * Dedup key:
- *   `${orderId}__${channel}__${operation}` — single row per (order,
+ *   `${orderId}__${channel}__${operation}` - single row per (order,
  *   channel, operation). 'operation' is the templateKey for email/whatsapp,
  *   and a short identifier ('payment_after_cancel', 'invoice_generation')
  *   for the payment/invoice channels.
  *
- * History is NEVER deleted programmatically — acknowledged alerts stay
+ * History is NEVER deleted programmatically - acknowledged alerts stay
  * queryable via `listAlerts({ includeAcknowledged: true })`. Support
  * staff and audit reviewers see the full record.
  */
@@ -104,7 +104,7 @@ export interface RecordAlertInput {
   customerContact?: string
   reason: string
   attempt: number
-  /** When the queue won't retry further — exhausted maxDequeueCount, or
+  /** When the queue won't retry further - exhausted maxDequeueCount, or
    *  the failure is non-retryable (e.g. captured-after-cancel which is
    *  a logic event, not a transient error). */
   isFinal: boolean
@@ -114,7 +114,7 @@ export interface RecordAlertInput {
  * Record a notification failure. Upserts by composite key so repeated
  * failures of the same (order, channel, operation) update one row
  * instead of creating duplicates. Always safe to call from a catch
- * block — failures here are logged but never thrown to callers.
+ * block - failures here are logged but never thrown to callers.
  */
 export async function recordAlert(input: RecordAlertInput): Promise<void> {
   try {
@@ -144,7 +144,7 @@ export async function recordAlert(input: RecordAlertInput): Promise<void> {
       firstFailureAt: existing?.firstFailureAt || now,
       lastFailureAt: now,
       // If the admin acknowledged a previous instance of this alert and a
-      // new failure follows, reopen it — re-acknowledgement should be a
+      // new failure follows, reopen it - re-acknowledgement should be a
       // conscious action, not silent suppression of recurring issues.
       status: 'open',
       acknowledgedAt: existing?.acknowledgedAt,
@@ -155,7 +155,7 @@ export async function recordAlert(input: RecordAlertInput): Promise<void> {
 
     await client.upsertEntity(entity as unknown as { partitionKey: string; rowKey: string }, 'Replace')
   } catch (err) {
-    // Never throw — telemetry must not break business logic.
+    // Never throw - telemetry must not break business logic.
     // eslint-disable-next-line no-console
     console.warn('[notificationAlerts] recordAlert failed', err)
   }
@@ -163,7 +163,7 @@ export async function recordAlert(input: RecordAlertInput): Promise<void> {
 
 /**
  * Delete an alert when the underlying notification eventually succeeds
- * (e.g. queue retry succeeds after early failures). Idempotent — safe
+ * (e.g. queue retry succeeds after early failures). Idempotent - safe
  * to call when no row exists.
  */
 export async function clearAlert(
@@ -216,13 +216,13 @@ export async function listAlerts(opts: ListAlertsOptions = {}): Promise<Notifica
 
 /**
  * Count final-failure alerts whose most recent failure falls in the window.
- * Used by the notifications dashboard's "notification failure rate" stat —
+ * Used by the notifications dashboard's "notification failure rate" stat -
  * the operationally honest count of unique notifications that the customer
  * never received (queue retries exhausted), not the attempt-level count.
  *
  * Final = `isFinal: true`. Acknowledged alerts ARE counted (the customer
  * still didn't receive the message; admin ack just dismisses the row).
- * In-memory filter is fine — alerts table is small (one row per failing
+ * In-memory filter is fine - alerts table is small (one row per failing
  * notification, dedup'd by orderId/channel/operation).
  */
 export async function countFinalAlertsInRange(from?: string, to?: string): Promise<number> {
@@ -237,7 +237,7 @@ export async function countFinalAlertsInRange(from?: string, to?: string): Promi
 }
 
 /**
- * Acknowledge an alert. Row stays in the table for audit — only the
+ * Acknowledge an alert. Row stays in the table for audit - only the
  * status flag changes. Re-failure of the same (order, channel, operation)
  * reopens it.
  */

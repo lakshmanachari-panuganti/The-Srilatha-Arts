@@ -7,7 +7,7 @@
  * hard-coded mock list). Renders nothing when:
  *   - the query is still loading (avoids a flash of placeholder content)
  *   - the studio has no approved reviews yet (no mock testimonials!)
- *   - the query errored (silent fail — better than a broken-looking section)
+ *   - the query errored (silent fail - better than a broken-looking section)
  *
  * The discipline: a luxury studio site can show fewer real reviews and
  * still convert; it cannot show fabricated ones without forfeiting trust.
@@ -34,7 +34,7 @@ interface RecentReviewsResponse {
   total: number
 }
 
-// How many testimonials to render on the homepage. Conservative — we'd
+// How many testimonials to render on the homepage. Conservative - we'd
 // rather show three powerful ones than nine weak ones.
 const HOMEPAGE_LIMIT = 6
 
@@ -47,7 +47,7 @@ export default function Testimonials() {
   })
 
   // Silent skip when there's nothing real to show. The homepage doesn't
-  // need a placeholder section — the rest of the page carries the load.
+  // need a placeholder section - the rest of the page carries the load.
   if (isLoading || isError) return null
   const reviews = data?.reviews ?? []
   if (reviews.length === 0) return null
@@ -159,6 +159,6 @@ function displayName(raw: string): string {
     const local = raw.split('@')[0] || ''
     return local.charAt(0).toUpperCase() + local.slice(1)
   }
-  // First word only — "Priya Sharma" → "Priya"
+  // First word only - "Priya Sharma" → "Priya"
   return raw.split(/\s+/)[0] ?? raw
 }

@@ -21,7 +21,7 @@
  *
  * Template versioning: the Meta template name is looked up from the
  * registry, so rotating a template (e.g. order_crafting → order_crafting_v2)
- * only requires updating the registry's whatsappTemplate field — no changes
+ * only requires updating the registry's whatsappTemplate field - no changes
  * to producers or WA_TEMPLATE_BUILDERS keys.
  *
  * Retry strategy: this handler THROWS on failure so the Azure Functions
@@ -63,7 +63,7 @@ import { recordAlert, clearAlert } from '../services/notificationAlerts'
 import { getStoreContactNumber } from '../services/storeContact'
 
 // Read from host.json:queues.maxDequeueCount. Hard-coded here as a
-// constant — keep in sync if you change it in host.json.
+// constant - keep in sync if you change it in host.json.
 const MAX_DEQUEUE_COUNT = 5
 
 interface QueueMessage {
@@ -152,7 +152,7 @@ async function processNotification(
       return
     }
 
-    // Standard transition emails — registry's emailBuilder + studio CC.
+    // Standard transition emails - registry's emailBuilder + studio CC.
     if (template.emailBuilder) {
       await sendTransitionEmail({
         template,
@@ -217,7 +217,7 @@ async function sendTransitionEmail(input: SendTransitionEmailInput): Promise<voi
       template: templateKey,
       orderId,
     })
-    // Same rationale as sendOrderConfirmationEmail — surface on dashboard
+    // Same rationale as sendOrderConfirmationEmail - surface on dashboard
     // even though we're not throwing for retry. isFinal=true because no
     // queue retry can succeed until the env var is set.
     await recordAlert({
@@ -302,7 +302,7 @@ async function sendTransitionEmail(input: SendTransitionEmailInput): Promise<voi
       messageId: result.messageId,
     })
 
-    // Clear any open alert — transient failure is now resolved.
+    // Clear any open alert - transient failure is now resolved.
     await clearAlert(orderId, 'email', templateKey)
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err)
@@ -391,7 +391,7 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       updatedAt: new Date().toISOString(),
     })
     // Surface on the dashboard. isFinal=true because no queue retry can
-    // recover from a missing env var — operator action is required.
+    // recover from a missing env var - operator action is required.
     await recordAlert({
       orderId,
       channel: 'email',
@@ -478,7 +478,7 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
       updatedAt: now,
     })
 
-    // Clear any open alert for this order/channel/template — retry succeeded,
+    // Clear any open alert for this order/channel/template - retry succeeded,
     // the failure was transient and is no longer actionable.
     await clearAlert(orderId, 'email', 'order_confirmed')
 
@@ -532,7 +532,7 @@ async function sendOrderConfirmationEmail(input: SendEmailInput): Promise<void> 
     })
 
     // Record the failure for the admin dashboard. Upserts by composite
-    // key — repeated retries update one row, don't flood the table.
+    // key - repeated retries update one row, don't flood the table.
     await recordAlert({
       orderId,
       channel: 'email',
@@ -561,7 +561,7 @@ interface WhatsAppTemplateSpec {
 // Map of registry templateKey → builder. Order of bodyVariables MUST match
 // the {{1}}, {{2}}, ... slots in the Meta-Business-Manager template body.
 // The Meta template name itself is resolved from the registry's
-// whatsappTemplate field (see sendWhatsAppTemplate) — this keeps template
+// whatsappTemplate field (see sendWhatsAppTemplate) - this keeps template
 // versioning (order_crafting → order_crafting_v1 → v2) out of producer
 // code.
 //
@@ -661,7 +661,7 @@ const WA_TEMPLATE_BUILDERS: Record<
   },
 
   // order_delivered_v1: {{1}}=customerName, {{2}}=orderId, {{3}}=storeContact.
-  // Customer-explicit delivery confirmation — fires alongside the courier's
+  // Customer-explicit delivery confirmation - fires alongside the courier's
   // own notification so the customer hears it from us too.
   order_delivered: (vars, _order, orderId) => ({
     bodyVariables: [
@@ -768,7 +768,7 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
   const spec = builder ? builder({ ...vars, invoiceUrl: invoiceUrlForBuilder }, order, orderId) : null
   if (!spec) {
     // Builder returned null = required variables missing for this template
-    // (e.g. order_shipped enqueued without tracking/courier). Don't retry —
+    // (e.g. order_shipped enqueued without tracking/courier). Don't retry -
     // this is a producer bug, not a transient failure.
     context.warn(`sendWhatsAppTemplate(${templateKey}): missing required vars for ${orderId} - dropping`)
     await mergeOrder(order.partitionKey as string, orderId, {
@@ -839,7 +839,7 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
       messageId: result.messageId,
     })
 
-    // Transient failure resolved — clear the open alert for this
+    // Transient failure resolved - clear the open alert for this
     // (order, channel, template).
     await clearAlert(orderId, 'whatsapp', templateKey)
   } catch (err) {

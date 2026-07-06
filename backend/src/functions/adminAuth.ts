@@ -72,7 +72,7 @@ export async function adminLogin(
       return errorResponse('Invalid credentials', 401, origin)
     }
 
-    // Success — clear the account lockout counter so the next legitimate
+    // Success - clear the account lockout counter so the next legitimate
     // login after some sporadic failures doesn't get an unexpected 429.
     await resetRateLimit(accountLockKey)
 

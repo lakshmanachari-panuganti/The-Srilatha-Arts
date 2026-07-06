@@ -6,7 +6,7 @@ export default function ProductGrid({ products }: { products: Product[] }) {
     return (
       <div className="px-5 py-20 text-center">
         <p className="font-display text-2xl text-ivory mb-2">No pieces here yet</p>
-        <p className="text-sm text-ivory-mute">Check back soon — Srilatha is at her bench.</p>
+        <p className="text-sm text-ivory-mute">Check back soon - Srilatha is at her bench.</p>
       </div>
     )
   }

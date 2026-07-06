@@ -101,7 +101,7 @@ export async function getProductById(productId: string): Promise<Row | null> {
 // caller updated the row between our read and write the SDK throws with
 // statusCode 412 and we retry up to MAX_RETRIES times. After exhausting
 // retries we throw an InsufficientStockError so the caller can surface
-// a clean message to the user ("Just sold — please refresh").
+// a clean message to the user ("Just sold - please refresh").
 //
 // reserveStock decrements; restoreStock increments. Both are best-effort
 // idempotent on repeated calls only when wrapped in a higher-level
@@ -131,7 +131,7 @@ export class InsufficientStockError extends Error {
 export class StockConcurrencyError extends Error {
   productId: string
   constructor(productId: string) {
-    super(`Stock update for ${productId} failed after ${STOCK_MAX_RETRIES} retries — concurrent updates`)
+    super(`Stock update for ${productId} failed after ${STOCK_MAX_RETRIES} retries - concurrent updates`)
     this.name = 'StockConcurrencyError'
     this.productId = productId
   }
@@ -205,7 +205,7 @@ export async function reserveStock(productId: string, qty: number): Promise<numb
  * Increment stockQty by qty. Used to compensate for a failed payment after
  * a reservation succeeded. Best-effort retry on optimistic-concurrency
  * loss; an extra retry budget vs reserveStock because restoring inventory
- * should rarely fail silently — operational data integrity matters more
+ * should rarely fail silently - operational data integrity matters more
  * than throughput here.
  *
  * Setting inStock=true is unconditional: any successful restore returns
@@ -222,11 +222,11 @@ export async function restoreStock(productId: string, qty: number): Promise<void
     const product = await getProductById(productId)
     if (!product) {
       // Product was deleted between reserve and restore (admin action).
-      // Nothing to restore to — log + drop silently so the caller's
+      // Nothing to restore to - log + drop silently so the caller's
       // compensating loop completes.
       return
     }
-    if (product.stockQty == null) return // unlimited inventory — no-op
+    if (product.stockQty == null) return // unlimited inventory - no-op
 
     const current = Number(product.stockQty)
     const newQty = current + qty
@@ -858,7 +858,7 @@ export async function getEmailLogsForOrder(orderId: string): Promise<Row[]> {
 
 /**
  * Sitewide email-log listing for the admin notifications page. Scans all
- * partitions because emailLog is partitioned by orderId — there's no
+ * partitions because emailLog is partitioned by orderId - there's no
  * natural date partition. At studio volume (~100 orders/month × ~6
  * notifications each = ~600 rows/month) this is fine; revisit when
  * volume grows.
@@ -902,7 +902,7 @@ export async function findWhatsAppMessageByWamid(wamid: string): Promise<Row | n
 
 /**
  * Sitewide WhatsApp-message listing for the admin notifications page.
- * Partitioned by phone — no natural date partition — so we scan with a
+ * Partitioned by phone - no natural date partition - so we scan with a
  * server-side createdAt filter and sort client-side.
  */
 export async function listAllWhatsAppMessages(fromIso?: string, toIso?: string): Promise<Row[]> {

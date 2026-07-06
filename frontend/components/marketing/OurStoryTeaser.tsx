@@ -37,7 +37,7 @@ export default function OurStoryTeaser() {
       className="px-5 lg:px-8 py-14 sm:py-20 lg:py-32 max-w-6xl mx-auto"
     >
       <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-        {/* Editorial art image — full-bleed with a warm scrim */}
+        {/* Editorial art image - full-bleed with a warm scrim */}
         <motion.div
           initial={{ opacity: 0, x: -24 }}
           whileInView={{ opacity: 1, x: 0 }}

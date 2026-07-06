@@ -67,7 +67,7 @@ beforeEach(() => {
   userRedemptions.clear()
 })
 
-describe('evaluateCoupon — invalid states', () => {
+describe('evaluateCoupon - invalid states', () => {
   it('unknown code → INVALID', async () => {
     const r = await evaluateCoupon('NOPE', cart(100000), undefined)
     expect(r.valid).toBe(false)
@@ -135,7 +135,7 @@ describe('evaluateCoupon — invalid states', () => {
   })
 })
 
-describe('evaluateCoupon — discount math (paise/rupee boundary is load-bearing)', () => {
+describe('evaluateCoupon - discount math (paise/rupee boundary is load-bearing)', () => {
   it('PERCENTAGE 10% off ₹1000 subtotal = ₹100 = 10000 paise', async () => {
     coupons.set('OFF10', { rowKey: 'OFF10', active: true, type: 'PERCENTAGE', value: 10 })
     const r = await evaluateCoupon('OFF10', cart(100000), undefined)
@@ -209,7 +209,7 @@ describe('evaluateCoupon — discount math (paise/rupee boundary is load-bearing
   })
 })
 
-describe('evaluateCoupon — normalisation', () => {
+describe('evaluateCoupon - normalisation', () => {
   it('is case-insensitive and trims whitespace', async () => {
     coupons.set('OFF10', { rowKey: 'OFF10', active: true, type: 'PERCENTAGE', value: 10 })
     const r = await evaluateCoupon('  off10  ', cart(100000), undefined)

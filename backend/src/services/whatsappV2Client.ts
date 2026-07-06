@@ -70,7 +70,7 @@ async function v2Fetch<T>(path: string, timeoutMs = 8000): Promise<T | null> {
     if (!resp.ok) return null
     return (await resp.json()) as T
   } catch {
-    // v2 unreachable, not deployed, or Step 5 not done yet — degrade gracefully.
+    // v2 unreachable, not deployed, or Step 5 not done yet - degrade gracefully.
     return null
   }
 }
@@ -173,7 +173,7 @@ function normalizeTimestamp(obj: Raw, keys: string[]): string | undefined {
   return undefined
 }
 
-// Last-resort fallback when none of the named keys hit — scan every field
+// Last-resort fallback when none of the named keys hit - scan every field
 // for a value that parses to a plausible timestamp. Useful when v2 introduces
 // a field name we didn't anticipate (e.g. "sentTime", "Timestamp@odata.type").
 // We score candidates so message-creation fields win over generic update
@@ -199,7 +199,7 @@ function discoverTimestamp(obj: Raw, preferRegex: RegExp): string | undefined {
 function normalizeConversation(raw: Raw): V2Conversation {
   const phone =
     firstString(raw, ['phone', 'partitionKey', 'rowKey', 'contactPhone', 'from']) ?? ''
-  // lastMessageAt powers the inbox sort + "X mins ago" badge — the most
+  // lastMessageAt powers the inbox sort + "X mins ago" badge - the most
   // visible "Invalid Date" symptom. Try canonical names, then scan any field
   // that looks like a recency timestamp.
   const lastMessageAt =
@@ -295,7 +295,7 @@ export async function fetchV2Conversations(): Promise<V2Conversation[] | null> {
 /**
  * Fetch all messages for a phone from v2. Returns null on any failure.
  *
- * v2's purpose-built detail route is /api/conversations/{phone} — same path
+ * v2's purpose-built detail route is /api/conversations/{phone} - same path
  * shape as contactsGet. Tried /messages?phone=… first; that returned 200 with
  * an empty `.messages` array (phone query not supported), which surfaced as
  * "Conversation not found" in the admin UI for v2-only threads.
@@ -316,7 +316,7 @@ export async function fetchV2Messages(phone: string): Promise<V2Message[] | null
  * POST to v2's mark-read endpoint so the centralized inbox no longer
  * shows the thread as unread.
  *
- * Idempotent — calling on a thread that's already at 0 is a no-op. We
+ * Idempotent - calling on a thread that's already at 0 is a no-op. We
  * return a boolean instead of throwing because the admin's "open thread"
  * flow must succeed even when v2 is briefly unreachable; the caller logs
  * and moves on.
@@ -366,7 +366,7 @@ export interface V2SendResult {
  * will reject with an error; we surface it verbatim.
  *
  * Unlike v2Fetch (read paths, swallows errors), this surfaces the failure
- * mode — admin replies are user-initiated and silent failures would be
+ * mode - admin replies are user-initiated and silent failures would be
  * confusing.
  */
 export async function sendV2Message(phone: string, text: string): Promise<V2SendResult> {
@@ -460,7 +460,7 @@ export interface V2ProbeResult {
  * mode rather than swallowing it, so the admin dashboard can show DOWN when
  * the backend cannot read the v2 inbox.
  *
- * `endpoint` is the path actually called — when a route mismatch occurs (e.g.
+ * `endpoint` is the path actually called - when a route mismatch occurs (e.g.
  * `/conversationsList` while v2 exposes `/conversations`), the path shown in
  * the diagnostic tile is the smoking gun the operator needs to see.
  */

@@ -76,7 +76,7 @@ async function listOpenAlerts(
       limit,
     })
 
-    // Bucket counts for dashboard summary — admin sees "2 final, 3 retrying"
+    // Bucket counts for dashboard summary - admin sees "2 final, 3 retrying"
     // at the top of the section without iterating the array client-side.
     const finalCount = alerts.filter((a) => a.isFinal).length
     const retryingCount = alerts.length - finalCount

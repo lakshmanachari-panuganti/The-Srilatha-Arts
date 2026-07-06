@@ -7,7 +7,7 @@
 # PUBLIC-SITE-URL, ...), hyphenated duplicates of the canonical camelCase
 # secret set (JWT-SECRET vs JwtSecret), and test junk (test, TEST-DOT-DELETE)
 # from earlier experiments. Everything the app actually uses lives under the
-# canonical camelCase names — see $canonicalSecrets below.
+# canonical camelCase names - see $canonicalSecrets below.
 #
 # What this script does:
 #   1. Enumerates every enabled secret in the vault.
@@ -16,7 +16,7 @@
 #      Portal surfaces a rotation warning when secrets get old.
 #
 # All deletions go through soft-delete (90-day retention). Purge is NOT
-# performed — with EnablePurgeProtection=true on the vault, a subsequent
+# performed - with EnablePurgeProtection=true on the vault, a subsequent
 # manual purge is not possible until soft-delete expires anyway.
 #
 # Safe operations only. -DryRun by default; pass -Apply to actually
@@ -37,7 +37,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 & "$PSScriptRoot\Azure-Connectivity.ps1"
 
-# Canonical secret names — every current caller in
+# Canonical secret names - every current caller in
 # Deploy-Infrastructure-v2.ps1 references one of these via
 # @Microsoft.KeyVault(...). Anything else is candidate for delete.
 $canonicalSecrets = @(
@@ -80,8 +80,8 @@ if ($Environment -eq 'PRD' -and $Apply) {
 }
 
 $allSecrets = Get-AzKeyVaultSecret -VaultName $envCfg.KeyVault
-$toDelete   = @()
-$toKeep     = @()
+$toDelete = @()
+$toKeep = @()
 foreach ($s in $allSecrets) {
     if ($canonicalSecrets -contains $s.Name) {
         $toKeep += $s
@@ -97,7 +97,7 @@ foreach ($s in ($toKeep | Sort-Object Name)) {
 
 $missing = $canonicalSecrets | Where-Object { $_ -notin ($toKeep | ForEach-Object Name) }
 if ($missing) {
-    Write-Host "`nCanonical secrets MISSING (script will not create — Deploy-Infrastructure-v2.ps1 seeds these):" -ForegroundColor Yellow
+    Write-Host "`nCanonical secrets MISSING (script will not create - Deploy-Infrastructure-v2.ps1 seeds these):" -ForegroundColor Yellow
     foreach ($m in $missing) { Write-Host "  ×  $m" }
 }
 
@@ -109,7 +109,7 @@ foreach ($s in ($toDelete | Sort-Object Name)) {
 }
 
 if (-not $Apply) {
-    Write-Host "`n(no changes made — dry-run; re-run with -Apply to delete + set expiries)`n"
+    Write-Host "`n(no changes made - dry-run; re-run with -Apply to delete + set expiries)`n"
     return
 }
 

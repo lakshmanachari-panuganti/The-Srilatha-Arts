@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * usePinLookup — debounced Indian PIN code → city + state lookup.
+ * usePinLookup - debounced Indian PIN code → city + state lookup.
  *
  * The hook owns three concerns the checkout form would otherwise duplicate:
  *
@@ -10,7 +10,7 @@
  *      requests as they reach the sixth digit.
  *
  *   2. Validation. We only query for exactly-6-digit input. Anything else
- *      resets state silently — no spurious "error" while the customer is
+ *      resets state silently - no spurious "error" while the customer is
  *      mid-typing.
  *
  *   3. Caching + cancellation. A module-level Map de-duplicates lookups
@@ -18,7 +18,7 @@
  *      manual entry, edit form vs. checkout form). AbortController cancels
  *      a stale request when the PIN changes.
  *
- * The hook deliberately does NOT auto-fill form fields itself — the caller
+ * The hook deliberately does NOT auto-fill form fields itself - the caller
  * decides when to apply the resolved `data` to their form state. This keeps
  * the hook composable across the main shipping form, the saved-address
  * edit dialog, and any future surface (cart estimate, custom-order intake).
@@ -71,7 +71,7 @@ export function usePinLookup(pincode: string): PinLookupState {
     const trimmed = pincode.trim()
 
     if (!/^\d{6}$/.test(trimmed)) {
-      // Invalid / incomplete — quiet reset, no error surfaced.
+      // Invalid / incomplete - quiet reset, no error surfaced.
       setState({ loading: false, data: null, error: null })
       return
     }

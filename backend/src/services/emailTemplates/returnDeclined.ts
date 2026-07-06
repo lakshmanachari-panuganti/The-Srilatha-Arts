@@ -1,5 +1,5 @@
 /**
- * return_declined email — sent when the admin rejects a return request.
+ * return_declined email - sent when the admin rejects a return request.
  * Mirrors return_declined_v1 WhatsApp copy: acknowledges the decision,
  * links to the returns policy, and provides the studio contact channel
  * so the customer can escalate if needed.

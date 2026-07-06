@@ -1,5 +1,5 @@
 /**
- * Unit tests for services/rateLimit — behaviour of checkAndIncrement +
+ * Unit tests for services/rateLimit - behaviour of checkAndIncrement +
  * resetRateLimit that guards the per-account admin/user login lockout
  * introduced by security audit H1.
  *
@@ -36,7 +36,7 @@ beforeEach(() => {
   store.clear()
 })
 
-describe('rateLimit — per-account lockout (audit H1)', () => {
+describe('rateLimit - per-account lockout (audit H1)', () => {
   it('lets first N calls through, blocks the N+1', async () => {
     const key = 'login_fail:e@x.io'
     for (let i = 0; i < 3; i++) {
@@ -48,14 +48,14 @@ describe('rateLimit — per-account lockout (audit H1)', () => {
   })
 
   it('locks the account regardless of which IP called (per-account key)', async () => {
-    // The caller uses account (email) in the key, not IP — a distributed
+    // The caller uses account (email) in the key, not IP - a distributed
     // attack that rotates IPs still hits the same lockout counter.
     const email = 'target@example.com'
     for (let i = 0; i < 3; i++) {
       const r = await checkAndIncrement(`login_fail:${email}`, 3, 60_000)
       expect(r.allowed).toBe(true)
     }
-    // Same email, different "IP" — key is per-account so blocked.
+    // Same email, different "IP" - key is per-account so blocked.
     const blocked = await checkAndIncrement(`login_fail:${email}`, 3, 60_000)
     expect(blocked.allowed).toBe(false)
   })

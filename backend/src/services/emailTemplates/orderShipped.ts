@@ -1,5 +1,5 @@
 /**
- * order_shipped email — sent when admin marks the order SHIPPED with
+ * order_shipped email - sent when admin marks the order SHIPPED with
  * tracking + courier (required by state machine). Surfaces tracking
  * prominently so the customer can check the courier's portal.
  */
@@ -25,7 +25,7 @@ export function buildOrderShippedEmail(input: OrderShippedInput): BuiltEmail {
       : '')
 
   return renderEmail({
-    subject: `Your piece is on its way — order ${input.orderId}`,
+    subject: `Your piece is on its way - order ${input.orderId}`,
     preheader: `Shipped via ${input.courier}. Tracking: ${input.tracking}`,
     heading: `${firstName(input.customerName)}, your piece is on the road.`,
     introHtml: `

@@ -394,7 +394,7 @@ function OrderDetail() {
                   {!holdReason.trim() && (
                     <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      Required — customers will receive this reason in their notification.
+                      Required - customers will receive this reason in their notification.
                     </p>
                   )}
                 </div>
@@ -950,23 +950,23 @@ function whatsappStatusInfo(o: AdminOrder): NotificationStatusInfo {
 //
 // Each step renders as its own pill. The "honest split" rule:
 //   - WhatsApp delivery is real (Meta sends webhooks for sent/delivered/read).
-//   - Email delivery is inferred — Gmail SMTP only confirms message-id
+//   - Email delivery is inferred - Gmail SMTP only confirms message-id
 //     acceptance. So the Email "Delivered" pill carries a tooltip
 //     explaining that limitation rather than silently lying.
 //
 // Pill state per step:
-//   ok       — confirmed by the channel's source of truth (green)
-//   failed   — explicitly negative ack (red, "Not Delivered" / "Not Sent")
-//   pending  — handed off but no confirmation yet (amber)
-//   awaiting — earlier step ok, this step still expected (grey, neutral)
-//   inactive — earlier step hasn't happened yet (grey, dim)
+//   ok       - confirmed by the channel's source of truth (green)
+//   failed   - explicitly negative ack (red, "Not Delivered" / "Not Sent")
+//   pending  - handed off but no confirmation yet (amber)
+//   awaiting - earlier step ok, this step still expected (grey, neutral)
+//   inactive - earlier step hasn't happened yet (grey, dim)
 type StepState = 'ok' | 'failed' | 'pending' | 'awaiting' | 'inactive'
 
 interface DeliveryStep {
   state: StepState
   label: string
   at?: string
-  /** Optional hover hint, e.g. "Gmail SMTP doesn't report delivery — inferred from messageId acceptance" */
+  /** Optional hover hint, e.g. "Gmail SMTP doesn't report delivery - inferred from messageId acceptance" */
   hint?: string
 }
 
@@ -979,7 +979,7 @@ interface DeliveryProgression {
 function emailDelivery(o: AdminOrder): DeliveryProgression {
   const s = o.emailStatus
   if (s === 'failed') {
-    // We don't know which step failed (SMTP rejected vs. queue config) — show
+    // We don't know which step failed (SMTP rejected vs. queue config) - show
     // Sent as failed AND Delivered as failed for honesty.
     return {
       tone: 'red',
@@ -1110,7 +1110,7 @@ function StepPill({ step }: { step: DeliveryStep }) {
     step.label,
     step.at ? `at ${step.at}` : undefined,
     step.hint,
-  ].filter(Boolean).join(' — ')
+  ].filter(Boolean).join(' - ')
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-full ring-1 ring-inset ${STEP_PILL_CLASSES[step.state]}`}
@@ -1230,7 +1230,7 @@ function NotificationsPanel({
     <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
       <h2 className="font-serif text-lg text-ink mb-1">Invoice &amp; notifications</h2>
       <p className="text-xs text-ink-mute mb-4">
-        One PDF per order — used by Download, email attachment and WhatsApp.
+        One PDF per order - used by Download, email attachment and WhatsApp.
       </p>
 
       <div className="space-y-3 mb-5">

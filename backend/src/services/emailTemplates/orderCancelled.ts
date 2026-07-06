@@ -1,5 +1,5 @@
 /**
- * order_cancelled email — sent when admin (or the customer-side cancel
+ * order_cancelled email - sent when admin (or the customer-side cancel
  * route) flips the order to CANCELLED. Includes the documented reason so
  * the customer isn't surprised; sets expectations on the refund timeline.
  */

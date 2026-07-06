@@ -185,9 +185,13 @@ describe('buildAuthCookie', () => {
     expect(buildAuthCookie('tok')).not.toContain('SameSite=Lax')
   })
 
-  it('uses 24-hour Max-Age for admin sessions', () => {
+  // Admin sessions are session cookies: no Max-Age → the browser drops the
+  // cookie when the browser closes, forcing a fresh login. The JWT itself
+  // still enforces a 24h server-side ceiling.
+  it('omits Max-Age for admin sessions (session cookie, dies on browser close)', () => {
     const cookie = buildAuthCookie('tok', true)
-    expect(cookie).toContain(`Max-Age=${24 * 60 * 60}`)
+    expect(cookie).not.toContain('Max-Age=')
+    expect(cookie).not.toContain('Expires=')
   })
 
   it('uses 7-day Max-Age for customer sessions (default)', () => {

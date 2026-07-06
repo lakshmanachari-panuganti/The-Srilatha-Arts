@@ -219,7 +219,7 @@ export default function CheckoutClient() {
     }))
   }, [editPinLookup.data, editPinTouched])
 
-  // Reset touch-flags when the form context changes — selecting a different
+  // Reset touch-flags when the form context changes - selecting a different
   // saved address or opening a different edit panel should not be treated
   // as user input on the PIN field.
   useEffect(() => { setPinTouched(false) }, [selectedId])
@@ -1163,13 +1163,13 @@ function PinStatus({
   } else if (state.error === 'not_found') {
     content = (
       <span className="text-amber-600">
-        PIN code not found — please enter city &amp; state manually.
+        PIN code not found - please enter city &amp; state manually.
       </span>
     )
   } else if (state.error === 'unavailable') {
     content = (
       <span className="text-ink-mute">
-        Couldn’t reach lookup service — please enter city &amp; state manually.
+        Couldn’t reach lookup service - please enter city &amp; state manually.
       </span>
     )
   } else if (state.data) {

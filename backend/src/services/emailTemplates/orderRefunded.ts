@@ -1,5 +1,5 @@
 /**
- * order_refunded email — sent after Razorpay confirms the refund. Surfaces
+ * order_refunded email - sent after Razorpay confirms the refund. Surfaces
  * the amount + sets the 5-7 day bank-credit expectation.
  */
 import { renderEmail, type BuiltEmail } from './shared'
@@ -16,7 +16,7 @@ export interface OrderRefundedInput {
 export function buildOrderRefundedEmail(input: OrderRefundedInput): BuiltEmail {
   const amount = input.refundAmount || ''
   return renderEmail({
-    subject: `Refund processed — order ${input.orderId}`,
+    subject: `Refund processed - order ${input.orderId}`,
     preheader: amount
       ? `₹ ${amount} refunded for order ${input.orderId}.`
       : `Refund processed for order ${input.orderId}.`,

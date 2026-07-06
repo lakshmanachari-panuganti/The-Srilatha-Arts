@@ -60,7 +60,7 @@ export default function CustomOrderCTA() {
               </span>
             </h2>
             <p className="mt-5 lg:mt-6 text-ivory-soft text-base lg:text-lg leading-relaxed max-w-2xl mx-auto">
-              Lippan wedding pieces, resin home decor trays, or a handmade gift set for someone special —
+              Lippan wedding pieces, resin home decor trays, or a handmade gift set for someone special -
               share your idea and we will guide you through every step of the handmade process.
             </p>
           </div>

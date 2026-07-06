@@ -59,7 +59,7 @@ interface SendTemplateOptions {
   documentHeader?: { link: string; filename: string }
   /** Optional URL-button parameter. When the template was approved with a
    *  dynamic URL button (e.g. /orders/{{1}}), Meta requires the variable
-   *  to be supplied in the send payload — omitting it fails the send. */
+   *  to be supplied in the send payload - omitting it fails the send. */
   urlButton?: { parameter: string; index?: string }
   /** Optional language override - defaults to WHATSAPP_TEMPLATE_LANGUAGE. */
   languageCode?: string

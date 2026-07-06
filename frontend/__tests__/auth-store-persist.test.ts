@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * Regression tests for security audit C1 — JWTs must NEVER be written to
+ * Regression tests for security audit C1 - JWTs must NEVER be written to
  * localStorage. Both zustand stores use `persist` with a `partialize` that
  * strips the token before serialisation, so an XSS-obtained handle to
  * localStorage can't lift the session.
@@ -9,7 +9,7 @@
 
 // Force a fresh module graph per test so we can observe writes to
 // localStorage cleanly without persist middleware caching between cases.
-describe('auth stores — persist partialize excludes token', () => {
+describe('auth stores - persist partialize excludes token', () => {
   beforeEach(() => {
     jest.resetModules()
     window.localStorage.clear()

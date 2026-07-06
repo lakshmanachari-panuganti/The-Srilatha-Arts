@@ -1,5 +1,5 @@
 /**
- * order_on_hold email — sent when admin pauses the order for any reason
+ * order_on_hold email - sent when admin pauses the order for any reason
  * (stock issue, address verification, payment review). The hold reason
  * is provided by the admin at the moment of transition.
  */

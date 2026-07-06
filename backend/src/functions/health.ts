@@ -5,9 +5,9 @@
  * describing the state of the dependencies the rest of the API relies on.
  *
  * Designed for two readers:
- *   1. Azure Application Insights Availability Tests (the alert path) —
+ *   1. Azure Application Insights Availability Tests (the alert path) -
  *      a single GET every few minutes, expecting HTTP 200 + JSON.
- *   2. Humans + ops scripts (manual diagnosis) — JSON body explains *which*
+ *   2. Humans + ops scripts (manual diagnosis) - JSON body explains *which*
  *      dependency failed when something is yellow.
  *
  * Probes:
@@ -19,11 +19,11 @@
  * Anonymous endpoint. CORS handled via the standard helpers.
  *
  * Status semantics:
- *   "ok"    — every probe passed
- *   "warn"  — non-critical dependency missing (e.g. WhatsApp env unset on dev)
- *   "fail"  — a critical probe failed; HTTP 503 returned
+ *   "ok"    - every probe passed
+ *   "warn"  - non-critical dependency missing (e.g. WhatsApp env unset on dev)
+ *   "fail"  - a critical probe failed; HTTP 503 returned
  *
- * Storage is the only critical dependency — without it nothing else works.
+ * Storage is the only critical dependency - without it nothing else works.
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
@@ -46,7 +46,7 @@ async function probeStorage(): Promise<ProbeResult> {
     return { name: 'storage', ok: false, detail: 'AZURE_STORAGE_ACCOUNT_NAME unset' }
   }
   try {
-    // List tables — cheap, exercises the same auth path everything else uses.
+    // List tables - cheap, exercises the same auth path everything else uses.
     const credential = new DefaultAzureCredential()
     const svc = new TableServiceClient(
       `https://${accountName}.table.core.windows.net`,
@@ -77,7 +77,7 @@ function probeRazorpay(): ProbeResult {
       detail: 'one or more RAZORPAY_* env vars unset',
     }
   }
-  // Razorpay key IDs are `rzp_test_XXX` or `rzp_live_XXX` — flag obvious shape errors.
+  // Razorpay key IDs are `rzp_test_XXX` or `rzp_live_XXX` - flag obvious shape errors.
   if (!/^rzp_(test|live)_[A-Za-z0-9]+$/.test(id)) {
     return { name: 'razorpay', ok: false, detail: 'RAZORPAY_KEY_ID shape unexpected' }
   }

@@ -165,7 +165,7 @@ export default function AdminCustomersPage() {
                     </div>
                     <div className="text-center hidden md:block">
                       <p className="font-medium text-ink">
-                        {cust.lastOrder ? formatDate(cust.lastOrder) : '—'}
+                        {cust.lastOrder ? formatDate(cust.lastOrder) : '-'}
                       </p>
                       <p className="text-xs text-ink-mute">Last order</p>
                     </div>

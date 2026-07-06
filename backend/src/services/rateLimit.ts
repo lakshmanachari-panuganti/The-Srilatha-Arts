@@ -64,6 +64,6 @@ export async function resetRateLimit(key: string): Promise<void> {
   try {
     await deleteRateLimitCounter(key)
   } catch {
-    // Row may already be gone (never created, or cleaned up) — that's fine.
+    // Row may already be gone (never created, or cleaned up) - that's fine.
   }
 }

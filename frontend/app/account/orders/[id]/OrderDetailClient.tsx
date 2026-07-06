@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -188,7 +189,7 @@ export default function OrderDetailClient() {
   }, [id])
 
   useEffect(() => {
-    // Wait for the auth store to rehydrate before deciding what to do —
+    // Wait for the auth store to rehydrate before deciding what to do -
     // otherwise we'd redirect a logged-in customer to /login on every
     // direct page load.
     if (!hydrated) return
@@ -227,7 +228,7 @@ export default function OrderDetailClient() {
         <Link href="/account" className="inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-lavender mb-4">
           <ArrowLeft className="w-4 h-4" /> Back to my orders
         </Link>
-        <div className="card p-6 text-sm text-red-600 bg-red-50 border-red-200">
+        <div className="card p-6 text-sm text-red-400 bg-red-900/30 border border-red-500/30">
           {loadErr || 'Order not found.'}
         </div>
       </main>
@@ -446,7 +447,7 @@ export default function OrderDetailClient() {
                 {canCancel && (
                   <button
                     onClick={() => setShowCancel(true)}
-                    className="w-full text-sm h-10 px-4 rounded-full border border-rose-300 text-rose-700 hover:bg-rose-50 transition-colors"
+                    className="w-full text-sm h-10 px-4 rounded-full border border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
                   >
                     Cancel this order
                   </button>
@@ -454,7 +455,7 @@ export default function OrderDetailClient() {
                 {canReturn && (
                   <button
                     onClick={() => setShowReturn(true)}
-                    className="w-full text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep transition-colors"
+                    className="w-full text-sm h-10 px-4 rounded-full border border-white/15 text-ink-soft hover:text-ink hover:bg-white/10 transition-colors"
                   >
                     Request a return
                   </button>
@@ -495,12 +496,12 @@ export default function OrderDetailClient() {
 
 function StatusPill({ status, paymentStatus }: { status: string; paymentStatus: string }) {
   const cls = status === 'DELIVERED'
-    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    ? 'bg-emerald-900/40 text-emerald-400 border-emerald-500/30'
     : status === 'CANCELLED' || status === 'REFUNDED'
-      ? 'bg-red-50 text-red-700 border-red-200'
+      ? 'bg-red-900/40 text-red-400 border-red-500/30'
       : paymentStatus === 'PENDING'
-        ? 'bg-amber-50 text-amber-700 border-amber-200'
-        : 'bg-cream-deep text-ink border-ink/15'
+        ? 'bg-amber-900/40 text-amber-400 border-amber-500/30'
+        : 'bg-white/5 text-ink-mute border-white/10'
   const label = STATUS_LABEL[status] || status
   return (
     <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-full px-2.5 py-1 ${cls}`}>
@@ -544,9 +545,9 @@ function Banner({
   children: React.ReactNode
 }) {
   const cls =
-    tone === 'amber' ? 'border-amber-200 bg-amber-50 text-amber-900'
-    : tone === 'red' ? 'border-red-200 bg-red-50 text-red-800'
-    : 'border-emerald-200 bg-emerald-50 text-emerald-900'
+    tone === 'amber' ? 'border-amber-500/30 bg-amber-900/30 text-amber-400'
+    : tone === 'red' ? 'border-red-500/30 bg-red-900/30 text-red-400'
+    : 'border-emerald-500/30 bg-emerald-900/30 text-emerald-400'
   const icon = tone === 'emerald' ? CheckCircle2 : AlertCircle
   const Icon = icon
   return (
@@ -568,20 +569,21 @@ function ModalShell({
   onClose: () => void
   children: React.ReactNode
 }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+  return createPortal(
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-cream-deep border border-white/10 rounded-2xl shadow-xl max-w-md w-full p-6 relative max-h-[90dvh] overflow-y-auto">
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-cream-deep flex items-center justify-center"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
         >
           <X className="w-4 h-4" aria-hidden />
         </button>
         <h3 className="font-serif text-xl text-ink mb-4">{title}</h3>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -626,7 +628,7 @@ function CancelModal({
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="w-full h-11 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-4"
+        className="w-full h-11 px-3 rounded-xl border border-white/10 bg-white/5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-4"
       >
         {CANCEL_REASONS.map((r) => (
           <option key={r.code} value={r.code}>{r.label}</option>
@@ -640,9 +642,9 @@ function CancelModal({
         onChange={(e) => setComment(e.target.value)}
         rows={3}
         placeholder="Anything you'd like us to know"
-        className="w-full px-3 py-2 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
+        className="w-full px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
-      {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
+      {err && <p className="text-xs text-red-400 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
         <button
           onClick={onClose}
@@ -721,9 +723,9 @@ function AddressModal({
         <Input placeholder="Pincode" value={form.pincode} onChange={onF('pincode')} />
         <Input placeholder="Country" value={form.country} onChange={onF('country')} />
       </div>
-      {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
+      {err && <p className="text-xs text-red-400 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-full border border-white/15 text-sm text-ink-soft hover:text-ink hover:bg-white/10 transition-colors">
           Cancel
         </button>
         <button
@@ -744,7 +746,7 @@ function Input({
   return (
     <input
       {...rest}
-      className={`h-10 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 ${className || ''}`}
+      className={`h-10 px-3 rounded-xl border border-white/10 bg-white/5 text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 ${className || ''}`}
     />
   )
 }
@@ -788,21 +790,21 @@ function ReturnModal({
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="w-full h-11 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-3"
+        className="w-full h-11 px-3 rounded-xl border border-white/10 bg-white/5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-3"
       >
         {RETURN_REASON_OPTIONS.map((r) => (
           <option key={r.code} value={r.code}>{r.label}</option>
         ))}
       </select>
       <label className="block text-xs text-ink-mute mb-1.5 tracking-wider uppercase">
-        Tell us more {reason === 'other' && <span className="normal-case text-red-600">*</span>}
+        Tell us more {reason === 'other' && <span className="normal-case text-red-400">*</span>}
       </label>
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={3}
         placeholder="Anything that'll help us understand the issue"
-        className="w-full px-3 py-2 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
+        className="w-full px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
       <PhotoUploader
         value={photos}
@@ -811,9 +813,9 @@ function ReturnModal({
         label="Photos (optional)"
         hint="Photos help us resolve damage / wrong-item claims faster."
       />
-      {err && <p className="text-xs text-red-600 mb-3 mt-3">{err}</p>}
+      {err && <p className="text-xs text-red-400 mb-3 mt-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-full border border-white/15 text-sm text-ink-soft hover:text-ink hover:bg-white/10 transition-colors">
           Cancel
         </button>
         <button

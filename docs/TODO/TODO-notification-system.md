@@ -1,4 +1,4 @@
-# Notification system — follow-up TODOs
+# Notification system - follow-up TODOs
 
 Captured from the 2026-06-11 final verification pass on commit `7940854`. None of these are
 production blockers individually; collectively they harden the notification observability
@@ -6,7 +6,7 @@ surface for the next 12 months of scale.
 
 ## Pre-merge to `develop`
 
-### TODO-N1 · Fix the "Failure rate" calculation on the dashboard — **DONE**
+### TODO-N1 · Fix the "Failure rate" calculation on the dashboard - **DONE**
 
 Shipped as part of the same `ai-driven1` branch.
 
@@ -15,9 +15,9 @@ Shipped as part of the same `ai-driven1` branch.
   `failureRate`), plus `uniqueNotifications`, `finalFailures`, and `notificationFailureRate`.
 - `notificationFailureRate` = count of `notificationAlerts` with `isFinal: true` whose
   `lastFailureAt` falls in the window, divided by unique `(orderId, channel, templateKey)`
-  groups in the same window — the operationally honest customer-impact metric.
+  groups in the same window - the operationally honest customer-impact metric.
 - New `countFinalAlertsInRange` helper in `backend/src/services/notificationAlerts.ts`
-  (in-memory filter — alerts table is small, dedup'd by orderId/channel/operation).
+  (in-memory filter - alerts table is small, dedup'd by orderId/channel/operation).
 - Dashboard now has 5 stat cards: Total attempts / Successful / Failed / **Notification
   failure rate** (red >5% threshold lives here) / Attempt failure rate (text-ink-soft,
   informational, subtitle reads "Send infrastructure (retries count)").
@@ -30,7 +30,7 @@ Shipped as part of the same `ai-driven1` branch.
 
 ### TODO-N2 · PII masking on the activity table view
 
-**Severity:** Medium (security hygiene — shoulder-surfing protection)
+**Severity:** Medium (security hygiene - shoulder-surfing protection)
 **Effort:** ~3 hours, frontend only
 **Files:**
 - `frontend/app/admin/notifications/page.tsx` (`ActivityRowItem`)
@@ -40,7 +40,7 @@ Shipped as part of the same `ai-driven1` branch.
 - `r***@gmail.com` for emails (preserve first char + domain)
 - `+91 ****** 1234` for phones (preserve country code + last 4)
 
-Full reveal on the expanded row (click to expand — already implemented).
+Full reveal on the expanded row (click to expand - already implemented).
 
 Add a per-session "Reveal contacts" toggle near the filter bar so an admin doing bulk
 support work can flip it for the session. State stored in localStorage so it persists
@@ -51,7 +51,7 @@ purely a client-side render concern.
 
 ### TODO-N3 · Add channel-level health cards
 
-**Severity:** Low (operational visibility — data already exists in the API)
+**Severity:** Low (operational visibility - data already exists in the API)
 **Effort:** ~1 hour
 **Files:**
 - `frontend/app/admin/notifications/page.tsx` (`StatCards` section)
@@ -97,7 +97,7 @@ full-table scans from a poorly-set custom range. Logs the override use for audit
 
 ### TODO-N6 · Pre-aggregated daily stats table
 
-**Severity:** Low (optimization for >50k notifications/month — not relevant today)
+**Severity:** Low (optimization for >50k notifications/month - not relevant today)
 **Effort:** ~1 day
 
 Nightly timer-triggered Function that writes a daily roll-up to a `notificationStatsDaily`

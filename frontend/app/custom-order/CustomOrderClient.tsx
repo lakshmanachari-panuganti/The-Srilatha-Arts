@@ -44,7 +44,7 @@ export default function CustomOrderClient() {
   // Auth + profile gate. Custom-order requests fan out a WhatsApp ping to
   // studio admins that includes the customer's name + mobile number, so we
   // insist the profile has both before the form is shown. The backend
-  // enforces the same rule via a 400 { code: 'PROFILE_INCOMPLETE' } — the
+  // enforces the same rule via a 400 { code: 'PROFILE_INCOMPLETE' } - the
   // frontend gate is UX polish, not the source of truth.
   const [authGateHydrated, setAuthGateHydrated] = useState(false)
   useEffect(() => setAuthGateHydrated(true), [])
@@ -404,7 +404,7 @@ function ProfileGate({
       </h1>
       <p className="text-ivory-soft text-base mb-8 leading-relaxed">
         {isSignedOut
-          ? 'Custom order requests are handled personally by our studio, so we need to know how to reach you. Please sign in — or create an account in under a minute — and we\'ll bring you right back here.'
+          ? 'Custom order requests are handled personally by our studio, so we need to know how to reach you. Please sign in - or create an account in under a minute - and we\'ll bring you right back here.'
           : `Please add ${missingLabel} to your profile so we can follow up on your custom order request. It only takes a minute.`}
       </p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">

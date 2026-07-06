@@ -1,4 +1,4 @@
-/* Analytics bootstrap — external so CSP script-src can drop 'unsafe-inline'.
+/* Analytics bootstrap - external so CSP script-src can drop 'unsafe-inline'.
  *
  * Loaded from AnalyticsProvider only after the visitor accepts the consent
  * banner. IDs travel on data-* attributes of the loader tag so the same
@@ -8,7 +8,7 @@
  *           data-ga4-id="G-XXX"
  *           data-meta-pixel-id="1234"></script>
  *
- * Either or both may be empty — the file silently skips whichever tag is
+ * Either or both may be empty - the file silently skips whichever tag is
  * unconfigured.
  */
 (function () {
@@ -28,7 +28,7 @@
   }
 
   if (metaId) {
-    // Meta Pixel bootstrap — verbatim from Meta's provided snippet with
+    // Meta Pixel bootstrap - verbatim from Meta's provided snippet with
     // the ID substituted from data-meta-pixel-id.
     /* eslint-disable */
     !function (f, b, e, v, n, t, s) {

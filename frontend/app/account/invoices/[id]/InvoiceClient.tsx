@@ -72,11 +72,11 @@ function statusBadge(paymentStatus: string): { label: string; tone: BadgeTone } 
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
   emerald:
-    'bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200',
+    'bg-emerald-900/40 text-emerald-400 ring-1 ring-inset ring-emerald-500/30',
   amber:
-    'bg-amber-50 text-amber-900 ring-1 ring-inset ring-amber-200',
+    'bg-amber-900/40 text-amber-400 ring-1 ring-inset ring-amber-500/30',
   slate:
-    'bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200',
+    'bg-white/5 text-ink-mute ring-1 ring-inset ring-white/10',
 }
 
 export default function InvoiceClient() {
@@ -158,7 +158,7 @@ export default function InvoiceClient() {
     try {
       const url = order.invoiceUrl || `/invoices/${encodeURIComponent(order.id)}.pdf`
       // The invoice URL is cross-origin (Function App) and the HMAC token
-      // in the query string is the auth — no cookies needed. Including
+      // in the query string is the auth - no cookies needed. Including
       // credentials forces a credentialed CORS check that the PDF endpoint
       // can't satisfy with a wildcard origin echo.
       const res = await fetch(url)
@@ -234,7 +234,7 @@ export default function InvoiceClient() {
         >
           <ArrowLeft className="w-4 h-4" /> Back to my orders
         </Link>
-        <div className="card p-6 text-sm text-red-600 bg-red-50 border-red-200">
+        <div className="card p-6 text-sm text-red-400 bg-red-900/30 border border-red-500/30">
           {loadErr || 'Order not found.'}
         </div>
       </main>
@@ -242,8 +242,8 @@ export default function InvoiceClient() {
   }
 
   // No invoice exists until the payment is actually captured (or the order
-  // is COD). PENDING/FAILED — including orders cancelled before payment
-  // cleared — must not surface an invoice document.
+  // is COD). PENDING/FAILED - including orders cancelled before payment
+  // cleared - must not surface an invoice document.
   {
     const ps = (order.paymentStatus || '').toUpperCase()
     if (ps === 'PENDING' || ps === 'FAILED' || ps === '') {
@@ -297,7 +297,7 @@ export default function InvoiceClient() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+            className="text-sm h-10 px-4 rounded-full border border-white/15 text-ink-soft hover:text-ink hover:bg-white/10 transition-colors inline-flex items-center gap-2"
           >
             <Printer className="w-4 h-4" aria-hidden />
             Print
@@ -318,7 +318,7 @@ export default function InvoiceClient() {
         </div>
       </div>
       {downloadErr && (
-        <div className="invoice-actions mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div className="invoice-actions mb-4 text-sm text-red-400 bg-red-900/30 border border-red-500/30 rounded-lg px-3 py-2">
           {downloadErr}
         </div>
       )}
@@ -615,10 +615,10 @@ export default function InvoiceClient() {
              Outside the sheet, ink/ink-soft/ink-mute stay light for the
              dark site chrome. Tailwind's text-ink / border-ink / divide-ink
              utilities all read these vars, so the whole printed surface
-             flips to readable contrast in one place — no per-element edits. */
-          --text-primary-rgb: 15 23 42;     /* slate-900 — headings, totals */
-          --text-secondary-rgb: 51 65 85;   /* slate-700 — body copy */
-          --text-muted-rgb: 100 116 139;    /* slate-500 — labels, meta */
+             flips to readable contrast in one place - no per-element edits. */
+          --text-primary-rgb: 15 23 42;     /* slate-900 - headings, totals */
+          --text-secondary-rgb: 51 65 85;   /* slate-700 - body copy */
+          --text-muted-rgb: 100 116 139;    /* slate-500 - labels, meta */
         }
         .invoice-trim {
           height: 4px;

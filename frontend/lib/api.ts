@@ -94,6 +94,17 @@ export async function getCsrfToken(): Promise<string | null> {
   return ensureCsrfToken()
 }
 
+/**
+ * Drop the in-memory CSRF cache. Auth stores call this on logout so the
+ * next login starts with a fresh token; apiFetch calls it internally when
+ * a 403 CSRF error signals the cached token has drifted from the browser
+ * cookie (e.g. a second tab re-issued /auth/csrf and overwrote the cookie).
+ */
+export function clearCsrfToken(): void {
+  _cachedCsrfToken = null
+  _csrfFetchInFlight = null
+}
+
 export function getApiBase(): string {
   return API_BASE
 }
@@ -128,26 +139,44 @@ export async function apiFetch<T>(path: string, opts: ApiOptions = {}): Promise<
   }
 
   const upperMethod = (method ?? 'GET').toString().toUpperCase()
-  const csrfHeader: Record<string, string> = {}
-  if (MUTATING_METHODS.has(upperMethod)) {
-    const token = await ensureCsrfToken()
-    if (token) csrfHeader['X-CSRF-Token'] = token
-  }
-
+  const isMutating = MUTATING_METHODS.has(upperMethod)
   const authToken = tokenForPath(path)
 
-  const response = await fetch(url.toString(), {
-    method,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      ...csrfHeader,
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    ...rest,
-  })
+  const send = async (): Promise<Response> => {
+    const csrfHeader: Record<string, string> = {}
+    if (isMutating) {
+      const token = await ensureCsrfToken()
+      if (token) csrfHeader['X-CSRF-Token'] = token
+    }
+    return fetch(url.toString(), {
+      method,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...csrfHeader,
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      ...rest,
+    })
+  }
+
+  let response = await send()
+
+  // Self-heal on stale CSRF: another tab (or an expired/rotated cookie)
+  // can leave the browser's tsa_csrf cookie out of sync with the value
+  // we cached in memory. The backend replies 403 with a "CSRF" message;
+  // drop the cache, refetch /auth/csrf (which sets a fresh cookie), and
+  // retry the request once. Guarded to `isMutating` and a single retry
+  // so a genuinely-broken auth never turns into an infinite loop.
+  if (isMutating && response.status === 403) {
+    const peek = await response.clone().text()
+    if (/csrf/i.test(peek)) {
+      clearCsrfToken()
+      response = await send()
+    }
+  }
 
   const text = await response.text()
   const parsed = text ? safeJson(text) : null

@@ -89,7 +89,7 @@ async function submitCustomOrder(
   const csrfFail = enforceCsrf(request, origin)
   if (csrfFail) return csrfFail
 
-  // Auth gate. Custom-order requests are contact-intent inquiries — we need a
+  // Auth gate. Custom-order requests are contact-intent inquiries - we need a
   // durable way to reach the customer back, which is the profile's job.
   const authed = requireUser(request)
   if (!authed) {
@@ -112,7 +112,7 @@ async function submitCustomOrder(
   const profileName = typeof profile.name === 'string' ? profile.name.trim() : ''
   const profilePhone = typeof profile.phone === 'string' ? profile.phone.trim() : ''
   if (!profileName || !profilePhone) {
-    // Use jsonResponse directly so we can attach a machine-readable code —
+    // Use jsonResponse directly so we can attach a machine-readable code -
     // the frontend keys off `PROFILE_INCOMPLETE` to show the account CTA
     // without pattern-matching on the message text.
     return jsonResponse(
@@ -203,7 +203,7 @@ async function submitCustomOrder(
         context,
       })
       context.log(
-        `submitCustomOrder: studio-admin fan-out for ${inquiryId} — attempted=${fanout.attempted} succeeded=${fanout.succeeded} failed=${fanout.failed} skipped=${fanout.skipped}`,
+        `submitCustomOrder: studio-admin fan-out for ${inquiryId} - attempted=${fanout.attempted} succeeded=${fanout.succeeded} failed=${fanout.failed} skipped=${fanout.skipped}`,
       )
     } catch (notifyErr) {
       // Defensive: notifyStudioAdmins is documented as non-throwing, but if

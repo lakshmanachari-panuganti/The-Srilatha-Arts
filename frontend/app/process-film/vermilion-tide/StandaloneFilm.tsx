@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * StandaloneFilm — the linear-scroll variant of Room 04.
+ * StandaloneFilm - the linear-scroll variant of Room 04.
  *
  * Reuses the shared Process Film data (CHAPTERS, PIECE) but rendered as a
  * simple top-to-bottom page instead of a sticky-stage scroll-bound room.
@@ -11,7 +11,7 @@
  * the homepage room uses.
  *
  * Blueprint chapters render the same typographic placeholder card as the
- * homepage room — same visual language, same upgrade path. The studio's
+ * homepage room - same visual language, same upgrade path. The studio's
  * photography work feeds both surfaces simultaneously.
  */
 
@@ -35,7 +35,7 @@ import { formatINR } from '@/components/marketing/v2/shared/analytics'
 export default function StandaloneFilm() {
   return (
     <main className="relative w-full bg-plum text-ink">
-      {/* Page header — back to studio + film title */}
+      {/* Page header - back to studio + film title */}
       <header className="relative w-full pt-24 lg:pt-32 pb-12 lg:pb-16">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10">
           <Link
@@ -80,7 +80,7 @@ export default function StandaloneFilm() {
                 lineHeight: 1.65,
               }}
             >
-              {TOTAL_HOURS} hours of work, documented in five chapters — concept
+              {TOTAL_HOURS} hours of work, documented in five chapters - concept
               to delivery. A layered resin pour on birch panel, finished with
               24-karat gold leaf. Filmed in the studio, Hyderabad.
             </p>
@@ -99,7 +99,7 @@ export default function StandaloneFilm() {
         />
       </div>
 
-      {/* Chapters — linear sequence */}
+      {/* Chapters - linear sequence */}
       <div className="py-8">
         {CHAPTERS.map((chapter, i) => (
           <StandaloneChapter
@@ -110,7 +110,7 @@ export default function StandaloneFilm() {
         ))}
       </div>
 
-      {/* End Panel — same commerce hook as the homepage room */}
+      {/* End Panel - same commerce hook as the homepage room */}
       <section
         className="relative w-full pt-16 lg:pt-24 pb-20 lg:pb-28"
         style={{ background: 'rgb(var(--surface-sunken-rgb))' }}
@@ -212,7 +212,7 @@ export default function StandaloneFilm() {
 }
 
 // ────────────────────────────────────────────────────────────────────
-// StandaloneChapter — one chapter, linear-scroll, video autoplays on
+// StandaloneChapter - one chapter, linear-scroll, video autoplays on
 // every viewport (including mobile, since visitors opted in here).
 // ────────────────────────────────────────────────────────────────────
 function StandaloneChapter({
@@ -300,7 +300,7 @@ function StandaloneChapter({
                 chapter={chapter}
                 eager={isFirst}
               />
-              {/* Shot caption — pinned to bottom edge */}
+              {/* Shot caption - pinned to bottom edge */}
               <div
                 aria-hidden
                 className="absolute inset-x-0 bottom-0 z-[3] px-5 py-3"
@@ -365,7 +365,7 @@ function StandaloneMedia({
             className="text-[10px] font-semibold uppercase text-ink/55 mb-4"
             style={{ letterSpacing: '0.36em' }}
           >
-            Plate — Chapter {chapter.no}
+            Plate - Chapter {chapter.no}
           </p>
           <h3
             className="font-serif italic text-ink leading-[1.04] text-balance"
@@ -401,7 +401,7 @@ function StandaloneMedia({
       </>
     )
   }
-  // video — autoplay on all viewports here (visitor opted in)
+  // video - autoplay on all viewports here (visitor opted in)
   return (
     <>
       <video

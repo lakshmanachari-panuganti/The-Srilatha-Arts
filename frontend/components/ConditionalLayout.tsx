@@ -34,7 +34,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
 
   // Admin (/admin/announcements) is the single source of truth. The marquee
   // banner only appears when an admin has created at least one announcement
-  // and flipped its `active` toggle on. No static fallbacks — an empty list
+  // and flipped its `active` toggle on. No static fallbacks - an empty list
   // means the banner stays hidden, which is the intentional default state.
   const announcements = (apiData?.announcements ?? []).filter((a) => a.active)
 

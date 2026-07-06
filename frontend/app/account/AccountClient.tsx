@@ -166,7 +166,7 @@ export default function AccountClient() {
           <p className="eyebrow">Account</p>
           <button
             onClick={async () => { await logout(); router.replace('/') }}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-soft hover:text-rose-600 transition-colors px-3 py-1.5 rounded-full border border-ink/10 hover:border-rose-300 hover:bg-rose-50"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-soft hover:text-red-400 transition-colors px-3 py-1.5 rounded-full border border-white/10 hover:border-red-500/40 hover:bg-red-500/10"
           >
             <LogOut className="w-3.5 h-3.5" aria-hidden /> Sign out
           </button>
@@ -276,7 +276,7 @@ function OrdersTab() {
   if (expired) return <SessionExpiredCard />
 
   if (error) {
-    return <div className="card p-6 text-sm text-red-600 bg-red-50 border-red-200">{error}</div>
+    return <div className="card p-6 text-sm text-red-400 bg-red-900/30 border border-red-500/30">{error}</div>
   }
 
   if (orders === null) {
@@ -354,29 +354,29 @@ function OrderCard({
 
       {/* Return / refund context strip - shown only when applicable */}
       {order.status === 'RETURN_REQUESTED' && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-900/30 px-4 py-3 text-sm text-amber-400">
           <p className="font-medium mb-1">Return request submitted</p>
           {order.returnReason && (
-            <p>Reason: <strong>{RETURN_REASON_LABEL[order.returnReason] || order.returnReason}</strong></p>
+            <p>Reason: <strong className="text-amber-300">{RETURN_REASON_LABEL[order.returnReason] || order.returnReason}</strong></p>
           )}
-          {order.returnComment && <p className="mt-1 text-amber-800">&ldquo;{order.returnComment}&rdquo;</p>}
+          {order.returnComment && <p className="mt-1 text-amber-500/80">&ldquo;{order.returnComment}&rdquo;</p>}
           <p className="text-xs mt-2">We&apos;re reviewing your request. We&apos;ll be in touch within 1–2 working days.</p>
         </div>
       )}
       {order.returnDeclineReason && order.status === 'DELIVERED' && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-900/30 px-4 py-3 text-sm text-red-400">
           <p className="font-medium mb-1">Return request was declined</p>
           <p>{order.returnDeclineReason}</p>
           <p className="text-xs mt-2">If you have questions, please <Link href="/contact" className="underline">contact us</Link>.</p>
         </div>
       )}
       {order.status === 'RETURNED' && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-900/30 px-4 py-3 text-sm text-emerald-400">
           Return received. Refund is being processed and will reach you in 5–7 working days.
         </div>
       )}
       {order.status === 'REFUNDED' && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-900/30 px-4 py-3 text-sm text-emerald-400">
           <p className="font-medium">Refunded</p>
           <p className="tabular-nums">
             {order.refundAmount != null
@@ -416,7 +416,7 @@ function OrderCard({
           {canCancel && (
             <button
               onClick={(e) => { e.stopPropagation(); setShowCancel(true) }}
-              className="text-sm h-10 px-4 rounded-full border border-rose-300/70 text-rose-700 hover:bg-rose-50 inline-flex items-center gap-2"
+              className="text-sm h-10 px-4 rounded-full border border-red-500/40 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors inline-flex items-center gap-2"
             >
               <XIcon className="w-4 h-4" aria-hidden />
               Cancel order
@@ -425,7 +425,7 @@ function OrderCard({
           {canReturn && (
             <button
               onClick={(e) => { e.stopPropagation(); setShowReturn(true) }}
-              className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+              className="text-sm h-10 px-4 rounded-full border border-white/15 text-ink-soft hover:text-ink hover:bg-white/10 transition-colors inline-flex items-center gap-2"
             >
               Request a return
             </button>
@@ -469,7 +469,7 @@ function OrderCard({
 // ─── Invoice link ────────────────────────────────────────────
 // Opens the invoice page where the customer can view the invoice on screen
 // and trigger a real PDF download (jsPDF) via the Download button on that
-// page. Hidden whenever payment was never captured (PENDING/FAILED) — that
+// page. Hidden whenever payment was never captured (PENDING/FAILED) - that
 // covers unpaid PLACED orders AND orders cancelled before payment cleared.
 
 function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
@@ -537,11 +537,11 @@ function CancelOrderModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="cancel-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6 max-h-[90dvh] overflow-y-auto"
+        className="w-full max-w-md bg-cream-deep border border-white/10 rounded-2xl shadow-xl p-6 max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="cancel-modal-title" className="font-serif text-2xl text-ink mb-1">Cancel this order?</h2>
@@ -549,7 +549,7 @@ function CancelOrderModal({
           Order <span className="font-medium tabular-nums">{orderId}</span>
         </p>
 
-        <p className="text-xs text-ink-mute bg-cream-deep/70 border border-ink/10 rounded-lg px-3 py-2 mb-5">
+        <p className="text-xs text-ink-mute bg-white/5 border border-white/10 rounded-lg px-3 py-2 mb-5">
           Cancellation is available until we ship the piece. If you’ve already paid, the refund is
           processed back to the original method within 5–7 working days.
         </p>
@@ -563,8 +563,8 @@ function CancelOrderModal({
               key={o.code}
               className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                 reason === o.code
-                  ? 'border-lavender/60 bg-cream-deep/60'
-                  : 'border-ink/10 hover:border-ink/20'
+                  ? 'border-lavender/50 bg-lavender/10'
+                  : 'border-white/10 hover:border-white/20'
               }`}
             >
               <input
@@ -589,12 +589,12 @@ function CancelOrderModal({
           maxLength={500}
           rows={3}
           placeholder="Anything you'd like to tell us (optional)."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+          className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{comment.length}/500</p>
 
         {err && (
-          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 px-3 py-2">{err}</div>
+          <div className="mt-4 rounded-lg bg-red-900/30 border border-red-500/30 text-sm text-red-400 px-3 py-2">{err}</div>
         )}
 
         <div className="flex justify-end gap-2 mt-6">
@@ -602,7 +602,7 @@ function CancelOrderModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
+            className="text-sm h-10 px-4 rounded-full border border-white/15 text-ink-soft hover:text-ink hover:bg-white/10 transition-colors disabled:opacity-60"
           >
             Keep order
           </button>
@@ -671,11 +671,11 @@ function ReturnRequestModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="return-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6 max-h-[90dvh] overflow-y-auto"
+        className="w-full max-w-md bg-cream-deep border border-white/10 rounded-2xl shadow-xl p-6 max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="return-modal-title" className="font-serif text-2xl text-ink mb-1">Request a return</h2>
@@ -692,8 +692,8 @@ function ReturnRequestModal({
               key={o.code}
               className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                 reason === o.code
-                  ? 'border-lavender/60 bg-cream-deep/60'
-                  : 'border-ink/10 hover:border-ink/20'
+                  ? 'border-lavender/50 bg-lavender/10'
+                  : 'border-white/10 hover:border-white/20'
               }`}
             >
               <input
@@ -718,7 +718,7 @@ function ReturnRequestModal({
           maxLength={1000}
           rows={4}
           placeholder="Add any details that help us understand the issue."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+          className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{comment.length}/1000</p>
 
@@ -733,7 +733,7 @@ function ReturnRequestModal({
         </div>
 
         {err && (
-          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 px-3 py-2">{err}</div>
+          <div className="mt-4 rounded-lg bg-red-900/30 border border-red-500/30 text-sm text-red-400 px-3 py-2">{err}</div>
         )}
 
         <div className="flex justify-end gap-2 mt-6">
@@ -741,7 +741,7 @@ function ReturnRequestModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
+            className="text-sm h-10 px-4 rounded-full border border-white/15 text-ink-soft hover:text-ink hover:bg-white/10 transition-colors disabled:opacity-60"
           >
             Cancel
           </button>
@@ -762,12 +762,12 @@ function ReturnRequestModal({
 
 function StatusPill({ status, paymentStatus }: { status: string; paymentStatus: string }) {
   const cls = status === 'DELIVERED'
-    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    ? 'bg-emerald-900/40 text-emerald-400 border-emerald-500/30'
     : status === 'CANCELLED' || status === 'REFUNDED'
-      ? 'bg-red-50 text-red-700 border-red-200'
+      ? 'bg-red-900/40 text-red-400 border-red-500/30'
       : paymentStatus === 'PENDING'
-        ? 'bg-amber-50 text-amber-700 border-amber-200'
-        : 'bg-cream-deep text-ink border-ink/15'
+        ? 'bg-amber-900/40 text-amber-400 border-amber-500/30'
+        : 'bg-white/5 text-ink-mute border-white/10'
   const label = STATUS_LABEL[status] || status
   return (
     <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-full px-2.5 py-1 ${cls}`}>
@@ -875,7 +875,7 @@ function AddressesTab() {
   return (
     <div className="space-y-4">
       {error && (
-        <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div role="alert" className="text-sm text-red-400 bg-red-900/30 border border-red-500/30 rounded-lg px-3 py-2">
           {error}
         </div>
       )}
@@ -903,7 +903,7 @@ function AddressesTab() {
                       {a.label || 'Home'}
                     </span>
                     {a.isDefault && (
-                      <span className="text-[10px] tracking-wider uppercase text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
+                      <span className="text-[10px] tracking-wider uppercase text-emerald-400 bg-emerald-900/40 rounded-full px-2 py-0.5">
                         Default
                       </span>
                     )}
@@ -965,7 +965,7 @@ function AddressesTab() {
             </button>
             <button
               onClick={() => { setAdding(false); setEditingId(null); setForm(emptyAddress()); setError('') }}
-              className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep"
+              className="text-sm h-10 px-4 rounded-full border border-white/15 text-ink-soft hover:text-ink hover:bg-white/10 transition-colors"
             >
               Cancel
             </button>
@@ -1003,7 +1003,7 @@ function AField(props: {
         onChange={(e) => props.onChange(e.target.value)}
         inputMode={props.inputMode}
         maxLength={props.maxLength}
-        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+        className="w-full h-11 px-4 rounded-xl border border-white/10 bg-white/5 text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
       />
     </div>
   )

@@ -1,5 +1,5 @@
 /**
- * Centralised brand contact info — single source of truth for the studio's
+ * Centralised brand contact info - single source of truth for the studio's
  * phone, WhatsApp, email, Instagram, hours and postal address.
  *
  * Backend mirrors this shape at backend/src/config/contact.ts (the frontend
@@ -13,8 +13,8 @@
  * response arrives (or if the request fails entirely). Kept in sync with
  * the current admin-configured values so the visible copy is truthful
  * even when JS or the API is slow; the hook overrides these once the
- * live values load. Security audit C4 — the store must never show a
- * dangling "Free shipping above —".
+ * live values load. Security audit C4 - the store must never show a
+ * dangling "Free shipping above -".
  */
 export const SHIPPING_DEFAULTS = {
   freeThresholdPaise: 200000,      // ₹2,000

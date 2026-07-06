@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * /reviews — public list of approved, verified-buyer reviews.
+ * /reviews - public list of approved, verified-buyer reviews.
  *
  * Pulls from /api/reviews/recent (sitewide approved reviews, ordered by
  * createdAt desc). Empty-state is honest: when there are no real approved

@@ -48,7 +48,7 @@ const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 
 /** True when at least one analytics ID is configured. If both are unset
- *  (dev / pre-launch), we render nothing — no scripts, no banner. The
+ *  (dev / pre-launch), we render nothing - no scripts, no banner. The
  *  visitor doesn't see a popup asking permission to load tracking that
  *  doesn't exist. The moment either env var lands in production, the
  *  banner activates and tracking starts gating behind consent. */
@@ -67,14 +67,14 @@ export default function AnalyticsProvider() {
       else if (stored === 'false') setConsent('rejected')
     } catch {
       // localStorage may be unavailable (private mode, embedded webview).
-      // Treat as unknown — the banner will display and the visitor decides.
+      // Treat as unknown - the banner will display and the visitor decides.
     }
   }, [])
 
   // Pre-launch / dev: no analytics IDs configured → render nothing.
   // The trackEvent shim in v2/shared/analytics.ts already no-ops cleanly
   // when window.dataLayer / window.fbq aren't present, so Studio Vault
-  // CTAs continue to work — they just don't emit attributable events yet.
+  // CTAs continue to work - they just don't emit attributable events yet.
   if (!HAS_ANY_ANALYTICS) return null
 
   const accept = () => {
@@ -86,12 +86,12 @@ export default function AnalyticsProvider() {
     setConsent('rejected')
   }
 
-  // Avoid hydration mismatch — render nothing until we've checked localStorage.
+  // Avoid hydration mismatch - render nothing until we've checked localStorage.
   if (!mounted) return null
 
   return (
     <>
-      {/* GA4 loader script — external, so no inline JS. */}
+      {/* GA4 loader script - external, so no inline JS. */}
       {consent === 'accepted' && GA4_ID && (
         <Script
           id="ga4-loader"
@@ -100,7 +100,7 @@ export default function AnalyticsProvider() {
         />
       )}
 
-      {/* Meta Pixel noscript pixel — no JS, safe under strict CSP. */}
+      {/* Meta Pixel noscript pixel - no JS, safe under strict CSP. */}
       {consent === 'accepted' && META_PIXEL_ID && (
         <noscript>
           <img
@@ -113,7 +113,7 @@ export default function AnalyticsProvider() {
         </noscript>
       )}
 
-      {/* Unified init — external file reads GA4/Meta IDs from data-* attrs
+      {/* Unified init - external file reads GA4/Meta IDs from data-* attrs
           and wires window.dataLayer + window.fbq. Externalising this block
           is what lets us drop 'unsafe-inline' from the CSP script-src
           (security audit C2). */}
@@ -127,7 +127,7 @@ export default function AnalyticsProvider() {
         />
       )}
 
-      {/* Consent banner — shows only when the visitor hasn't decided yet.
+      {/* Consent banner - shows only when the visitor hasn't decided yet.
           Discreet bottom pill, ivory ground + ink text, two buttons. Lives
           above the BottomTabBar so it stays reachable on mobile. */}
       {consent === 'unknown' && (

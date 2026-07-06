@@ -19,7 +19,7 @@
  * Access control: order IDs are timestamps (YYYYMMDDHHMMSSFF) which are
  * guessable, so post-cutover invoices must carry an HMAC token in the
  * `?token=...` query string. The WhatsApp Cloud API fetches the URL
- * from its own network to attach the PDF — the token rides along in
+ * from its own network to attach the PDF - the token rides along in
  * the query string so the URL stays anonymously fetchable without
  * leaking PII via enumeration. Legacy IDs and invoices issued before
  * the cutover (see INVOICE_TOKEN_CUTOVER in services/orderNumber)
@@ -43,7 +43,7 @@ async function downloadInvoice(
   request: HttpRequest,
   context: InvocationContext,
 ): Promise<HttpResponseInit> {
-  // CORS — the PDF is fetched cross-origin from the SWA front-end via the
+  // CORS - the PDF is fetched cross-origin from the SWA front-end via the
   // INVOICE_PUBLIC_URL_BASE (Function App) URL because Free-tier SWA can't
   // proxy /api/* to a linked backend. Without these headers the browser
   // blocks the response and the user sees "Failed to fetch".
@@ -75,7 +75,7 @@ async function downloadInvoice(
     if (!verifyInvoiceToken(name, token)) {
       // 404 (not 401/403) so an attacker brute-forcing IDs cannot
       // distinguish "this ID exists but you don't have the token" from
-      // "this ID does not exist" — same response in both cases.
+      // "this ID does not exist" - same response in both cases.
       return { status: 404, headers: cors, body: 'Invoice not found' }
     }
   }

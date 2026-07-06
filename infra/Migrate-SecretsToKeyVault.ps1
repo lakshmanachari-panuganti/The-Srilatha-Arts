@@ -5,7 +5,7 @@
 #
 # Reads each specified app setting from the target Function App and writes
 # its value to Key Vault under the canonical name. Does NOT touch the app
-# setting itself — Deploy-Infrastructure-v2.ps1 (via its $alwaysOverwrite
+# setting itself - Deploy-Infrastructure-v2.ps1 (via its $alwaysOverwrite
 # block) replaces the inline value with a `@Microsoft.KeyVault(...)` ref
 # on the next run.
 #
@@ -26,7 +26,7 @@ param(
 
     # Overwrite existing KV secrets even if the current value differs.
     # Off by default: existing values (JwtSecret, RazorpayKeyId, etc.)
-    # are preserved — they were seeded via Deploy-Infrastructure-v2.ps1
+    # are preserved - they were seeded via Deploy-Infrastructure-v2.ps1
     # and should not be replaced by inline app settings.
     [switch]$Overwrite,
 
@@ -42,16 +42,16 @@ Set-StrictMode -Version Latest
 # Camel-case KV names match the working set (JwtSecret, CsrfSigningKey,
 # InvoiceSigningKey) that Deploy-Infrastructure-v2.ps1 references today.
 $secretMap = @(
-    @{ App = 'WHATSAPP_ACCESS_TOKEN';                  Kv = 'WhatsappAccessToken' }
-    @{ App = 'WHATSAPP_APP_SECRET';                    Kv = 'WhatsappAppSecret' }
-    @{ App = 'WHATSAPP_WEBHOOK_VERIFY_TOKEN';          Kv = 'WhatsappWebhookVerifyToken' }
-    @{ App = 'WHATSAPP_V2_FUNCTION_KEY';               Kv = 'WhatsappV2FunctionKey' }
-    @{ App = 'RAZORPAY_KEY_ID';                        Kv = 'RazorpayKeyId' }
-    @{ App = 'RAZORPAY_KEY_SECRET';                    Kv = 'RazorpayKeySecret' }
-    @{ App = 'RAZORPAY_WEBHOOK_SECRET';                Kv = 'RazorpayWebhookSecret' }
-    @{ App = 'SMTP_PASS';                              Kv = 'SmtpPass' }
-    @{ App = 'AZURE_OPENAI_API_KEY';                   Kv = 'AzureOpenAIApiKey' }
-    @{ App = 'APPLICATIONINSIGHTS_CONNECTION_STRING';  Kv = 'ApplicationInsightsConnectionString' }
+    @{ App = 'WHATSAPP_ACCESS_TOKEN'; Kv = 'WhatsappAccessToken' }
+    @{ App = 'WHATSAPP_APP_SECRET'; Kv = 'WhatsappAppSecret' }
+    @{ App = 'WHATSAPP_WEBHOOK_VERIFY_TOKEN'; Kv = 'WhatsappWebhookVerifyToken' }
+    @{ App = 'WHATSAPP_V2_FUNCTION_KEY'; Kv = 'WhatsappV2FunctionKey' }
+    @{ App = 'RAZORPAY_KEY_ID'; Kv = 'RazorpayKeyId' }
+    @{ App = 'RAZORPAY_KEY_SECRET'; Kv = 'RazorpayKeySecret' }
+    @{ App = 'RAZORPAY_WEBHOOK_SECRET'; Kv = 'RazorpayWebhookSecret' }
+    @{ App = 'SMTP_PASS'; Kv = 'SmtpPass' }
+    @{ App = 'AZURE_OPENAI_API_KEY'; Kv = 'AzureOpenAIApiKey' }
+    @{ App = 'APPLICATIONINSIGHTS_CONNECTION_STRING'; Kv = 'ApplicationInsightsConnectionString' }
 )
 
 $config = @{
@@ -79,7 +79,7 @@ $migrated = 0; $skipped = 0; $missing = 0
 
 foreach ($item in $secretMap) {
     $appName = $item.App
-    $kvName  = $item.Kv
+    $kvName = $item.Kv
 
     # Read current inline value from the Function App
     $inlineValue = az functionapp config appsettings list `
@@ -129,7 +129,7 @@ foreach ($item in $secretMap) {
         -VaultName $envCfg.KeyVault `
         -Name      $kvName `
         -SecretValue (ConvertTo-SecureString $inlineValue -AsPlainText -Force) `
-        | Out-Null
+    | Out-Null
 
     Write-Host ("  ✓  {0,-45} → KV secret '{1}' written" -f $appName, $kvName) -ForegroundColor Green
     $migrated++

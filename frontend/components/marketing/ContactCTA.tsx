@@ -13,12 +13,12 @@ export default function ContactCTA() {
       transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="px-5 lg:px-8 py-16 sm:py-24 lg:py-32 max-w-7xl mx-auto border-t border-glass-border/30"
     >
-      {/* Deep ink surface — warm espresso so white text is legible */}
+      {/* Deep ink surface - warm espresso so white text is legible */}
       <div
         className="relative overflow-hidden p-8 sm:p-12 lg:p-20 text-center rounded-4xl shadow-editorial"
         style={{ background: 'linear-gradient(135deg, #140E08 0%, #1E1710 40%, #2A1E12 70%, #1A1208 100%)' }}
       >
-        {/* Gold radial shimmer — subtle warmth at the top */}
+        {/* Gold radial shimmer - subtle warmth at the top */}
         <div
           aria-hidden
           className="absolute inset-0 pointer-events-none"
@@ -27,7 +27,7 @@ export default function ContactCTA() {
               'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,150,47,0.22) 0%, transparent 65%)',
           }}
         />
-        {/* Kolam dot grid — barely-visible craft texture */}
+        {/* Kolam dot grid - barely-visible craft texture */}
         <div
           aria-hidden
           className="absolute inset-0 kolam-dots opacity-[0.04] pointer-events-none"

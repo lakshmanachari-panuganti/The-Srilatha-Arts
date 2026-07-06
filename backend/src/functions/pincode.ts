@@ -5,11 +5,11 @@
  * so the checkout form can auto-fill those fields on mobile. Backed by
  * IndiaPost's free public API; proxied through our backend for two reasons:
  *
- *   1. CSP — staticwebapp.config.json's connect-src whitelist intentionally
+ *   1. CSP - staticwebapp.config.json's connect-src whitelist intentionally
  *      doesn't include third-party endpoints. Going through our own API
  *      means no CSP changes and a stable contract if we ever swap providers.
  *
- *   2. Caching — IndiaPost responses are cacheable for hours. We add our
+ *   2. Caching - IndiaPost responses are cacheable for hours. We add our
  *      own 24h Cache-Control so a popular PIN is served from CDN/browser
  *      cache after the first lookup. (Future enhancement: a small Table
  *      Storage cache so we don't hit upstream even on cold starts.)
@@ -19,11 +19,11 @@
  *     state: "Telangana", country: "India" }
  *
  * Failures:
- *   400 — invalid PIN format
- *   404 — PIN not found upstream
- *   502 — upstream IndiaPost API unreachable / malformed
+ *   400 - invalid PIN format
+ *   404 - PIN not found upstream
+ *   502 - upstream IndiaPost API unreachable / malformed
  *
- * The endpoint is anonymous — PIN data is public, no auth needed.
+ * The endpoint is anonymous - PIN data is public, no auth needed.
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
@@ -61,7 +61,7 @@ async function lookupPincode(
     const upstream = await fetch(
       `https://api.postalpincode.in/pincode/${encodeURIComponent(pin)}`,
       {
-        // 4-second timeout via AbortSignal — IndiaPost is usually <500ms
+        // 4-second timeout via AbortSignal - IndiaPost is usually <500ms
         // but during their occasional slow windows we'd rather degrade
         // than hang the customer's checkout.
         signal: AbortSignal.timeout(4000),
@@ -85,7 +85,7 @@ async function lookupPincode(
     const offices = Array.isArray(entry.PostOffice) ? entry.PostOffice : []
     if (entry.Status !== 'Success' || offices.length === 0) {
       // IndiaPost replies 200 + Status: "Error" when the PIN doesn't exist
-      // — surface as 404 to the caller so the form can tell the user.
+      // - surface as 404 to the caller so the form can tell the user.
       return errorResponse('Pincode not found', 404, origin)
     }
 
@@ -103,7 +103,7 @@ async function lookupPincode(
         country: po.Country || 'India',
       },
       200,
-      // 24h — PIN-to-city mappings change so rarely we could cache for
+      // 24h - PIN-to-city mappings change so rarely we could cache for
       // weeks, but 24h is a safe trade-off against the (very rare) PIN
       // boundary change.
       { 'Cache-Control': 'public, max-age=86400' },
@@ -111,7 +111,7 @@ async function lookupPincode(
     )
   } catch (err) {
     // AbortError → timeout. Network error → upstream down. Either way it's
-    // a 502 from our perspective. Don't 500 — that would suggest our
+    // a 502 from our perspective. Don't 500 - that would suggest our
     // service is broken; this is an upstream issue.
     const isAbort = err instanceof Error && err.name === 'AbortError'
     context.warn(

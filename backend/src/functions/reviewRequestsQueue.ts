@@ -118,7 +118,7 @@ async function processReviewRequest(
   })
 
   // If BOTH enqueues failed, throw so the review-requests queue retries
-  // this trigger. If only one failed, log but don't retry — the other
+  // this trigger. If only one failed, log but don't retry - the other
   // channel will deliver.
   if (
     enqueueErrors.length > 0 &&

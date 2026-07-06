@@ -53,5 +53,5 @@ playwright-report/
 # VS Code / Copilot local config
 .claude/
 
-# Azure Functions local settings (contains secrets — never commit)
+# Azure Functions local settings (contains secrets - never commit)
 **/local.settings*.json

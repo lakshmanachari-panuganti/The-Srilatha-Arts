@@ -65,7 +65,7 @@ export function verifyCsrfToken(token: string): boolean {
  * Host-only cookie: no Domain= attribute. The API host (azurewebsites.net)
  * is not a subdomain of the SPA host (srilatha.art), so per RFC 6265 §5.3
  * any Domain= we set is rejected by the browser and the cookie is silently
- * dropped — breaking the double-submit check for every mutating request.
+ * dropped - breaking the double-submit check for every mutating request.
  *
  * Security note: the value carried by this cookie is the *public* CSRF
  * token (not a session). Its only job is to be compared against the

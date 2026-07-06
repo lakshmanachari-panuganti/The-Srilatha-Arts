@@ -1,5 +1,5 @@
 /**
- * Shared email-template utilities — colors, escapers, formatters, and the
+ * Shared email-template utilities - colors, escapers, formatters, and the
  * branded HTML shell used by every transactional template that doesn't
  * carry a full invoice (orderConfirmation.ts has its own layout because
  * it renders a line-item table and the invoice PDF preview).
@@ -49,7 +49,7 @@ export interface EmailLayoutInput {
 }
 
 // ── Brand palette ─────────────────────────────────────────────────
-// Keep aligned with frontend/app/globals.css :root tokens. Inline only —
+// Keep aligned with frontend/app/globals.css :root tokens. Inline only -
 // no external CSS, no <style> blocks in <head> (Gmail strips them).
 export const COLOR = {
   ink: '#221b12',
@@ -94,7 +94,7 @@ export function fmtDate(iso: string): string {
  * Layout is a max-600px centred table with: hidden preheader for the
  * inbox preview pane, an ivory header card with the wordmark, the
  * template's body block, optional detail rows, optional CTA button,
- * and a closing footer paragraph. All inline-styled — survives Gmail,
+ * and a closing footer paragraph. All inline-styled - survives Gmail,
  * Outlook, Apple Mail, and the major mobile clients.
  */
 export function renderEmail(input: EmailLayoutInput): BuiltEmail {
@@ -194,7 +194,7 @@ function renderPlainText(input: EmailLayoutInput): string {
   lines.push('')
   lines.push(stripTags(input.footerHtml))
   lines.push('')
-  lines.push('—')
+  lines.push('-')
   lines.push(`Srilatha Art · ${CONTACT.studioAddress.line1}, ${CONTACT.studioAddress.line2}, ${CONTACT.studioAddress.city} · ${CONTACT.email}`)
   return lines.join('\n')
 }

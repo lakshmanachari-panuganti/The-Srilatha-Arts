@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Atelier — Room 02 of the Studio Vault.
+ * Atelier - Room 02 of the Studio Vault.
  *
  * Not an About page. A scroll-bound, four-chapter emotional pause between
  * the Hero and the Collection Exhibition. Inspiration → Exploration →
@@ -15,7 +15,7 @@
  *   Atelier shoot lands. CHAPTER_IMG paths are at the top of the file
  *   so swapping in the real assets is a one-line change per chapter.
  *   Chapter IV should ultimately be an actual studio portrait of
- *   Srilatha — at that point, drop the file at /public/atelier/portrait.jpg
+ *   Srilatha - at that point, drop the file at /public/atelier/portrait.jpg
  *   and update CHAPTER_IMG[3].
  *
  *   The SIGNATURE_PATH is a stylised approximation of "Srilatha." When the
@@ -51,10 +51,10 @@ const CHAPTERS: readonly Chapter[] = [
     eyebrow: 'Chapter I',
     title: 'Inspiration',
     body:
-      'A doorway in Hyderabad. A line of chalk before dawn. The kolam under bare feet. This is where the work begins — in tradition that was never archived, only walked through.',
+      'A doorway in Hyderabad. A line of chalk before dawn. The kolam under bare feet. This is where the work begins - in tradition that was never archived, only walked through.',
     img: {
       src: '/Slideshow/04-kolam.jpg',
-      alt: 'Inspiration — threshold kolam practice',
+      alt: 'Inspiration - threshold kolam practice',
     },
   },
   {
@@ -65,7 +65,7 @@ const CHAPTERS: readonly Chapter[] = [
       'First paper. Then canvas. Then chalk, then resin, then mirror and clay. Every medium is a question; the studio is where we learn how to listen to the answer.',
     img: {
       src: '/Slideshow/02-dot-mandala.jpg',
-      alt: 'Exploration — dot mandala studies',
+      alt: 'Exploration - dot mandala studies',
     },
   },
   {
@@ -77,7 +77,7 @@ const CHAPTERS: readonly Chapter[] = [
     quote: 'Patience is the medium. Everything else is material.',
     img: {
       src: '/Slideshow/03-lippan.jpg',
-      alt: 'Craftsmanship — lippan in progress',
+      alt: 'Craftsmanship - lippan in progress',
     },
   },
   {
@@ -85,11 +85,11 @@ const CHAPTERS: readonly Chapter[] = [
     eyebrow: 'Chapter IV',
     title: 'Srilatha Art',
     body:
-      'One studio in Hyderabad. One artist. Every piece signed, packed, and shipped from this room. Step into the wings — what hangs there began here.',
+      'One studio in Hyderabad. One artist. Every piece signed, packed, and shipped from this room. Step into the wings - what hangs there began here.',
     img: {
       // TODO: replace with /atelier/portrait.jpg when the studio shoot lands.
       src: '/Slideshow/01-resin.jpg',
-      alt: 'Srilatha at the studio — placeholder',
+      alt: 'Srilatha at the studio - placeholder',
     },
   },
 ] as const
@@ -99,7 +99,7 @@ const CHAPTERS: readonly Chapter[] = [
  * continuous path so Framer Motion's `pathLength` produces a single,
  * elegant draw-in. Replace with the artist's digitised signature later.
  *
- * viewBox 600 × 180 — the SVG scales responsively below.
+ * viewBox 600 × 180 - the SVG scales responsively below.
  */
 const SIGNATURE_PATH =
   'M 24 120 ' +
@@ -147,7 +147,7 @@ const SIGNATURE_PATH =
  *   Chapter i occupies sub-range [i * 0.25 → (i+1) * 0.25].
  *   Opacity ramps 0→1 over the first 30% of its slot, holds, then
  *   ramps 1→0 over the final 30% (overlaps with the next chapter's
- *   ramp-in — the crossfade).
+ *   ramp-in - the crossfade).
  *   Image y-parallax shifts subtly within the slot (±24px).
  *
  * Returning hooks-derived motion values from a helper is fine because
@@ -157,7 +157,7 @@ const SIGNATURE_PATH =
 function useChapterMotion(progress: MotionValue<number>, index: number) {
   const start = index * 0.25
   const end = start + 0.25
-  // Crossfade ramps — each chapter fades IN over its first 30% and OUT
+  // Crossfade ramps - each chapter fades IN over its first 30% and OUT
   // over its last 30%. The first chapter starts fully visible so the
   // room never opens blank; the last chapter never fades out so the
   // visitor lands on the artist.
@@ -172,7 +172,7 @@ function useChapterMotion(progress: MotionValue<number>, index: number) {
     [index === 0 ? 1 : 0, 1, 1, index === CHAPTERS.length - 1 ? 1 : 0],
   )
 
-  // Image subtle parallax — settles down then drifts down through slot.
+  // Image subtle parallax - settles down then drifts down through slot.
   const imageY = useTransform(progress, [start, end], [24, -24])
 
   // Copy enters from below (12px), settles, exits up (-12px).
@@ -196,7 +196,7 @@ export default function Atelier() {
     offset: ['start start', 'end end'],
   })
 
-  // Chapter motion — order matters; one set of hooks per chapter, called
+  // Chapter motion - order matters; one set of hooks per chapter, called
   // unconditionally so the hook count stays stable.
   const c0 = useChapterMotion(scrollYProgress, 0)
   const c1 = useChapterMotion(scrollYProgress, 1)
@@ -204,28 +204,28 @@ export default function Atelier() {
   const c3 = useChapterMotion(scrollYProgress, 3)
   const chapterMotion = [c0, c1, c2, c3]
 
-  // Counter — discrete chapter index 0..3 driven by clamped scroll progress.
+  // Counter - discrete chapter index 0..3 driven by clamped scroll progress.
   const counter = useTransform(scrollYProgress, (p) =>
     Math.min(CHAPTERS.length - 1, Math.max(0, Math.floor(p * CHAPTERS.length))),
   )
 
-  // Signature draw-in — locked to Chapter IV's sub-range. Starts faintly
+  // Signature draw-in - locked to Chapter IV's sub-range. Starts faintly
   // (so the visitor can already see the contour ahead of the stroke) and
   // completes at progress 0.95 so the visitor lands on the finished mark.
   const sigPathLength = useTransform(scrollYProgress, [0.78, 0.95], [0, 1])
   const sigOpacity = useTransform(scrollYProgress, [0.75, 0.82], [0, 1])
 
-  // Progress bar fill width — full bar length follows scroll.
+  // Progress bar fill width - full bar length follows scroll.
   const progressWidth = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
 
   return (
     <section
       ref={ref}
-      aria-label="The Atelier — meet the artist"
+      aria-label="The Atelier - meet the artist"
       className="relative w-full bg-plum"
       style={{ height: '300svh', minHeight: 1800 }}
     >
-      {/* Pinned stage — sticky for the entire scroll arc */}
+      {/* Pinned stage - sticky for the entire scroll arc */}
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
 
         {/* Soft warm directional wash so the B&W stage doesn't read as cold */}
@@ -239,7 +239,7 @@ export default function Atelier() {
           }}
         />
 
-        {/* ── Pinned chrome — sits above the stage layer ─────────── */}
+        {/* ── Pinned chrome - sits above the stage layer ─────────── */}
         {/* Top-left: room title */}
         <div className="absolute top-8 lg:top-10 left-5 sm:left-10 lg:left-16 z-[6] pointer-events-none">
           <div className="flex items-center gap-4">
@@ -248,7 +248,7 @@ export default function Atelier() {
               className="text-[11px] font-semibold uppercase text-ink/70"
               style={{ letterSpacing: '0.32em' }}
             >
-              Room 02 — The Atelier
+              Room 02 - The Atelier
             </span>
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function Atelier() {
           <div className="h-full max-w-[1640px] mx-auto px-5 sm:px-10 lg:px-16 pt-24 lg:pt-32 pb-28 lg:pb-28">
             <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
 
-              {/* LEFT — chapter copy stage (sticky stacked) */}
+              {/* LEFT - chapter copy stage (sticky stacked) */}
               <div className="lg:col-span-5 relative flex flex-col justify-center order-2 lg:order-1 min-h-[36svh] lg:min-h-0">
                 {CHAPTERS.map((chap, i) => (
                   <motion.div
@@ -325,9 +325,9 @@ export default function Atelier() {
                 ))}
               </div>
 
-              {/* RIGHT — visual stage */}
+              {/* RIGHT - visual stage */}
               <div className="lg:col-span-7 relative order-1 lg:order-2 flex items-center justify-center">
-                {/* Stacked chapter visuals — B&W monograph treatment on
+                {/* Stacked chapter visuals - B&W monograph treatment on
                     chapters I–III; Chapter IV ascends to the resin plate. */}
                 <div className="relative w-full max-w-[760px] aspect-[4/5]">
                   {CHAPTERS.map((chap, i) => {
@@ -346,7 +346,7 @@ export default function Atelier() {
                         }`}
                         aria-hidden={i !== 0 || undefined}
                       >
-                        {/* Frame around chapters I–III — printed-monograph
+                        {/* Frame around chapters I–III - printed-monograph
                             thin gold rule, no gloss; the polish is reserved
                             for the artist reveal in chapter IV. */}
                         {!isFinal && (
@@ -361,7 +361,7 @@ export default function Atelier() {
                           className="absolute inset-0 overflow-hidden"
                           style={{
                             // B&W monograph filter on documentary chapters.
-                            // Chapter IV reads in colour — the artist is
+                            // Chapter IV reads in colour - the artist is
                             // present, not archival.
                             filter: isFinal
                               ? 'none'
@@ -373,7 +373,7 @@ export default function Atelier() {
                             alt={chap.img.alt}
                             fill
                             sizes="(min-width: 1024px) 55vw, 100vw"
-                            // All four preload eagerly — the section crossfades
+                            // All four preload eagerly - the section crossfades
                             // through all of them and lazy-loading would risk
                             // pop-in mid-scrub.
                             priority={i === 0}
@@ -382,7 +382,7 @@ export default function Atelier() {
                           />
                         </div>
 
-                        {/* Chapter IV — signature draw-in overlay */}
+                        {/* Chapter IV - signature draw-in overlay */}
                         {isFinal && (
                           <motion.div
                             style={{ opacity: sigOpacity }}
@@ -410,7 +410,7 @@ export default function Atelier() {
                                 vectorEffect="non-scaling-stroke"
                                 opacity={0.6}
                               />
-                              {/* The signature stroke itself — ink ribbon with
+                              {/* The signature stroke itself - ink ribbon with
                                   a hairline gold core for refinement. */}
                               <motion.path
                                 d={SIGNATURE_PATH}
@@ -444,7 +444,7 @@ export default function Atelier() {
                           </motion.div>
                         )}
 
-                        {/* Chapter IV — specular layer on the plate */}
+                        {/* Chapter IV - specular layer on the plate */}
                         {isFinal && <div className="resin-specular" />}
                       </motion.div>
                     )
@@ -469,7 +469,7 @@ export default function Atelier() {
   )
 }
 
-/* ── Tiny presentational helper — renders the active chapter as a
+/* ── Tiny presentational helper - renders the active chapter as a
    roman numeral driven by the discrete counter MotionValue. Lives in
    the same file because it's nowhere else needed. */
 function RomanIndex({ value }: { value: MotionValue<number> }) {

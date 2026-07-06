@@ -67,14 +67,14 @@ export default function AdminDashboardPage() {
         <p className="text-ink-soft text-sm">Welcome back to the Srilatha Art studio dashboard.</p>
       </header>
 
-      {/* System Diagnostics — always renders; surfaces App Settings gaps,
+      {/* System Diagnostics - always renders; surfaces App Settings gaps,
           live SMTP probe, queue depth, and any silent-failure footprint. */}
       <SystemDiagnosticsCard />
 
-      {/* Notification Alerts — only renders when there are open alerts. */}
+      {/* Notification Alerts - only renders when there are open alerts. */}
       <NotificationAlertsCard />
 
-      {/* Custom Order Inbox — highlights newly arrived customer inquiries so
+      {/* Custom Order Inbox - highlights newly arrived customer inquiries so
           they're impossible to miss at a glance. Amber-tinted when there is
           work to do; muted when the inbox is clear. */}
       <CustomOrdersInboxCard />

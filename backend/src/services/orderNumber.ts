@@ -51,8 +51,8 @@ function getInvoiceSigningKey(): string | null {
  *
  * Set to a moment safely after the deploy window: 2026-06-08 00:00:00 IST.
  * Orders placed at or after this instant are required to carry a valid
- * token. Anything older — and any non-16-digit legacy ID (TSA-YYYY-HEX
- * format from before the migration) — bypasses the check.
+ * token. Anything older - and any non-16-digit legacy ID (TSA-YYYY-HEX
+ * format from before the migration) - bypasses the check.
  */
 export const INVOICE_TOKEN_CUTOVER = '20260608000000' + '00'
 
@@ -71,7 +71,7 @@ export function invoiceRequiresToken(invoiceNumber: string): boolean {
  * matches the security level of the CSRF token; full SHA-256 would be
  * 64 hex chars which is overkill in a URL.
  *
- * Returns null when the signing key isn't configured — callers should
+ * Returns null when the signing key isn't configured - callers should
  * treat that as "skip token generation" (URL stays unsigned). The
  * download handler refuses to validate against a missing key, so an
  * unsigned URL is rejected for any post-cutover invoice in prd.
@@ -166,11 +166,11 @@ export async function generateOrderNumber(now: Date = new Date()): Promise<strin
  *
  * Two modes, in priority order:
  *
- *   1. INVOICE_PUBLIC_URL_BASE (preferred when set) — the URL is
+ *   1. INVOICE_PUBLIC_URL_BASE (preferred when set) - the URL is
  *      `${INVOICE_PUBLIC_URL_BASE}/{orderNumber}.pdf`. Point this at
  *      the Function App's `/api/invoices` route to bypass any
  *      intermediate proxy. Required when the SWA in front of
- *      PUBLIC_SITE_URL is on the Free tier — Free SWA cannot proxy
+ *      PUBLIC_SITE_URL is on the Free tier - Free SWA cannot proxy
  *      `/api/*` to a linked backend, so the `${PUBLIC_SITE_URL}/invoices/{id}.pdf`
  *      path silently falls through to the SPA's navigationFallback
  *      and returns 200 + text/html. WhatsApp Cloud then caches that

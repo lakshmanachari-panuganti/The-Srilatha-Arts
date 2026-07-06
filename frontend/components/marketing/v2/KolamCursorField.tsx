@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * KolamCursorField — signature interactive backdrop.
+ * KolamCursorField - signature interactive backdrop.
  *
  * A living dot-lace pattern rooted in South Indian kolam tradition.
  * The cursor "draws" gold light through it: nearby dots wake up, trace
@@ -13,8 +13,8 @@
  * Design intent:
  *   - Use the visual language of the craft (dot grid + connecting lines)
  *     as interaction, not generic particles. This is the wow moment.
- *   - Run inside the existing ivory/ink/gold palette — gold leaf on dark
- *     scrim — so it composes against any room background.
+ *   - Run inside the existing ivory/ink/gold palette - gold leaf on dark
+ *     scrim - so it composes against any room background.
  *   - Stay cheap: Canvas2D, single rAF, intersection-paused, DPR-aware,
  *     prefers-reduced-motion freezes to a static dot grid.
  *
@@ -31,7 +31,7 @@ interface KolamCursorFieldProps {
   interactionRadius?: number
   /** Base dot colour (rgba string). */
   dotColor?: string
-  /** Cursor-active dot / line colour (rgba string — alpha is animated). */
+  /** Cursor-active dot / line colour (rgba string - alpha is animated). */
   goldColor?: string
   /** Optional className for the wrapper. */
   className?: string
@@ -67,7 +67,7 @@ export default function KolamCursorField({
     const ctxNullable = canvasNullable.getContext('2d', { alpha: true })
     if (!ctxNullable) return
 
-    // Rebind to non-null locals — TS strict won't propagate the early-return
+    // Rebind to non-null locals - TS strict won't propagate the early-return
     // narrowing into the nested rAF / event-handler closures defined below.
     const canvas = canvasNullable
     const wrapper = wrapperNullable
@@ -77,7 +77,7 @@ export default function KolamCursorField({
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
     // Pointer state lives in refs (not React state) so updates don't trigger
-    // re-renders — the animation loop reads them directly each frame.
+    // re-renders - the animation loop reads them directly each frame.
     const pointer = { x: -9999, y: -9999, active: false }
     const particles: Particle[] = []
     let dots: { x: number; y: number; phase: number }[] = []
@@ -98,7 +98,7 @@ export default function KolamCursorField({
       canvas.style.height = `${height}px`
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-      // Centered grid — inset by half a cell so the pattern doesn't clip
+      // Centered grid - inset by half a cell so the pattern doesn't clip
       // at the edges.
       const cols = Math.ceil(width / density) + 2
       const rows = Math.ceil(height / density) + 2
@@ -140,7 +140,7 @@ export default function KolamCursorField({
           x,
           y,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 0.2, // bias upward — feels like dust
+          vy: Math.sin(angle) * speed - 0.2, // bias upward - feels like dust
           life: 0,
           maxLife: 900 + Math.random() * 700,
         })
@@ -160,7 +160,7 @@ export default function KolamCursorField({
         lastSpawnAt = now
       }
 
-      // Pass 1 — dots. Compute proximity-driven brightness; if active,
+      // Pass 1 - dots. Compute proximity-driven brightness; if active,
       // also draw connecting strokes to neighbours within range.
       const r2 = interactionRadius * interactionRadius
       ctx.lineWidth = 0.75
@@ -171,7 +171,7 @@ export default function KolamCursorField({
         const dy = d.y - pointer.y
         const dist2 = dx * dx + dy * dy
 
-        // Idle breathing — tiny radius oscillation, very subtle.
+        // Idle breathing - tiny radius oscillation, very subtle.
         const breathe = 0.85 + 0.15 * Math.sin(now * 0.0008 + d.phase)
         let radius = 0.9 * breathe
         let useGold = false
@@ -182,7 +182,7 @@ export default function KolamCursorField({
           radius = 0.9 + eased * 2.6
           useGold = true
 
-          // Connect to a few neighbours — limit to N to bound work.
+          // Connect to a few neighbours - limit to N to bound work.
           // Strong only for very-near dots, fades with distance.
           if (eased > 0.3) {
             for (let j = i + 1; j < Math.min(i + 6, dots.length); j++) {
@@ -211,7 +211,7 @@ export default function KolamCursorField({
         ctx.fill()
       }
 
-      // Pass 2 — dust particles. Simple integrator + fade.
+      // Pass 2 - dust particles. Simple integrator + fade.
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i]!
         p.life += dt
@@ -219,7 +219,7 @@ export default function KolamCursorField({
           particles.splice(i, 1)
           continue
         }
-        // Gentle viscous decay — gold dust on a still day.
+        // Gentle viscous decay - gold dust on a still day.
         p.x += p.vx * (dt / 16)
         p.y += p.vy * (dt / 16)
         p.vx *= 0.985
@@ -240,7 +240,7 @@ export default function KolamCursorField({
     rebuildGrid()
 
     if (reduceMotion) {
-      // Render the dot grid once, static — no rAF, no listeners.
+      // Render the dot grid once, static - no rAF, no listeners.
       ctx.clearRect(0, 0, width, height)
       ctx.fillStyle = dotColor
       for (const d of dots) {
@@ -252,14 +252,14 @@ export default function KolamCursorField({
     }
 
     // Pointer listeners on the wrapper so the field only reacts within
-    // its section — not when the user is interacting elsewhere on the page.
+    // its section - not when the user is interacting elsewhere on the page.
     wrapper.addEventListener('pointermove', onPointerMove, { passive: true })
     wrapper.addEventListener('pointerleave', onPointerLeave, { passive: true })
 
     const resizeObs = new ResizeObserver(() => rebuildGrid())
     resizeObs.observe(wrapper)
 
-    // Pause the animation loop while the section is off-screen — avoids
+    // Pause the animation loop while the section is off-screen - avoids
     // burning paint budget when the user has scrolled past.
     const intersectObs = new IntersectionObserver(
       (entries) => {

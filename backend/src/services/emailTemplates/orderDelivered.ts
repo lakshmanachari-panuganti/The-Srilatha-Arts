@@ -1,5 +1,5 @@
 /**
- * order_delivered email — sent when admin marks the order DELIVERED.
+ * order_delivered email - sent when admin marks the order DELIVERED.
  * Customer-explicit confirmation rather than relying solely on the
  * courier's own message. Sets up the 72h review-request that the same
  * transition schedules on the queue side.
@@ -16,7 +16,7 @@ export function buildOrderDeliveredEmail(input: OrderDeliveredInput): BuiltEmail
   const site = (input.siteUrl || 'https://www.srilatha.art').replace(/\/+$/, '')
 
   return renderEmail({
-    subject: `Your piece has arrived — order ${input.orderId}`,
+    subject: `Your piece has arrived - order ${input.orderId}`,
     preheader: `Order ${input.orderId} marked delivered. We hope you love it.`,
     heading: `${firstName(input.customerName)}, your piece has arrived.`,
     introHtml: `

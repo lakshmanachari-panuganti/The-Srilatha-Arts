@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * SystemDiagnosticsCard — single surface that exposes every configuration
+ * SystemDiagnosticsCard - single surface that exposes every configuration
  * gap, runtime probe failure, and recent error across the order workflow.
  *
  * Read-only operational view. No actions taken; intent is to surface root

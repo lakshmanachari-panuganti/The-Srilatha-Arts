@@ -1,13 +1,21 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Package, ShoppingBag, LayoutDashboard, Tag, MessageSquare,
   Ticket, Image as ImageIcon, Settings, LogOut, Layers, FolderOpen,
-  Users, BarChart3, Archive, MessageCircle,
+  Users, BarChart3, Archive, MessageCircle, Clock,
 } from 'lucide-react'
 import { useAdminAuth } from '@/stores/adminAuth'
+import { useIdleTimeout } from '@/hooks/useIdleTimeout'
+
+// Auto-signout policy for the admin surface:
+//   - 10 minutes of inactivity → auto sign out
+//   - Warning modal appears 60 seconds before, so a burst of activity
+//     can extend the session mid-form without silent kick-outs
+const IDLE_MS = 10 * 60 * 1000
+const WARN_BEFORE_MS = 60 * 1000
 
 const navItems = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -54,6 +62,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!user) router.replace('/admin/login')
   }, [hydrated, isLoginRoute, user, router])
 
+  const handleLogout = useCallback(() => {
+    logout()
+    router.replace('/admin/login')
+  }, [logout, router])
+
+  // Idle auto-signout: 10-minute inactivity timer with a 60s warning modal.
+  // Hooks must run unconditionally, so we always call useIdleTimeout and
+  // gate its behavior on `enabled`. The timer is disabled on the login
+  // route and until Zustand has hydrated so we don't count time while
+  // there is no session to protect.
+  const idleEnabled = hydrated && !!user && !isLoginRoute
+  const { warning, secondsLeft, reset } = useIdleTimeout({
+    idleMs: IDLE_MS,
+    warnBeforeMs: WARN_BEFORE_MS,
+    enabled: idleEnabled,
+    onTimeout: handleLogout,
+  })
+
   // Do not show the sidebar on the login page
   if (isLoginRoute) {
     return <>{children}</>
@@ -68,11 +94,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
     )
-  }
-
-  const handleLogout = () => {
-    logout()
-    router.replace('/admin/login')
   }
 
   return (
@@ -196,6 +217,52 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </div>
       </main>
+
+      {/* Idle-timeout warning. Modal blocks page interaction so the admin
+          has to make an explicit choice: keep working (reset) or sign out.
+          We intentionally don't auto-dismiss on outside click - one
+          missed click could hand a session to whoever walks by. */}
+      {warning && (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="idle-warn-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-sm px-4"
+        >
+          <div className="w-full max-w-sm bg-plum-light border border-ink/10 rounded-2xl shadow-xl p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/15 ring-1 ring-inset ring-amber-500/30 flex items-center justify-center shrink-0">
+                <Clock className="w-5 h-5 text-amber-300" aria-hidden />
+              </div>
+              <h2 id="idle-warn-title" className="font-serif text-lg text-ink">
+                Still there?
+              </h2>
+            </div>
+            <p className="text-sm text-ink-soft mb-5">
+              You&apos;ll be signed out in{' '}
+              <span className="tabular-nums font-semibold text-ink">{secondsLeft}s</span>{' '}
+              due to inactivity.
+            </p>
+            <div className="flex flex-col-reverse sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex-1 h-10 rounded-lg border border-ink/15 text-sm text-ink-soft hover:text-ink hover:bg-white/5 transition-colors"
+              >
+                Sign out now
+              </button>
+              <button
+                type="button"
+                onClick={reset}
+                autoFocus
+                className="flex-1 h-10 rounded-lg bg-blue text-white text-sm font-medium hover:bg-blue/90 transition-colors"
+              >
+                Stay signed in
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

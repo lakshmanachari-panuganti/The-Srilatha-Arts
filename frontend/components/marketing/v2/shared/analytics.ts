@@ -1,19 +1,19 @@
 'use client'
 
 /**
- * v2 analytics shim — shared across exhibition rooms.
+ * v2 analytics shim - shared across exhibition rooms.
  *
  * Pushes typed events into window.dataLayer (GA4) and, when window.fbq
  * is present, into Meta Pixel. No-op if neither is wired so the rooms
  * remain measurable from day one and "wake up" the moment either tag is
- * installed in app/layout.tsx — no per-room change needed.
+ * installed in app/layout.tsx - no per-room change needed.
  *
  * Add a new room here:
  *   1. Add its source to AnalyticsSource
  *   2. Add any room-specific events to TrackEvent
  *   3. Map to the closest Meta standard event in META_MAP if useful
  *
- * The narrow `source` typing prevents drift — every room declares which
+ * The narrow `source` typing prevents drift - every room declares which
  * source it identifies as, and GA4 / our admin reporting can attribute
  * conversion back to the originating room cleanly.
  */
@@ -65,7 +65,7 @@ export function trackEvent(evt: TrackEvent): void {
   }
 }
 
-/** Indian currency formatter — proper lakh comma grouping (₹ 1,50,000). */
+/** Indian currency formatter - proper lakh comma grouping (₹ 1,50,000). */
 export function formatINR(amount: number): string {
   const f = new Intl.NumberFormat('en-IN', {
     style: 'currency',

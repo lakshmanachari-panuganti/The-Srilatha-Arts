@@ -2,16 +2,16 @@
  * Extract the true client IP from an Azure Functions HTTP request.
  *
  * Precedence:
- *   1. x-azure-clientip  — set by the Azure App Service front end. This
+ *   1. x-azure-clientip  - set by the Azure App Service front end. This
  *      header is overwritten by the platform on every request, so a
  *      caller cannot spoof it.
- *   2. Rightmost entry of x-forwarded-for — the entry the Azure proxy
+ *   2. Rightmost entry of x-forwarded-for - the entry the Azure proxy
  *      appended after any caller-supplied chain. Reading [0] (leftmost)
  *      is spoofable: a caller can prepend any value and the proxy will
  *      simply append the real IP to the right.
- *   3. x-real-ip — fallback for environments that surface only this
+ *   3. x-real-ip - fallback for environments that surface only this
  *      header (e.g. local nginx in front of the func host).
- *   4. 'unknown' — keeps rate-limit keys stable when no IP is available.
+ *   4. 'unknown' - keeps rate-limit keys stable when no IP is available.
  *
  * Used by all auth endpoints to key the rate limiter. Getting this
  * wrong turns the rate limit into a no-op (every spoofed request looks

@@ -8,16 +8,16 @@
  * This helper wraps the `applicationinsights` SDK with three concerns
  * the rest of the codebase actually cares about:
  *
- *   - trackEvent(name, props)   — custom business events (payment captured,
+ *   - trackEvent(name, props)   - custom business events (payment captured,
  *                                  webhook signature failed, notification
  *                                  send failed). Surface in App Insights →
  *                                  Logs as `customEvents` table.
  *
- *   - trackException(err, props) — caught exceptions we want investigatable.
+ *   - trackException(err, props) - caught exceptions we want investigatable.
  *                                  Appears in Logs `exceptions` table with
  *                                  the stack trace + custom dimensions.
  *
- *   - trackMetric(name, value)   — scalar measurements (queue depth, refund
+ *   - trackMetric(name, value)   - scalar measurements (queue depth, refund
  *                                  amount, etc.). Surface in `customMetrics`.
  *
  * No-ops when APPLICATIONINSIGHTS_CONNECTION_STRING is unset (local dev).
@@ -25,7 +25,7 @@
  *
  * Initialisation is lazy + idempotent: first import wires the SDK; subsequent
  * imports re-use the already-initialised client. We deliberately do NOT call
- * `setup().start()` of the Functions auto-collection here — Azure Functions
+ * `setup().start()` of the Functions auto-collection here - Azure Functions
  * runtime already collects request telemetry; what we add are *custom*
  * dimensions and business events.
  */
@@ -41,7 +41,7 @@ function init(): void {
   initialised = true
   const conn = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING
   if (!conn) {
-    // No connection string in this environment — telemetry calls become no-ops.
+    // No connection string in this environment - telemetry calls become no-ops.
     return
   }
   try {
@@ -73,7 +73,7 @@ function init(): void {
     }
   } catch (err) {
     // Don't let telemetry init break the function. Worst case is silent
-    // observability — better than a 500 on the customer.
+    // observability - better than a 500 on the customer.
     // eslint-disable-next-line no-console
     console.warn('[telemetry] init failed', err)
   }

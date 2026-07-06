@@ -53,7 +53,7 @@ describe('sendEmail - CRLF header injection defence', () => {
       text: 'hi',
     })
     const msg = sent[0]
-    // The injected CRLF is gone — SMTP can no longer be tricked into
+    // The injected CRLF is gone - SMTP can no longer be tricked into
     // reading "Bcc: …" as a new header. The literal substring "Bcc:"
     // may remain in the subject text; that's harmless once CRLF is gone.
     expect(String(msg.subject)).not.toMatch(/[\r\n]/)

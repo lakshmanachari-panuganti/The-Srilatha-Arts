@@ -3,7 +3,7 @@
  * Build-time image optimisation.
  *
  * Runs as `prebuild` so the export in `out/` always has the latest variants.
- * Idempotent — skips outputs that exist and are newer than the source.
+ * Idempotent - skips outputs that exist and are newer than the source.
  *
  * Produces:
  *   1. Logo derivatives from public/Logos/logo.png
@@ -15,7 +15,7 @@
  *      public/Slideshow/ (kept alongside the .jpg so a <picture> element
  *      can pick the smaller variant when supported).
  *
- * No AVIF — generation is 5–10x slower than WebP for ~10% extra size win,
+ * No AVIF - generation is 5–10x slower than WebP for ~10% extra size win,
  * and on a single-studio shop the build-time cost outweighs the byte
  * savings. Revisit if image bytes become a bottleneck.
  */
@@ -29,7 +29,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const PUBLIC = path.resolve(__dirname, '..', 'public')
 
-// Brand cream-deep background — matches --paper in globals.css.
+// Brand cream-deep background - matches --paper in globals.css.
 const BRAND_BG = { r: 251, g: 248, b: 242, alpha: 1 }
 
 async function exists(p) {
@@ -54,7 +54,7 @@ async function buildLogoDerivatives() {
     { out: 'Logos/favicon-180.png',        w: 180, h: 180, fit: 'contain' },
     { out: 'Logos/pwa-192.png',            w: 192, h: 192, fit: 'contain' },
     { out: 'Logos/pwa-512.png',            w: 512, h: 512, fit: 'contain' },
-    // Maskable icon needs a safe zone — pad logo to ~80% of the canvas so it
+    // Maskable icon needs a safe zone - pad logo to ~80% of the canvas so it
     // survives the OS clipping mask. fit:contain + larger background gets us
     // close enough without a separate template file.
     { out: 'Logos/pwa-512-maskable.png',   w: 512, h: 512, fit: 'contain', pad: 0.1 },
@@ -79,7 +79,7 @@ async function buildLogoDerivatives() {
     console.log(`[images] wrote ${t.out}`)
   }
 
-  // OG cover — 1200x630, logo centred at ~40% of the height on the brand
+  // OG cover - 1200x630, logo centred at ~40% of the height on the brand
   // background. Used by all social previews + WhatsApp link cards.
   const ogOut = path.join(PUBLIC, 'Logos', 'og-cover.jpg')
   if (await isStaleVs(src, ogOut)) {

@@ -1,19 +1,19 @@
 'use client'
 
 /**
- * FeaturedWorks — Room 05 of the Studio Vault.
+ * FeaturedWorks - Room 05 of the Studio Vault.
  *
  * Eight selected pieces, one per viewport, scroll-snap mandatory.
  * The plate carries one of two presentations:
  *
- *   · Wall Reveal — when work.room is defined: museum mount is the base
+ *   · Wall Reveal - when work.room is defined: museum mount is the base
  *     layer; the in-room image sits above, masked via clip-path bound to
  *     a single CSS custom property `--reveal` (0 → 1) that the visitor
- *     drags. Default position is 0.6 — biased toward museum at rest, the
+ *     drags. Default position is 0.6 - biased toward museum at rest, the
  *     in-room context teases on the right. Dragging left exposes more of
  *     the living space; dragging right returns to the gallery.
  *
- *   · Plinth — when work.room is absent: museum mount only. Same plate
+ *   · Plinth - when work.room is absent: museum mount only. Same plate
  *     dimensions, same caption grammar, same chrome. No broken UI, no
  *     "missing image" tile.
  *
@@ -23,7 +23,7 @@
  * Editorial restraint:
  *   - the `.resin-plate` primitive (top sheen, diagonal sweep, deep
  *     drop shadow) provides ambient surface motion. No additional
- *     parallax. No scroll-bound zoom. No cursor specular tracking — the
+ *     parallax. No scroll-bound zoom. No cursor specular tracking - the
  *     drag interaction is the signature, nothing competes with it.
  *   - editorial captions read museum-card grammar: medium · dimensions ·
  *     year on one line, then materials + craft on quiet tabular rows.
@@ -44,13 +44,13 @@ import type { Product } from '@/types'
 import { waLink } from '@/lib/site-config'
 
 // ────────────────────────────────────────────────────────────────────
-// Analytics shim — pushes a typed event into window.dataLayer (GA4) and,
+// Analytics shim - pushes a typed event into window.dataLayer (GA4) and,
 // when window.fbq is present, into Meta Pixel. No-op if neither is wired,
 // so the room remains measurable as soon as either tag is installed.
 //
 // Future: when GA4 / Meta config is provisioned, add a Script tag in
 // app/layout.tsx that loads gtag.js + fbq. This shim then "wakes up"
-// automatically — no change needed in the room components.
+// automatically - no change needed in the room components.
 // ────────────────────────────────────────────────────────────────────
 type TrackEvent =
   | { name: 'view_item';        params: { item_id: string; item_name: string; price?: number } }
@@ -75,7 +75,7 @@ function trackEvent(evt: TrackEvent): void {
     w.dataLayer.push({ event: evt.name, ...evt.params })
   }
 
-  // Meta Pixel — map our internal names to the closest standard Meta events
+  // Meta Pixel - map our internal names to the closest standard Meta events
   if (typeof w.fbq === 'function') {
     const META_MAP: Partial<Record<TrackEvent['name'], string>> = {
       view_item: 'ViewContent',
@@ -107,8 +107,8 @@ interface FeaturedWork {
   availability:
     | 'available'         // Available for acquisition
     | 'reserved'          // Reserved (in escrow)
-    | 'acquired'          // Privately acquired — pivots inquiry to commission
-    | 'commission-only'   // Commission only — variations available
+    | 'acquired'          // Privately acquired - pivots inquiry to commission
+    | 'commission-only'   // Commission only - variations available
   /** Pricing. Omit on `acquired` pieces; required everywhere else.
    *  kind 'exact' for in-stock works, 'starting-from' for commissions. */
   price?: {
@@ -118,7 +118,7 @@ interface FeaturedWork {
   }
   /** Catalogue product ID. When present, the editorial column shows a
    *  "View Details" CTA that links to /product/{productId}. Omit for
-   *  pieces that don't have a product page yet — only the WhatsApp /
+   *  pieces that don't have a product page yet - only the WhatsApp /
    *  commission CTAs render. */
   productId?: string | number
   museum: { src: string; alt: string }
@@ -133,7 +133,7 @@ interface FeaturedWork {
   inquiryPrefill?: string
 }
 
-// Indian currency formatter — gives proper lakh comma grouping ("₹ 1,50,000")
+// Indian currency formatter - gives proper lakh comma grouping ("₹ 1,50,000")
 // rather than en-US thousands ("₹150,000"). The narrow space after the ₹
 // matches the editorial register elsewhere on the site.
 function formatINR(amount: number): string {
@@ -157,7 +157,7 @@ function formatINR(amount: number): string {
 // strings below are placeholders. Map each featured piece to its actual
 // catalogue ID before launch, otherwise View Details / Add to Cart / Buy
 // Now will land on a 404. Pieces that don't yet exist in the catalogue
-// can omit productId — the wing will render those with only the inquiry
+// can omit productId - the wing will render those with only the inquiry
 // CTAs (no cart actions) and not break.
 const WORKS: readonly FeaturedWork[] = [
   {
@@ -167,7 +167,7 @@ const WORKS: readonly FeaturedWork[] = [
     dimensions: '22 × 30 in',
     year: '2026',
     inspiration:
-      'The tide pools of Visakhapatnam at sunset — saturated red against wet black volcanic rock.',
+      'The tide pools of Visakhapatnam at sunset - saturated red against wet black volcanic rock.',
     materials: 'Pigmented epoxy resin · 24kt gold leaf · birch ply · lacquer finish',
     timeAndTechnique: '32 hours · Layered Resin Pour',
     availability: 'available',
@@ -175,14 +175,14 @@ const WORKS: readonly FeaturedWork[] = [
     productId: 'vermilion-tide', // TODO: replace with real catalogue ID
     museum: {
       src: '/Slideshow/01-resin.jpg',
-      alt: 'Vermilion Tide — resin and gold leaf wall piece on birch panel',
+      alt: 'Vermilion Tide - resin and gold leaf wall piece on birch panel',
     },
-    // DEMO — using the same image as a stand-in so the Wall Reveal mechanic
+    // DEMO - using the same image as a stand-in so the Wall Reveal mechanic
     // is visible on first preview. Replace with a real interior photograph
     // (client or studio-staged) when available.
     room: {
       src: '/Slideshow/01-resin.jpg',
-      alt: 'Vermilion Tide installed — placeholder for in-room photography',
+      alt: 'Vermilion Tide installed - placeholder for in-room photography',
       source: 'staged',
       location: 'Studio',
     },
@@ -194,7 +194,7 @@ const WORKS: readonly FeaturedWork[] = [
     dimensions: '24 × 24 in',
     year: '2025',
     inspiration:
-      'Six rings, six prayers — drawn at dawn, one dot at a time.',
+      'Six rings, six prayers - drawn at dawn, one dot at a time.',
     materials: 'Heavy-body acrylic · India ink · archival linen canvas',
     timeAndTechnique: '28 hours · Hand-painted Dot Mandala',
     availability: 'reserved',
@@ -202,7 +202,7 @@ const WORKS: readonly FeaturedWork[] = [
     productId: 'concentric-devotion', // TODO: replace with real catalogue ID
     museum: {
       src: '/Slideshow/02-dot-mandala.jpg',
-      alt: 'Concentric Devotion — hand-painted dot mandala on canvas',
+      alt: 'Concentric Devotion - hand-painted dot mandala on canvas',
     },
   },
   {
@@ -212,19 +212,19 @@ const WORKS: readonly FeaturedWork[] = [
     dimensions: '18 × 24 in',
     year: '2025',
     inspiration:
-      'A Kutch doorway in monsoon — clay holding light, mirrors holding the rain.',
+      'A Kutch doorway in monsoon - clay holding light, mirrors holding the rain.',
     materials: 'Mud-clay relief · hand-cut Belgian mirror · gesso primer · bronze leaf',
     timeAndTechnique: '18 hours · Handcrafted Lippan Work',
     availability: 'acquired',
-    // No price on acquired pieces — the work is sold; the CTA pivots to commission.
+    // No price on acquired pieces - the work is sold; the CTA pivots to commission.
     museum: {
       src: '/Slideshow/03-lippan.jpg',
-      alt: 'Mirror Garden — lippan clay relief with hand-cut mirror inlay',
+      alt: 'Mirror Garden - lippan clay relief with hand-cut mirror inlay',
     },
-    // DEMO — replace with a real client interior photograph when available.
+    // DEMO - replace with a real client interior photograph when available.
     room: {
       src: '/Slideshow/03-lippan.jpg',
-      alt: 'Mirror Garden installed — placeholder for in-room photography',
+      alt: 'Mirror Garden installed - placeholder for in-room photography',
       source: 'client',
       location: 'Bengaluru',
     },
@@ -236,7 +236,7 @@ const WORKS: readonly FeaturedWork[] = [
     dimensions: '16 × 16 in',
     year: '2026',
     inspiration:
-      'The kolam under bare feet — drawn before dawn, walked through by noon.',
+      'The kolam under bare feet - drawn before dawn, walked through by noon.',
     materials: 'Hand-mulled chalk-ink · indigo-dyed cotton · cedar mount',
     timeAndTechnique: '12 hours · Single-stroke Kolam Study',
     availability: 'available',
@@ -244,7 +244,7 @@ const WORKS: readonly FeaturedWork[] = [
     productId: 'white-threshold', // TODO: replace with real catalogue ID
     museum: {
       src: '/Slideshow/04-kolam.jpg',
-      alt: 'White Threshold — single-stroke kolam on indigo-dyed cotton',
+      alt: 'White Threshold - single-stroke kolam on indigo-dyed cotton',
     },
   },
   {
@@ -254,18 +254,18 @@ const WORKS: readonly FeaturedWork[] = [
     dimensions: 'Bespoke',
     year: '2026',
     inspiration:
-      'Varmalai — the marriage garland — translated into a piece that holds its day forever.',
+      'Varmalai - the marriage garland - translated into a piece that holds its day forever.',
     materials: 'Pigmented resin · hand-cast brass · naturally-dyed silk',
     timeAndTechnique: '40 hours · Hand-detailed Mirror Embellishment',
     availability: 'commission-only',
     price: { kind: 'starting-from', amount: 85000 },
     museum: {
       src: '/Slideshow/05-wedding-decoratives.jpg',
-      alt: 'Threshold Garlands — bespoke wedding piece in resin and brass',
+      alt: 'Threshold Garlands - bespoke wedding piece in resin and brass',
     },
   },
   {
-    // PLACEHOLDER imagery — reuses the resin slideshow image. Swap in the
+    // PLACEHOLDER imagery - reuses the resin slideshow image. Swap in the
     // actual Salt Witness photograph when available.
     slug: 'salt-witness',
     title: 'Salt Witness',
@@ -273,7 +273,7 @@ const WORKS: readonly FeaturedWork[] = [
     dimensions: '20 × 26 in',
     year: '2026',
     inspiration:
-      'Where the Krishna meets the sea — fresh water remembering salt.',
+      'Where the Krishna meets the sea - fresh water remembering salt.',
     materials: 'Pigmented epoxy resin · fine river sand · 24kt gold leaf · birch panel',
     timeAndTechnique: '36 hours · Layered Resin Pour',
     availability: 'available',
@@ -281,11 +281,11 @@ const WORKS: readonly FeaturedWork[] = [
     productId: 'salt-witness', // TODO: replace with real catalogue ID
     museum: {
       src: '/Slideshow/01-resin.jpg',
-      alt: 'Salt Witness — placeholder using the resin slideshow image',
+      alt: 'Salt Witness - placeholder using the resin slideshow image',
     },
   },
   {
-    // PLACEHOLDER imagery — reuses the dot mandala slideshow image.
+    // PLACEHOLDER imagery - reuses the dot mandala slideshow image.
     slug: 'sister-rings',
     title: 'Sister Rings',
     medium: 'Mixed media on canvas',
@@ -298,18 +298,18 @@ const WORKS: readonly FeaturedWork[] = [
     availability: 'acquired',
     museum: {
       src: '/Slideshow/02-dot-mandala.jpg',
-      alt: 'Sister Rings — placeholder using the dot mandala slideshow image',
+      alt: 'Sister Rings - placeholder using the dot mandala slideshow image',
     },
   },
   {
-    // PLACEHOLDER imagery — reuses the lippan slideshow image.
+    // PLACEHOLDER imagery - reuses the lippan slideshow image.
     slug: 'doorway-vii',
     title: 'Doorway VII',
     medium: 'Lippan clay, mirror & gold leaf',
     dimensions: '14 × 20 in',
     year: '2026',
     inspiration:
-      'The seventh doorway of the studio — kept blank for a decade, marked finally.',
+      'The seventh doorway of the studio - kept blank for a decade, marked finally.',
     materials: 'Lippan clay · hand-cut mirror · 24kt gold leaf · teak frame',
     timeAndTechnique: '22 hours · Handcrafted Lippan Work',
     availability: 'available',
@@ -317,7 +317,7 @@ const WORKS: readonly FeaturedWork[] = [
     productId: 'doorway-vii', // TODO: replace with real catalogue ID
     museum: {
       src: '/Slideshow/03-lippan.jpg',
-      alt: 'Doorway VII — placeholder using the lippan slideshow image',
+      alt: 'Doorway VII - placeholder using the lippan slideshow image',
     },
   },
 ] as const
@@ -331,7 +331,7 @@ const AVAILABILITY: Record<
   available:         { label: 'Available for acquisition',           dotColor: 'rgb(26, 127, 75)' },
   reserved:          { label: 'Reserved (in escrow)',                dotColor: 'rgb(200, 150, 47)' },
   acquired:          { label: 'Privately acquired',                  dotColor: 'rgb(138, 126, 110)' },
-  'commission-only': { label: 'Commission only — variations on request', dotColor: 'rgb(138, 106, 26)' },
+  'commission-only': { label: 'Commission only - variations on request', dotColor: 'rgb(138, 106, 26)' },
 }
 
 const DEFAULT_REVEAL = 0.6
@@ -345,7 +345,7 @@ export default function FeaturedWorks() {
   const [active, setActive] = useState(0)
   const reduceMotion = useReducedMotion()
 
-  // Which plate is the dominant viewport occupant — drives chrome counter,
+  // Which plate is the dominant viewport occupant - drives chrome counter,
   // progress bar, screen-reader live region, and the per-plate "reset to
   // default reveal" behavior.
   useEffect(() => {
@@ -388,11 +388,11 @@ export default function FeaturedWorks() {
 
   return (
     <section
-      aria-label="Featured Works — selected pieces"
+      aria-label="Featured Works - selected pieces"
       className="relative w-full bg-plum overflow-hidden focus:outline-none"
       style={{ height: '100svh', minHeight: 640 }}
     >
-      {/* Skip link — lets keyboard users bypass the wing */}
+      {/* Skip link - lets keyboard users bypass the wing */}
       <a
         href="#after-featured-works"
         className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-1/2
@@ -410,7 +410,7 @@ export default function FeaturedWorks() {
             className="text-[11px] font-semibold uppercase text-ink/70"
             style={{ letterSpacing: '0.32em' }}
           >
-            Room 05 — Featured Works
+            Room 05 - Featured Works
           </span>
         </div>
       </div>
@@ -453,7 +453,7 @@ export default function FeaturedWorks() {
         ))}
       </div>
 
-      {/* Bottom tick progress — one tick per plate */}
+      {/* Bottom tick progress - one tick per plate */}
       <div className="absolute inset-x-0 bottom-6 lg:bottom-8 z-[5] flex items-center justify-center gap-2 pointer-events-none">
         {WORKS.map((w, i) => {
           const isActive = i === active
@@ -462,7 +462,7 @@ export default function FeaturedWorks() {
               key={w.slug}
               type="button"
               onClick={() => goTo(i)}
-              aria-label={`Show plate ${ROMAN[i]} — ${w.title}`}
+              aria-label={`Show plate ${ROMAN[i]} - ${w.title}`}
               aria-current={isActive ? 'true' : undefined}
               className="group p-2 -m-2 pointer-events-auto"
             >
@@ -481,7 +481,7 @@ export default function FeaturedWorks() {
 
       {/* SR live region announces plate changes */}
       <p className="sr-only" aria-live="polite" aria-atomic="true">
-        Now viewing Plate {ROMAN[active]} — {WORKS[active]!.title}
+        Now viewing Plate {ROMAN[active]} - {WORKS[active]!.title}
       </p>
 
       {/* Anchor for the skip link */}
@@ -491,7 +491,7 @@ export default function FeaturedWorks() {
 }
 
 // ────────────────────────────────────────────────────────────────────
-// One plate — plate + editorial column. Renders RevealPlate or
+// One plate - plate + editorial column. Renders RevealPlate or
 // PlinthPlate based on whether room photography is available.
 // ────────────────────────────────────────────────────────────────────
 function FeaturedPlate({
@@ -554,7 +554,7 @@ function FeaturedPlate({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// PlinthPlate — pure museum mount. No drag, no divider.
+// PlinthPlate - pure museum mount. No drag, no divider.
 // ────────────────────────────────────────────────────────────────────
 function PlinthPlate({
   work,
@@ -577,7 +577,7 @@ function PlinthPlate({
           loading={loadStrategy}
           className="object-cover"
         />
-        {/* Static centred specular — adds dimension without competing
+        {/* Static centred specular - adds dimension without competing
             with any interaction (none here). */}
         <div className="resin-specular" />
       </div>
@@ -586,7 +586,7 @@ function PlinthPlate({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// RevealPlate — museum base + clipped in-room overlay + drag divider.
+// RevealPlate - museum base + clipped in-room overlay + drag divider.
 // ────────────────────────────────────────────────────────────────────
 function RevealPlate({
   work,
@@ -610,8 +610,8 @@ function RevealPlate({
   const locTag = room.location ? `, ${room.location}` : ''
   const inSituText =
     room.source === 'client'
-      ? `In situ — client residence${locTag}`
-      : `Staged interior${room.location ? ` — ${room.location}` : ' — studio'}`
+      ? `In situ - client residence${locTag}`
+      : `Staged interior${room.location ? ` - ${room.location}` : ' - studio'}`
 
   const sourceTag =
     reveal <= 0.05
@@ -620,7 +620,7 @@ function RevealPlate({
         ? 'Mounted at the studio.'
         : 'Drag the divider to view in your space.'
 
-  // Apply reveal to the DOM (custom property) — single source of truth.
+  // Apply reveal to the DOM (custom property) - single source of truth.
   // We also keep the React state for ARIA `aria-valuenow` reporting and
   // the source caption updates.
   const applyReveal = useCallback((v: number) => {
@@ -630,7 +630,7 @@ function RevealPlate({
     setReveal(clamped)
   }, [])
 
-  // On scroll-snap away, gently reset to default — but only if the user
+  // On scroll-snap away, gently reset to default - but only if the user
   // had actually dragged. If they never touched it, the default is already
   // in place and we skip the work.
   useEffect(() => {
@@ -643,13 +643,13 @@ function RevealPlate({
     return () => clearTimeout(id)
   }, [isActive, applyReveal])
 
-  // First-render — set the CSS variable so the in-room layer's clip-path
+  // First-render - set the CSS variable so the in-room layer's clip-path
   // resolves on the very first paint (avoids a flash at reveal=0).
   useEffect(() => {
     applyReveal(DEFAULT_REVEAL)
   }, [applyReveal])
 
-  // Pointer drag — captured on the divider button. Updates `--reveal`
+  // Pointer drag - captured on the divider button. Updates `--reveal`
   // imperatively (no React re-render per move) for smoothness; state
   // syncs at pointerup for ARIA correctness.
   const onDividerPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -671,7 +671,7 @@ function RevealPlate({
     applyReveal(initial)
 
     const onMove = (ev: PointerEvent) => {
-      // Imperative DOM update for smoothness — no React re-render here.
+      // Imperative DOM update for smoothness - no React re-render here.
       const clamped = Math.max(0, Math.min(1, computeReveal(ev.clientX)))
       if (plate) plate.style.setProperty('--reveal', clamped.toFixed(4))
     }
@@ -684,7 +684,7 @@ function RevealPlate({
       try {
         targetEl.releasePointerCapture(ev.pointerId)
       } catch {
-        // ignore — capture may already be released
+        // ignore - capture may already be released
       }
     }
     targetEl.addEventListener('pointermove', onMove)
@@ -692,7 +692,7 @@ function RevealPlate({
     targetEl.addEventListener('pointercancel', onUp)
   }
 
-  // Keyboard — Arrow keys adjust by 10%, Home/End jump to extremes.
+  // Keyboard - Arrow keys adjust by 10%, Home/End jump to extremes.
   const onDividerKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     let next: number | null = null
     if (e.key === 'ArrowLeft')  next = reveal - 0.1
@@ -719,7 +719,7 @@ function RevealPlate({
           } as React.CSSProperties
         }
       >
-        {/* Layer 1 — museum (base). Always full-bleed. */}
+        {/* Layer 1 - museum (base). Always full-bleed. */}
         <PictureImage
           src={work.museum.src}
           alt={work.museum.alt}
@@ -730,7 +730,7 @@ function RevealPlate({
           className="object-cover"
         />
 
-        {/* Layer 2 — in-room. Clipped to the area right of the divider. */}
+        {/* Layer 2 - in-room. Clipped to the area right of the divider. */}
         <div
           aria-hidden
           className="absolute inset-0 z-[2]"
@@ -750,10 +750,10 @@ function RevealPlate({
           />
         </div>
 
-        {/* Centred specular — sits above both layers, soft-light blend. */}
+        {/* Centred specular - sits above both layers, soft-light blend. */}
         <div className="resin-specular" />
 
-        {/* The divider — a real <button role="slider"> with full keyboard
+        {/* The divider - a real <button role="slider"> with full keyboard
             support. Sits at the reveal boundary, full plate height. */}
         <button
           type="button"
@@ -791,7 +791,7 @@ function RevealPlate({
               boxShadow: '0 0 12px rgba(232,194,90,0.55)',
             }}
           />
-          {/* Drag wings — small dark pill with two gold chevrons */}
+          {/* Drag wings - small dark pill with two gold chevrons */}
           <span
             aria-hidden
             className="relative inline-flex items-center gap-0.5 px-2.5 py-2 rounded-full
@@ -809,7 +809,7 @@ function RevealPlate({
         </button>
       </div>
 
-      {/* Source caption — updates at extreme reveal positions. Lives in a
+      {/* Source caption - updates at extreme reveal positions. Lives in a
           polite live region so screen-reader users hear the context shift. */}
       <p
         className="mt-3 text-[10px] font-semibold uppercase text-ink/55 text-center"
@@ -824,7 +824,7 @@ function RevealPlate({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// EditorialColumn — the museum-card caption beside each plate.
+// EditorialColumn - the museum-card caption beside each plate.
 // ────────────────────────────────────────────────────────────────────
 function EditorialColumn({
   work,
@@ -880,7 +880,7 @@ function EditorialColumn({
         {work.year}
       </p>
 
-      {/* Availability badge + price — paired tightly to make the buying
+      {/* Availability badge + price - paired tightly to make the buying
           frame obvious without going salesy. Editorial register. */}
       <div className="mt-5 flex flex-wrap items-baseline gap-x-5 gap-y-1.5">
         <AvailabilityBadge availability={work.availability} />
@@ -916,7 +916,7 @@ function EditorialColumn({
         “{work.inspiration}”
       </p>
 
-      {/* Materials + Time & Technique — tabular eyebrow + content rows */}
+      {/* Materials + Time & Technique - tabular eyebrow + content rows */}
       <dl className="mt-6 grid grid-cols-[max-content_1fr] gap-x-5 gap-y-3 text-sm">
         <dt
           className="text-[10px] font-semibold uppercase text-ink/55 pt-0.5"
@@ -935,7 +935,7 @@ function EditorialColumn({
         <dd className="text-ink/80">{work.timeAndTechnique}</dd>
       </dl>
 
-      {/* Action panel — branches by availability state. Wires real cart
+      {/* Action panel - branches by availability state. Wires real cart
           actions for in-stock pieces; pivots to commission for sold ones. */}
       <div className="mt-8">
         <ActionPanel work={work} />
@@ -945,7 +945,7 @@ function EditorialColumn({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// AvailabilityBadge — letterpress-style status tag.
+// AvailabilityBadge - letterpress-style status tag.
 // ────────────────────────────────────────────────────────────────────
 function AvailabilityBadge({
   availability,
@@ -969,7 +969,7 @@ function AvailabilityBadge({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// ActionPanel — the commerce layer of Room 05.
+// ActionPanel - the commerce layer of Room 05.
 //
 // The wing is a desire-generation experience, but the user's primary
 // business objective is selling work. Every plate therefore exposes
@@ -986,12 +986,12 @@ function AvailabilityBadge({
 //                       Inquire on WhatsApp
 //
 //   acquired            Commission a Similar Piece (resin)
-//                       (no inquiry — the piece is sold; commission is
+//                       (no inquiry - the piece is sold; commission is
 //                        the only meaningful path forward)
 //
 // For cart actions we fetch the full Product object on click via the
 // existing apiFetch, then dispatch through the existing useAddToCart
-// hook — which already handles auth gating, pending intents, login
+// hook - which already handles auth gating, pending intents, login
 // redirect, and the cart drawer. If the fetch fails (network, 404,
 // productId not yet mapped), we gracefully fall back to navigation
 // toward the product page so the visitor is never stranded.
@@ -1010,7 +1010,7 @@ function ActionPanel({ work }: { work: FeaturedWork }) {
   }
 }
 
-// ── Available — full commerce stack ──────────────────────────────
+// ── Available - full commerce stack ──────────────────────────────
 function AvailableActions({ work }: { work: FeaturedWork }) {
   const router = useRouter()
   const { addToCart } = useAddToCart()
@@ -1020,7 +1020,7 @@ function AvailableActions({ work }: { work: FeaturedWork }) {
 
   const handle = async (action: 'buy' | 'cart') => {
     if (!hasProduct) {
-      // No catalogue product yet — best we can do is route the visitor
+      // No catalogue product yet - best we can do is route the visitor
       // toward Shop. Should be rare in production once productIds are mapped.
       router.push('/shop')
       return
@@ -1050,7 +1050,7 @@ function AvailableActions({ work }: { work: FeaturedWork }) {
         router.push('/checkout')
       }
     } catch {
-      // Fetch failed — fall back to the product page so the visitor can
+      // Fetch failed - fall back to the product page so the visitor can
       // still complete the action manually.
       router.push(`/product/${encodeURIComponent(String(work.productId))}`)
     } finally {
@@ -1100,7 +1100,7 @@ function AvailableActions({ work }: { work: FeaturedWork }) {
   )
 }
 
-// ── Reserved — no cart, but Details is still discoverable ─────────
+// ── Reserved - no cart, but Details is still discoverable ─────────
 function ReservedActions({ work }: { work: FeaturedWork }) {
   return (
     <div className="flex flex-col gap-5">
@@ -1134,7 +1134,7 @@ function ReservedActions({ work }: { work: FeaturedWork }) {
   )
 }
 
-// ── Commission-only — push to /custom-order, keep WhatsApp as soft path ─
+// ── Commission-only - push to /custom-order, keep WhatsApp as soft path ─
 function CommissionActions({ work }: { work: FeaturedWork }) {
   return (
     <div className="flex flex-col gap-5">
@@ -1166,7 +1166,7 @@ function CommissionActions({ work }: { work: FeaturedWork }) {
   )
 }
 
-// ── Acquired — pure pivot to commission. No inquiry, no purchase. ───
+// ── Acquired - pure pivot to commission. No inquiry, no purchase. ───
 function AcquiredActions({ work }: { work: FeaturedWork }) {
   return (
     <div className="flex flex-col gap-5">
@@ -1246,7 +1246,7 @@ function WhatsAppInquiryLink({
     work.inquiryPrefill ??
     (kind === 'commission'
       ? `Hi Srilatha, I'd like to discuss commissioning a piece inspired by "${work.title}".`
-      : `Hi Srilatha, I'd like to discuss "${work.title}" — I've been picturing it on a wall at home.`)
+      : `Hi Srilatha, I'd like to discuss "${work.title}" - I've been picturing it on a wall at home.`)
   const href = waLink(baseMessage)
   return (
     <a

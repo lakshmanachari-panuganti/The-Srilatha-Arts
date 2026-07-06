@@ -83,7 +83,7 @@ async function createPaymentOrder(
           `createPaymentOrder: compensating restoreStock failed for ${r.productId} qty=${r.qty}`,
           restoreErr,
         )
-        // Don't throw — let remaining items try to restore, then rely on
+        // Don't throw - let remaining items try to restore, then rely on
         // the timer-triggered stale-reservation cleanup to catch leftovers.
       }
     }
@@ -167,7 +167,7 @@ async function createPaymentOrder(
         }
         if (err instanceof StockConcurrencyError) {
           return errorResponse(
-            `${snap.title} just sold — please refresh and try again.`,
+            `${snap.title} just sold - please refresh and try again.`,
             409,
             origin,
           )
@@ -317,7 +317,7 @@ async function createPaymentOrder(
 
     // Write the razorpayOrderId → internalOrderId index so verify + webhook
     // can point-lookup instead of scanning the whole orders table (audit H3).
-    // Failure here is non-fatal — the scan fallback in verify/webhook still
+    // Failure here is non-fatal - the scan fallback in verify/webhook still
     // works, we just pay O(n) instead of O(1). Log so ops can spot drift.
     try {
       await upsertOrderByRazorpayId(rzpOrder.id, internalOrderId, userEmail)
@@ -393,7 +393,7 @@ async function verifyPayment(
 
     // Find our internal order. Preference order:
     //   1. Client-supplied internalOrderId (single-row lookup, hot path).
-    //   2. Secondary index ordersByRazorpayId (audit H3 — point lookup).
+    //   2. Secondary index ordersByRazorpayId (audit H3 - point lookup).
     //   3. Full-table scan (last-resort fallback when the index misses,
     //      e.g. a legacy order created before the index was introduced).
     let order: Row | null = null
@@ -407,7 +407,7 @@ async function verifyPayment(
       }
     }
     if (!order) {
-      // Scan fallback — kept for legacy orders. Emit telemetry so a spike
+      // Scan fallback - kept for legacy orders. Emit telemetry so a spike
       // in scan-usage signals the index write is misfiring.
       context.warn(`verifyPayment: falling back to scan for razorpayOrderId=${body.razorpayOrderId}`)
       const candidates = await getAllOrders()
@@ -434,7 +434,7 @@ async function verifyPayment(
     const now = new Date().toISOString()
     const fromStatus = order.status as OrderStatus
 
-    // Captured-after-cancellation guard — same shape as the webhook
+    // Captured-after-cancellation guard - same shape as the webhook
     // handler. If the order was cancelled by the stale-reservation
     // cleanup and the customer's Razorpay verify request lands later,
     // we auto-refund and skip the confirmation pipeline. See the webhook
@@ -477,8 +477,8 @@ async function verifyPayment(
         by: 'razorpay-verify',
         byRole: 'system',
         note: refundId
-          ? `Payment captured AFTER cancellation (verify path) — auto-refund initiated (refund ${refundId})`
-          : `Payment captured AFTER cancellation (verify path) — auto-refund FAILED: ${refundError || 'unknown'}`,
+          ? `Payment captured AFTER cancellation (verify path) - auto-refund initiated (refund ${refundId})`
+          : `Payment captured AFTER cancellation (verify path) - auto-refund FAILED: ${refundError || 'unknown'}`,
         meta: JSON.stringify({
           razorpayOrderId: body.razorpayOrderId,
           razorpayPaymentId: body.razorpayPaymentId,
@@ -503,7 +503,7 @@ async function verifyPayment(
       })
 
       // The customer's Razorpay handler is awaiting this verify response.
-      // Don't tell them "confirmed" — tell them something went sideways
+      // Don't tell them "confirmed" - tell them something went sideways
       // and a refund is on the way. They'll get no confirmation messages.
       return jsonResponse(
         {
@@ -734,7 +734,7 @@ async function razorpayWebhook(
     // ── Captured-after-cancellation race ────────────────────────────
     // The customer's order was cancelled (most commonly by the stale-
     // reservation cleanup at the 30-min mark) but their payment captured
-    // arrives anyway — e.g. they completed Razorpay Checkout at minute 28
+    // arrives anyway - e.g. they completed Razorpay Checkout at minute 28
     // and the webhook landed at minute 32 due to network delay. The
     // inventory has already been restored and we won't be fulfilling the
     // order, so:
@@ -743,12 +743,12 @@ async function razorpayWebhook(
     //   2. Auto-refund the captured amount via Razorpay
     //   3. Stamp paymentAfterCancel + autoRefundInitiated flags
     //   4. SKIP finalizeOrderAfterPayment (no confirmation, no invoice
-    //      email, no WhatsApp confirmation — customer was never confirmed)
+    //      email, no WhatsApp confirmation - customer was never confirmed)
     //   5. Raise an admin alert on the Notification Alerts dashboard so
     //      ops can verify the auto-refund landed cleanly with Razorpay
     //
     // The 'refund.processed' webhook will fire when Razorpay credits
-    // the refund — the normal refund handler picks it up and stamps
+    // the refund - the normal refund handler picks it up and stamps
     // paymentStatus: REFUNDED. No customer notifications fire on either
     // edge (we explicitly skip them to avoid messaging a customer about
     // an order they were already told was cancelled).
@@ -780,7 +780,7 @@ async function razorpayWebhook(
       }
 
       await mergeOrder(order.partitionKey, order.rowKey, {
-        // Record the captured payment id even though we're refunding it —
+        // Record the captured payment id even though we're refunding it -
         // the audit trail must show what happened end-to-end.
         razorpayPaymentId,
         paymentStatus: 'CAPTURED',
@@ -798,8 +798,8 @@ async function razorpayWebhook(
         by: 'razorpay-webhook',
         byRole: 'system',
         note: refundId
-          ? `Payment captured AFTER cancellation — auto-refund initiated (refund ${refundId})`
-          : `Payment captured AFTER cancellation — auto-refund FAILED: ${refundError || 'unknown'}`,
+          ? `Payment captured AFTER cancellation - auto-refund initiated (refund ${refundId})`
+          : `Payment captured AFTER cancellation - auto-refund FAILED: ${refundError || 'unknown'}`,
         meta: JSON.stringify({
           razorpayOrderId,
           razorpayPaymentId,
@@ -828,7 +828,7 @@ async function razorpayWebhook(
         isFinal: true,
       })
 
-      // 200 to Razorpay — we've handled the event. Their retry would
+      // 200 to Razorpay - we've handled the event. Their retry would
       // duplicate our refund attempt; the captured-payment idempotency
       // guard above (already-captured check) protects subsequent webhooks
       // for the same payment id.

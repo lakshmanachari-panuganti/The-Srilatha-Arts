@@ -1,23 +1,23 @@
 'use client'
 
 /**
- * ProcessFilm — Room 04 of the Studio Vault.
+ * ProcessFilm - Room 04 of the Studio Vault.
  *
  * Five-chapter scroll-bound film documenting the making of Vermilion Tide.
  * The chapters cross-fade as the visitor scrolls through a sticky stage;
- * a Labour Ledger in the corner accumulates the hours — 0 → 32 — as the
+ * a Labour Ledger in the corner accumulates the hours - 0 → 32 - as the
  * arc progresses, making the abstract "32 hours" of FeaturedWorks Plate I
  * a remembered experience.
  *
  * After Chapter V the sticky releases and the End Panel scrolls in: the
  * piece thumbnail with Liquid Resin Shine, full caption + pricing, and an
  * ActionPanel routing the visitor to Buy Now / Add to Cart / View Details
- * / Inquire — the same primitive Featured Works uses, via the shared module.
+ * / Inquire - the same primitive Featured Works uses, via the shared module.
  *
  * Chapter media is graceful. Every chapter declares its own media state
  * independently:
  *
- *   blueprint  →  typographic placeholder — looks like an intentional
+ *   blueprint  →  typographic placeholder - looks like an intentional
  *                  printed plate divider, not a missing image. Ships today.
  *   still      →  a photograph. Drops in via /public/process-film/<slug>/.
  *   video      →  6–10s muted loop. Desktop autoplay; mobile shows poster.
@@ -99,7 +99,7 @@ export default function ProcessFilm() {
     offset: ['start start', 'end end'],
   })
 
-  // One useTransform call per chapter — fixed order, hook count stable.
+  // One useTransform call per chapter - fixed order, hook count stable.
   const op0 = useChapterOpacity(scrollYProgress, 0)
   const op1 = useChapterOpacity(scrollYProgress, 1)
   const op2 = useChapterOpacity(scrollYProgress, 2)
@@ -107,14 +107,14 @@ export default function ProcessFilm() {
   const op4 = useChapterOpacity(scrollYProgress, 4)
   const opacities = [op0, op1, op2, op3, op4]
 
-  // Smooth cumulative hours — interpolates between chapter peaks.
+  // Smooth cumulative hours - interpolates between chapter peaks.
   const totalHours = useTransform(
     scrollYProgress,
     PROGRESS_BREAKPOINTS as number[],
     CUMULATIVE_HOURS_TIMELINE as number[],
   )
 
-  // Discrete active chapter index — drives the chrome counter and the
+  // Discrete active chapter index - drives the chrome counter and the
   // ledger's "+04h · Sketch" sub-label.
   const activeIndex = useTransform(scrollYProgress, (p): number => {
     if (p < 0.16) return 0
@@ -124,7 +124,7 @@ export default function ProcessFilm() {
     return 4
   })
 
-  // `film_complete` analytics event — fires once when Chapter V peaks.
+  // `film_complete` analytics event - fires once when Chapter V peaks.
   const filmCompleteFired = useRef(false)
   useEffect(() => {
     return scrollYProgress.on('change', (p) => {
@@ -141,11 +141,11 @@ export default function ProcessFilm() {
   return (
     <section
       ref={ref}
-      aria-label="The Making — Room 04"
+      aria-label="The Making - Room 04"
       className="relative w-full bg-plum"
       style={{ minHeight: '350svh' }}
     >
-      {/* Skip-to-commerce link — keyboard / SR users who already know the
+      {/* Skip-to-commerce link - keyboard / SR users who already know the
           piece they want can route straight to the End Panel. Fires its
           own analytics event so we can measure how many use it. */}
       <a
@@ -160,12 +160,12 @@ export default function ProcessFilm() {
                    focus:-translate-x-1/2 focus:z-[10] focus:px-3 focus:py-1.5
                    focus:bg-ink focus:text-plum focus:text-xs focus:rounded-sm"
       >
-        Skip film — go to the piece
+        Skip film - go to the piece
       </a>
 
-      {/* ── Sticky stage — chapters cross-fade here ────────────── */}
+      {/* ── Sticky stage - chapters cross-fade here ────────────── */}
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
-        {/* Warm directional wash — keeps the stage from reading flat ivory */}
+        {/* Warm directional wash - keeps the stage from reading flat ivory */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 z-[1]"
@@ -184,7 +184,7 @@ export default function ProcessFilm() {
               className="text-[11px] font-semibold uppercase text-ink/70"
               style={{ letterSpacing: '0.32em' }}
             >
-              Room 04 — The Making
+              Room 04 - The Making
             </span>
           </div>
         </div>
@@ -196,7 +196,7 @@ export default function ProcessFilm() {
           <span className="font-serif text-sm text-ink/55">V</span>
         </div>
 
-        {/* Chapter frames — layered absolute, opacity per scroll envelope */}
+        {/* Chapter frames - layered absolute, opacity per scroll envelope */}
         <div className="absolute inset-0 z-[2]">
           {CHAPTERS.map((chapter, i) => (
             <ChapterFrame
@@ -210,7 +210,7 @@ export default function ProcessFilm() {
           ))}
         </div>
 
-        {/* Labour Ledger — pinned bottom-right of the stage */}
+        {/* Labour Ledger - pinned bottom-right of the stage */}
         <LabourLedger
           totalHours={totalHours}
           activeIndex={activeIndex}
@@ -218,7 +218,7 @@ export default function ProcessFilm() {
         />
       </div>
 
-      {/* ── End Panel — scrolls in after sticky releases ──────── */}
+      {/* ── End Panel - scrolls in after sticky releases ──────── */}
       <div
         id="process-film-end-panel"
         className="relative w-full pt-24 lg:pt-32 pb-20 lg:pb-28"
@@ -230,7 +230,7 @@ export default function ProcessFilm() {
 }
 
 // ────────────────────────────────────────────────────────────────────
-// ChapterFrame — editorial copy + media side-by-side.
+// ChapterFrame - editorial copy + media side-by-side.
 // All five frames render simultaneously, layered absolute. Their
 // `opacity` motion value handles cross-fade as the visitor scrolls.
 // ────────────────────────────────────────────────────────────────────
@@ -322,7 +322,7 @@ function ChapterFrame({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// MediaView — renders the three chapter media states.
+// MediaView - renders the three chapter media states.
 // ────────────────────────────────────────────────────────────────────
 function MediaView({
   media,
@@ -356,7 +356,7 @@ function MediaView({
   // video
   return (
     <>
-      {/* Mobile fallback — poster only. Plain <img> here so the URL the
+      {/* Mobile fallback - poster only. Plain <img> here so the URL the
           studio uploads is honoured without going through next/image's
           optimisation pipeline (which is unoptimized in static export). */}
       <picture className="lg:hidden absolute inset-0">
@@ -366,7 +366,7 @@ function MediaView({
           className="w-full h-full object-cover"
         />
       </picture>
-      {/* Desktop video — autoplay, muted, loops, plays inline.
+      {/* Desktop video - autoplay, muted, loops, plays inline.
           preload=metadata so the file metadata loads but no payload until
           the chapter becomes active. */}
       <video
@@ -390,7 +390,7 @@ function MediaView({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// BlueprintCard — the typographic placeholder that ships today.
+// BlueprintCard - the typographic placeholder that ships today.
 //
 // Reads as an intentional printed plate divider, not a missing image.
 // The chapter title is the visual; the paper-grain ground + gold rule
@@ -434,7 +434,7 @@ function BlueprintCard({ chapter }: { chapter: Chapter }) {
           className="text-[10px] font-semibold uppercase text-ink/55 mb-4"
           style={{ letterSpacing: '0.36em' }}
         >
-          Plate — Chapter {chapter.no}
+          Plate - Chapter {chapter.no}
         </p>
         <h3
           className="font-serif italic text-ink leading-[1.04] text-balance"
@@ -453,7 +453,7 @@ function BlueprintCard({ chapter }: { chapter: Chapter }) {
 }
 
 // ────────────────────────────────────────────────────────────────────
-// LabourLedger — the signature interaction.
+// LabourLedger - the signature interaction.
 // A small chronometer-style card pinned bottom-right of the sticky
 // stage. The hour count ticks up scroll-bound. The active-chapter
 // sub-label changes per chapter ("+04h · Sketch").
@@ -535,7 +535,7 @@ function ActiveChapterTag({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// ChapterCounter — top-right chrome, reads the active chapter index
+// ChapterCounter - top-right chrome, reads the active chapter index
 // as a Roman numeral.
 // ────────────────────────────────────────────────────────────────────
 function ChapterCounter({
@@ -560,7 +560,7 @@ function ChapterCounter({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// EndPanel — the commerce hook.
+// EndPanel - the commerce hook.
 // After 32 hours of watching the film, the visitor lands here on a
 // fully-stocked product moment: thumbnail with Liquid Resin Shine,
 // caption, price, and the full ActionPanel.
@@ -575,7 +575,7 @@ function EndPanel() {
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
         className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center"
       >
-        {/* Piece thumbnail — the only Liquid Resin Shine in the room.
+        {/* Piece thumbnail - the only Liquid Resin Shine in the room.
             Documentary chapter media stayed matte; the piece you can
             actually buy gets the polish. Visual hierarchy by discipline. */}
         <div className="lg:col-span-5 flex justify-center lg:justify-end order-2 lg:order-1">

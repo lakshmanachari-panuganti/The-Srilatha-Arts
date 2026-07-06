@@ -1,11 +1,11 @@
 'use client'
 
 /**
- * NotificationAlertsCard — admin dashboard widget surfacing every
+ * NotificationAlertsCard - admin dashboard widget surfacing every
  * customer-facing communication failure that hasn't been acknowledged.
  *
  * The single rule: if it's red, something needs to be done by a human.
- * If it's amber, the queue is still retrying — informational.
+ * If it's amber, the queue is still retrying - informational.
  *
  * Polls /api/admin/notification-alerts every 30s via React Query. On
  * Acknowledge the alert disappears from this surface but stays in the
@@ -95,7 +95,7 @@ export default function NotificationAlertsCard() {
     )
   }
 
-  // Don't render the section at all when there's nothing to act on — keeps
+  // Don't render the section at all when there's nothing to act on - keeps
   // the dashboard quiet on healthy days.
   if (alerts.length === 0) return null
 
@@ -155,7 +155,7 @@ function AlertRow({
       <span
         aria-hidden
         className={`mt-1.5 inline-block w-2.5 h-2.5 rounded-full shrink-0 ${dotClass}`}
-        title={alert.isFinal ? 'Final failure — needs action' : 'Still retrying'}
+        title={alert.isFinal ? 'Final failure - needs action' : 'Still retrying'}
       />
 
       <div className="flex-1 min-w-0">

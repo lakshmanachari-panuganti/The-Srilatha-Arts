@@ -1,12 +1,12 @@
 /**
- * Process Film — Vermilion Tide data.
+ * Process Film - Vermilion Tide data.
  *
  * Shared by the main Room 04 component (ProcessFilm.tsx) and the
  * standalone /process-film/vermilion-tide page so chapter content,
  * piece metadata, and the Labour Ledger hour breakdown live in one
  * place.
  *
- * Per-chapter media is graceful — each chapter declares its current
+ * Per-chapter media is graceful - each chapter declares its current
  * state independently. Ship today with all chapters as `blueprint`;
  * upgrade per chapter as photography or video arrives. No code
  * changes needed beyond editing this file.
@@ -36,7 +36,7 @@ export interface Chapter {
   eyebrow: string
   title: string
   body: string
-  /** Optional pull-quote — italic Cormorant with gold border-left.
+  /** Optional pull-quote - italic Cormorant with gold border-left.
    *  Use sparingly, at most two chapters across the five-chapter arc. */
   pullQuote?: string
   /** Hours added BY this chapter (the increment shown in the ledger pulse). */
@@ -74,7 +74,7 @@ export const PIECE: ActionablePiece & {
   year: '2026',
   thumbnail: {
     src: '/Slideshow/01-resin.jpg',
-    alt: 'Vermilion Tide — resin and gold leaf wall piece on birch panel',
+    alt: 'Vermilion Tide - resin and gold leaf wall piece on birch panel',
   },
   category: 'resin',
 }
@@ -85,10 +85,10 @@ export const CHAPTERS: readonly Chapter[] = [
     eyebrow: 'Chapter I',
     title: 'Concept',
     body:
-      'Every piece starts with a place. A doorway, a memory, a colour seen at the end of a long day. The first hours are spent looking — not making.',
+      'Every piece starts with a place. A doorway, a memory, a colour seen at the end of a long day. The first hours are spent looking - not making.',
     hours: 2,
     cumulativeHours: 2,
-    shotCaption: 'Reference moodboard — Visakhapatnam tide pools at sunset',
+    shotCaption: 'Reference moodboard - Visakhapatnam tide pools at sunset',
     media: { type: 'blueprint' },
   },
   {
@@ -111,7 +111,7 @@ export const CHAPTERS: readonly Chapter[] = [
       'The pour, the layering, the wait. Days of work compressed into minutes of film. Resin cures slowly; the patience is the medium.',
     hours: 16,
     cumulativeHours: 22,
-    shotCaption: 'First pour, t+12 min — pigment dispersing',
+    shotCaption: 'First pour, t+12 min - pigment dispersing',
     media: { type: 'blueprint' },
   },
   {
@@ -134,7 +134,7 @@ export const CHAPTERS: readonly Chapter[] = [
       'Hand-packed, hand-signed, hand-addressed. The piece leaves the studio with a card from the maker.',
     hours: 4,
     cumulativeHours: 32,
-    shotCaption: 'Packed for delivery — Hyderabad → Bengaluru',
+    shotCaption: 'Packed for delivery - Hyderabad → Bengaluru',
     media: { type: 'blueprint' },
   },
 ] as const
@@ -145,8 +145,8 @@ export const CHAPTERS: readonly Chapter[] = [
  * Section is laid out as 80% sticky stage + 20% End Panel reveal.
  * The five chapters split the stage evenly (16% each).
  *
- *   PROGRESS_BREAKPOINTS  — input to useTransform for the Labour Ledger
- *   CUMULATIVE_HOURS      — output of the same useTransform
+ *   PROGRESS_BREAKPOINTS  - input to useTransform for the Labour Ledger
+ *   CUMULATIVE_HOURS      - output of the same useTransform
  *
  * Both arrays must have the same length and align: at progress
  * PROGRESS_BREAKPOINTS[i], the ledger reads CUMULATIVE_HOURS[i].
@@ -169,5 +169,5 @@ export const CUMULATIVE_HOURS_TIMELINE: readonly number[] = [
   CHAPTERS[4]!.cumulativeHours,
 ]
 
-/** Total hours across all chapters — the climactic ledger value. */
+/** Total hours across all chapters - the climactic ledger value. */
 export const TOTAL_HOURS = CHAPTERS[CHAPTERS.length - 1]!.cumulativeHours

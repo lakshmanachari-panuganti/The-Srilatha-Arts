@@ -359,7 +359,7 @@ export function buildOrderConfirmationEmail(vars: OrderConfirmationVars): BuiltE
     `Account:   ${accountOrderUrl}`,
     ``,
     `Questions? Reply to this email or write to ${CONTACT.email}.`,
-    `— Srilatha Art`,
+    `- Srilatha Art`,
   ]
     .filter((l) => l !== '')
     .join('\n')

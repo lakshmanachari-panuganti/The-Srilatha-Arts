@@ -179,7 +179,7 @@ export default function ProductDetailClient() {
   // Per-product Product + Offer JSON-LD. Injected only after data resolves
   // so the fields reflect real stock + price. Googlebot executes the page's
   // JS on subsequent crawls and picks this up; static-HTML-only crawlers
-  // (Bing, social previews) see nothing here today — that's the trade-off
+  // (Bing, social previews) see nothing here today - that's the trade-off
   // of running the catalog through a __shell__ SPA on SWA Free.
   const SITE = 'https://www.srilatha.art'
   const productLd = {

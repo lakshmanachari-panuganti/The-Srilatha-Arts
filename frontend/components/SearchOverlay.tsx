@@ -71,7 +71,7 @@ export default function SearchOverlay() {
             if (e.target === e.currentTarget) setOpen(false)
           }}
         >
-          {/* Centred modal — solid obsidian card with gold rim. Stops click
+          {/* Centred modal - solid obsidian card with gold rim. Stops click
               propagation so backdrop dismissal only fires on the dim layer. */}
           <motion.div
             initial={{ opacity: 0, y: -8, scale: 0.98 }}

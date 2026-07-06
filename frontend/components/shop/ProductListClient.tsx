@@ -27,7 +27,7 @@ function GridSkeleton() {
   )
 }
 
-// Distinct network / server error state — separate from the "no products
+// Distinct network / server error state - separate from the "no products
 // yet" empty state so the visitor knows the fault is transient and can
 // retry rather than assume the studio is bare. Audit C4.
 function GridErrorState({ onRetry }: { onRetry: () => void }) {
@@ -37,7 +37,7 @@ function GridErrorState({ onRetry }: { onRetry: () => void }) {
         We couldn&apos;t load the pieces
       </p>
       <p className="text-sm text-ivory-mute mb-5">
-        The studio is having a moment — please try again in a second.
+        The studio is having a moment - please try again in a second.
       </p>
       <button
         type="button"

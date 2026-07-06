@@ -1,5 +1,5 @@
 /**
- * review_request email — sent 72h after the order is marked DELIVERED.
+ * review_request email - sent 72h after the order is marked DELIVERED.
  * Mirrors the WhatsApp review_request template in tone. Links to the
  * customer's order page so they can leave the review against the right
  * product.

@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * /admin/notifications — sitewide notification activity + reporting.
+ * /admin/notifications - sitewide notification activity + reporting.
  *
  * Two surfaces stacked on one page:
  *
@@ -14,7 +14,7 @@
  *      channel, status, template, order, customer search.
  *
  * Data sources are the existing emailLog + whatsappMessages tables. No
- * new write paths — this is pure read-only operational visibility.
+ * new write paths - this is pure read-only operational visibility.
  */
 
 import { useMemo, useState } from 'react'
@@ -53,12 +53,12 @@ interface StatsResponse {
   sent: number
   failed: number
   // Attempt-level rate: failed attempts / total attempts. Queue retries
-  // each count as a separate attempt — informational only, no threshold.
+  // each count as a separate attempt - informational only, no threshold.
   attemptFailureRate: number
   // Notification-level metrics: how many distinct customer notifications
   // (orderId × channel × templateKey) fired in the window, and how many
   // of those reached the queue's final-failure state. This is the
-  // operationally honest number — threshold colouring lives here.
+  // operationally honest number - threshold colouring lives here.
   uniqueNotifications: number
   finalFailures: number
   notificationFailureRate: number
@@ -203,7 +203,7 @@ function StatCards({ stats, loading }: { stats?: StatsResponse; loading: boolean
       name: 'Notification failure rate',
       value: `${notifRate}%`,
       color: notifRate > 5 ? 'text-red-700' : 'text-ink',
-      // The customer-impact metric — how many distinct notifications never
+      // The customer-impact metric - how many distinct notifications never
       // reached the customer, across the unique groups that fired in window.
       subtitle: stats
         ? `${stats.finalFailures} of ${stats.uniqueNotifications} notifications`
@@ -213,7 +213,7 @@ function StatCards({ stats, loading }: { stats?: StatsResponse; loading: boolean
       name: 'Attempt failure rate',
       value: `${stats?.attemptFailureRate ?? 0}%`,
       color: 'text-ink-soft',
-      // Infrastructure health — retries count, so this can be non-zero
+      // Infrastructure health - retries count, so this can be non-zero
       // even when the customer ultimately received every notification.
       subtitle: 'Send infrastructure (retries count)',
     },
@@ -457,8 +457,8 @@ function ActivityRowItem({ row }: { row: ActivityRow }) {
         </td>
         <td className="py-2 pr-3 text-ink">{row.templateKey || '(unknown)'}</td>
         <td className="py-2 pr-3 text-ink font-mono text-xs">{row.orderId}</td>
-        <td className="py-2 pr-3 text-ink-soft">{row.customerName || '—'}</td>
-        <td className="py-2 pr-3 text-ink-soft">{row.recipientContact || '—'}</td>
+        <td className="py-2 pr-3 text-ink-soft">{row.customerName || '-'}</td>
+        <td className="py-2 pr-3 text-ink-soft">{row.recipientContact || '-'}</td>
         <td className="py-2 pr-3 text-center">
           <StatusBadge status={row.status} />
         </td>
@@ -508,7 +508,7 @@ function StatusBadge({ status }: { status: ActivityRow['status'] }) {
 }
 
 function formatTimestamp(iso: string): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   try {
     return new Date(iso).toLocaleString('en-IN', {
       day: 'numeric',

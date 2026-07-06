@@ -8,7 +8,7 @@ import Image, { type ImageProps } from 'next/image'
 //
 // Why a wrapper and not next/image alone:
 //   next.config.mjs sets `images.unoptimized: true` because the site
-//   builds as a static export — there is no runtime image optimiser.
+//   builds as a static export - there is no runtime image optimiser.
 //   Without that, next/image just renders an <img> at the source URL,
 //   so modern formats and responsive sizes only kick in if the markup
 //   itself offers them.
@@ -22,7 +22,7 @@ function jpegToWebp(src: string): string | null {
 
 // For blob-hosted product photos we uploaded via uploadProductImage,
 // derive the three responsive variants (400/800/1200) that live alongside
-// the primary URL — e.g. `.../resin/foo.webp` gets siblings
+// the primary URL - e.g. `.../resin/foo.webp` gets siblings
 // `.../resin/foo-w400.webp` and `.../resin/foo-w800.webp`. If either
 // sibling is missing (legacy uploads), the browser's srcset gracefully
 // falls back to the primary URL because it's also included in the set.

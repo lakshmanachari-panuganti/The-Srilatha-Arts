@@ -1,5 +1,5 @@
 /**
- * Notification template registry — single source of truth for what each
+ * Notification template registry - single source of truth for what each
  * customer-facing event sends, on which channels, and whether the studio
  * is CC'd on the email.
  *
@@ -15,7 +15,7 @@
  * registry, fires both channels in parallel, and CC's the studio when
  * `copyStudio: true`. Failure of one channel does not block the other.
  *
- * Excluded by design — these never get studio CC and never get a
+ * Excluded by design - these never get studio CC and never get a
  * WhatsApp counterpart from this code path:
  *   - Password reset, OTP, email-verification
  *   - Auth / security notifications
@@ -38,7 +38,7 @@ import { buildReturnDeclinedEmail } from './returnDeclined'
 
 /**
  * Unified input every transitional email builder receives. Each builder
- * picks the fields it needs and ignores the rest — keeps the dispatcher
+ * picks the fields it needs and ignores the rest - keeps the dispatcher
  * single-shape simple.
  */
 export interface TransitionEmailInput {

@@ -187,7 +187,7 @@ export async function userLogin(
       return errorResponse('Invalid email or password', 401, origin)
     }
 
-    // Success — clear the per-account counter so future logins after some
+    // Success - clear the per-account counter so future logins after some
     // sporadic failures don't hit an unexpected 429.
     await resetRateLimit(accountLockKey)
 

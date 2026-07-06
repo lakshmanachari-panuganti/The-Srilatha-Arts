@@ -172,7 +172,7 @@ export default function AdminProductsPage() {
                   <td className="px-6 py-4 text-ink-soft whitespace-nowrap">
                     {(() => {
                       const iso = product.updatedAt || product.createdAt
-                      if (!iso) return <span className="text-ink-mute">—</span>
+                      if (!iso) return <span className="text-ink-mute">-</span>
                       const edited = product.updatedAt && product.updatedAt !== product.createdAt
                       return (
                         <div className="flex flex-col">

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────
-   Typography system — AndroAI dark canonical (2026-06-22)
+   Typography system - AndroAI dark canonical (2026-06-22)
 
    Plus Jakarta Sans     - `font-sans`. Body, UI, prices, buttons,
                            nav, eyebrows, and headlines. Variable
@@ -32,7 +32,7 @@
        component call sites resolve without per-component edits.
        ══════════════════════════════════════════════════════════ */
 
-    /* ── Foundation — dark canvas ────────────────────────────── */
+    /* ── Foundation - dark canvas ────────────────────────────── */
     --bg-main:        #0B1120;          /* slate-950 w/ navy tint */
     --bg-main-rgb:    11 17 32;
     --bg-surface:     #0F172A;          /* slate-900 sections */
@@ -46,12 +46,12 @@
     --bg-glass-fallback:     #0F172A;
     --bg-glass-fallback-rgb: 15 23 42;
 
-    /* ── Glass surface — dark frosted (desktop only) ─────────── */
+    /* ── Glass surface - dark frosted (desktop only) ─────────── */
     --glass-bg:          rgba(15, 23, 42, 0.72);
     --glass-border:      rgba(148, 163, 184, 0.10);
     --glass-border-glow: rgba(59, 130, 246, 0.30);
 
-    /* ── Accents — brightened blue/indigo/cyan on dark ───────── */
+    /* ── Accents - brightened blue/indigo/cyan on dark ───────── */
     --accent-blue:        #3B82F6;
     --accent-blue-rgb:    59 130 246;
     --accent-blue-hover:  #2563EB;
@@ -81,7 +81,7 @@
     --text-muted:       #94A3B8;
     --text-muted-rgb:   148 163 184;
 
-    /* ── Glow tiers — boosted for AndroAI neon button signature ── */
+    /* ── Glow tiers - boosted for AndroAI neon button signature ── */
     --glow-sm: 0 0 0 1px rgba(59, 130, 246, 0.40),
                0 6px 18px rgba(59, 130, 246, 0.38),
                0 0 24px rgba(99, 102, 241, 0.28);
@@ -113,7 +113,7 @@
     --wa-2:       #128C7E;
 
     /* ══════════════════════════════════════════════════════════
-       LEGACY ALIAS LAYER — routes old names to dark + blue palette
+       LEGACY ALIAS LAYER - routes old names to dark + blue palette
        ══════════════════════════════════════════════════════════ */
 
     --surface:            var(--bg-main);
@@ -252,7 +252,7 @@
   }
 
   /* Chrome/Edge/Safari force a white bg + black text on autofilled fields,
-     which collides with the dark theme — typed text becomes white-on-white.
+     which collides with the dark theme - typed text becomes white-on-white.
      Pin the autofill colors back to the dark theme. */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -278,7 +278,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Scrollbar — slate track, blue thumb */
+  /* Scrollbar - slate track, blue thumb */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: var(--bg-main); }
   ::-webkit-scrollbar-thumb {
@@ -340,7 +340,7 @@
     text-wrap: pretty;
   }
 
-  /* ───────────── Buttons — AndroAI neon glow signature ───────── */
+  /* ───────────── Buttons - AndroAI neon glow signature ───────── */
 
   .btn {
     display: inline-flex;
@@ -368,7 +368,7 @@
   .btn:active { transform: translateY(0) scale(0.98); }
   .btn:disabled { opacity: 0.5; pointer-events: none; }
 
-  /* Primary CTA — gradient blue → indigo with neon halo */
+  /* Primary CTA - gradient blue → indigo with neon halo */
   .btn-dark {
     @apply btn;
     background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 100%);
@@ -398,7 +398,7 @@
   }
   .btn-dark:active { transform: translateY(0); }
 
-  /* Secondary / Outline — subtle glass on dark with blue ring on hover */
+  /* Secondary / Outline - subtle glass on dark with blue ring on hover */
   .btn-outline {
     @apply btn;
     background: rgba(255, 255, 255, 0.04);
@@ -529,7 +529,7 @@
     box-shadow: var(--shadow-card);
   }
 
-  /* Sticker / pill badge — gradient on dark with subtle glow */
+  /* Sticker / pill badge - gradient on dark with subtle glow */
   .sticker {
     display: inline-flex;
     align-items: center;
@@ -720,7 +720,7 @@
     transition: background 600ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* Gradient text — replaces legacy gold-text */
+  /* Gradient text - replaces legacy gold-text */
   .gold-text {
     background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-indigo) 50%, var(--accent-cyan) 100%);
     -webkit-background-clip: text;
@@ -898,7 +898,7 @@
     text-shadow: 0 0 14px rgba(59, 130, 246, 0.45);
   }
 
-  /* Neon glow utilities — apply to any element for AndroAI-style halo */
+  /* Neon glow utilities - apply to any element for AndroAI-style halo */
   .glow-blue {
     box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.40),
                 0 6px 18px rgba(59, 130, 246, 0.38),

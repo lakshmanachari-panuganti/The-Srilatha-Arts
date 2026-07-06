@@ -59,7 +59,7 @@ export async function ensureInvoicePdf(
   // Defence-in-depth: never generate a receipt for an order where money
   // never changed hands. The verify + webhook paths already gate on
   // CAPTURED before calling us, but admin "resend email/whatsapp"
-  // endpoints route here without that check — so guard at the source.
+  // endpoints route here without that check - so guard at the source.
   // COD is intentionally included so cash-on-delivery orders still get
   // a receipt at fulfillment time even though paymentStatus isn't
   // CAPTURED. REFUNDED is also allowed because the original receipt
@@ -79,7 +79,7 @@ export async function ensureInvoicePdf(
     return await _generateInvoicePdf(order, context)
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err)
-    // Surface invoice failures on the admin dashboard — without an invoice
+    // Surface invoice failures on the admin dashboard - without an invoice
     // the customer can't be confirmed via the WhatsApp path (DOCUMENT header
     // requires the blob) and email order_confirmed loses its attachment.
     await recordAlert({

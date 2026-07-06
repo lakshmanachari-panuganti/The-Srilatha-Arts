@@ -1,6 +1,6 @@
 'use client'
 /**
- * HomeHero — AndroAI dark variant.
+ * HomeHero - AndroAI dark variant.
  *
  * Dark slate canvas with aurora gradient (blue/indigo/cyan radials),
  * large Plus Jakarta Sans display headline with gradient accent word,
@@ -81,7 +81,7 @@ export default function HomeHero() {
         <div className="w-full max-w-container mx-auto px-5 sm:px-8 lg:px-12 pt-28 sm:pt-32 pb-24">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
 
-            {/* Left — copy block */}
+            {/* Left - copy block */}
             <div className="lg:col-span-7 text-center lg:text-left">
               <motion.div {...fade(0.05)}>
                 <span className="inline-flex items-center gap-2 h-8 px-3.5
@@ -120,7 +120,7 @@ export default function HomeHero() {
                 className="mt-6 lg:mt-7 max-w-xl mx-auto lg:mx-0
                            text-base sm:text-lg text-ivory-soft leading-relaxed"
               >
-                Custom resin creations crafted with precision, creativity and passion —
+                Custom resin creations crafted with precision, creativity and passion -
                 hand-painted in our Hyderabad studio and shipped securely across India.
               </motion.p>
 
@@ -159,7 +159,7 @@ export default function HomeHero() {
               </motion.div>
             </div>
 
-            {/* Right — floating showcase card (desktop only) */}
+            {/* Right - floating showcase card (desktop only) */}
             <motion.div
               {...fade(0.30)}
               className="hidden lg:block lg:col-span-5 relative"
@@ -189,7 +189,7 @@ export default function HomeHero() {
                       Featured
                     </p>
                     <p className="font-display text-base text-ivory mt-0.5">
-                      Vermilion Tide — Resin Mandala
+                      Vermilion Tide - Resin Mandala
                     </p>
                   </div>
                 </div>

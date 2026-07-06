@@ -58,7 +58,7 @@ const config: Config = {
         'primary-dark':    'rgb(var(--accent-blue-rgb) / <alpha-value>)',
         'primary-burnt':   'rgb(var(--accent-blue-hover-rgb) / <alpha-value>)',
 
-        // Text aliases — primary slate-50 (light on dark), body slate-300, muted slate-400
+        // Text aliases - primary slate-50 (light on dark), body slate-300, muted slate-400
         ivory:        'rgb(var(--text-primary-rgb) / <alpha-value>)',
         'ivory-soft': 'rgb(var(--text-secondary-rgb) / <alpha-value>)',
         'ivory-mute': 'rgb(var(--text-muted-rgb) / <alpha-value>)',
@@ -66,7 +66,7 @@ const config: Config = {
         'ink-soft':   'rgb(var(--text-secondary-rgb) / <alpha-value>)',
         'ink-mute':   'rgb(var(--text-muted-rgb) / <alpha-value>)',
 
-        // Navigation surfaces — frosted dark
+        // Navigation surfaces - frosted dark
         'nav-surface':       'rgba(15,23,42,0.85)',
         'nav-surface-heavy': 'rgba(11,17,32,0.95)',
 

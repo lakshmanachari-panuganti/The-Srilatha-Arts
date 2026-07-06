@@ -85,7 +85,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
           </button>
         </div>
 
-        {/* Add to cart — outlined secondary */}
+        {/* Add to cart - outlined secondary */}
         <button
           onClick={onAdd}
           disabled={!product.inStock}
@@ -109,7 +109,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
           <span className="sm:hidden">Add</span>
         </button>
 
-        {/* Buy now — primary gold CTA */}
+        {/* Buy now - primary gold CTA */}
         <button
           onClick={onBuyNow}
           disabled={!product.inStock}

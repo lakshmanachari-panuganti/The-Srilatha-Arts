@@ -109,7 +109,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             })()}
           </div>
 
-          {/* Wishlist heart — dark pill */}
+          {/* Wishlist heart - dark pill */}
           <button
             type="button"
             onClick={onWish}
@@ -131,7 +131,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             />
           </button>
 
-          {/* Quick-add — gradient blue circle */}
+          {/* Quick-add - gradient blue circle */}
           <button
             type="button"
             onClick={onAdd}

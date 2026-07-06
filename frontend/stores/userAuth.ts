@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
+import { apiFetch, ApiError, setApiAuthToken, clearCsrfToken } from '@/lib/api'
 import { useWishlist } from '@/stores/wishlist'
 import { useCart } from '@/stores/cart'
 
@@ -142,6 +142,7 @@ export const useUserAuth = create<UserAuthState>()(
           // best-effort
         }
         setApiAuthToken(null)
+        clearCsrfToken()
         set({ user: null, token: null, needsProfileSetup: false, error: null })
         // Clear local cart + wishlist so the next user on the same browser
         // doesn't inherit the previous user's items. Spec: "When a user
@@ -167,7 +168,7 @@ export const useUserAuth = create<UserAuthState>()(
       // cross-site HttpOnly cookie (`tsa_token`) issued by the backend, so
       // apiFetch's `credentials: 'include'` re-authenticates every request
       // without any JS-readable token. Storing the JWT here previously
-      // meant any XSS could exfiltrate it — see security audit item C1.
+      // meant any XSS could exfiltrate it - see security audit item C1.
       partialize: (s) => ({ user: s.user }),
       onRehydrateStorage: () => (state) => {
         if (state?.user) {

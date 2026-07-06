@@ -115,7 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://api.fontshare.com/v2/css?f[]=pramukh-rounded@800&display=swap" rel="stylesheet" />
 
         {/* Organization + WebSite structured data. Tells Google "this is a
-            brand site that sells things and has a search function" — improves
+            brand site that sells things and has a search function" - improves
             knowledge-panel eligibility and sitelinks search box. Per-product
             Product+Offer JSON-LD is injected separately in ProductDetailClient
             once product data resolves. */}
@@ -132,7 +132,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   url: 'https://www.srilatha.art',
                   logo: 'https://www.srilatha.art/Logos/pwa-512.png',
                   description:
-                    'Handcrafted resin art, lippan art, dot mandala, kolam art and wedding decoratives — made by hand in Hyderabad, India.',
+                    'Handcrafted resin art, lippan art, dot mandala, kolam art and wedding decoratives - made by hand in Hyderabad, India.',
                   address: {
                     '@type': 'PostalAddress',
                     streetAddress: `${CONTACT.studioAddress.line1}, ${CONTACT.studioAddress.line2}`,

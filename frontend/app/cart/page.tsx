@@ -54,7 +54,7 @@ export default function CartPage() {
       .then((changes) => {
         if (!cancelled) setPriceChanges(changes)
       })
-      .catch(() => { /* offline / 5xx — keep stored prices */ })
+      .catch(() => { /* offline / 5xx - keep stored prices */ })
     return () => { cancelled = true }
   }, [refreshPrices])
 
@@ -181,7 +181,7 @@ export default function CartPage() {
             <ul className="space-y-0.5 text-ink-soft">
               {priceChanges.map((c) => (
                 <li key={c.productId}>
-                  <span className="text-ink">{c.title}</span> —{' '}
+                  <span className="text-ink">{c.title}</span> -{' '}
                   <span className="line-through tabular-nums">{formatINR(c.oldPrice)}</span>{' '}
                   <span className="tabular-nums">{formatINR(c.newPrice)}</span>
                 </li>

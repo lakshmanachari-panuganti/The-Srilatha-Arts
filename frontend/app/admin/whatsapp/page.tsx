@@ -147,7 +147,7 @@ export default function WhatsAppInbox() {
   // composer's own optimistic message always scrolls into view.
   const stickToBottomRef = useRef(true)
 
-  // Mobile navigation — WhatsApp-style two-screen model on small viewports
+  // Mobile navigation - WhatsApp-style two-screen model on small viewports
   // (list → tap → chat → back → list). Desktop ignores this state and renders
   // both panes side-by-side via responsive classes.
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
@@ -162,7 +162,7 @@ export default function WhatsAppInbox() {
       try {
         window.history.pushState({ whatsappChat: phone }, '')
       } catch {
-        // Some embedded webviews disallow pushState — fall through silently.
+        // Some embedded webviews disallow pushState - fall through silently.
       }
     }
   }, [])
@@ -191,7 +191,7 @@ export default function WhatsAppInbox() {
         `/admin/whatsapp/conversations${query ? `?q=${encodeURIComponent(query)}` : ''}`,
       )
       const incoming = r.conversations || []
-      // The currently-open thread is being actively read — force its unread
+      // The currently-open thread is being actively read - force its unread
       // count to 0 even if v2's mark-read is still propagating. Otherwise the
       // 30s list poll would briefly reintroduce the badge between thread-open
       // and v2's centralized counter resetting.
@@ -227,7 +227,7 @@ export default function WhatsAppInbox() {
    * authoritative delivery/read status) win.
    *
    * Cross-thread case: if the prev belongs to a different phone (operator
-   * switched threads), don't merge — just take the server payload as-is.
+   * switched threads), don't merge - just take the server payload as-is.
    */
   const reconcileMessages = useCallback(
     (server: WhatsAppMessage[], current: WhatsAppMessage[]): WhatsAppMessage[] => {
@@ -316,14 +316,14 @@ export default function WhatsAppInbox() {
     }
   }, [refreshList])
 
-  // Reset composer when switching threads — don't carry a draft across phones.
+  // Reset composer when switching threads - don't carry a draft across phones.
   useEffect(() => {
     setReplyText('')
     setSendErr('')
   }, [selected])
 
   // Auto-scroll to the newest message ONLY when the operator is already
-  // near the bottom — otherwise a background-poll-delivered inbound would
+  // near the bottom - otherwise a background-poll-delivered inbound would
   // yank them out of the history they're reading. The composer's own send
   // sets stickToBottomRef = true so newly sent messages always scroll in.
   useEffect(() => {
@@ -390,7 +390,7 @@ export default function WhatsAppInbox() {
             }
           : d,
       )
-      // Keep the inbox left rail in sync — bump preview + last-message-at.
+      // Keep the inbox left rail in sync - bump preview + last-message-at.
       setConversations((prev) =>
         prev.map((c) =>
           c.phone === selected
@@ -659,7 +659,7 @@ export default function WhatsAppInbox() {
                     onKeyDown={(e) => {
                       if (e.key !== 'Enter' || e.shiftKey) return
                       // Touch-primary devices (iOS Safari, Android Chrome):
-                      // Enter inserts a newline — the WhatsApp/iMessage
+                      // Enter inserts a newline - the WhatsApp/iMessage
                       // convention. Sending requires tapping the Send button.
                       // Desktop (pointer: fine): Enter sends, Shift+Enter
                       // newlines, matching the chat-app convention there.

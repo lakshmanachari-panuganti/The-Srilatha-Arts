@@ -17,7 +17,7 @@ interface UploadResult {
   thumbnailUrl: string
   fileName: string
   size: number
-  /** Responsive srcset lookup — key is the target rendered width, value is
+  /** Responsive srcset lookup - key is the target rendered width, value is
    *  the CDN URL for that variant. Populated by uploadProductImage so
    *  <img srcset> / next/image sizes can pick the smallest variant that
    *  still covers the layout, cutting bytes on mobile. Audit M1. */
@@ -122,7 +122,7 @@ export async function uploadProductImage(
     thumbFileName = `${category}/thumb-${id}.webp`
   }
 
-  // Responsive variants — audit M1. Generate one image per breakpoint so
+  // Responsive variants - audit M1. Generate one image per breakpoint so
   // small screens don't ship the 1200px hero. Sharing the same input
   // buffer, three sharp calls run in parallel to keep upload latency low.
   const [imageXL, imageLG, imageMD] = await Promise.all([
@@ -140,7 +140,7 @@ export async function uploadProductImage(
       .toBuffer(),
   ])
 
-  // Thumb (square-crop) — used by cart, mini-cards, admin. Kept separate
+  // Thumb (square-crop) - used by cart, mini-cards, admin. Kept separate
   // from the responsive variants so its aspect ratio is different (cover
   // crop for grid tiles, inside for the responsive photo variants).
   const thumbImage = await sharp(imageBuffer)
@@ -155,7 +155,7 @@ export async function uploadProductImage(
   const nameLG = `${base}-w800${ext}`
   const nameMD = `${base}-w400${ext}`
 
-  // All uploads in parallel — 4 blob PUTs, ~equal cost.
+  // All uploads in parallel - 4 blob PUTs, ~equal cost.
   await Promise.all([
     containerClient.getBlockBlobClient(nameXL).upload(imageXL, imageXL.length, {
       blobHTTPHeaders: { blobContentType: 'image/webp', blobCacheControl: 'public, max-age=31536000' },

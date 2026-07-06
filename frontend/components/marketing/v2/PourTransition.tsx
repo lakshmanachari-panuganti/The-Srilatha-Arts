@@ -1,14 +1,14 @@
 'use client'
 
 /**
- * PourTransition — the corridor between rooms.
+ * PourTransition - the corridor between rooms.
  *
  * A scroll-bound resin sheet that pours down across the viewport as the
  * user scrolls through the boundary between two rooms. The previous room
  * recedes, an editorial label of the next room rises through the ink,
  * and the resin retreats off the bottom of the viewport to reveal the
- * incoming room. This is the page-as-exhibition moment — the corridor
- * between gallery wings — and is intentionally one viewport tall.
+ * incoming room. This is the page-as-exhibition moment - the corridor
+ * between gallery wings - and is intentionally one viewport tall.
  *
  * Why scroll-bound (not trigger-fire):
  *   A scroll-bound animation lets the visitor *feel* the resin under
@@ -19,7 +19,7 @@
  *
  * Performance:
  *   - The pour shape is a *static* SVG path. We only animate
- *     `transform: translateY` on a wrapper — GPU-composited, no layout,
+ *     `transform: translateY` on a wrapper - GPU-composited, no layout,
  *     no paint past the initial. 60fps on mid-range Android.
  *   - The sticky stage is one element. The label uses opacity + y.
  *   - useReducedMotion → the sheet is permanently parked off-screen so
@@ -28,13 +28,13 @@
  * Visual design:
  *   - The resin body is a deep espresso ink (matches your --text token)
  *     with a subtle vertical gradient (slightly lighter near the top,
- *     deeper toward the bottom — simulates the "fresh" pour catching
+ *     deeper toward the bottom - simulates the "fresh" pour catching
  *     light at the meniscus and pooling darker below).
- *   - A single hairline gold catchlight rides the meniscus — this is
+ *   - A single hairline gold catchlight rides the meniscus - this is
  *     the "light caught on the wet edge" detail that makes it read as
  *     resin, not as a black wipe.
  *   - The meniscus path is a viscous, asymmetric curve (4 broad Beziers
- *     across the viewport). Not jagged, not symmetric, not uniform —
+ *     across the viewport). Not jagged, not symmetric, not uniform -
  *     irregular like a real pour.
  *
  * Use:
@@ -51,7 +51,7 @@ interface PourTransitionProps {
   label?: string
   /** Small caps eyebrow above the label. e.g. "Room 03" */
   eyebrow?: string
-  /** Backdrop tone behind the sheet — picks up the destination room's mood.
+  /** Backdrop tone behind the sheet - picks up the destination room's mood.
    *  'ivory'  = warm sand wash (default, for entering ivory rooms)
    *  'ink'    = deep espresso wash (for entering dark rooms)
    *  'sand'   = ochre wash (for entering the wedding / festival rooms) */
@@ -64,7 +64,7 @@ interface PourTransitionProps {
 // any viewport while the path itself stays static (GPU-friendly).
 //
 // Shape language: 4 broad asymmetric Beziers form an irregular wet edge.
-// Peaks and troughs intentionally NOT evenly spaced — a real pour is
+// Peaks and troughs intentionally NOT evenly spaced - a real pour is
 // never uniform. The path closes back into a full-viewport ink body.
 const POUR_PATH = `
   M 0 96
@@ -127,7 +127,7 @@ export default function PourTransition({
     [20, 0, 0, -20],
   )
 
-  // Subtle gold dust below the meniscus — opacity follows the sheet so the
+  // Subtle gold dust below the meniscus - opacity follows the sheet so the
   // shimmer only exists while resin is on-screen.
   const shimmerOpacity = useTransform(
     scrollYProgress,
@@ -146,7 +146,7 @@ export default function PourTransition({
     >
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
 
-        {/* ── Editorial label — peaks at full pour ─────────────── */}
+        {/* ── Editorial label - peaks at full pour ─────────────── */}
         {(label || eyebrow) && (
           <motion.div
             style={{ opacity: labelOpacity, y: labelY }}
@@ -193,7 +193,7 @@ export default function PourTransition({
           </motion.div>
         )}
 
-        {/* ── The resin sheet — GPU-driven translateY ──────────── */}
+        {/* ── The resin sheet - GPU-driven translateY ──────────── */}
         <motion.div
           style={reduceMotion ? { y: '100%' } : { y: sheetY }}
           className="absolute inset-x-0 top-0 h-[100svh] z-[2] will-change-transform"
@@ -205,7 +205,7 @@ export default function PourTransition({
             aria-hidden
           >
             <defs>
-              {/* Resin body — vertical gradient. Slightly lighter near
+              {/* Resin body - vertical gradient. Slightly lighter near
                   the meniscus (light passes through the surface) and
                   deeper toward the bottom (pooled, less translucent). */}
               <linearGradient id="pour-body" x1="0" y1="0" x2="0" y2="1">
@@ -213,7 +213,7 @@ export default function PourTransition({
                 <stop offset="12%" stopColor="#231B11" />
                 <stop offset="100%" stopColor="#15100A" />
               </linearGradient>
-              {/* Soft inner haze near the meniscus — gives the
+              {/* Soft inner haze near the meniscus - gives the
                   "wet, slightly translucent" read. */}
               <linearGradient id="pour-haze" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%"  stopColor="rgba(232,194,90,0)" />
@@ -227,7 +227,7 @@ export default function PourTransition({
             {/* Translucent inner haze just under the meniscus */}
             <path d={POUR_PATH} fill="url(#pour-haze)" />
 
-            {/* Meniscus catchlight — single hairline gold stroke on the
+            {/* Meniscus catchlight - single hairline gold stroke on the
                 wet edge. The detail that reads "resin," not "wipe." */}
             <path
               d={POUR_EDGE}
@@ -236,7 +236,7 @@ export default function PourTransition({
               strokeWidth="1.5"
               vectorEffect="non-scaling-stroke"
             />
-            {/* A second softer glow stroke, wider, lower opacity — adds
+            {/* A second softer glow stroke, wider, lower opacity - adds
                 a faint halo around the meniscus without going neon. */}
             <path
               d={POUR_EDGE}
@@ -250,7 +250,7 @@ export default function PourTransition({
 
           {/* Sparse gold-dust shimmer ribbon under the meniscus.
               Two thin horizontal gradient bars at low opacity that fade
-              based on scroll progress. No particles, no JS loop — pure
+              based on scroll progress. No particles, no JS loop - pure
               CSS. Reads as "specks suspended in the wet resin." */}
           {!reduceMotion && (
             <motion.div

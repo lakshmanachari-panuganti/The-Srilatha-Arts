@@ -2,7 +2,7 @@ name: Lighthouse CI
 
 # Runs Lighthouse against a local build of the static export so the audit
 # is deterministic (no deploy race, no remote-server flake). Configured
-# via frontend/.lighthouserc.json — edit there to change URLs or
+# via frontend/.lighthouserc.json - edit there to change URLs or
 # thresholds, not here.
 #
 # Scope is deliberate:

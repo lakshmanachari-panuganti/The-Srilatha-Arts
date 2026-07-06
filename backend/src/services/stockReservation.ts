@@ -3,7 +3,7 @@
  *
  * Extracted from functions/payments.ts (audit M4) so the compensation
  * loop can be unit tested without spinning up the full HTTP handler.
- * Behaviour-preserving — the payments handler creates a Reservation
+ * Behaviour-preserving - the payments handler creates a Reservation
  * ledger, calls reserveMany() to hold inventory before creating the
  * Razorpay order, and rolls back via rollbackReservations() if anything
  * downstream fails. On success the ledger is drained without a rollback.
@@ -62,7 +62,7 @@ export async function reserveMany(
         return {
           ok: false,
           reason: 'CONCURRENCY',
-          message: `${label} just sold — please refresh and try again.`,
+          message: `${label} just sold - please refresh and try again.`,
         }
       }
       context?.error?.('reserveMany: unexpected error', err)
@@ -75,7 +75,7 @@ export async function reserveMany(
 /**
  * Compensating restore. Drains the ledger so a subsequent rollback call
  * (e.g. from the outer catch) is a safe no-op. Failures are logged but
- * never rethrown — a partial restore is safer than a thrown exception
+ * never rethrown - a partial restore is safer than a thrown exception
  * that swallows the original error path; the timer-triggered stale-
  * reservation cleanup sweeps whatever's left within 10 minutes.
  */

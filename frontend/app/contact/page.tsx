@@ -70,7 +70,7 @@ export default function ContactPage() {
             {CONTACT.studioAddress.city}, {CONTACT.studioAddress.region}, {CONTACT.studioAddress.country}
           </p>
           <p className="text-ivory-mute text-xs leading-relaxed mt-2">
-            We don&apos;t have a walk-in store — we create everything from this studio.
+            We don&apos;t have a walk-in store - we create everything from this studio.
             To order, please use the website or message us. We ship anywhere in India.
           </p>
         </div>

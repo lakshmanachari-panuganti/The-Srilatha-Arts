@@ -1,4 +1,4 @@
-# Launch TODO — Srilatha Art website
+# Launch TODO - Srilatha Art website
 
 Pre-launch operational tasks tracked here. Code-level work is captured in
 PR descriptions and merged via the normal flow; this file collects the
@@ -16,7 +16,7 @@ until the production env vars are set. Until then:
 
 - The provider renders nothing (no scripts, no consent banner).
 - The `trackEvent` shim in `components/marketing/v2/shared/analytics.ts`
-  no-ops gracefully — Studio Vault CTAs continue to work; events simply
+  no-ops gracefully - Studio Vault CTAs continue to work; events simply
   don't emit yet.
 - Backend payment / webhook custom telemetry to App Insights is already
   wired and active (independent of GA4 / Meta).
@@ -41,7 +41,7 @@ until the production env vars are set. Until then:
 
 Order confirmations + invoice attachments + review-request emails all flow
 through the SMTP configuration in `backend/local.settings.example.json`.
-Deliverability is unverified — without SPF/DKIM/DMARC the studio's
+Deliverability is unverified - without SPF/DKIM/DMARC the studio's
 confirmation emails likely land in Gmail Promotions or Spam, which destroys
 perceived professionalism on the customer's first impression after payment.
 
@@ -51,7 +51,7 @@ perceived professionalism on the customer's first impression after payment.
 - [ ] Publish SPF record allowing the SMTP provider's sending IPs
 - [ ] Enable DKIM signing on the provider; publish the public key in DNS
 - [ ] Publish DMARC record (recommended: `v=DMARC1; p=quarantine; rua=mailto:postmaster@srilatha.art`)
-- [ ] Send a test order confirmation through https://mail-tester.com — target ≥ 9/10
+- [ ] Send a test order confirmation through https://mail-tester.com - target ≥ 9/10
 - [ ] Confirm a real order confirmation lands in Gmail Inbox (not Promotions, not Spam)
 - [ ] Confirm the invoice PDF attachment opens correctly from the email
 - [ ] Add a "delivered confirmation" send via the order state machine (24h after DELIVERED)
@@ -81,7 +81,7 @@ Azure Portal.
 
 ---
 
-## Product catalogue — create Studio Vault pieces in Admin
+## Product catalogue - create Studio Vault pieces in Admin
 
 The Studio Vault rooms reference Vermilion Tide (Plate I in Featured Works,
 the subject of Process Film) and four other pieces, but the `productId`
@@ -89,7 +89,7 @@ fields are placeholder slugs. **Decision (2026-06-11):** create real
 catalogue products for these Studio Vault pieces via Admin Portal so they
 are first-class products; once created, wire the real IDs in.
 
-### Tasks (Admin Portal — studio side)
+### Tasks (Admin Portal - studio side)
 
 - [ ] Create catalogue product: **Vermilion Tide** (resin & gold leaf on birch panel · 22 × 30 in · ₹68,000 · stockQty 1)
 - [ ] Create catalogue product: **Concentric Devotion** (acrylic & ink on canvas · 24 × 24 in · ₹42,000 · stockQty 1)
@@ -97,22 +97,22 @@ are first-class products; once created, wire the real IDs in.
 - [ ] Create catalogue product: **Salt Witness** (resin, sand & gold leaf on panel · 20 × 26 in · ₹58,000 · stockQty 1)
 - [ ] Create catalogue product: **Doorway VII** (lippan clay, mirror & gold leaf · 14 × 20 in · ₹46,000 · stockQty 1)
 
-### Tasks (code — once IDs exist)
+### Tasks (code - once IDs exist)
 
 - [ ] Capture the real catalogue ID for each piece
 - [ ] Update `processFilmData.ts` (`PIECE.productId`) with the real Vermilion Tide ID
-- [ ] Update `FeaturedWorks.tsx` `WORKS` array — replace all 5 placeholder slug productIds with real IDs
+- [ ] Update `FeaturedWorks.tsx` `WORKS` array - replace all 5 placeholder slug productIds with real IDs
 - [ ] Verify Buy Now from Featured Works Plate I successfully adds to cart and lands on `/checkout`
 - [ ] Verify Add to Cart opens the drawer
 - [ ] Verify Inquire on WhatsApp prefills the message with the real piece title
 
 ---
 
-## Notifications — dual-channel + studio CC
+## Notifications - dual-channel + studio CC
 
 Customer-facing transactional events now fire WhatsApp + email in
 parallel, with the studio CC'd on every email. Centralised via the
-template registry in `backend/src/services/emailTemplates/registry.ts` —
+template registry in `backend/src/services/emailTemplates/registry.ts` -
 all dispatch flows through there.
 
 ### Tasks (env / config)
@@ -123,7 +123,7 @@ all dispatch flows through there.
 - [ ] Set `RESERVATION_TIMEOUT_MINUTES` to 30 (or leave unset for the default)
 - [ ] Set `STUDIO_ADMINS_WHATSAPP_GROUP` on the prd Function App. Comma-separated WhatsApp numbers (E.164 or `+91 …`) that should receive the `admin_notification` template every time a customer submits a Custom Order request. Invalid/empty entries are ignored; failures to notify one admin do not stop the rest. Leave unset to disable the fan-out.
 
-### Tasks (Meta Business Manager — WhatsApp template approvals)
+### Tasks (Meta Business Manager - WhatsApp template approvals)
 
 Templates exist in code and the dispatcher will fire both channels the
 moment Meta approval lands. Templates that need to go from 🟡 READY → ✅ LIVE:
@@ -133,19 +133,19 @@ moment Meta approval lands. Templates that need to go from 🟡 READY → ✅ LI
 - [ ] `order_cancelled`
 - [ ] `order_on_hold`
 - [ ] `order_refunded`
-- [ ] `order_delivered` (NEW — needs to be authored + submitted in Meta)
+- [ ] `order_delivered` (NEW - needs to be authored + submitted in Meta)
 - [ ] `review_request`
 - [ ] `return_declined` (existing READY template, not yet wired to a transition handler)
-- [ ] `admin_notification` (NEW — studio-facing custom-order arrival ping; body variables `{{1}}` customer name, `{{2}}` mobile number; static URL button pointing at `/admin/custom-orders`. Full copy in `docs/TODO/Create_whatsapp_templates/9. admin_notification.txt`)
+- [ ] `admin_notification` (NEW - studio-facing custom-order arrival ping; body variables `{{1}}` customer name, `{{2}}` mobile number; static URL button pointing at `/admin/custom-orders`. Full copy in `docs/TODO/Create_whatsapp_templates/9. admin_notification.txt`)
 
 The WhatsApp template body wording for each is in `docs/templates/template_definition.md`. The
-matching email versions auto-generate from `backend/src/services/emailTemplates/*.ts` — wording
+matching email versions auto-generate from `backend/src/services/emailTemplates/*.ts` - wording
 intentionally mirrors WhatsApp so customers see consistent messages across channels.
 
 ### Tasks (verification after deploy)
 
 - [ ] Place a real test order; confirm WhatsApp + email + invoice PDF all land
-- [ ] Verify studio receives the order-confirmation email as CC (not BCC — CC by design)
+- [ ] Verify studio receives the order-confirmation email as CC (not BCC - CC by design)
 - [ ] Walk an order through every status transition (CRAFTING → SHIPPED → DELIVERED) and verify both channels fire each time
 - [ ] Force a stale reservation (place an order, abandon Razorpay Checkout for 30+ min); verify staleReservationCleanup cancels the order and restores stock
 - [ ] Issue a test refund via Razorpay dashboard; verify both customer channels + studio CC fire on `refund.processed`
@@ -164,7 +164,7 @@ chapter in `processFilmData.ts` to upgrade.
 - [ ] (45 min phone shoot) Capture five chapter stills for Vermilion Tide
 - [ ] Drop JPGs at `/public/process-film/vermilion-tide/` (matching the names referenced in `processFilmData.ts` once filled)
 - [ ] Edit each chapter's `media: { type: 'blueprint' }` → `{ type: 'still', src, alt }`
-- [ ] (Later, optional) 6–10 second video clips per chapter — same swap pattern
+- [ ] (Later, optional) 6–10 second video clips per chapter - same swap pattern
 - [ ] Refine chapter `body` copy with Srilatha's voice (my drafts ship as fallback)
 
 ---
@@ -184,7 +184,7 @@ WebP fallback path that `PictureImage` expects).
 
 ---
 
-## Studio operations — post-purchase content engine
+## Studio operations - post-purchase content engine
 
 The post-purchase pipeline (priority 1) extends the existing review system
 so that customer photos + room context flow into Room 07 (when built). The
@@ -198,14 +198,14 @@ so that customer photos + room context flow into Room 07 (when built). The
 
 ## Already done (no action needed)
 
-- [x] **Cookie domain mismatch** — host-only cookies + Authorization: Bearer fallback
-- [x] **X-Forwarded-For IP spoof** — `getClientIp` uses rightmost XFF / `x-azure-clientip`
-- [x] **Invoice URL IDOR** — HMAC token required for post-cutover invoices, 404 on enumeration
-- [x] **PDP sticky Buy Now bar** — `components/shop/StickyCartBar.tsx` is live and used
-- [x] **PDP Product + Offer JSON-LD** — injected in `ProductDetailClient.tsx` after data resolves
-- [x] **Root Organization + WebSite JSON-LD** — in `app/layout.tsx`
-- [x] **`/api/health` endpoint** — `backend/src/functions/health.ts`
-- [x] **App Insights backend telemetry shim** — `backend/src/utils/telemetry.ts`, wired in `payments.ts`
-- [x] **`/api/reviews/recent` endpoint** — public sitewide approved reviews
-- [x] **`/reviews` page on real API** — empty-state is honest, not mock
-- [x] **Homepage Testimonials on real API** — renders nothing when no real reviews exist
+- [x] **Cookie domain mismatch** - host-only cookies + Authorization: Bearer fallback
+- [x] **X-Forwarded-For IP spoof** - `getClientIp` uses rightmost XFF / `x-azure-clientip`
+- [x] **Invoice URL IDOR** - HMAC token required for post-cutover invoices, 404 on enumeration
+- [x] **PDP sticky Buy Now bar** - `components/shop/StickyCartBar.tsx` is live and used
+- [x] **PDP Product + Offer JSON-LD** - injected in `ProductDetailClient.tsx` after data resolves
+- [x] **Root Organization + WebSite JSON-LD** - in `app/layout.tsx`
+- [x] **`/api/health` endpoint** - `backend/src/functions/health.ts`
+- [x] **App Insights backend telemetry shim** - `backend/src/utils/telemetry.ts`, wired in `payments.ts`
+- [x] **`/api/reviews/recent` endpoint** - public sitewide approved reviews
+- [x] **`/reviews` page on real API** - empty-state is honest, not mock
+- [x] **Homepage Testimonials on real API** - renders nothing when no real reviews exist

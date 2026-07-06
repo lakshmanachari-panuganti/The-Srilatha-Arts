@@ -195,7 +195,7 @@ async function adminGetConversation(
 
     // Also mark v2 as read so the centralized inbox count drops to 0
     // (and Meta receives a read-receipt, turning the customer's double
-    // grey ticks blue). Fire-and-forget — v2 failures must not block
+    // grey ticks blue). Fire-and-forget - v2 failures must not block
     // the operator from seeing the thread, and the next poll will retry
     // implicitly the next time the thread is opened/refreshed.
     if (isV2Configured()) {
@@ -307,7 +307,7 @@ function mergeConversations(
           updatedAt: v2.updatedAt || '',
         })
       } else {
-        // Both sources have this phone — merge: most recent wins for display,
+        // Both sources have this phone - merge: most recent wins for display,
         // unread counts sum (v2 tracks inbound unreads).
         const v2Time = new Date(v2.lastMessageAt || 0).getTime()
         const localTime = new Date(existing.lastMessageAt || 0).getTime()
@@ -415,7 +415,7 @@ async function adminSendMessage(
   try {
     const result = await sendV2Message(phone, text)
     if (!result.ok) {
-      // 502 — upstream service rejected. Surface v2's error verbatim so the
+      // 502 - upstream service rejected. Surface v2's error verbatim so the
       // admin sees "outside 24h window" / "invalid recipient" / etc.
       return errorResponse(result.error || 'WhatsApp send failed', 502, origin)
     }

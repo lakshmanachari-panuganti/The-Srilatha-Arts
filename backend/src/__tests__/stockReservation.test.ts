@@ -1,7 +1,7 @@
 /**
  * Reserve-then-rollback tests (audits M2 + M4).
  *
- * The compensation loop lives on the money-critical checkout path — if
+ * The compensation loop lives on the money-critical checkout path - if
  * reserving item 3 of 5 throws, all 5 must go back on the shelf, not
  * just the first 2. These tests exercise the ledger + rollback pattern
  * with a mocked storage layer so nothing touches real Azure tables.
@@ -20,7 +20,7 @@ class StockConcurrencyError extends Error {
   constructor(m: string) { super(m); this.name = 'StockConcurrencyError' }
 }
 
-// Failure control per productId — string of behaviour for the reserveStock mock:
+// Failure control per productId - string of behaviour for the reserveStock mock:
 //   'ok' | 'insufficient' | 'concurrency' | 'boom'
 const stockBehaviour = new Map<string, string>()
 
@@ -105,7 +105,7 @@ describe('reserveMany + rollback (audit M2/M4)', () => {
     expect(out.message).toContain('Lippan Owl')
   })
 
-  it('rollbackReservations is idempotent — second call after drain is a no-op', async () => {
+  it('rollbackReservations is idempotent - second call after drain is a no-op', async () => {
     const ledger = [{ productId: 'a', qty: 1 }]
     await rollbackReservations(ledger)
     await rollbackReservations(ledger)

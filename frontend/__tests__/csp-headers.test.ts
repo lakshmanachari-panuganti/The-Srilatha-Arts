@@ -14,7 +14,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-describe('staticwebapp.config.json — CSP hardening', () => {
+describe('staticwebapp.config.json - CSP hardening', () => {
   const configPath = path.resolve(__dirname, '..', 'staticwebapp.config.json')
   const raw = fs.readFileSync(configPath, 'utf8')
   const config = JSON.parse(raw) as {

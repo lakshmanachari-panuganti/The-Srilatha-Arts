@@ -10,7 +10,7 @@ import { jest } from '@jest/globals'
 
 const table = new Map<string, Record<string, unknown>>()
 
-// Mock @azure/data-tables — the TableClient class returned by getTableClient
+// Mock @azure/data-tables - the TableClient class returned by getTableClient
 // only exposes upsertEntity + getEntity for this module.
 jest.mock('@azure/data-tables', () => ({
   TableClient: class {
@@ -49,7 +49,7 @@ beforeEach(() => {
   table.clear()
 })
 
-describe('ordersByRazorpayId — audit H3', () => {
+describe('ordersByRazorpayId - audit H3', () => {
   it('returns null when the id is unknown', async () => {
     const got = await getInternalOrderIdByRazorpay('order_unknown')
     expect(got).toBeNull()

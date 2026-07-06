@@ -13,9 +13,9 @@ import { SHIPPING_DEFAULTS } from '@/lib/site-config'
  * Rendering policy (post-audit C4):
  *   - Before the live fetch resolves, we render a sensible DEFAULT from
  *     lib/site-config so the sentence around us always reads completely
- *     (e.g. "Free shipping above ₹2,000" rather than "Free shipping above —").
+ *     (e.g. "Free shipping above ₹2,000" rather than "Free shipping above -").
  *   - Once the live value arrives, we swap it in seamlessly.
- *   - If the fetch fails, the default stays — trustworthy fallback, not
+ *   - If the fetch fails, the default stays - trustworthy fallback, not
  *     a dangling dash. The default is kept in sync with the live admin
  *     value; the cart enforces the live value at checkout regardless.
  */

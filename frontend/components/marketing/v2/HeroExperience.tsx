@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * HeroExperience — Room 01 of the "Studio Vault" redesign.
+ * HeroExperience - Room 01 of the "Studio Vault" redesign.
  *
  * Editorial split hero, museum-catalog grammar:
  *   - Left half: numbered exhibition eyebrow → display headline →
  *     editorial lede → 3 CTAs (primary resin button + 2 editorial links).
- *   - Right half: the artwork "plate" — a single piece per slide, mounted
+ *   - Right half: the artwork "plate" - a single piece per slide, mounted
  *     like a gallery print. Rotates through 4 works every ~7s with a
  *     vertical clip-path wipe. The plate carries the signature
  *     "Liquid Resin Shine":
@@ -15,12 +15,12 @@
  *       · cursor-reactive radial highlight (.resin-specular, driven by
  *         --rx/--ry custom properties; on mobile, gyroscope tilt drives
  *         the same vars).
- *   - Backdrop: KolamCursorField — a live dot-lace pattern the cursor
+ *   - Backdrop: KolamCursorField - a live dot-lace pattern the cursor
  *     "draws" gold through. Sits at the back of the section, low
  *     opacity, breathes when idle.
  *   - Top-right: hand-numbered "00 / 04" exhibition counter.
- *   - Bottom: full-width museum caption strip — title · dimensions ·
- *     medium · year — like a real gallery wall card.
+ *   - Bottom: full-width museum caption strip - title · dimensions ·
+ *     medium · year - like a real gallery wall card.
  *
  * The page-level header sits over this section as it does for the old
  * HeroSlideshow; the warm scrim under the header is preserved via the
@@ -51,7 +51,7 @@ interface ArtworkSlide {
 const SLIDES: readonly ArtworkSlide[] = [
   {
     src: '/Slideshow/01-resin.jpg',
-    alt: 'Vermilion Tide — resin and gold-leaf wall piece',
+    alt: 'Vermilion Tide - resin and gold-leaf wall piece',
     title: 'Vermilion Tide',
     medium: 'Resin & gold leaf on birch panel',
     dimensions: '22 × 30 in',
@@ -59,7 +59,7 @@ const SLIDES: readonly ArtworkSlide[] = [
   },
   {
     src: '/Slideshow/02-dot-mandala.jpg',
-    alt: 'Concentric Devotion — hand-painted dot mandala',
+    alt: 'Concentric Devotion - hand-painted dot mandala',
     title: 'Concentric Devotion',
     medium: 'Acrylic & ink on canvas',
     dimensions: '24 × 24 in',
@@ -67,7 +67,7 @@ const SLIDES: readonly ArtworkSlide[] = [
   },
   {
     src: '/Slideshow/03-lippan.jpg',
-    alt: 'Mirror Garden — lippan clay and mirror work',
+    alt: 'Mirror Garden - lippan clay and mirror work',
     title: 'Mirror Garden',
     medium: 'Lippan clay & hand-cut mirror',
     dimensions: '18 × 24 in',
@@ -75,7 +75,7 @@ const SLIDES: readonly ArtworkSlide[] = [
   },
   {
     src: '/Slideshow/04-kolam.jpg',
-    alt: 'White Threshold — single-stroke kolam study',
+    alt: 'White Threshold - single-stroke kolam study',
     title: 'White Threshold',
     medium: 'Chalk-ink on dyed cotton',
     dimensions: '16 × 16 in',
@@ -116,7 +116,7 @@ export default function HeroExperience() {
     [userInteract],
   )
 
-  // ── Liquid Resin Shine — cursor-reactive specular ──────────────
+  // ── Liquid Resin Shine - cursor-reactive specular ──────────────
   // The .resin-specular layer reads --rx / --ry custom properties on the
   // plate element. We update them on pointermove in CSS pixels so the
   // radial highlight tracks the cursor across the artwork. On idle the
@@ -188,7 +188,7 @@ export default function HeroExperience() {
 
   return (
     <section
-      aria-label="The Studio Vault — opening exhibition"
+      aria-label="The Studio Vault - opening exhibition"
       className="relative w-full overflow-hidden bg-plum"
       style={{ height: '100svh', minHeight: 640, maxHeight: 1080 }}
       onTouchStart={onTouchStart}
@@ -221,7 +221,7 @@ export default function HeroExperience() {
         <div className="h-full max-w-[1640px] mx-auto px-5 sm:px-10 lg:px-16 pt-24 lg:pt-32 pb-28 lg:pb-24">
           <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
 
-            {/* ── LEFT — editorial copy column ──────────────────── */}
+            {/* ── LEFT - editorial copy column ──────────────────── */}
             <div className="lg:col-span-6 flex flex-col justify-between order-2 lg:order-1">
               {/* Top eyebrow row */}
               <motion.div
@@ -281,7 +281,7 @@ export default function HeroExperience() {
                   }}
                 >
                   A studio in Hyderabad, pouring resin, clay, and chalk-ink into
-                  pieces meant to live with you for decades — not seasons. Step
+                  pieces meant to live with you for decades - not seasons. Step
                   inside.
                 </motion.p>
 
@@ -343,7 +343,7 @@ export default function HeroExperience() {
                 </motion.div>
               </div>
 
-              {/* Museum caption — bottom of left column */}
+              {/* Museum caption - bottom of left column */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -379,9 +379,9 @@ export default function HeroExperience() {
               </motion.div>
             </div>
 
-            {/* ── RIGHT — artwork plate w/ Liquid Resin Shine ──── */}
+            {/* ── RIGHT - artwork plate w/ Liquid Resin Shine ──── */}
             <div className="lg:col-span-6 relative order-1 lg:order-2 flex items-center justify-center">
-              {/* Exhibition counter — corner of artwork column */}
+              {/* Exhibition counter - corner of artwork column */}
               <div className="absolute top-0 right-0 z-[5] flex items-center gap-3">
                 <motion.span
                   key={`ctr-${active}`}
@@ -405,14 +405,14 @@ export default function HeroExperience() {
                 className="resin-plate relative w-full max-w-[640px] aspect-[4/5]"
                 style={
                   {
-                    // Default specular position — centred-upper, the natural
+                    // Default specular position - centred-upper, the natural
                     // catch of overhead gallery lighting.
                     ['--rx' as never]: '50%',
                     ['--ry' as never]: '35%',
                   } as React.CSSProperties
                 }
               >
-                {/* Slide stack — clip-path vertical wipe between active and
+                {/* Slide stack - clip-path vertical wipe between active and
                     outgoing. Each layer is positioned absolute; the active
                     slide is fully revealed, others collapsed via clip-path. */}
                 {SLIDES.map((s, i) => {
@@ -445,12 +445,12 @@ export default function HeroExperience() {
                   )
                 })}
 
-                {/* Cursor-reactive specular — sits above the artwork, below
+                {/* Cursor-reactive specular - sits above the artwork, below
                     the resin sheen pseudo-elements. */}
                 <div className="resin-specular" />
               </div>
 
-              {/* Slide pagination — vertical tick column to the right of the plate */}
+              {/* Slide pagination - vertical tick column to the right of the plate */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:flex flex-col items-end gap-4 pr-1">
                 {SLIDES.map((s, i) => {
                   const isActive = i === active
@@ -488,7 +488,7 @@ export default function HeroExperience() {
         </div>
       </div>
 
-      {/* ── 4. Mobile museum caption — full-width bottom strip ─── */}
+      {/* ── 4. Mobile museum caption - full-width bottom strip ─── */}
       <motion.div
         key={`mcap-${slide.title}`}
         initial={{ opacity: 0, y: 6 }}
@@ -509,7 +509,7 @@ export default function HeroExperience() {
         </div>
       </motion.div>
 
-      {/* ── 5. Scroll cue — bottom-center hand-drawn mark ─────── */}
+      {/* ── 5. Scroll cue - bottom-center hand-drawn mark ─────── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

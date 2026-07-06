@@ -118,7 +118,7 @@ interface TransitionNotification {
 
 // Dual-channel policy (project_notification_dual_channel): every customer-
 // facing transactional event fires WhatsApp + email in parallel, with the
-// studio CC'd on the email. Channels are independent — failure of one
+// studio CC'd on the email. Channels are independent - failure of one
 // does not block the other.
 //
 // CONFIRMED carries no customer notification because the
@@ -128,7 +128,7 @@ interface TransitionNotification {
 // notify on every order.
 //
 // OUT_FOR_DELIVERY previously used a `push` channel that has never had a
-// handler. Dropped — the courier's own SMS/WhatsApp updates cover that
+// handler. Dropped - the courier's own SMS/WhatsApp updates cover that
 // window. If we add a customer-facing OUT_FOR_DELIVERY notification later,
 // it goes through the same WhatsApp + email channels.
 //

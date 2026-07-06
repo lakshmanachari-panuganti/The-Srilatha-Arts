@@ -1,32 +1,32 @@
 'use client'
 
 /**
- * FinalInvite — Room 09 of the Studio Vault. The closing room.
+ * FinalInvite - Room 09 of the Studio Vault. The closing room.
  *
  * Two phases, one section:
  *
- *   PHASE A — The Closing Mandala (sticky stage, ~150svh of scroll)
+ *   PHASE A - The Closing Mandala (sticky stage, ~150svh of scroll)
  *     A blank ivory room. The kolam builds itself as the visitor scrolls:
- *       · the puḷḷi (dot grid) settles in first — the traditional
+ *       · the puḷḷi (dot grid) settles in first - the traditional
  *         foundation of every threshold drawing,
  *       · a single continuous line threads the lotus / petal pattern
  *         through the dots,
- *       · gold-leaf accents settle at the petal tips and the centre — the
+ *       · gold-leaf accents settle at the petal tips and the centre - the
  *         finishing strokes that mark the work as complete.
  *     The closing headline rises as the mandala completes. The room ends
- *     with an explicit museum bookend: "End of Exhibition I — 2026".
+ *     with an explicit museum bookend: "End of Exhibition I - 2026".
  *
- *   PHASE B — The Invitation (natural-flow, ~100svh)
+ *   PHASE B - The Invitation (natural-flow, ~100svh)
  *     The page breathes out. A quiet bridge line, then three editorial
- *     invitation rows at equal weight — WhatsApp, Instagram, Commission.
+ *     invitation rows at equal weight - WhatsApp, Instagram, Commission.
  *     Below: a small "return to the gallery" exit, then the colophon set
  *     like the inside back cover of a printed exhibition catalog.
  *
  * Disciplined absences (intentional, do not "fix" later):
- *   · no `.resin-plate` — the room is matte by design
- *   · no `.btn-resin` — primary-vs-secondary hierarchy would assert a sales preference
+ *   · no `.resin-plate` - the room is matte by design
+ *   · no `.btn-resin` - primary-vs-secondary hierarchy would assert a sales preference
  *   · no form fields, no newsletter, no urgency, no upsell
- *   · no featured artwork — the mandala IS the artwork
+ *   · no featured artwork - the mandala IS the artwork
  *
  * The "I want a piece of this in my home" feeling is earned by tone, not
  * by call-to-action volume.
@@ -48,7 +48,7 @@ import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
 //
 // viewBox 600 × 600, centre (300, 300).
 //
-// 5×5 puḷḷi (dot grid), spacing 60 — the traditional foundation. The
+// 5×5 puḷḷi (dot grid), spacing 60 - the traditional foundation. The
 // dots settle in from the centre outward across the first 15% of scroll.
 //
 // Distance from centre is used to stagger the dot reveal so it reads
@@ -85,7 +85,7 @@ const LOTUS_PATH =
   'C 235 320 130 315 100 300 C 130 285 235 280 300 300 ' + // left
   'C 240 245 195 195 159 159 C 195 195 245 245 300 300'    // top-left
 
-// Outer containment ring at radius 270 — the "wall" around the lotus.
+// Outer containment ring at radius 270 - the "wall" around the lotus.
 // Drawn as a single circle for a clean elegant ring.
 const OUTER_R = 270
 
@@ -103,7 +103,7 @@ const GOLD_ACCENTS: { x: number; y: number; r: number }[] = [
 ]
 
 // ────────────────────────────────────────────────────────────────────
-// External links — sourced from the centralised CONTACT constant.
+// External links - sourced from the centralised CONTACT constant.
 // ────────────────────────────────────────────────────────────────────
 const LINKS = {
   whatsapp: waLink("Hi Srilatha, I'd like to begin a conversation about a piece."),
@@ -119,7 +119,7 @@ export default function FinalInvite() {
   const phaseARef = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion()
 
-  // Scroll progress through Phase A — the sticky mandala arc.
+  // Scroll progress through Phase A - the sticky mandala arc.
   const { scrollYProgress } = useScroll({
     target: phaseARef,
     offset: ['start start', 'end end'],
@@ -143,11 +143,11 @@ export default function FinalInvite() {
 
   return (
     <section
-      aria-label="Closing — The Invitation"
+      aria-label="Closing - The Invitation"
       className="relative w-full bg-plum"
     >
       {/* ────────────────────────────────────────────────────────────
-          PHASE A — Sticky mandala stage
+          PHASE A - Sticky mandala stage
           ──────────────────────────────────────────────────────────── */}
       <div
         ref={phaseARef}
@@ -156,7 +156,7 @@ export default function FinalInvite() {
       >
         <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
 
-          {/* Warm directional wash — keeps the matte ivory ground from
+          {/* Warm directional wash - keeps the matte ivory ground from
               reading flat. Lighter at the top, faint gold pool below. */}
           <div
             aria-hidden
@@ -176,19 +176,19 @@ export default function FinalInvite() {
                 className="text-[11px] font-semibold uppercase text-ink/70"
                 style={{ letterSpacing: '0.32em' }}
               >
-                Room 09 — The Invitation
+                Room 09 - The Invitation
               </span>
             </div>
           </div>
 
-          {/* Top-right: closing counter — IX of IX */}
+          {/* Top-right: closing counter - IX of IX */}
           <div className="absolute top-8 lg:top-10 right-5 sm:right-10 lg:right-16 z-[5] flex items-center gap-3 pointer-events-none">
             <span className="font-serif text-2xl text-ink">IX</span>
             <span aria-hidden className="h-px w-6 bg-ink/40" />
             <span className="font-serif text-sm text-ink/55">IX</span>
           </div>
 
-          {/* Stage contents — mandala centred, headline below */}
+          {/* Stage contents - mandala centred, headline below */}
           <div className="relative z-[2] h-full w-full flex flex-col items-center justify-center px-5 sm:px-10 lg:px-16 pt-24 pb-20 lg:pt-28 lg:pb-24">
 
             {/* The mandala */}
@@ -202,7 +202,7 @@ export default function FinalInvite() {
                 className="block w-full h-full"
                 aria-hidden
               >
-                {/* Layer 1 — puḷḷi (dot grid). Each dot fades in across
+                {/* Layer 1 - puḷḷi (dot grid). Each dot fades in across
                     the first 15% of scroll, ordered by distance from
                     centre. We bake the per-dot motion value via a small
                     inline component so we can call hooks in a loop
@@ -219,7 +219,7 @@ export default function FinalInvite() {
                   />
                 ))}
 
-                {/* Layer 2 — the 8-petal lotus, single continuous stroke. */}
+                {/* Layer 2 - the 8-petal lotus, single continuous stroke. */}
                 <motion.path
                   d={LOTUS_PATH}
                   fill="none"
@@ -231,7 +231,7 @@ export default function FinalInvite() {
                   vectorEffect="non-scaling-stroke"
                 />
 
-                {/* Layer 3 — outer containment ring */}
+                {/* Layer 3 - outer containment ring */}
                 <motion.circle
                   cx={300}
                   cy={300}
@@ -243,7 +243,7 @@ export default function FinalInvite() {
                   vectorEffect="non-scaling-stroke"
                 />
 
-                {/* Layer 4 — gold-leaf accents at petal tips + centre.
+                {/* Layer 4 - gold-leaf accents at petal tips + centre.
                     Single opacity binding shared across the group; cheap. */}
                 <motion.g
                   style={reduceMotion ? { opacity: 1 } : { opacity: goldOpacity }}
@@ -270,7 +270,7 @@ export default function FinalInvite() {
               </svg>
             </div>
 
-            {/* Headline — two lines, word-staggered reveal as the mandala completes */}
+            {/* Headline - two lines, word-staggered reveal as the mandala completes */}
             <div className="mt-10 lg:mt-14 text-center max-w-3xl">
               <motion.h2
                 style={
@@ -301,7 +301,7 @@ export default function FinalInvite() {
               </motion.p>
             </div>
 
-            {/* Phase A bookend — fades in only at scroll's end */}
+            {/* Phase A bookend - fades in only at scroll's end */}
             <motion.p
               style={
                 reduceMotion
@@ -311,7 +311,7 @@ export default function FinalInvite() {
               className="mt-8 text-[10px] font-semibold uppercase text-ink/55"
             >
               <span style={{ letterSpacing: '0.36em' }}>
-                End of Exhibition I — 2026
+                End of Exhibition I - 2026
               </span>
             </motion.p>
           </div>
@@ -319,12 +319,12 @@ export default function FinalInvite() {
       </div>
 
       {/* ────────────────────────────────────────────────────────────
-          PHASE B — The Invitation (natural flow)
+          PHASE B - The Invitation (natural flow)
           ──────────────────────────────────────────────────────────── */}
       <div className="relative w-full pt-24 lg:pt-32 pb-16 lg:pb-20">
         <div className="max-w-3xl mx-auto px-5 sm:px-10 lg:px-12">
 
-          {/* Bridge line — the quiet pivot from closing to invitation */}
+          {/* Bridge line - the quiet pivot from closing to invitation */}
           <motion.p
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -351,7 +351,7 @@ export default function FinalInvite() {
             <span className="h-px w-12 bg-ink/20" />
           </div>
 
-          {/* Three invitations — equal visual weight, no primary, no boxes.
+          {/* Three invitations - equal visual weight, no primary, no boxes.
               Each row is one editorial line + chevron. */}
           <ul className="flex flex-col">
             <InvitationRow
@@ -385,7 +385,7 @@ export default function FinalInvite() {
             />
           </ul>
 
-          {/* Quiet exit — the visitor who isn't ready to act */}
+          {/* Quiet exit - the visitor who isn't ready to act */}
           <div className="mt-12 text-center">
             <Link
               href="/shop"
@@ -402,7 +402,7 @@ export default function FinalInvite() {
           {/* Final editorial rule */}
           <div aria-hidden className="mt-16 mb-10 rule" />
 
-          {/* Colophon — the inside back cover of the catalog */}
+          {/* Colophon - the inside back cover of the catalog */}
           <Colophon />
         </div>
       </div>
@@ -446,7 +446,7 @@ function Pulli({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// InvitationRow — a single editorial-grade invitation line.
+// InvitationRow - a single editorial-grade invitation line.
 //
 // One continuous interactive row: number · label · kicker · chevron.
 // No box, no surface. On hover: chevron extends, a hairline gold rule
@@ -552,7 +552,7 @@ function InvitationRow({
 }
 
 // ────────────────────────────────────────────────────────────────────
-// Colophon — the printed-catalog back page. Studio info, IG handle,
+// Colophon - the printed-catalog back page. Studio info, IG handle,
 // email, copyright + final exhibition bookend.
 // ────────────────────────────────────────────────────────────────────
 function Colophon() {
@@ -614,7 +614,7 @@ function Colophon() {
           className="text-[10px] font-semibold uppercase text-[color:var(--accent-strong)]"
           style={{ letterSpacing: '0.36em' }}
         >
-          End of Exhibition I — 2026
+          End of Exhibition I - 2026
         </p>
       </div>
     </div>

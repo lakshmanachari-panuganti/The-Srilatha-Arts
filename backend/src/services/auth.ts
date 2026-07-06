@@ -52,14 +52,21 @@ export function extractTokenFromCookie(cookieHeader?: string | null): string | n
 // per RFC 6265 §5.3.
 //
 // SameSite=None is required so the cookie is attached to cross-site fetches
-// from the SPA origin — the SPA (SWA) and API (Function App) live on
+// from the SPA origin - the SPA (SWA) and API (Function App) live on
 // different registrable domains. Without None the browser refuses to send
 // the auth cookie on any XHR from the SPA, and the frontend would have to
-// fall back to a JS-readable token in localStorage — the XSS-exfiltration
+// fall back to a JS-readable token in localStorage - the XSS-exfiltration
 // hole C1 exists to close. HttpOnly + Secure remain in force.
+//
+// Admin sessions omit Max-Age → the browser treats it as a *session cookie*
+// and drops it when the browser closes. The JWT itself still expires after
+// 24h server-side, so re-opening the browser inside that window still
+// requires a fresh login. Customer sessions keep the 7-day Max-Age so
+// shoppers stay signed in across browser restarts.
 export function buildAuthCookie(token: string, isAdmin = false): string {
-  const maxAge = isAdmin ? 24 * 60 * 60 : 7 * 24 * 60 * 60
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAge}`
+  const base = `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/`
+  if (isAdmin) return base
+  return `${base}; Max-Age=${7 * 24 * 60 * 60}`
 }
 
 export function buildClearCookie(): string {

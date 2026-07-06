@@ -5,11 +5,11 @@ name: Security audit
 # the next deploy. Two independent audits (backend + frontend) run in
 # parallel so one failing doesn't mask the other.
 #
-# Audit level = high — fails the build on any high or critical
+# Audit level = high - fails the build on any high or critical
 # vulnerability in production dependencies. Moderates are surfaced in
 # the log but don't block the pipeline; they get triaged manually.
 #
-# Introduced by security audit H4 — the C3 CVEs (Nodemailer, uuid,
+# Introduced by security audit H4 - the C3 CVEs (Nodemailer, uuid,
 # jspdf) went unnoticed at merge time because no such gate existed.
 
 on:
@@ -58,7 +58,7 @@ jobs:
         working-directory: ${{ matrix.workdir }}
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Audit summary — all severities (informational)
+      - name: Audit summary - all severities (informational)
         if: always()
         working-directory: ${{ matrix.workdir }}
         run: npm audit --omit=dev || true

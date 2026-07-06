@@ -61,7 +61,7 @@ export async function enqueueReviewRequest(message: {
   customerPhone?: string
   items: { title: string; productId: string }[]
 }): Promise<void> {
-  // Delay configurable via REVIEW_REQUEST_DELAY_SECONDS — default 72h so the
+  // Delay configurable via REVIEW_REQUEST_DELAY_SECONDS - default 72h so the
   // customer has time with the product. Storage Queue caps at 7 days; we
   // clamp defensively to keep that contract.
   const configured = Number(process.env.REVIEW_REQUEST_DELAY_SECONDS)

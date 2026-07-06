@@ -107,7 +107,7 @@
         (was silent, gave no re-run visibility).
       - Phase 4.5: Blob CORS read-before-write comparison; the
         Remove + Set pair is only executed when rules differ (was
-        unconditional on every run — caused a brief CORS outage window).
+        unconditional on every run - caused a brief CORS outage window).
       - Phase 5.3: RandomNumberGenerator.Fill() (replaces deprecated
         RandomNumberGenerator.Create().GetBytes() pattern).
       - Phase 6.2: Function App CORS read-before-write; Set-AzResource
@@ -209,7 +209,7 @@ $blobContainers = @(
 )
 
 # ── B.5  Required PowerShell modules ────────────────────────────────
-# Az.Functions is deliberately absent — all Function App operations
+# Az.Functions is deliberately absent - all Function App operations
 # use az CLI to avoid the Az.Functions v4.3.2 GetRuntimeName.ContainsKey()
 # null-key bug that crashes on Linux Consumption apps.
 $requiredModules = @(
@@ -233,7 +233,7 @@ $sp_RuntimeRoles = @(
 )
 
 # Storage Blob Data OWNER (not Contributor) is required for the
-# identity-based AzureWebJobsStorage connection — the Functions host
+# identity-based AzureWebJobsStorage connection - the Functions host
 # needs Owner to manage internal state (lease blobs, locks, host secrets).
 # Ref: https://learn.microsoft.com/azure/azure-functions/functions-reference#configure-an-identity-based-connection
 $mi_RuntimeRoles = @(
@@ -556,7 +556,7 @@ if ($showExit -eq 0 -and $functionAppJson) {
 
 # ── 2.4a  Function App HTTPS-only enforcement (Sec Phase 1 / C1) ──
 # Enforce HTTPS on the Function App: reject any HTTP request at the
-# platform edge. Idempotent — checked before write. Applies to both
+# platform edge. Idempotent - checked before write. Applies to both
 # DEV and PRD. Rollback: --set httpsOnly=false.
 if ($functionApp.httpsOnly -eq $true) {
     Write-Skip "Function App httpsOnly       : already true"
@@ -710,7 +710,7 @@ Write-Info "Queues: $queuesCreated created, $($queueNames.Count - $queuesCreated
 
 # ── 4.3  Public blob access flag ─────────────────────────────────
 # Re-read the storage account to get the current flag value.
-# Use -ne $true (not -eq $false) — handles $null correctly.
+# Use -ne $true (not -eq $false) - handles $null correctly.
 $storageAccount = Get-AzStorageAccount `
     -ResourceGroupName $envCfg.ResourceGroup `
     -Name              $envCfg.StorageAccount
@@ -845,7 +845,7 @@ foreach ($name in @('RazorpayKeyId', 'RazorpayKeySecret')) {
 }
 
 # ── 5.5  Application Insights connection string (Sec Phase 2 / H1) ─
-# Contains the Ingestion Key — treat as secret. Sourced from the App
+# Contains the Ingestion Key - treat as secret. Sourced from the App
 # Insights resource we already fetched, so no operator paste needed.
 # Refreshed every deploy in case the AI resource is rotated.
 Set-AzKeyVaultSecret -VaultName $envCfg.KeyVault -Name 'ApplicationInsightsConnectionString' `
@@ -856,7 +856,7 @@ Write-Success "Stored secret : ApplicationInsightsConnectionString (refreshed fr
 # Third-party secrets migrated from inline app settings. Populated by
 # infra\Migrate-SecretsToKeyVault.ps1 on the first Phase 2 rollout.
 # Placeholders are seeded here so the @Microsoft.KeyVault(...) refs
-# in the app settings block always resolve — even on a fresh env
+# in the app settings block always resolve - even on a fresh env
 # where the operator hasn't pasted real values yet.
 $operatorSecretPlaceholders = @(
     'WhatsappAccessToken',
@@ -887,14 +887,14 @@ Write-Step "PHASE 6 - Configure Function App"
 #
 # Three categories of keys (applied in order):
 #
-#   ALWAYS-OVERWRITE  — infra-derived values (storage URIs, KV refs,
+#   ALWAYS-OVERWRITE  - infra-derived values (storage URIs, KV refs,
 #     AppInsights). Must track infra state on every run.
 #
-#   DEFAULT-IF-ABSENT — operator-tunable defaults (SMTP, WhatsApp
+#   DEFAULT-IF-ABSENT - operator-tunable defaults (SMTP, WhatsApp
 #     template language). Set on first deploy; left alone thereafter
 #     so portal edits survive re-runs.
 #
-#   EMPTY-IF-ABSENT   — operator-pasted secrets. Added as empty
+#   EMPTY-IF-ABSENT   - operator-pasted secrets. Added as empty
 #     placeholders so the keys exist in the portal blade; never
 #     overwrite a non-empty existing value.
 #
@@ -916,58 +916,58 @@ if ($existingJson) {
 
 # ALWAYS-OVERWRITE
 # All secret values live in Key Vault (Sec Phase 2 / H1). Run
-# infra\Migrate-SecretsToKeyVault.ps1 first if seeding a new env — it
+# infra\Migrate-SecretsToKeyVault.ps1 first if seeding a new env - it
 # copies the current inline values into KV under the canonical names
 # referenced below before this script flips the app settings.
 $alwaysOverwrite = @{
-    'AzureWebJobsStorage__accountName'      = $envCfg.StorageAccount
-    'AzureWebJobsStorage__blobServiceUri'   = "https://$($envCfg.StorageAccount).blob.core.windows.net"
-    'AzureWebJobsStorage__queueServiceUri'  = "https://$($envCfg.StorageAccount).queue.core.windows.net"
-    'AzureWebJobsStorage__tableServiceUri'  = "https://$($envCfg.StorageAccount).table.core.windows.net"
+    'AzureWebJobsStorage__accountName'          = $envCfg.StorageAccount
+    'AzureWebJobsStorage__blobServiceUri'       = "https://$($envCfg.StorageAccount).blob.core.windows.net"
+    'AzureWebJobsStorage__queueServiceUri'      = "https://$($envCfg.StorageAccount).queue.core.windows.net"
+    'AzureWebJobsStorage__tableServiceUri'      = "https://$($envCfg.StorageAccount).table.core.windows.net"
     # ── Cryptographic signing keys ────────────────────────────────
-    'JWT_SECRET'                            = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=JwtSecret)"
-    'CSRF_SIGNING_KEY'                      = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=CsrfSigningKey)"
-    'INVOICE_SIGNING_KEY'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=InvoiceSigningKey)"
+    'JWT_SECRET'                                = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=JwtSecret)"
+    'CSRF_SIGNING_KEY'                          = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=CsrfSigningKey)"
+    'INVOICE_SIGNING_KEY'                       = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=InvoiceSigningKey)"
     # ── Third-party API secrets (Sec Phase 2 / H1) ────────────────
-    'WHATSAPP_ACCESS_TOKEN'                 = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappAccessToken)"
-    'WHATSAPP_APP_SECRET'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappAppSecret)"
-    'WHATSAPP_WEBHOOK_VERIFY_TOKEN'         = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappWebhookVerifyToken)"
-    'WHATSAPP_V2_FUNCTION_KEY'              = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappV2FunctionKey)"
-    'RAZORPAY_KEY_ID'                       = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayKeyId)"
-    'RAZORPAY_KEY_SECRET'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayKeySecret)"
-    'RAZORPAY_WEBHOOK_SECRET'               = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayWebhookSecret)"
-    'SMTP_PASS'                             = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=SmtpPass)"
-    'AZURE_OPENAI_API_KEY'                  = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=AzureOpenAIApiKey)"
+    'WHATSAPP_ACCESS_TOKEN'                     = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappAccessToken)"
+    'WHATSAPP_APP_SECRET'                       = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappAppSecret)"
+    'WHATSAPP_WEBHOOK_VERIFY_TOKEN'             = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappWebhookVerifyToken)"
+    'WHATSAPP_V2_FUNCTION_KEY'                  = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=WhatsappV2FunctionKey)"
+    'RAZORPAY_KEY_ID'                           = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayKeyId)"
+    'RAZORPAY_KEY_SECRET'                       = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayKeySecret)"
+    'RAZORPAY_WEBHOOK_SECRET'                   = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=RazorpayWebhookSecret)"
+    'SMTP_PASS'                                 = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=SmtpPass)"
+    'AZURE_OPENAI_API_KEY'                      = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=AzureOpenAIApiKey)"
     # ── Non-secret infra values ───────────────────────────────────
-    'AZURE_STORAGE_ACCOUNT_NAME'            = $envCfg.StorageAccount
-    'BLOB_BASE_URL'                         = "https://$($envCfg.StorageAccount).blob.core.windows.net"
-    'CORS_ORIGIN'                           = $envCfg.CorsOrigins -join ','
-    'ENVIRONMENT'                           = $Environment
-    'FUNCTIONS_WORKER_RUNTIME'              = 'node'
+    'AZURE_STORAGE_ACCOUNT_NAME'                = $envCfg.StorageAccount
+    'BLOB_BASE_URL'                             = "https://$($envCfg.StorageAccount).blob.core.windows.net"
+    'CORS_ORIGIN'                               = $envCfg.CorsOrigins -join ','
+    'ENVIRONMENT'                               = $Environment
+    'FUNCTIONS_WORKER_RUNTIME'                  = 'node'
     # Run-from-package mode. `1` = local-mount (deploy workflow uploads the
     # zip via OneDeploy over AAD/OIDC; runtime mounts from the SCM host).
     # Explicitly asserted here so a re-run of this script never accidentally
     # re-introduces a SAS-URL value (Phase 3/4 experimented with URL mode
-    # but that stored a SAS token in an app setting — an anti-pattern
+    # but that stored a SAS token in an app setting - an anti-pattern
     # since secrets belong in Key Vault or referenced via managed identity).
-    'WEBSITE_RUN_FROM_PACKAGE'              = '1'
-    'PUBLIC_SITE_URL'                       = "https://$($envCfg.WebsiteUrl)"
-    'NOTIFICATIONS_QUEUE_NAME'              = 'notifications-out'
-    'WEBHOOKS_QUEUE_NAME'                   = 'webhooks-in'
-    'REVIEW_QUEUE_NAME'                     = 'review-requests'
-    'INVOICE_CONTAINER'                     = 'invoices'
-    'USER_UPLOAD_CONTAINER'                 = 'user-uploads'
+    'WEBSITE_RUN_FROM_PACKAGE'                  = '1'
+    'PUBLIC_SITE_URL'                           = "https://$($envCfg.WebsiteUrl)"
+    'NOTIFICATIONS_QUEUE_NAME'                  = 'notifications-out'
+    'WEBHOOKS_QUEUE_NAME'                       = 'webhooks-in'
+    'REVIEW_QUEUE_NAME'                         = 'review-requests'
+    'INVOICE_CONTAINER'                         = 'invoices'
+    'USER_UPLOAD_CONTAINER'                     = 'user-uploads'
     # Direct Function-App URL used to build the WhatsApp / email
     # "view invoice" link. Bypasses the SWA in front of
     # PUBLIC_SITE_URL, which on the Free tier cannot proxy /api/* to
-    # the linked backend and silently returns the SPA's index.html —
+    # the linked backend and silently returns the SPA's index.html -
     # which WhatsApp Cloud then caches as the "document".
-    'INVOICE_PUBLIC_URL_BASE'               = "https://$($envCfg.FunctionApp).azurewebsites.net/api/invoices"
+    'INVOICE_PUBLIC_URL_BASE'                   = "https://$($envCfg.FunctionApp).azurewebsites.net/api/invoices"
     # App Insights connection string is a secret (contains IngestionKey).
     # Written to KV in Phase 5.6 below so the reference always resolves,
     # even when Deploy-Infrastructure-v2.ps1 is run on a fresh env
     # before Migrate-SecretsToKeyVault.ps1.
-    'APPLICATIONINSIGHTS_CONNECTION_STRING' = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=ApplicationInsightsConnectionString)"
+    'APPLICATIONINSIGHTS_CONNECTION_STRING'     = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=ApplicationInsightsConnectionString)"
     # Sec Phase 3 / M4: force AAD-authenticated telemetry ingest.
     # Read by both the Azure Functions runtime auto-collector and by the
     # `applicationinsights` SDK in backend/src/utils/telemetry.ts (which
@@ -1015,19 +1015,19 @@ foreach ($k in $emptyIfAbsent) {
     if (-not $mergedSettings.ContainsKey($k)) { $mergedSettings[$k] = '' }
 }
 
-# REMOVE — settings that are still present from older deploys but the
+# REMOVE - settings that are still present from older deploys but the
 # app no longer reads. Plain dictionary removal here drops them from the
 # locally merged set; the explicit `az config appsettings delete` below
 # is what actually evicts them from the Function App. The merged-set
 # pipe later in this script writes only the keys that survive merging,
-# but Azure's PATCH semantics leave unmentioned keys in place — that
+# but Azure's PATCH semantics leave unmentioned keys in place - that
 # is why deletion needs its own call.
 $removeIfPresent = @(
     'COOKIE_DOMAIN',  # security audit 2026-06-07: cookies are host-only
-                      # (azurewebsites.net vs srilatha.art is not a
-                      # subdomain relationship; any Domain= we set is
-                      # rejected by the browser per RFC 6265 §5.3).
-    # CAPTCHA removed from the app entirely — clear the settings from any
+    # (azurewebsites.net vs srilatha.art is not a
+    # subdomain relationship; any Domain= we set is
+    # rejected by the browser per RFC 6265 §5.3).
+    # CAPTCHA removed from the app entirely - clear the settings from any
     # environment that had them wired for the reCAPTCHA v3 experiment.
     'CAPTCHA_ENABLED',
     'RECAPTCHA_SECRET',
@@ -1076,15 +1076,15 @@ if ($settingsToDelete.Count -gt 0) {
 #
 # WHY NOT az functionapp config appsettings set --settings:
 #   az CLI receives KEY=VALUE pairs as separate shell arguments.
-#   On Windows, values that contain @, (, ), ; or embedded = signs —
+#   On Windows, values that contain @, (, ), ; or embedded = signs -
 #   such as @Microsoft.KeyVault(VaultName=kv-xxx;SecretName=JwtSecret)
-#   — are mangled by the Windows argument parser before az CLI sees
+#   - are mangled by the Windows argument parser before az CLI sees
 #   them, producing a non-zero exit code.
 #
 # The ARM REST PUT replaces the full properties block, so we always
 # send the complete merged set. Keys we did not touch are still
 # included because $mergedSettings was seeded from the existing live
-# settings at the top of Phase 6 — nothing is ever deleted.
+# settings at the top of Phase 6 - nothing is ever deleted.
 $subId = $context.Subscription.Id
 $putPath = "/subscriptions/$subId/resourceGroups/$($envCfg.ResourceGroup)" +
 "/providers/Microsoft.Web/sites/$($envCfg.FunctionApp)" +
@@ -1329,9 +1329,9 @@ if (-not $miAssignments) {
 #          (minimal role for zipdeploy; avoids RG-wide Contributor)
 #
 # Prerequisites for the DEPLOYER SP running THIS script:
-#   - Application.ReadWrite.OwnedBy (Graph) — to create the app reg.
+#   - Application.ReadWrite.OwnedBy (Graph) - to create the app reg.
 #     Alternative: Application Administrator role in Entra.
-#   - User Access Administrator (already a documented prereq) —
+#   - User Access Administrator (already a documented prereq) -
 #     to grant Website Contributor in 9.4.
 
 Write-Step "PHASE 9 - GitHub Actions CI Service Principal (OIDC)"
@@ -1414,7 +1414,7 @@ foreach ($fc in $federatedSubjects) {
 }
 
 # 9.4  RBAC: minimal role for zipdeploy on the Function App resource.
-# Website Contributor is intentionally the ONLY role granted to the CI SP —
+# Website Contributor is intentionally the ONLY role granted to the CI SP -
 # it covers `az functionapp deploy --type zip` (OneDeploy over AAD, no
 # SCM basic auth) and updating app settings via `az functionapp config
 # appsettings set`. No storage-account access is granted: the deploy
@@ -1503,7 +1503,7 @@ $emptyKeys = @(if ($liveJson) {
 
 if ($emptyKeys.Count -gt 0) {
     Write-Host ''
-    Write-Host "  ⚠  $($emptyKeys.Count) app setting(s) with empty values — operator action required:" -ForegroundColor Yellow
+    Write-Host "  ⚠  $($emptyKeys.Count) app setting(s) with empty values - operator action required:" -ForegroundColor Yellow
     foreach ($key in $emptyKeys) {
         Write-Host "       • $key" -ForegroundColor Yellow
     }

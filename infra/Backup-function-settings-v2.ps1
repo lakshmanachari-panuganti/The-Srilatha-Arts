@@ -281,7 +281,7 @@ foreach ($setting in $settingsProperties) {
     # starts with a digit (the Restore fallback strips this prefix back off)
     if ($secretName -match '^\d') { $secretName = "x-$secretName" }
 
-    # Skip names that are soft-deleted with purge protection on — the Set
+    # Skip names that are soft-deleted with purge protection on - the Set
     # would throw Conflict and abort the whole backup. Operator recovers
     # the secret via `az keyvault secret recover` if the historical value
     # matters; otherwise the miss is intentional.

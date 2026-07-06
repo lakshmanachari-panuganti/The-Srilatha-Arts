@@ -1,5 +1,5 @@
 /**
- * order_crafting email — sent when the studio begins crafting the order.
+ * order_crafting email - sent when the studio begins crafting the order.
  * Mirrors the WhatsApp template body in docs/templates/template_definition.md
  * so the customer hears the same message on both channels.
  */
@@ -12,7 +12,7 @@ export interface OrderCraftingInput {
 
 export function buildOrderCraftingEmail(input: OrderCraftingInput): BuiltEmail {
   return renderEmail({
-    subject: `We've started crafting your order — ${input.orderId}`,
+    subject: `We've started crafting your order - ${input.orderId}`,
     preheader: `Order ${input.orderId} is now being handcrafted in our Hyderabad studio.`,
     heading: `${firstName(input.customerName)}, your piece is in the studio.`,
     introHtml: `

@@ -46,7 +46,7 @@ export default function Footer() {
   const [newsletterBusy, setNewsletterBusy] = useState(false)
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
   const [newsletterMessage, setNewsletterMessage] = useState(
-    'Thanks — we will send a note when the studio newsletter launches.',
+    'Thanks - we will send a note when the studio newsletter launches.',
   )
   const [newsletterError, setNewsletterError] = useState('')
 
@@ -74,7 +74,7 @@ export default function Footer() {
             </span>
           </h3>
           <p className="text-ivory-soft text-sm lg:text-base mb-6">
-            New pieces, studio updates and the occasional discount — sent straight to your inbox. No spam, ever.
+            New pieces, studio updates and the occasional discount - sent straight to your inbox. No spam, ever.
           </p>
           {newsletterSubmitted ? (
             <div
@@ -155,7 +155,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-ivory-soft leading-relaxed max-w-xs">
-              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts — made by hand in Hyderabad.
+              Resin Art, Lippan Art, Kolam, Wedding Decor and Handmade Gifts - made by hand in Hyderabad.
             </p>
 
             <div className="mt-6 space-y-2.5 text-sm">

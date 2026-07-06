@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * CollectionExhibition — Room 03 of the Studio Vault.
+ * CollectionExhibition - Room 03 of the Studio Vault.
  *
  * Not a category grid. A horizontal exhibition wing: five full-viewport
  * collection rooms (Resin, Lippan, Kolam, Wedding Decor, Custom)
  * connected by native scroll-snap. Each room is its own atmospheric
- * environment — its own tonal wash, its own editorial copy, its own
+ * environment - its own tonal wash, its own editorial copy, its own
  * featured piece mounted in a `.resin-plate` carrying the Liquid Resin
  * Shine. The visitor walks horizontally through the wing the way they'd
  * walk through a curated museum corridor.
@@ -20,7 +20,7 @@
  *     navigate, momentum scroll on trackpad/touch is OS-native.
  *   - Each `.collection-room` element is 100vw × 100svh, snap-start.
  *   - A wheel listener redirects vertical wheel input to horizontal
- *     scroll WHILE the section is the dominant viewport occupant — so
+ *     scroll WHILE the section is the dominant viewport occupant - so
  *     desktop users with a normal mouse wheel still progress through
  *     the wing naturally. Released once they reach the final room so
  *     vertical scrolling can continue down the page.
@@ -30,7 +30,7 @@
  * Signature interaction inside this room:
  *   The featured plate in each collection carries Liquid Resin Shine
  *   (gold sweep + cursor-reactive specular + top sheen + edge depth).
- *   It is the same primitive used in the Hero — consistency across the
+ *   It is the same primitive used in the Hero - consistency across the
  *   site, deployed sparingly where the artwork is the hero.
  */
 
@@ -54,7 +54,7 @@ interface CollectionData {
     year: string
   }
   cta: { label: string; href: string }
-  /** Backdrop wash — defines the room's atmospheric "lighting." Each is a
+  /** Backdrop wash - defines the room's atmospheric "lighting." Each is a
    *  CSS background value; ivory base, warm overlay tuned to the work. */
   atmosphere: string
 }
@@ -63,12 +63,12 @@ const COLLECTIONS: readonly CollectionData[] = [
   {
     slug: 'resin',
     name: 'Resin',
-    eyebrow: 'Wing I — Liquid',
+    eyebrow: 'Wing I - Liquid',
     intro:
       'Pigment suspended in clear resin, poured by hand, cured for days. Each piece is a snapshot of motion held still.',
     feature: {
       src: '/Slideshow/01-resin.jpg',
-      alt: 'Vermilion Tide — featured resin work',
+      alt: 'Vermilion Tide - featured resin work',
       title: 'Vermilion Tide',
       medium: 'Resin & gold leaf on birch panel',
       dimensions: '22 × 30 in',
@@ -81,12 +81,12 @@ const COLLECTIONS: readonly CollectionData[] = [
   {
     slug: 'lippan',
     name: 'Lippan',
-    eyebrow: 'Wing II — Earth & Mirror',
+    eyebrow: 'Wing II - Earth & Mirror',
     intro:
       'A 400-year-old Kutch tradition reinterpreted for the modern wall. Clay relief, hand-cut mirror, and patient hands.',
     feature: {
       src: '/Slideshow/03-lippan.jpg',
-      alt: 'Mirror Garden — featured lippan work',
+      alt: 'Mirror Garden - featured lippan work',
       title: 'Mirror Garden',
       medium: 'Lippan clay & hand-cut mirror',
       dimensions: '18 × 24 in',
@@ -99,12 +99,12 @@ const COLLECTIONS: readonly CollectionData[] = [
   {
     slug: 'kolam',
     name: 'Kolam',
-    eyebrow: 'Wing III — Threshold',
+    eyebrow: 'Wing III - Threshold',
     intro:
-      'The single-stroke kolam — once drawn at dawn outside every South Indian doorway — translated to canvas, paper, and silk.',
+      'The single-stroke kolam - once drawn at dawn outside every South Indian doorway - translated to canvas, paper, and silk.',
     feature: {
       src: '/Slideshow/04-kolam.jpg',
-      alt: 'White Threshold — featured kolam work',
+      alt: 'White Threshold - featured kolam work',
       title: 'White Threshold',
       medium: 'Chalk-ink on dyed cotton',
       dimensions: '16 × 16 in',
@@ -117,12 +117,12 @@ const COLLECTIONS: readonly CollectionData[] = [
   {
     slug: 'wedding',
     name: 'Wedding',
-    eyebrow: 'Wing IV — Festival',
+    eyebrow: 'Wing IV - Festival',
     intro:
       'Keepsakes made for thresholds: garlands, varmalai, sacred mandap details. Built to be photographed, then framed for life.',
     feature: {
       src: '/Slideshow/05-wedding-decoratives.jpg',
-      alt: 'Threshold Garlands — featured wedding work',
+      alt: 'Threshold Garlands - featured wedding work',
       title: 'Threshold Garlands',
       medium: 'Resin, brass, silk thread',
       dimensions: 'Bespoke',
@@ -135,12 +135,12 @@ const COLLECTIONS: readonly CollectionData[] = [
   {
     slug: 'custom',
     name: 'Commission',
-    eyebrow: 'Wing V — On Request',
+    eyebrow: 'Wing V - On Request',
     intro:
       'A piece made for the wall it will live on. We begin with a conversation, end with a one-of-one signed work.',
     feature: {
       src: '/Slideshow/02-dot-mandala.jpg',
-      alt: 'Patron Commission — featured custom work',
+      alt: 'Patron Commission - featured custom work',
       title: 'Patron Commission Series',
       medium: 'Mixed-media, dimensions on request',
       dimensions: 'To order',
@@ -190,7 +190,7 @@ export default function CollectionExhibition() {
 
     rooms.forEach((r) => io.observe(r))
     return () => io.disconnect()
-    // We deliberately don't include `active` — that would re-run the effect
+    // We deliberately don't include `active` - that would re-run the effect
     // every snap; the closure capture is fine because we always read fresh
     // from the entries inside the callback.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -236,7 +236,7 @@ export default function CollectionExhibition() {
     return () => section.removeEventListener('wheel', onWheel)
   }, [reduceMotion])
 
-  // ── Liquid Resin Shine — cursor-reactive specular per plate. We bind
+  // ── Liquid Resin Shine - cursor-reactive specular per plate. We bind
   //    a single delegated pointermove on the scroller and dispatch to
   //    whichever plate is under the cursor. Cheaper than N listeners. ──
   useEffect(() => {
@@ -273,7 +273,7 @@ export default function CollectionExhibition() {
     scroller.scrollTo({ left: target.offsetLeft, behavior: 'smooth' })
   }, [])
 
-  // Keyboard nav — arrow keys move between rooms when the section has focus.
+  // Keyboard nav - arrow keys move between rooms when the section has focus.
   useEffect(() => {
     const section = sectionRef.current
     if (!section) return
@@ -294,7 +294,7 @@ export default function CollectionExhibition() {
   return (
     <section
       ref={sectionRef}
-      aria-label="The Collections — Studio Vault Wing"
+      aria-label="The Collections - Studio Vault Wing"
       tabIndex={0}
       className="relative w-full bg-plum overflow-hidden focus:outline-none"
       style={{ height: '100svh', minHeight: 640 }}
@@ -308,7 +308,7 @@ export default function CollectionExhibition() {
             className="text-[11px] font-semibold uppercase text-ink/70"
             style={{ letterSpacing: '0.32em' }}
           >
-            Room 03 — The Collections
+            Room 03 - The Collections
           </span>
         </div>
       </div>
@@ -345,7 +345,7 @@ export default function CollectionExhibition() {
             style={{ background: col.atmosphere }}
             aria-labelledby={`col-${col.slug}-title`}
           >
-            {/* Room contents — editorial split, identical bone structure to
+            {/* Room contents - editorial split, identical bone structure to
                 Room 01 so the language is consistent across the site. */}
             <div className="h-full w-full max-w-[1640px] mx-auto px-5 sm:px-10 lg:px-16 pt-28 lg:pt-32 pb-28 lg:pb-28">
               <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
@@ -453,7 +453,7 @@ export default function CollectionExhibition() {
                   </motion.div>
                 </div>
 
-                {/* Featured plate — Liquid Resin Shine */}
+                {/* Featured plate - Liquid Resin Shine */}
                 <div className="lg:col-span-7 relative order-1 lg:order-2 flex items-center justify-center">
                   <motion.div
                     initial={
@@ -493,7 +493,7 @@ export default function CollectionExhibition() {
         ))}
       </div>
 
-      {/* ── Mobile museum caption — bottom-anchored, updates per room ── */}
+      {/* ── Mobile museum caption - bottom-anchored, updates per room ── */}
       <div className="lg:hidden absolute inset-x-0 bottom-20 z-[5] px-5 pointer-events-none">
         <motion.div
           key={`mcap-${active}`}
@@ -516,7 +516,7 @@ export default function CollectionExhibition() {
         </motion.div>
       </div>
 
-      {/* ── Bottom progress bar — tick per room ───────────────────── */}
+      {/* ── Bottom progress bar - tick per room ───────────────────── */}
       <div className="absolute inset-x-0 bottom-6 lg:bottom-8 z-[5] flex items-center justify-center gap-3 pointer-events-none">
         {COLLECTIONS.map((col, i) => {
           const isActive = i === active
@@ -542,7 +542,7 @@ export default function CollectionExhibition() {
         })}
       </div>
 
-      {/* ── Side arrows — desktop only ────────────────────────────── */}
+      {/* ── Side arrows - desktop only ────────────────────────────── */}
       <button
         type="button"
         onClick={() => goTo(Math.max(active - 1, 0))}

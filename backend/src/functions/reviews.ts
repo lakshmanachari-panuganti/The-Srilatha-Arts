@@ -271,7 +271,7 @@ async function submitReview(
 // optionally limited via ?limit=N (default 12, max 50).
 //
 // Public, cached briefly (60s) so this doesn't hammer the table on every
-// homepage load. Anonymous — these are public reviews by design.
+// homepage load. Anonymous - these are public reviews by design.
 
 async function recentReviews(
   request: HttpRequest,
@@ -285,7 +285,7 @@ async function recentReviews(
     const limit = Math.min(Math.max(1, Number.isFinite(limitRaw) ? limitRaw : 12), 50)
 
     const all = await getAllReviews('approved')
-    // Sort by createdAt desc — most recent first.
+    // Sort by createdAt desc - most recent first.
     all.sort((a, b) => {
       const av = String(a.createdAt || '')
       const bv = String(b.createdAt || '')

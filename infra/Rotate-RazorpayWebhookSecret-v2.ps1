@@ -15,7 +15,7 @@
          (or accepts a value you already typed into the Razorpay Dashboard)
       2. Takes a backup of all current Function App settings to Key Vault.
       3. Writes RAZORPAY_WEBHOOK_SECRET via 'az functionapp config appsettings set',
-         which MERGES with existing settings — no other env vars are touched.
+         which MERGES with existing settings - no other env vars are touched.
       4. Reads the setting back and verifies the EXACT value matches.
       5. Prints the secret so you can paste it into the Razorpay Dashboard.
 
@@ -78,7 +78,7 @@
               with az CLI (functionapp show / appsettings list / appsettings set).
       - HIGH: PS7.4+ $PSNativeCommandUseErrorActionPreference guard added around
               az functionapp show so exit code 3 (not found) is handled cleanly.
-      - HIGH: Backup now runs AFTER auth + existence check — wrong app name fails
+      - HIGH: Backup now runs AFTER auth + existence check - wrong app name fails
               fast without triggering a spurious backup.
       - HIGH: Verification now compares the EXACT value, not just its length.
       - MEDIUM: PRD confirmation gate added.

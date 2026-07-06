@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * CustomOrdersInboxCard — dashboard tile that surfaces newly arrived
+ * CustomOrdersInboxCard - dashboard tile that surfaces newly arrived
  * custom-order inquiries.
  *
  * Polls /api/admin/custom-orders?status=NEW every 30s. Renders unconditionally

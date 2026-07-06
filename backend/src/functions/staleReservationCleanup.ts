@@ -1,11 +1,11 @@
 /**
- * Stale-reservation cleanup — safety net for inventory reservations.
+ * Stale-reservation cleanup - safety net for inventory reservations.
  *
  * `createPaymentOrder` reserves stock the moment it starts building an
  * order, before sending the customer to Razorpay Checkout. If the customer
  * abandons (closes the tab, hits Esc, loses network, takes a phone call)
  * we won't see a payment.failed and our inline rollback in the handler
- * doesn't fire either — the reservation stays held.
+ * doesn't fire either - the reservation stays held.
  *
  * This timer-triggered Function sweeps orders that:
  *   - status PLACED
@@ -17,7 +17,7 @@
  *   2. Marks the order CANCELLED with a clear cancelReason
  *   3. Appends an audit event so the admin can see what happened
  *
- * Schedule: every 10 minutes (0 *​/10 * * * *). Idempotent — orders already
+ * Schedule: every 10 minutes (0 *​/10 * * * *). Idempotent - orders already
  * CANCELLED are skipped.
  *
  * Tuning: RESERVATION_TIMEOUT_MINUTES is env-configurable. Razorpay's
@@ -88,7 +88,7 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
   // is STILL PENDING (the candidate list could be slightly stale), and
   // attempt the status flip with the ETag attached. If a Razorpay
   // webhook landed between the candidate scan and this attempt, the
-  // ETag write throws 412 and we abort the cleanup for THIS order —
+  // ETag write throws 412 and we abort the cleanup for THIS order -
   // the captured-after-cancel path in the webhook/verify handlers
   // takes over instead.
   const ordersClient = getOrdersTableClient()
@@ -98,7 +98,7 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
   } catch (err: unknown) {
     const code = (err as { statusCode?: number })?.statusCode
     if (code === 404) {
-      context.warn(`[stale-cleanup] orderId=${orderId} disappeared mid-sweep — skipping`)
+      context.warn(`[stale-cleanup] orderId=${orderId} disappeared mid-sweep - skipping`)
       return
     }
     throw err
@@ -106,13 +106,13 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
 
   if (latest.paymentStatus !== 'PENDING') {
     context.log(
-      `[stale-cleanup] orderId=${orderId} paymentStatus is now ${latest.paymentStatus} — skipping (race detected with payment path)`,
+      `[stale-cleanup] orderId=${orderId} paymentStatus is now ${latest.paymentStatus} - skipping (race detected with payment path)`,
     )
     return
   }
   if (latest.status !== 'PLACED') {
     context.log(
-      `[stale-cleanup] orderId=${orderId} status is now ${latest.status} — skipping`,
+      `[stale-cleanup] orderId=${orderId} status is now ${latest.status} - skipping`,
     )
     return
   }
@@ -140,7 +140,7 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
   }
 
   // ETag-checked flip to CANCELLED. If the webhook wrote between our
-  // re-read and this write, the SDK throws 412 — we abort here so the
+  // re-read and this write, the SDK throws 412 - we abort here so the
   // webhook's captured-after-cancel path takes precedence.
   const etag = (latest as { etag?: string }).etag
   try {
@@ -160,7 +160,7 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
     const code = (err as { statusCode?: number })?.statusCode
     if (code === 412) {
       context.log(
-        `[stale-cleanup] orderId=${orderId} ETag mismatch on cancel — concurrent write detected, aborting cleanup`,
+        `[stale-cleanup] orderId=${orderId} ETag mismatch on cancel - concurrent write detected, aborting cleanup`,
       )
       // The webhook/verify path is taking it from here. We've already
       // tried to restore stock; if a customer's payment captures we'll
@@ -189,7 +189,7 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
       updatedAt: now,
     })
   } catch (indexErr) {
-    // Non-fatal — the order is correctly marked cancelled in the primary
+    // Non-fatal - the order is correctly marked cancelled in the primary
     // table; the secondary index will be reconciled by the next sweep.
     context.warn(
       `[stale-cleanup] ordersByStatus update failed orderId=${orderId}`,
@@ -205,7 +205,7 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
     channel: 'status',
     by: 'system',
     byRole: 'system',
-    note: 'Stale reservation cleaned up — payment never captured',
+    note: 'Stale reservation cleaned up - payment never captured',
     meta: JSON.stringify({
       timeoutMinutes: timeoutMinutes(),
       restoreOutcomes,
@@ -239,7 +239,7 @@ async function processStaleReservations(
       context.error(
         `[stale-cleanup] processOne failed orderId=${order.rowKey} error="${msg}"`,
       )
-      // Continue with the next order — one failure shouldn't strand the rest.
+      // Continue with the next order - one failure shouldn't strand the rest.
     }
   }
   context.log(

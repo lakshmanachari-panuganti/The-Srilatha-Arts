@@ -24,7 +24,7 @@ interface CartState {
   hydrateFromServer: (opts?: { mergeLocal?: boolean }) => Promise<void>
   /** Re-fetch the live product price for every line item and update the
    *  store in place. Returns the list of items whose price changed so the
-   *  caller can surface a notice. Anonymous users see this too — server
+   *  caller can surface a notice. Anonymous users see this too - server
    *  is the authoritative price source even before login. */
   refreshPrices: () => Promise<{ productId: string; title: string; oldPrice: number; newPrice: number }[]>
   _setHydrated: () => void
@@ -181,7 +181,7 @@ export const useCart = create<CartState>()(
         if (items.length === 0) return []
         // One product fetch per line item. At cart size <10 (typical for
         // handcrafted single-piece carts) this is cheaper than building a
-        // batched endpoint. Sequential errors are swallowed — a single
+        // batched endpoint. Sequential errors are swallowed - a single
         // network blip shouldn't blow away the user's cart UI.
         const changes: { productId: string; title: string; oldPrice: number; newPrice: number }[] = []
         const fresh = await Promise.all(

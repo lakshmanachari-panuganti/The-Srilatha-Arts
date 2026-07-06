@@ -9,7 +9,7 @@
  *                                           dashboard cards (today / this
  *                                           week / this month / failure rate)
  *
- * Activity rows are *unified* — each one is `{ channel, templateKey,
+ * Activity rows are *unified* - each one is `{ channel, templateKey,
  * orderId, status, recipientContact, customerName, attempt, errorMessage,
  * messageId, createdAt }`. Customer name is enriched at read time from a
  * per-page orders cache to avoid N+1 lookups.
@@ -67,7 +67,7 @@ function emailRowToActivity(r: Row): ActivityRow {
 
 function whatsappRowToActivity(r: Row): ActivityRow {
   // Outbound rows have status='sent' on success; inbound rows are filtered
-  // out below (we only show outbound — what we send to customers).
+  // out below (we only show outbound - what we send to customers).
   const status: ActivityRow['status'] =
     r.status === 'sent' ? 'sent'
       : r.status === 'failed' ? 'failed'
@@ -98,7 +98,7 @@ async function enrichWithCustomerNames(rows: ActivityRow[]): Promise<void> {
         const o = await getOrderById(id)
         if (o) orderCache.set(id, o)
       } catch {
-        // best-effort enrichment — silently skip on lookup failure
+        // best-effort enrichment - silently skip on lookup failure
       }
     }),
   )
@@ -180,7 +180,7 @@ async function listActivity(
       : listAllWhatsAppMessages(filters.from, filters.to)
     const [emailRows, waRows] = await Promise.all([fetchEmail, fetchWA])
 
-    // Convert WhatsApp inbound rows are filtered out — we want what we sent.
+    // Convert WhatsApp inbound rows are filtered out - we want what we sent.
     const waOutbound = waRows.filter((r) => r.direction === 'outbound')
 
     const merged: ActivityRow[] = [
@@ -250,12 +250,12 @@ async function activityStats(
     const failed = email.failed + whatsapp.failed
     const sent = email.sent + whatsapp.sent
 
-    // Two distinct metrics — see docs/TODO/TODO-notification-system.md N1.
+    // Two distinct metrics - see docs/TODO/TODO-notification-system.md N1.
     //
     //   attemptFailureRate    = failed attempts / total attempts. Health of
     //                           the send infrastructure. Retries count here,
     //                           so a notification that fails twice then
-    //                           succeeds shows up as 2 failed attempts —
+    //                           succeeds shows up as 2 failed attempts -
     //                           informational only, do not threshold on this.
     //
     //   notificationFailureRate = final failures (queue gave up) / unique
@@ -275,7 +275,7 @@ async function activityStats(
       ? Math.round((finalFailures / uniqueNotifications) * 10000) / 100
       : 0
 
-    // Per-template breakdown — useful for "which template fails most often?"
+    // Per-template breakdown - useful for "which template fails most often?"
     const templateMap = new Map<string, { sent: number; failed: number }>()
     const bump = (key: string, status: string) => {
       const bucket = templateMap.get(key) || { sent: 0, failed: 0 }

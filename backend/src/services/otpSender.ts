@@ -4,7 +4,7 @@
  * Bypasses the notifications queue on purpose: OTPs are latency-sensitive
  * (users are staring at the form waiting for the code), non-idempotent
  * (a queue retry would send a second SMS/WhatsApp for the same code),
- * and belong to the auth channel — not the customer-transactional dual-
+ * and belong to the auth channel - not the customer-transactional dual-
  * channel path that fires with a studio BCC.
  *
  * Uses the Meta template `verification_otp_v1`:
@@ -25,7 +25,7 @@ export interface SendVerificationOtpResult {
 
 /**
  * Send `code` to `phone` via the verification_otp_v1 template.
- * Throws if WhatsApp is not configured or the Cloud API rejects the send —
+ * Throws if WhatsApp is not configured or the Cloud API rejects the send -
  * callers should treat that as "OTP delivery failed" and surface a retry
  * option in the UI.
  */

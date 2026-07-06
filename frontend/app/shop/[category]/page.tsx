@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params
   const cat = CATEGORY_BY_SLUG[category]
   if (!cat) return { title: 'Not found' }
-  // Root layout template appends ' · Srilatha Art' — return just the category
+  // Root layout template appends ' · Srilatha Art' - return just the category
   // title here to avoid the brand suffix appearing twice in the final <title>.
   // Per-collection description uses `origin` (2-3 sentences) instead of the
   // one-line `tagline` so each collection has unique, keyword-rich metadata.
@@ -27,13 +27,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical: `/shop/${cat.slug}/` },
     openGraph: {
-      title: `${cat.title} — Srilatha Art`,
+      title: `${cat.title} - Srilatha Art`,
       description,
       url: `/shop/${cat.slug}/`,
       images: [{ url: cat.heroImage, alt: cat.title }],
     },
     twitter: {
-      title: `${cat.title} — Srilatha Art`,
+      title: `${cat.title} - Srilatha Art`,
       description,
       images: [cat.heroImage],
     },

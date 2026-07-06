@@ -702,16 +702,16 @@ Write-Step "PHASE 6 - Configure Function App"
 #
 # Three categories of keys:
 #
-#   1. ALWAYS-OVERWRITE  — derived from $envCfg / fixed constants
+#   1. ALWAYS-OVERWRITE  - derived from $envCfg / fixed constants
 #      (storage URIs, KV refs, queue names, AppInsights). These must
 #      track infra state on every run.
 #
-#   2. DEFAULT-IF-ABSENT — sensible defaults that an operator might
+#   2. DEFAULT-IF-ABSENT - sensible defaults that an operator might
 #      reasonably tune per environment (template language, SMTP
 #      host/port, sender name, etc). Set on first deploy; left alone
 #      on later runs so portal edits survive.
 #
-#   3. EMPTY-IF-ABSENT   — real secrets and operator-supplied tokens.
+#   3. EMPTY-IF-ABSENT   - real secrets and operator-supplied tokens.
 #      Initialise as empty placeholders so the keys exist in the
 #      portal blade for the operator to paste real values into, but
 #      never overwrite a non-empty existing value.
@@ -776,7 +776,7 @@ $alwaysOverwrite = @{
     # Direct Function-App URL used to build the WhatsApp / email
     # "view invoice" link. Bypasses the SWA in front of
     # PUBLIC_SITE_URL, which on the Free tier cannot proxy /api/* to
-    # the linked backend and silently returns the SPA's index.html —
+    # the linked backend and silently returns the SPA's index.html -
     # which WhatsApp Cloud then caches as the "document".
     'INVOICE_PUBLIC_URL_BASE'               = "https://$($envCfg.FunctionApp).azurewebsites.net/api/invoices"
 
@@ -788,15 +788,15 @@ foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$
 
 # ── 4. DEFAULT-IF-ABSENT: operator-tunable defaults ─────────────
 $defaultIfAbsent = @{
-    'WHATSAPP_API_VERSION'                  = 'v23.0'
-    'WHATSAPP_TEMPLATE_LANGUAGE'            = 'en_US'
-    'SMTP_HOST'                             = 'smtp.gmail.com'
-    'SMTP_PORT'                             = '587'
-    'SMTP_SECURE'                           = 'false'
-    'SMTP_USER'                             = 'srilatha.art@gmail.com'
-    'SMTP_SENDER_NAME'                      = 'Srilatha Art'
-    'SMTP_SENDER_EMAIL'                     = 'srilatha.art@gmail.com'
-    'SMTP_REPLY_TO'                         = 'studio@srilatha.art'
+    'WHATSAPP_API_VERSION'       = 'v23.0'
+    'WHATSAPP_TEMPLATE_LANGUAGE' = 'en_US'
+    'SMTP_HOST'                  = 'smtp.gmail.com'
+    'SMTP_PORT'                  = '587'
+    'SMTP_SECURE'                = 'false'
+    'SMTP_USER'                  = 'srilatha.art@gmail.com'
+    'SMTP_SENDER_NAME'           = 'Srilatha Art'
+    'SMTP_SENDER_EMAIL'          = 'srilatha.art@gmail.com'
+    'SMTP_REPLY_TO'              = 'studio@srilatha.art'
 }
 foreach ($k in $defaultIfAbsent.Keys) {
     if (-not $mergedSettings.ContainsKey($k) -or [string]::IsNullOrEmpty($mergedSettings[$k])) {

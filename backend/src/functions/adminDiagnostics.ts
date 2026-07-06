@@ -1,5 +1,5 @@
 /**
- * Admin diagnostics endpoint — exposes every failure surface and
+ * Admin diagnostics endpoint - exposes every failure surface and
  * configuration gap that could prevent the order workflow from completing.
  *
  * GET /api/admin/diagnostics
@@ -15,7 +15,7 @@
  *                  email / whatsapp / db / external)
  *   - config       Every process.env.* the backend consumes, with set/unset
  *                  + validity findings + masked value preview
- *   - runtime      Live probes — SMTP transporter.verify(), storage, queue
+ *   - runtime      Live probes - SMTP transporter.verify(), storage, queue
  *                  depths, poison queue depths
  *   - recent       Counts of recent failures from emailLogs,
  *                  whatsappMessages, notificationAlerts, plus orders that
@@ -196,7 +196,7 @@ const VAR_SPECS: VarSpec[] = [
     category: 'whatsapp',
     required: true,
     description: 'Meta Cloud API permanent system-user access token.',
-    validate: (v) => (v.length < 40 ? `unexpectedly short (${v.length} chars) — Meta tokens are typically 100+` : null),
+    validate: (v) => (v.length < 40 ? `unexpectedly short (${v.length} chars) - Meta tokens are typically 100+` : null),
   },
   {
     name: 'WHATSAPP_PHONE_NUMBER_ID',
@@ -320,7 +320,7 @@ const VAR_SPECS: VarSpec[] = [
     category: 'jwt',
     required: true,
     description: 'JWT signing secret for customer + admin tokens.',
-    validate: (v) => (v.length < 32 ? `unexpectedly short (${v.length} chars) — recommend 32+` : null),
+    validate: (v) => (v.length < 32 ? `unexpectedly short (${v.length} chars) - recommend 32+` : null),
   },
 
   // ── Site URLs / invoice ────────────────────────────────────────
@@ -361,7 +361,7 @@ function auditConfig(): ConfigVar[] {
         finding = 'required but not set'
       } else {
         severity = 'info'
-        finding = 'optional — using default'
+        finding = 'optional - using default'
       }
     } else if (spec.validate) {
       const issue = spec.validate(trimmed)
@@ -394,10 +394,10 @@ function pairwiseFindings(vars: ConfigVar[]): string[] {
   const isSet = (n: string) => byName.get(n)?.set === true
 
   if (isSet('SMTP_USER') && !isSet('SMTP_PASS')) {
-    findings.push('SMTP_USER is set but SMTP_PASS is missing — SMTP auth will fail.')
+    findings.push('SMTP_USER is set but SMTP_PASS is missing - SMTP auth will fail.')
   }
   if (!isSet('SMTP_USER') && isSet('SMTP_PASS')) {
-    findings.push('SMTP_PASS is set but SMTP_USER is missing — SMTP auth will fail.')
+    findings.push('SMTP_PASS is set but SMTP_USER is missing - SMTP auth will fail.')
   }
   if (
     isSet('WHATSAPP_ACCESS_TOKEN') &&
@@ -415,7 +415,7 @@ function pairwiseFindings(vars: ConfigVar[]): string[] {
     findings.push('RAZORPAY_KEY_ID is set but RAZORPAY_KEY_SECRET is missing.')
   }
   if (isSet('RAZORPAY_KEY_SECRET') && !isSet('RAZORPAY_WEBHOOK_SECRET')) {
-    findings.push('RAZORPAY_KEY_SECRET is set but RAZORPAY_WEBHOOK_SECRET is missing — async payment webhooks will be rejected.')
+    findings.push('RAZORPAY_KEY_SECRET is set but RAZORPAY_WEBHOOK_SECRET is missing - async payment webhooks will be rejected.')
   }
 
   return findings
@@ -432,7 +432,7 @@ async function probeSmtp(): Promise<ProbeResult> {
       name: 'smtp_verify',
       ok: false,
       severity: 'critical',
-      detail: 'Skipped — SMTP_USER/SMTP_PASS not set. Email cannot be sent.',
+      detail: 'Skipped - SMTP_USER/SMTP_PASS not set. Email cannot be sent.',
     }
   }
   const host = process.env.SMTP_HOST || 'smtp.gmail.com'
@@ -446,7 +446,7 @@ async function probeSmtp(): Promise<ProbeResult> {
       secure,
       auth: { user, pass },
       requireTLS: !secure,
-      // Short, bounded — the diagnostics call must never hang the UI.
+      // Short, bounded - the diagnostics call must never hang the UI.
       connectionTimeout: 8_000,
       greetingTimeout: 8_000,
       socketTimeout: 8_000,
@@ -646,7 +646,7 @@ function rollupWorkflow(
   const byName = new Map(vars.map((v) => [v.name, v]))
   const stages: WorkflowStage[] = []
 
-  // App configuration — worst severity of any var
+  // App configuration - worst severity of any var
   const worstConfig: Severity = vars.some((v) => v.severity === 'critical')
     ? 'critical'
     : vars.some((v) => v.severity === 'warning')
@@ -670,7 +670,7 @@ function rollupWorkflow(
   let emailSummary = 'SMTP credentials present; transporter.verify() succeeded.'
   if (!smtpUser?.set || !smtpPass?.set) {
     emailSev = 'critical'
-    emailSummary = 'SMTP_USER and/or SMTP_PASS missing — order confirmation emails cannot be sent.'
+    emailSummary = 'SMTP_USER and/or SMTP_PASS missing - order confirmation emails cannot be sent.'
   } else if (!smtpProbe.ok) {
     emailSev = 'critical'
     emailSummary = `SMTP connection failed: ${smtpProbe.detail || 'unknown error'}`
@@ -696,7 +696,7 @@ function rollupWorkflow(
   let waSummary = 'WhatsApp credentials present.'
   if (!waToken?.set || !waPhone?.set) {
     waSev = 'critical'
-    waSummary = 'WHATSAPP_ACCESS_TOKEN and/or WHATSAPP_PHONE_NUMBER_ID missing — WhatsApp messages cannot be sent.'
+    waSummary = 'WHATSAPP_ACCESS_TOKEN and/or WHATSAPP_PHONE_NUMBER_ID missing - WhatsApp messages cannot be sent.'
   } else if (recent.whatsappFailedCount > 0) {
     waSev = 'warning'
     waSummary = `${recent.whatsappFailedCount} WhatsApp send failure(s) in the last 24h.`
@@ -712,7 +712,7 @@ function rollupWorkflow(
     lastError: lastWaErr?.error,
   })
 
-  // WhatsApp inbox — does the backend reach the centralized v2 service?
+  // WhatsApp inbox - does the backend reach the centralized v2 service?
   // Distinct from whatsapp_notification (which is outbound-credential-only).
   // This stage hits v2 live so a route/AAD/CORS regression surfaces here.
   let inboxSev: Severity = 'ok'
@@ -722,7 +722,7 @@ function rollupWorkflow(
   let inboxSummary = `v2 reachable (${v2Probe.conversationCount ?? 0} conversations, ${v2Probe.latencyMs}ms).${sampleSuffix}`
   if (!v2Probe.configured) {
     inboxSev = 'critical'
-    inboxSummary = `WHATSAPP_V2_* settings missing — admin inbox cannot read inbound messages. (${v2Probe.error ?? ''})`
+    inboxSummary = `WHATSAPP_V2_* settings missing - admin inbox cannot read inbound messages. (${v2Probe.error ?? ''})`
   } else if (!v2Probe.ok) {
     inboxSev = 'critical'
     inboxSummary = `v2 ${v2Probe.endpoint} → ${v2Probe.statusCode ?? 'no response'} ${v2Probe.error ?? ''}`.trim()
@@ -755,10 +755,10 @@ function rollupWorkflow(
   let paySummary = 'Razorpay credentials present.'
   if (!rzpId?.set || !rzpSecret?.set) {
     paySev = 'critical'
-    paySummary = 'Razorpay credentials missing — checkout will fail.'
+    paySummary = 'Razorpay credentials missing - checkout will fail.'
   } else if (!rzpWebhook?.set) {
     paySev = 'warning'
-    paySummary = 'RAZORPAY_WEBHOOK_SECRET missing — async payment webhooks will be rejected.'
+    paySummary = 'RAZORPAY_WEBHOOK_SECRET missing - async payment webhooks will be rejected.'
   } else if ((rzpId.finding || rzpSecret.finding) && rzpId.severity === 'critical') {
     paySev = 'critical'
     paySummary = `Razorpay key shape invalid: ${rzpId.finding}`
@@ -771,7 +771,7 @@ function rollupWorkflow(
     recentFailures: 0,
   })
 
-  // Invoice generation — surfaced via the invoice-channel alerts
+  // Invoice generation - surfaced via the invoice-channel alerts
   // (the orderFulfillment recordAlert path).
   stages.push({
     stage: 'invoice_generation',
@@ -793,7 +793,7 @@ function rollupWorkflow(
   let extSummary = 'No messages in notifications-out-poison.'
   if (poisonCount > 0) {
     extSev = 'warning'
-    extSummary = `${poisonCount} message(s) in notifications-out-poison — queue retries exhausted.`
+    extSummary = `${poisonCount} message(s) in notifications-out-poison - queue retries exhausted.`
   }
   stages.push({
     stage: 'external_api',
@@ -810,7 +810,7 @@ function rollupWorkflow(
     summary:
       storageProbe.ok && rzpId?.set
         ? 'Storage + Razorpay reachable; new orders can be created.'
-        : 'One or more upstream dependencies degraded — see other stages.',
+        : 'One or more upstream dependencies degraded - see other stages.',
     recentFailures: 0,
   })
 

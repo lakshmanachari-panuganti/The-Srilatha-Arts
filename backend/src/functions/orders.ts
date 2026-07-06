@@ -347,8 +347,8 @@ async function getOrderTimeline(
     if (!order) return errorResponse('Order not found', 404, origin)
 
     // Customer sees only status transitions + customer-visible notes (e.g.
-    // "Shipping address updated"). Notification log events — channel email /
-    // whatsapp / message — are internal plumbing and would render with no
+    // "Shipping address updated"). Notification log events - channel email /
+    // whatsapp / message - are internal plumbing and would render with no
     // title on the customer page (toStatus is undefined for them), which
     // previously threw a TypeError on `.replace()` and crashed the page.
     const events = await getOrderEvents(orderId, false)

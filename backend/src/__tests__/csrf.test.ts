@@ -153,7 +153,7 @@ describe('buildCsrfCookie', () => {
 
   // Host-only cookie: the API host (azurewebsites.net) is not a subdomain
   // of the SPA host (srilatha.art), so any Domain= we set is rejected by
-  // the browser per RFC 6265 §5.3 — silently dropping the cookie and
+  // the browser per RFC 6265 §5.3 - silently dropping the cookie and
   // breaking the double-submit check on every mutating request.
   it('never emits Domain= (host-only cookie)', () => {
     expect(buildCsrfCookie('tok')).not.toContain('Domain=')

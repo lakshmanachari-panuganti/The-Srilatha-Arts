@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * ActionPanel — the shared commerce primitive for v2 rooms.
+ * ActionPanel - the shared commerce primitive for v2 rooms.
  *
  * Branches by availability state, wires real cart actions through the
  * existing useAddToCart hook (which handles auth gating, pending intents,
@@ -10,7 +10,7 @@
  *
  * Rooms supply an `ActionablePiece` (minimum: slug, title, availability)
  * plus their own `source` identifier. Rooms with richer data (FeaturedWorks,
- * Room 07) simply pass a superset of the interface — TypeScript narrows.
+ * Room 07) simply pass a superset of the interface - TypeScript narrows.
  *
  * CTAs per state:
  *   available           Buy Now (resin)  +  Add to Cart (outline)
@@ -23,7 +23,7 @@
  *                       Inquire on WhatsApp (commission-flavored prefill)
  *
  *   acquired            Commission a Similar Piece (resin)
- *                       (no inquiry — the piece is sold; commission is the
+ *                       (no inquiry - the piece is sold; commission is the
  *                        only meaningful path forward)
  */
 
@@ -79,7 +79,7 @@ export function ActionPanel({
   }
 }
 
-// ── Available — full commerce stack ──────────────────────────────
+// ── Available - full commerce stack ──────────────────────────────
 function AvailableActions({
   piece,
   source,
@@ -115,7 +115,7 @@ function AvailableActions({
       })
       if (action === 'buy') router.push('/checkout')
     } catch {
-      // Fetch failed — fall back to PDP so visitor can still act.
+      // Fetch failed - fall back to PDP so visitor can still act.
       router.push(`/product/${encodeURIComponent(String(piece.productId))}`)
     } finally {
       setBusy(null)
@@ -166,7 +166,7 @@ function AvailableActions({
   )
 }
 
-// ── Reserved — no cart, but Details is still discoverable ─────────
+// ── Reserved - no cart, but Details is still discoverable ─────────
 function ReservedActions({
   piece,
   source,
@@ -207,7 +207,7 @@ function ReservedActions({
   )
 }
 
-// ── Commission-only — primary path = /custom-order ────────────────
+// ── Commission-only - primary path = /custom-order ────────────────
 function CommissionActions({
   piece,
   source,
@@ -246,7 +246,7 @@ function CommissionActions({
   )
 }
 
-// ── Acquired — pure pivot to commission. No inquiry, no purchase. ───
+// ── Acquired - pure pivot to commission. No inquiry, no purchase. ───
 function AcquiredActions({
   piece,
   source,
@@ -342,7 +342,7 @@ function WhatsAppInquiryLink({
     piece.inquiryPrefill ??
     (kind === 'commission'
       ? `Hi Srilatha, I'd like to discuss commissioning a piece inspired by "${piece.title}".`
-      : `Hi Srilatha, I'd like to discuss "${piece.title}" — I've been picturing it on a wall at home.`)
+      : `Hi Srilatha, I'd like to discuss "${piece.title}" - I've been picturing it on a wall at home.`)
   const href = waLink(baseMessage)
   return (
     <a
@@ -377,7 +377,7 @@ function WhatsAppInquiryLink({
   )
 }
 
-// ── AvailabilityBadge — letterpress-style status tag, dot-coloured by state ──
+// ── AvailabilityBadge - letterpress-style status tag, dot-coloured by state ──
 export function AvailabilityBadge({
   availability,
 }: {
@@ -390,7 +390,7 @@ export function AvailabilityBadge({
     available:         { label: 'Available for acquisition',           dotColor: 'rgb(26, 127, 75)' },
     reserved:          { label: 'Reserved (in escrow)',                dotColor: 'rgb(200, 150, 47)' },
     acquired:          { label: 'Privately acquired',                  dotColor: 'rgb(138, 126, 110)' },
-    'commission-only': { label: 'Commission only — variations on request', dotColor: 'rgb(138, 106, 26)' },
+    'commission-only': { label: 'Commission only - variations on request', dotColor: 'rgb(138, 106, 26)' },
   }
   const { label, dotColor } = STYLES[availability]
   return (
