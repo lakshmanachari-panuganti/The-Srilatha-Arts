@@ -398,46 +398,62 @@ async function adminUpdateStatus(
       createdAt: now,
     })
 
-    // 5. Enqueue customer notification if requested
+    // 5. Enqueue customer notification if requested.
+    // Per-channel guards + independent try/catch so a phone-only customer
+    // still gets WhatsApp when there's no email on file, and an email-only
+    // customer still gets email when there's no phone. Matches the
+    // dual-channel pattern used by finalizeOrderAfterPayment and
+    // adminDeclineReturn.
     const notifications = getTransitionNotifications(to)
-    if (body.notifyCustomer !== false && order.customerEmail) {
+    if (body.notifyCustomer !== false) {
       // refundAmount lives in paise on the order row; render as rupees for
       // the template (₹{{n}} formatted with Indian thousands separator).
       const refundRupees =
         typeof body.refundAmount === 'number' && body.refundAmount > 0
           ? (body.refundAmount / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })
           : ''
+      const transitionVars = {
+        customerName: order.customerName,
+        orderId,
+        status: statusLabel(to),
+        tracking: body.tracking || '',
+        courier: body.courier || '',
+        customerPhone: order.customerPhone || '',
+        refundAmount: refundRupees,
+        cancelReason: body.cancelReason || '',
+        holdReason: body.holdReason || '',
+      }
+      const templateKey = `order_${to.toLowerCase()}`
       for (const channel of notifications.customer) {
-        await enqueueNotification({
-          userEmail: order.customerEmail,
-          channel,
-          templateKey: `order_${to.toLowerCase()}`,
-          vars: {
-            customerName: order.customerName,
-            orderId,
-            status: statusLabel(to),
-            tracking: body.tracking || '',
-            courier: body.courier || '',
-            customerPhone: order.customerPhone || '',
-            refundAmount: refundRupees,
-            cancelReason: body.cancelReason || '',
-            holdReason: body.holdReason || '',
-          },
-        })
+        if (channel === 'email' && !order.customerEmail) continue
+        if (channel === 'whatsapp' && !order.customerPhone) continue
+        try {
+          await enqueueNotification({
+            userEmail: (order.customerEmail as string) || (order.partitionKey as string) || '',
+            channel,
+            templateKey,
+            vars: transitionVars,
+          })
+        } catch (notifyErr) {
+          context.warn(`adminUpdateStatus: ${channel} enqueue failed (non-fatal)`, notifyErr)
+        }
       }
     }
 
-    // 5b. Schedule a delayed review request (72h via queue visibility timeout)
+    // 5b. Schedule a delayed review request (72h via queue visibility timeout).
+    // The review-request queue consumer fires both channels independently
+    // (see reviewRequestsQueue.ts), so schedule whenever either contact
+    // exists - not only when email is on file.
     if (
       body.notifyCustomer !== false &&
       notifications.scheduleReviewRequest &&
-      order.customerEmail
+      (order.customerEmail || order.customerPhone)
     ) {
       try {
         const items = await getOrderItems(orderId)
         await enqueueReviewRequest({
           orderId,
-          userEmail: order.customerEmail,
+          userEmail: order.customerEmail || '',
           customerName: order.customerName,
           customerPhone: order.customerPhone || '',
           items: items.map((i) => ({
