@@ -43,6 +43,7 @@ export async function sendVerificationOtp(
     toPhone: phone,
     templateName: OTP_TEMPLATE_NAME,
     bodyVariables: [code],
+    languageCode: 'en',
   })
   return { messageId: result.messageId, toPhone: result.toPhone }
 }

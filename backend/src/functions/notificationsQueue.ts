@@ -779,12 +779,13 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
     return
   }
 
-  // Resolve the Meta template name from the registry so template versioning
-  // (order_crafting_v1 → v2) only touches registry.ts, not producers.
+  // Resolve the Meta template name and language from the registry so template
+  // versioning (order_crafting_v1 → v2) only touches registry.ts, not producers.
   // Fallback to templateKey preserves back-compat for any caller not yet in
   // the registry.
-  const metaTemplateName =
-    getTemplate(templateKey)?.whatsappTemplate || templateKey
+  const registryEntry = getTemplate(templateKey)
+  const metaTemplateName = registryEntry?.whatsappTemplate || templateKey
+  const metaTemplateLanguage = registryEntry?.whatsappTemplateLanguage || 'en'
 
   const now = new Date().toISOString()
   try {
@@ -794,6 +795,7 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
       bodyVariables: spec.bodyVariables,
       documentHeader: spec.documentHeader,
       urlButton: spec.urlButton,
+      languageCode: metaTemplateLanguage,
     })
 
     await mergeOrder(order.partitionKey as string, orderId, {

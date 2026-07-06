@@ -75,6 +75,11 @@ export interface NotificationTemplate {
   templateKey: string
   /** WhatsApp template name in Meta Business Manager. null = no WA channel. */
   whatsappTemplate: string | null
+  /** Language code for the WhatsApp template in Meta Business Manager.
+   *  Almost every _v1 template is 'en'; override here when a specific
+   *  template was submitted/approved under a different locale (e.g. 'en_US').
+   *  If omitted the dispatcher falls back to 'en'. */
+  whatsappTemplateLanguage?: string
   /** Email builder. null = no email channel (rare; we want both for transactional). */
   emailBuilder: TransitionEmailBuilder | null
   /** When true, dispatcher appends STUDIO_NOTIFICATION_CC to the email send. */
@@ -101,6 +106,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_confirmed: {
     templateKey: 'order_confirmed',
     whatsappTemplate: 'order_confirmation_v1',
+    whatsappTemplateLanguage: 'en_US', // approved in Meta under English (US)
     emailBuilder: null, // handled by dispatcher's special-case PDF path
     copyStudio: true,
     category: 'transactional',
@@ -110,6 +116,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_crafting: {
     templateKey: 'order_crafting',
     whatsappTemplate: 'order_crafting_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderCraftingEmail,
     copyStudio: true,
     category: 'transactional',
@@ -118,6 +125,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_shipped: {
     templateKey: 'order_shipped',
     whatsappTemplate: 'order_shipped_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderShippedEmail,
     copyStudio: true,
     category: 'transactional',
@@ -126,6 +134,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_delivered: {
     templateKey: 'order_delivered',
     whatsappTemplate: 'order_delivered_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderDeliveredEmail,
     copyStudio: true,
     category: 'transactional',
@@ -134,6 +143,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_cancelled: {
     templateKey: 'order_cancelled',
     whatsappTemplate: 'order_cancelled_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderCancelledEmail,
     copyStudio: true,
     category: 'transactional',
@@ -142,6 +152,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_refunded: {
     templateKey: 'order_refunded',
     whatsappTemplate: 'order_refunded_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderRefundedEmail,
     copyStudio: true,
     category: 'transactional',
@@ -150,6 +161,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_on_hold: {
     templateKey: 'order_on_hold',
     whatsappTemplate: 'order_on_hold_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderOnHoldEmail,
     copyStudio: true,
     category: 'transactional',
@@ -158,6 +170,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   review_request: {
     templateKey: 'review_request',
     whatsappTemplate: 'review_request_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildReviewRequestEmail,
     copyStudio: true,
     category: 'transactional',
@@ -166,6 +179,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   return_declined: {
     templateKey: 'return_declined',
     whatsappTemplate: 'return_declined_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: (input) =>
       buildReturnDeclinedEmail({
         orderId: input.orderId,
@@ -183,6 +197,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   refund_processed: {
     templateKey: 'refund_processed',
     whatsappTemplate: 'order_refunded_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderRefundedEmail,
     copyStudio: true,
     category: 'transactional',

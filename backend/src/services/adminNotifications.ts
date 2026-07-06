@@ -95,6 +95,7 @@ export async function notifyStudioAdmins(
         toPhone,
         templateName: ADMIN_TEMPLATE_KEY,
         bodyVariables,
+        languageCode: 'en',
       })
       result.succeeded += 1
       context.log(
