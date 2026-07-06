@@ -674,20 +674,36 @@ async function adminDeclineReturn(
       createdAt: now,
     })
 
-    if (body.notifyCustomer !== false && order.customerEmail) {
-      try {
-        await enqueueNotification({
-          userEmail: order.customerEmail,
-          channel: 'email',
-          templateKey: 'return_declined',
-          vars: {
-            customerName: order.customerName,
-            orderId,
-            reason,
-          },
-        })
-      } catch (notifyErr) {
-        context.warn('adminDeclineReturn: notification enqueue failed (non-fatal)', notifyErr)
+    if (body.notifyCustomer !== false) {
+      const declineVars = {
+        customerName: order.customerName,
+        customerPhone: order.customerPhone || '',
+        orderId,
+        returnDeclineReason: reason,
+      }
+      if (order.customerEmail) {
+        try {
+          await enqueueNotification({
+            userEmail: order.customerEmail,
+            channel: 'email',
+            templateKey: 'return_declined',
+            vars: declineVars,
+          })
+        } catch (notifyErr) {
+          context.warn('adminDeclineReturn: email enqueue failed (non-fatal)', notifyErr)
+        }
+      }
+      if (order.customerPhone) {
+        try {
+          await enqueueNotification({
+            userEmail: order.customerEmail || '',
+            channel: 'whatsapp',
+            templateKey: 'return_declined',
+            vars: declineVars,
+          })
+        } catch (notifyErr) {
+          context.warn('adminDeclineReturn: whatsapp enqueue failed (non-fatal)', notifyErr)
+        }
       }
     }
 

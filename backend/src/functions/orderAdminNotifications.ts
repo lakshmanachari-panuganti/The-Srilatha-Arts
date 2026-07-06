@@ -127,7 +127,7 @@ async function adminResendWhatsApp(
     await enqueueNotification({
       userEmail: (order.customerEmail as string) || (order.partitionKey as string) || '',
       channel: 'whatsapp',
-      templateKey: 'order_confirmation_new_artwork',
+      templateKey: 'order_confirmed',
       vars: {
         orderId,
         customerName: (order.customerName as string) || 'Customer',

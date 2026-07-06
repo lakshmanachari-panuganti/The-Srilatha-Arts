@@ -122,8 +122,8 @@ interface TransitionNotification {
 // does not block the other.
 //
 // CONFIRMED carries no customer notification because the
-// order_confirmation_new_artwork (WhatsApp) + order_confirmed (email with
-// invoice PDF) already fire from finalizeOrderAfterPayment at the Razorpay
+// order_confirmed template (WhatsApp order_confirmation_v1 + email with
+// invoice PDF) already fires from finalizeOrderAfterPayment at the Razorpay
 // capture step. Adding a CONFIRMED transition notification would double-
 // notify on every order.
 //
