@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -423,7 +424,7 @@ function OrderCard({
           <InvoiceDownloadButton order={order} />
           {canCancel && (
             <button
-              onClick={() => setShowCancel(true)}
+              onClick={(e) => { e.stopPropagation(); setShowCancel(true) }}
               className="text-sm h-10 px-4 rounded-full border border-rose-300/70 text-rose-700 hover:bg-rose-50 inline-flex items-center gap-2"
             >
               <XIcon className="w-4 h-4" aria-hidden />
@@ -432,7 +433,7 @@ function OrderCard({
           )}
           {canReturn && (
             <button
-              onClick={() => setShowReturn(true)}
+              onClick={(e) => { e.stopPropagation(); setShowReturn(true) }}
               className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
             >
               Request a return
@@ -540,16 +541,16 @@ function CancelOrderModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="cancel-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6"
+        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6 max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="cancel-modal-title" className="font-serif text-2xl text-ink mb-1">Cancel this order?</h2>
@@ -624,7 +625,8 @@ function CancelOrderModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -673,16 +675,16 @@ function ReturnRequestModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="return-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 px-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6"
+        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6 max-h-[90dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="return-modal-title" className="font-serif text-2xl text-ink mb-1">Request a return</h2>
@@ -762,7 +764,8 @@ function ReturnRequestModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

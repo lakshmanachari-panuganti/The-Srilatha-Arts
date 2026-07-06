@@ -73,7 +73,7 @@ export default function CustomOrdersInboxCard() {
       aria-labelledby="custom-orders-inbox-heading"
       className={`mb-8 rounded-xl border shadow-sm ${
         total > 0
-          ? 'bg-amber-50 border-amber-200'
+          ? 'bg-blue-500/10 border-blue-500/30'
           : 'bg-plum-light border-ink/10'
       }`}
     >
@@ -82,8 +82,8 @@ export default function CustomOrdersInboxCard() {
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
               total > 0
-                ? 'bg-amber-100 text-amber-700'
-                : 'bg-lavender-pastel/30 text-plum'
+                ? 'bg-blue-500/20 text-blue-400'
+                : 'bg-lavender-pastel/30 text-lavender'
             }`}
           >
             {total > 0 ? (
@@ -102,7 +102,7 @@ export default function CustomOrdersInboxCard() {
                 New custom order requests
               </h2>
               {total > 0 && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 ring-1 ring-amber-600/20 text-xs font-semibold px-2 py-0.5">
+                <span className="inline-flex items-center rounded-full bg-blue-500/20 text-blue-300 ring-1 ring-blue-400/30 text-xs font-semibold px-2 py-0.5">
                   {total} new
                 </span>
               )}
@@ -111,7 +111,7 @@ export default function CustomOrdersInboxCard() {
             {isLoading ? (
               <p className="text-sm text-ink-soft mt-1">Checking the inbox…</p>
             ) : isError ? (
-              <p className="text-sm text-red-700 mt-1">
+              <p className="text-sm text-red-400 mt-1">
                 Could not load custom order inquiries. Try refreshing.
               </p>
             ) : total === 0 ? (
@@ -125,7 +125,7 @@ export default function CustomOrdersInboxCard() {
                     ? '1 request is waiting for a first response.'
                     : `${total} requests are waiting for a first response.`}
                 </p>
-                <ul className="mt-3 divide-y divide-amber-200/70 rounded-lg bg-white/60 border border-amber-100">
+                <ul className="mt-3 divide-y divide-slate-700/60 rounded-lg bg-slate-900/60 border border-slate-700/50">
                   {preview.map((order) => (
                     <li key={order.id} className="px-3 py-2.5 flex items-center gap-3">
                       <div className="flex-1 min-w-0">
@@ -149,7 +149,7 @@ export default function CustomOrdersInboxCard() {
                 href="/admin/custom-orders"
                 className={`inline-flex items-center gap-2 text-sm font-medium h-9 px-4 rounded-lg transition-colors ${
                   total > 0
-                    ? 'bg-amber-600 text-white hover:bg-amber-700'
+                    ? 'bg-blue-600 text-white hover:bg-blue-500'
                     : 'bg-plum text-white hover:bg-plum/90'
                 }`}
               >

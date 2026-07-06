@@ -133,7 +133,10 @@ param(
     [string]$Role = 'admin',
 
     [Parameter()]
-    [string]$StorageAccountName
+    [string]$StorageAccountName,
+
+    [Parameter()]
+    [switch] $IgnoreAzAuth
 )
 
 $ErrorActionPreference = 'Stop'
@@ -145,7 +148,9 @@ Set-StrictMode -Version Latest
 # storage-account naming convention ever changes, both files change
 # together and we only need to verify one source of truth.
 
-& "$PSScriptRoot\Azure-Connectivity.ps1"
+if (-not $IgnoreAzAuth) {
+    & "$PSScriptRoot\Azure-Connectivity.ps1"
+}
 
 $AppSlug = 'thesrilathaarts'
 

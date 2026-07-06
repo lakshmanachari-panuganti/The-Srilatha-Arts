@@ -22,11 +22,11 @@ interface CustomOrder {
 }
 
 const STATUS_CONFIG: Record<CustomOrderStatus, { label: string; color: string; icon: typeof Clock }> = {
-  NEW:         { label: 'New',         color: 'bg-blue-50 text-blue-700 ring-blue-600/20',       icon: Sparkles },
-  QUOTED:      { label: 'Quoted',      color: 'bg-amber-50 text-amber-700 ring-amber-600/20',    icon: MessageSquare },
-  APPROVED:    { label: 'Approved',    color: 'bg-indigo-50 text-indigo-700 ring-indigo-600/20', icon: CheckCircle2 },
-  IN_PROGRESS: { label: 'In Progress', color: 'bg-purple-50 text-purple-700 ring-purple-600/20', icon: Palette },
-  COMPLETED:   { label: 'Completed',   color: 'bg-green-50 text-green-700 ring-green-600/20',    icon: CheckCircle2 },
+  NEW:         { label: 'New',         color: 'bg-blue-500/20 text-blue-300 ring-blue-400/30',     icon: Sparkles },
+  QUOTED:      { label: 'Quoted',      color: 'bg-amber-500/20 text-amber-300 ring-amber-400/30',  icon: MessageSquare },
+  APPROVED:    { label: 'Approved',    color: 'bg-indigo-500/20 text-indigo-300 ring-indigo-400/30', icon: CheckCircle2 },
+  IN_PROGRESS: { label: 'In Progress', color: 'bg-purple-500/20 text-purple-300 ring-purple-400/30', icon: Palette },
+  COMPLETED:   { label: 'Completed',   color: 'bg-green-500/20 text-green-300 ring-green-400/30',  icon: CheckCircle2 },
 }
 
 const STATUSES: CustomOrderStatus[] = ['NEW', 'QUOTED', 'APPROVED', 'IN_PROGRESS', 'COMPLETED']
@@ -199,7 +199,7 @@ export default function AdminCustomOrdersPage() {
                           value={order.status}
                           onChange={(e) => updateStatus(order, e.target.value as CustomOrderStatus)}
                           disabled={isUpdating}
-                          className="text-xs px-2 h-8 bg-white border border-ink/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-lavender disabled:opacity-50"
+                          className="text-xs px-2 h-8 bg-plum-light text-ink border border-ink/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-lavender disabled:opacity-50"
                         >
                           {STATUSES.map((s) => (
                             <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>

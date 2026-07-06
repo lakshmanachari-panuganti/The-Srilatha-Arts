@@ -115,7 +115,7 @@ if ($KeyVaultName -match '--') {
 # -------------------------------------------------------
 # 3. Authenticate via service principal
 # -------------------------------------------------------
-if($IgnoreAzAuth.present){
+if (-not $IgnoreAzAuth) {
     & "$PSScriptRoot\Azure-Connectivity.ps1"
 }
 $ctx = Get-AzContext
@@ -189,8 +189,8 @@ if (-not $keyVault) {
 # -------------------------------------------------------
 $subId = $ctx.Subscription.Id
 $apiPath = "/subscriptions/$subId/resourceGroups/$resourceGroupName" +
-    "/providers/Microsoft.Web/sites/$FunctionAppName" +
-    "/config/appsettings/list?api-version=2022-03-01"
+"/providers/Microsoft.Web/sites/$FunctionAppName" +
+"/config/appsettings/list?api-version=2022-03-01"
 
 $response = Invoke-AzRestMethod -Method POST -Path $apiPath -Payload '{}'
 
@@ -275,7 +275,7 @@ foreach ($setting in $settingsProperties) {
     # CASE 2 + 3 - Encode the secret name for Key Vault
     # Dot must be replaced before underscore so -DOT- is written intact
     $secretName = $originalKey -replace '\.', '-DOT-'   # CASE 2 : . → -DOT-
-    $secretName = $secretName  -replace '_', '-'         # CASE 3 : _ → -
+    $secretName = $secretName -replace '_', '-'         # CASE 3 : _ → -
 
     # KV requires the name to start with a letter - prefix with 'x-' if it
     # starts with a digit (the Restore fallback strips this prefix back off)
@@ -302,11 +302,11 @@ foreach ($setting in $settingsProperties) {
         -Name        $secretName `
         -SecretValue $secureValue `
         -Tag @{
-            OriginalKey = $originalKey
-            BackupDate  = $backupDate
-            SourceApp   = $FunctionAppName
-            Reason      = $Reason
-        } `
+        OriginalKey = $originalKey
+        BackupDate  = $backupDate
+        SourceApp   = $FunctionAppName
+        Reason      = $Reason
+    } `
         -ErrorAction Stop | Out-Null
 
     $backed++
