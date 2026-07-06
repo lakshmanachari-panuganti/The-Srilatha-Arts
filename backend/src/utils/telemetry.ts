@@ -31,6 +31,7 @@
  */
 
 import * as appInsights from 'applicationinsights'
+import { DefaultAzureCredential } from '@azure/identity'
 
 let initialised = false
 let client: appInsights.TelemetryClient | null = null
@@ -52,6 +53,24 @@ function init(): void {
       .setSendLiveMetrics(false)
       .start()
     client = appInsights.defaultClient
+
+    // AAD-authenticated ingest. Required when the AI resource has
+    // `disableLocalAuth=true` (blocks the deprecated InstrumentationKey
+    // path). The Function App's system-assigned managed identity already
+    // holds `Monitoring Metrics Publisher` on the AI resource; the SDK
+    // exchanges that MI token for an AI ingest token per call.
+    // DefaultAzureCredential resolves to ManagedIdentityCredential in
+    // Azure and to local dev credentials (VS/az CLI) otherwise, so this
+    // path is safe on developer machines too.
+    //
+    // v2.9 SDK note: AAD is configured via client.config.aadTokenCredential
+    // AFTER .start(), not through the fluent Configuration chain.
+    if (
+      client &&
+      process.env.APPLICATIONINSIGHTS_AUTHENTICATION_STRING?.toLowerCase().includes('authorization=aad')
+    ) {
+      client.config.aadTokenCredential = new DefaultAzureCredential()
+    }
   } catch (err) {
     // Don't let telemetry init break the function. Worst case is silent
     // observability — better than a 500 on the customer.
