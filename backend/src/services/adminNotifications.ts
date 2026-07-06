@@ -19,7 +19,7 @@ import { InvocationContext } from '@azure/functions'
 import { sendTemplateMessage, normalisePhone, isWhatsAppConfigured } from './whatsapp'
 
 const ADMIN_GROUP_ENV = 'STUDIO_ADMINS_WHATSAPP_GROUP'
-const ADMIN_TEMPLATE_KEY = 'admin_notification'
+const ADMIN_TEMPLATE_KEY = 'admin_notification_v1'
 
 export interface FanoutResult {
   attempted: number

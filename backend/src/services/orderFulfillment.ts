@@ -5,7 +5,7 @@
  *        ↓
  *   finalizeOrderAfterPayment(order)
  *        ├─► (idempotent) build invoice PDF + upload to blob + stamp invoiceUrl
- *        ├─► enqueue WhatsApp notification (order_confirmation_new_artwork)
+ *        ├─► enqueue WhatsApp notification (order_confirmed → Meta: order_confirmation_v1)
  *        └─► enqueue email notification (order_confirmed)
  *
  *   notifications-out queue consumer (functions/notificationsQueue)
@@ -192,7 +192,7 @@ export async function finalizeOrderAfterPayment(
       await enqueueNotification({
         userEmail: (order.customerEmail as string) || (order.partitionKey as string) || '',
         channel: 'whatsapp',
-        templateKey: 'order_confirmation_new_artwork',
+        templateKey: 'order_confirmed',
         vars: {
           orderId,
           customerName: (order.customerName as string) || 'Customer',

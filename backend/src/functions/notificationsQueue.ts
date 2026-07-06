@@ -6,15 +6,23 @@
  *
  *   Routes by message.channel:
  *     'email'    + 'order_confirmed'                 → SMTP + attach PDF
- *     'whatsapp' + 'order_confirmation_new_artwork'  → Cloud API + PDF document header
+ *     'whatsapp' + 'order_confirmed'                 → Cloud API + PDF document header
  *     'whatsapp' + 'order_crafting' | 'order_shipped' |
  *                  'order_cancelled' | 'order_on_hold' |
- *                  'order_refunded'                  → Cloud API, text-only
+ *                  'order_refunded' | 'order_delivered' |
+ *                  'review_request' | 'return_declined' | 'refund_processed'
+ *                                                    → Cloud API, text-only
  *
  * Status-transition WhatsApp templates dispatch through a single
  * sendWhatsAppTemplate path keyed by the WA_TEMPLATE_BUILDERS map. Adding a
- * new template = adding one entry to that map + getting it approved in
- * Meta Business Manager under the same name.
+ * new template = adding one entry to that map + registering the Meta
+ * template name in emailTemplates/registry.ts (whatsappTemplate field) +
+ * getting it approved in Meta Business Manager under that same name.
+ *
+ * Template versioning: the Meta template name is looked up from the
+ * registry, so rotating a template (e.g. order_crafting → order_crafting_v2)
+ * only requires updating the registry's whatsappTemplate field — no changes
+ * to producers or WA_TEMPLATE_BUILDERS keys.
  *
  * Retry strategy: this handler THROWS on failure so the Azure Functions
  * runtime returns the message to the queue. Storage Queue retries up
@@ -52,6 +60,7 @@ import {
   type TransitionEmailInput,
 } from '../services/emailTemplates/registry'
 import { recordAlert, clearAlert } from '../services/notificationAlerts'
+import { getStoreContactNumber } from '../services/storeContact'
 
 // Read from host.json:queues.maxDequeueCount. Hard-coded here as a
 // constant — keep in sync if you change it in host.json.
@@ -237,6 +246,7 @@ async function sendTransitionEmail(input: SendTransitionEmailInput): Promise<voi
     trackingUrl: vars.trackingUrl,
     cancelReason: vars.cancelReason,
     holdReason: vars.holdReason,
+    returnDeclineReason: vars.returnDeclineReason || vars.reason,
     refundAmount: vars.refundAmount,
   }
 
@@ -548,10 +558,15 @@ interface WhatsAppTemplateSpec {
   eventNote: string
 }
 
-// Map of templateKey → builder. Order of bodyVariables MUST match the {{1}},
-// {{2}}, ... slots in the body submitted to Meta Business Manager. The
-// matching template copy lives in docs and in the Meta Manager UI; do not
-// edit one without the other.
+// Map of registry templateKey → builder. Order of bodyVariables MUST match
+// the {{1}}, {{2}}, ... slots in the Meta-Business-Manager template body.
+// The Meta template name itself is resolved from the registry's
+// whatsappTemplate field (see sendWhatsAppTemplate) — this keeps template
+// versioning (order_crafting → order_crafting_v1 → v2) out of producer
+// code.
+//
+// The matching template copy lives in docs/TODO/Create_whatsapp_templates/*.txt
+// and in the Meta Manager UI; do not edit one without the other.
 const WA_TEMPLATE_BUILDERS: Record<
   string,
   (
@@ -560,26 +575,35 @@ const WA_TEMPLATE_BUILDERS: Record<
     orderId: string,
   ) => WhatsAppTemplateSpec | null
 > = {
-  // {{1}}=customerName, {{2}}=orderId; DOCUMENT header carries the invoice;
-  // URL button {{1}}=orderId for the "View order" link.
-  order_confirmation_new_artwork: (vars, order, orderId) => {
+  // order_confirmation_v1 body:
+  //   {{1}}=customerName, {{2}}=orderId, {{3}}=storeContact.
+  // DOCUMENT header carries the invoice PDF.
+  order_confirmed: (vars, order, orderId) => {
     const invoiceUrl = vars.invoiceUrl || (order.invoiceUrl as string) || ''
     if (!invoiceUrl) return null
     return {
-      bodyVariables: [vars.customerName || 'Customer', orderId],
+      bodyVariables: [
+        vars.customerName || 'Customer',
+        orderId,
+        getStoreContactNumber(),
+      ],
       documentHeader: { link: invoiceUrl, filename: `invoice-${orderId}.pdf` },
-      urlButton: { parameter: orderId, index: '0' },
       eventNote: 'Order confirmation sent via WhatsApp',
     }
   },
 
-  // {{1}}=customerName, {{2}}=orderId.
+  // order_crafting_v1: {{1}}=customerName, {{2}}=orderId, {{3}}=storeContact.
   order_crafting: (vars, _order, orderId) => ({
-    bodyVariables: [vars.customerName || 'Customer', orderId],
+    bodyVariables: [
+      vars.customerName || 'Customer',
+      orderId,
+      getStoreContactNumber(),
+    ],
     eventNote: 'Crafting-started update sent via WhatsApp',
   }),
 
-  // {{1}}=customerName, {{2}}=orderId, {{3}}=courier, {{4}}=tracking.
+  // order_shipped_v1: {{1}}=customerName, {{2}}=orderId, {{3}}=courier,
+  // {{4}}=tracking, {{5}}=storeContact.
   order_shipped: (vars, _order, orderId) => {
     if (!vars.courier || !vars.tracking) return null
     return {
@@ -588,56 +612,106 @@ const WA_TEMPLATE_BUILDERS: Record<
         orderId,
         vars.courier,
         vars.tracking,
+        getStoreContactNumber(),
       ],
       eventNote: `Shipped update sent via WhatsApp (${vars.courier} · ${vars.tracking})`,
     }
   },
 
-  // {{1}}=customerName, {{2}}=orderId.
+  // order_cancelled_v1: {{1}}=customerName, {{2}}=orderId, {{3}}=storeContact.
   order_cancelled: (vars, _order, orderId) => ({
-    bodyVariables: [vars.customerName || 'Customer', orderId],
+    bodyVariables: [
+      vars.customerName || 'Customer',
+      orderId,
+      getStoreContactNumber(),
+    ],
     eventNote: 'Cancellation notice sent via WhatsApp',
   }),
 
-  // {{1}}=customerName, {{2}}=orderId.
-  order_on_hold: (vars, _order, orderId) => ({
-    bodyVariables: [vars.customerName || 'Customer', orderId],
-    eventNote: 'On-hold notice sent via WhatsApp',
-  }),
+  // order_on_hold_v1: {{1}}=customerName, {{2}}=orderId, {{3}}=holdReason,
+  // {{4}}=storeContact. holdReason is validated as required at the state-
+  // machine layer (validateTransitionPayload) so it should always be
+  // present here.
+  order_on_hold: (vars, _order, orderId) => {
+    if (!vars.holdReason) return null
+    return {
+      bodyVariables: [
+        vars.customerName || 'Customer',
+        orderId,
+        vars.holdReason,
+        getStoreContactNumber(),
+      ],
+      eventNote: 'On-hold notice sent via WhatsApp',
+    }
+  },
 
-  // {{1}}=customerName, {{2}}=refundAmount (₹, Indian-formatted), {{3}}=orderId.
+  // order_refunded_v1: {{1}}=customerName, {{2}}=refundAmount
+  // (₹, Indian-formatted), {{3}}=orderId, {{4}}=storeContact.
   order_refunded: (vars, _order, orderId) => {
     if (!vars.refundAmount) return null
     return {
-      bodyVariables: [vars.customerName || 'Customer', vars.refundAmount, orderId],
+      bodyVariables: [
+        vars.customerName || 'Customer',
+        vars.refundAmount,
+        orderId,
+        getStoreContactNumber(),
+      ],
       eventNote: `Refund notice sent via WhatsApp (₹${vars.refundAmount})`,
     }
   },
 
-  // {{1}}=customerName, {{2}}=orderId. Customer-explicit delivery
-  // confirmation — fires alongside the courier's own notification so the
-  // customer hears it from us too.
+  // order_delivered_v1: {{1}}=customerName, {{2}}=orderId, {{3}}=storeContact.
+  // Customer-explicit delivery confirmation — fires alongside the courier's
+  // own notification so the customer hears it from us too.
   order_delivered: (vars, _order, orderId) => ({
-    bodyVariables: [vars.customerName || 'Customer', orderId],
+    bodyVariables: [
+      vars.customerName || 'Customer',
+      orderId,
+      getStoreContactNumber(),
+    ],
     eventNote: 'Delivery confirmation sent via WhatsApp',
   }),
 
-  // {{1}}=customerName, {{2}}=orderId. Sent 72h after delivery via the
-  // review-requests queue's visibility timeout.
-  review_request: (vars, _order, orderId) => ({
-    bodyVariables: [vars.customerName || 'Customer', orderId],
-    eventNote: 'Review request sent via WhatsApp',
+  // review_request_v1: {{1}}=customerName, {{2}}=reviewLink,
+  // {{3}}=storeContact. Sent 72h after delivery via the review-requests
+  // queue's visibility timeout. The review link deep-links into the
+  // customer's specific order page so the review lands on the right product.
+  review_request: (vars, _order, orderId) => {
+    const siteUrl = (process.env.PUBLIC_SITE_URL || 'https://www.srilatha.art')
+      .replace(/\/+$/, '')
+    const reviewLink = `${siteUrl}/account/orders/${orderId}`
+    return {
+      bodyVariables: [
+        vars.customerName || 'Customer',
+        reviewLink,
+        getStoreContactNumber(),
+      ],
+      eventNote: 'Review request sent via WhatsApp',
+    }
+  },
+
+  // return_declined_v1: {{1}}=customerName, {{2}}=orderId, {{3}}=storeContact.
+  return_declined: (vars, _order, orderId) => ({
+    bodyVariables: [
+      vars.customerName || 'Customer',
+      orderId,
+      getStoreContactNumber(),
+    ],
+    eventNote: 'Return declined notice sent via WhatsApp',
   }),
 
-  // Razorpay refund webhook previously enqueued `refund_processed` for email
-  // only. Now the dispatcher fans both channels per the registry — the
-  // WhatsApp side reuses the `order_refunded` template content (refund
-  // amount + orderId) so customers hear consistent wording from both
-  // admin-initiated and webhook-initiated refunds.
+  // Razorpay refund webhook enqueues `refund_processed`. Routes to the same
+  // Meta template as admin-initiated refunds (order_refunded_v1) so
+  // customers hear consistent wording from both paths.
   refund_processed: (vars, _order, orderId) => {
     if (!vars.refundAmount) return null
     return {
-      bodyVariables: [vars.customerName || 'Customer', vars.refundAmount, orderId],
+      bodyVariables: [
+        vars.customerName || 'Customer',
+        vars.refundAmount,
+        orderId,
+        getStoreContactNumber(),
+      ],
       eventNote: `Refund webhook notice sent via WhatsApp (₹${vars.refundAmount})`,
     }
   },
@@ -684,7 +758,7 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
   // Self-heal the invoice blob only when the template actually needs it
   // (DOCUMENT header). Other templates are text-only and skip the blob hop.
   let invoiceUrlForBuilder = vars.invoiceUrl || (order.invoiceUrl as string) || ''
-  if (templateKey === 'order_confirmation_new_artwork' && !invoiceUrlForBuilder) {
+  if (templateKey === 'order_confirmed' && !invoiceUrlForBuilder) {
     await loadOrRegeneratePdf(orderId, order, context)
     const refreshed = await getOrderById(orderId)
     invoiceUrlForBuilder = (refreshed?.invoiceUrl as string) || ''
@@ -705,11 +779,18 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
     return
   }
 
+  // Resolve the Meta template name from the registry so template versioning
+  // (order_crafting_v1 → v2) only touches registry.ts, not producers.
+  // Fallback to templateKey preserves back-compat for any caller not yet in
+  // the registry.
+  const metaTemplateName =
+    getTemplate(templateKey)?.whatsappTemplate || templateKey
+
   const now = new Date().toISOString()
   try {
     const result = await sendTemplateMessage({
       toPhone: customerPhone,
-      templateName: templateKey,
+      templateName: metaTemplateName,
       bodyVariables: spec.bodyVariables,
       documentHeader: spec.documentHeader,
       urlButton: spec.urlButton,

@@ -196,9 +196,10 @@ describe('getTransitionNotifications', () => {
     expect(n.customer).not.toContain('whatsapp')
   })
 
-  it('DELIVERED does not send a WhatsApp but schedules a review request', () => {
+  it('DELIVERED fires WhatsApp + email and schedules a review request', () => {
     const n = getTransitionNotifications('DELIVERED')
-    expect(n.customer).not.toContain('whatsapp')
+    expect(n.customer).toContain('whatsapp')
+    expect(n.customer).toContain('email')
     expect(n.scheduleReviewRequest).toBe(true)
   })
 
