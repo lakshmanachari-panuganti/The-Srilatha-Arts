@@ -968,6 +968,14 @@ $alwaysOverwrite = @{
     # even when Deploy-Infrastructure-v2.ps1 is run on a fresh env
     # before Migrate-SecretsToKeyVault.ps1.
     'APPLICATIONINSIGHTS_CONNECTION_STRING' = "@Microsoft.KeyVault(VaultName=$($envCfg.KeyVault);SecretName=ApplicationInsightsConnectionString)"
+    # Sec Phase 3 / M4: force AAD-authenticated telemetry ingest.
+    # Read by both the Azure Functions runtime auto-collector and by the
+    # `applicationinsights` SDK in backend/src/utils/telemetry.ts (which
+    # calls `.setAADTokenCredential(new DefaultAzureCredential())` when
+    # this setting matches `Authorization=AAD`). The FA MI already holds
+    # `Monitoring Metrics Publisher` on the AI resource (Phase 7), so
+    # the credential exchange works without extra RBAC.
+    'APPLICATIONINSIGHTS_AUTHENTICATION_STRING' = 'Authorization=AAD'
 }
 foreach ($k in $alwaysOverwrite.Keys) { $mergedSettings[$k] = $alwaysOverwrite[$k] }
 
@@ -1146,25 +1154,50 @@ if ($LASTEXITCODE -eq 0 -and $existingDiag) {
 }
 
 # ── 6.4  Application Insights disableLocalAuth (Sec Phase 3 / M4) ─
-# BLOCKED pending code change. The `applicationinsights` v2.9 SDK in
-# backend/src/utils/telemetry.ts calls `.setup(connectionString).start()`
-# with no AAD credential, and the Azure Functions runtime auto-collect
-# path also uses IK-based ingest. Setting DisableLocalAuth=true here on
-# 2026-07-03 broke all AI ingest (0 requests, dependencies, exceptions
-# reaching the workspace).
+# Force AAD-authenticated telemetry ingest. Blocks the deprecated
+# InstrumentationKey-based path.
 #
-# Two prerequisites before we can flip this on:
-#   1. Update telemetry.ts to pass `.setAADCredential(new DefaultAzureCredential())`
-#      or migrate to `@azure/monitor-opentelemetry`.
-#   2. Confirm the Functions Consumption-plan runtime honours the new
-#      credential path (as of 2026, this is only fully supported on
-#      the Flex Consumption / Premium tiers with specific host.json
-#      config; on the classic Consumption plan the runtime request
-#      collection may continue to use IK, forcing us to leave local
-#      auth enabled).
+# Prerequisites (all in place as of 2026-07-06):
+#   1. backend/src/utils/telemetry.ts passes DefaultAzureCredential to
+#      `appInsights.setup(conn).setAADTokenCredential(...)` when the app
+#      setting APPLICATIONINSIGHTS_AUTHENTICATION_STRING contains
+#      `Authorization=AAD` (set unconditionally above in Phase 6.1).
+#   2. The Function App system-assigned MI holds `Monitoring Metrics
+#      Publisher` on the AI resource (asserted in Phase 7).
 #
-# Once telemetry.ts is updated, re-enable this block and remove the guard.
-Write-Skip "App Insights disableLocalAuth : deferred pending code change (see comment)"
+# Only enable AFTER the code deploy that adds .setAADTokenCredential has
+# landed; a re-run of the infra script BEFORE code deploy still succeeds
+# but the FA will fail to ingest until the code catches up. Guard:
+# require APPLICATIONINSIGHTS_AUTHENTICATION_STRING to be present on the
+# live FA before flipping the AI flag.
+$authStringOnFa = az functionapp config appsettings list `
+    --name           $envCfg.FunctionApp `
+    --resource-group $envCfg.ResourceGroup `
+    --query          "[?name=='APPLICATIONINSIGHTS_AUTHENTICATION_STRING'].value | [0]" `
+    --output         tsv 2>$null
+if ([string]::IsNullOrEmpty($authStringOnFa)) {
+    Write-Skip "App Insights disableLocalAuth : skipped (waiting for FA app setting to propagate; re-run script after Phase 6.1 completes)"
+} else {
+    # Re-fetch to be certain (avoid stale $appInsights)
+    $aiNow = az resource show `
+        --resource-group $envCfg.ResourceGroup `
+        --name           $envCfg.AppInsights `
+        --resource-type  Microsoft.Insights/components `
+        --query          'properties.DisableLocalAuth' `
+        --output         tsv 2>$null
+    if ($aiNow -eq 'true') {
+        Write-Skip "App Insights disableLocalAuth : already true"
+    } else {
+        $subId = (Get-AzContext).Subscription.Id
+        $aiPath = "/subscriptions/$subId/resourceGroups/$($envCfg.ResourceGroup)/providers/microsoft.insights/components/$($envCfg.AppInsights)?api-version=2020-02-02"
+        $patchBody = @{ properties = @{ DisableLocalAuth = $true } } | ConvertTo-Json -Depth 5 -Compress
+        $patchRes = Invoke-AzRestMethod -Method PATCH -Path $aiPath -Payload $patchBody
+        if ($patchRes.StatusCode -notin @(200, 201)) {
+            throw "Failed to set DisableLocalAuth on App Insights (HTTP $($patchRes.StatusCode)): $($patchRes.Content)"
+        }
+        Write-Success "App Insights disableLocalAuth : set to true"
+    }
+}
 
 
 # ─────────────────────────────────────────────────────────────────
