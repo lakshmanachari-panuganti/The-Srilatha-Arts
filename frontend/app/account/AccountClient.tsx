@@ -162,9 +162,17 @@ export default function AccountClient() {
   return (
     <main className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16">
       <header className="mb-8">
-        <p className="eyebrow mb-3">Account</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="eyebrow">Account</p>
+          <button
+            onClick={async () => { await logout(); router.replace('/') }}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-soft hover:text-rose-600 transition-colors px-3 py-1.5 rounded-full border border-ink/10 hover:border-rose-300 hover:bg-rose-50"
+          >
+            <LogOut className="w-3.5 h-3.5" aria-hidden /> Sign out
+          </button>
+        </div>
         <h1 className="display text-4xl lg:text-5xl">
-          Hi, <em className="italic">{user.name.split(' ')[0]}</em>
+          Hi {user.name.split(' ')[0]}
         </h1>
         <p className="text-ink-soft mt-2 text-sm">{user.email}</p>
       </header>
@@ -182,14 +190,6 @@ export default function AccountClient() {
                 <ChevronRight className="w-3.5 h-3.5 ml-auto" aria-hidden />
               </Link>
             </li>
-            <li className="hidden lg:block">
-              <button
-                onClick={async () => { await logout(); router.replace('/') }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-700 rounded-lg hover:bg-rose-50"
-              >
-                <LogOut className="w-4 h-4" aria-hidden /> Sign out
-              </button>
-            </li>
           </ul>
         </nav>
 
@@ -199,15 +199,6 @@ export default function AccountClient() {
           {tab === 'addresses' && <AddressesTab />}
           {tab === 'profile' && <ProfileTab />}
 
-          {/* Mobile sign-out */}
-          <div className="lg:hidden pt-3">
-            <button
-              onClick={async () => { await logout(); router.replace('/') }}
-              className="w-full text-sm font-medium text-rose-700 inline-flex items-center justify-center gap-2 h-11 rounded-full border border-rose-300 bg-white/60 hover:bg-rose-50"
-            >
-              <LogOut className="w-4 h-4" aria-hidden /> Sign out
-            </button>
-          </div>
         </section>
       </div>
     </main>

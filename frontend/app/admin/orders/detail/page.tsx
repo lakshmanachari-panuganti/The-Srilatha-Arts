@@ -140,6 +140,8 @@ function OrderDetail() {
   const [actionErr, setActionErr] = useState('')
   const [note, setNote] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | ''>('')
+  const [courierPartner, setCourierPartner] = useState('')
+  const [trackingNumber, setTrackingNumber] = useState('')
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -185,6 +187,8 @@ function OrderDetail() {
       })
       setNote('')
       setSelectedStatus('')
+      setCourierPartner('')
+      setTrackingNumber('')
       await refresh()
     } catch (e) {
       setActionErr(e instanceof Error ? e.message : 'Could not update status')
@@ -308,7 +312,11 @@ function OrderDetail() {
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <select
                   value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as OrderStatus)}
+                  onChange={(e) => {
+                    setSelectedStatus(e.target.value as OrderStatus)
+                    setCourierPartner('')
+                    setTrackingNumber('')
+                  }}
                   className="flex-1 h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
                 >
                   <option value="">Select next status…</option>
@@ -317,14 +325,46 @@ function OrderDetail() {
                   ))}
                 </select>
                 <button
-                  onClick={() => updateStatus()}
-                  disabled={!selectedStatus || busy}
+                  onClick={() => updateStatus(
+                    selectedStatus === 'SHIPPED'
+                      ? { courier: courierPartner, tracking: trackingNumber }
+                      : {}
+                  )}
+                  disabled={
+                    !selectedStatus ||
+                    busy ||
+                    (selectedStatus === 'SHIPPED' && (!courierPartner.trim() || !trackingNumber.trim()))
+                  }
                   className="btn-dark text-sm h-11 px-6 shrink-0 disabled:opacity-60"
                 >
                   {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   Update
                 </button>
               </div>
+              {selectedStatus === 'SHIPPED' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-ink-soft mb-1.5">Courier Partner <span className="text-red-400">*</span></label>
+                    <input
+                      type="text"
+                      value={courierPartner}
+                      onChange={(e) => setCourierPartner(e.target.value)}
+                      placeholder="e.g. BlueDart, DTDC, Delhivery"
+                      className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-ink-soft mb-1.5">Tracking Number <span className="text-red-400">*</span></label>
+                    <input
+                      type="text"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      placeholder="e.g. 1234567890"
+                      className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
+                    />
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-1.5">Internal note (optional)</label>
                 <textarea
