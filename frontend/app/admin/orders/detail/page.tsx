@@ -142,6 +142,7 @@ function OrderDetail() {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | ''>('')
   const [courierPartner, setCourierPartner] = useState('')
   const [trackingNumber, setTrackingNumber] = useState('')
+  const [holdReason, setHoldReason] = useState('')
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -189,6 +190,7 @@ function OrderDetail() {
       setSelectedStatus('')
       setCourierPartner('')
       setTrackingNumber('')
+      setHoldReason('')
       await refresh()
     } catch (e) {
       setActionErr(e instanceof Error ? e.message : 'Could not update status')
@@ -316,6 +318,7 @@ function OrderDetail() {
                     setSelectedStatus(e.target.value as OrderStatus)
                     setCourierPartner('')
                     setTrackingNumber('')
+                    setHoldReason('')
                   }}
                   className="flex-1 h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
                 >
@@ -325,15 +328,24 @@ function OrderDetail() {
                   ))}
                 </select>
                 <button
-                  onClick={() => updateStatus(
-                    selectedStatus === 'SHIPPED'
-                      ? { courier: courierPartner, tracking: trackingNumber }
-                      : {}
-                  )}
+                  onClick={() => {
+                    if (selectedStatus === 'ON_HOLD' && !holdReason.trim()) {
+                      setActionErr('Reason for Hold is required when placing an order on hold.')
+                      return
+                    }
+                    updateStatus(
+                      selectedStatus === 'SHIPPED'
+                        ? { courier: courierPartner, tracking: trackingNumber }
+                        : selectedStatus === 'ON_HOLD'
+                        ? { holdReason: holdReason.trim() }
+                        : {}
+                    )
+                  }}
                   disabled={
                     !selectedStatus ||
                     busy ||
-                    (selectedStatus === 'SHIPPED' && (!courierPartner.trim() || !trackingNumber.trim()))
+                    (selectedStatus === 'SHIPPED' && (!courierPartner.trim() || !trackingNumber.trim())) ||
+                    (selectedStatus === 'ON_HOLD' && !holdReason.trim())
                   }
                   className="btn-dark text-sm h-11 px-6 shrink-0 disabled:opacity-60"
                 >
@@ -363,6 +375,28 @@ function OrderDetail() {
                       className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
                     />
                   </div>
+                </div>
+              )}
+              {selectedStatus === 'ON_HOLD' && (
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-ink-soft mb-1.5">
+                    Reason for Hold <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    value={holdReason}
+                    onChange={(e) => setHoldReason(e.target.value)}
+                    rows={3}
+                    placeholder="Explain why this order is being placed on hold. This reason will be sent to the customer via WhatsApp and email."
+                    className={`w-full px-4 py-3 bg-plum border rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender resize-none ${
+                      holdReason.trim() ? 'border-ink/10' : 'border-red-400/60'
+                    }`}
+                  />
+                  {!holdReason.trim() && (
+                    <p className="mt-1 text-xs text-red-400 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      Required — customers will receive this reason in their notification.
+                    </p>
+                  )}
                 </div>
               )}
               <div>
