@@ -235,7 +235,29 @@ Write-Host ""
 # -------------------------------------------------------
 $backed = 0
 $empty = 0
+$skippedSoftDeleted = 0
 $settingIdx = 0
+
+# Enumerate soft-deleted secret names once so we can skip names whose
+# recovery would collide with purge protection. With purge protection on,
+# a soft-deleted secret's name cannot be reused until either the operator
+# recovers it or the retention period (default 90d) expires. Overwriting
+# blindly throws 'Conflict' mid-backup and aborts the whole run.
+$softDeletedNames = @()
+try {
+    $softDeletedJson = az keyvault secret list-deleted `
+        --vault-name $KeyVaultName `
+        --query "[].name" `
+        --output json 2>$null
+    if ($LASTEXITCODE -eq 0 -and $softDeletedJson) {
+        $softDeletedNames = $softDeletedJson | ConvertFrom-Json
+    }
+} catch {
+    # Non-fatal: if we cannot enumerate soft-deleted secrets (e.g. RBAC
+    # doesn't grant list-deleted), fall back to the pre-existing behaviour
+    # where a Conflict aborts the loop.
+    Write-Host "  (could not enumerate soft-deleted secrets: $($_.Exception.Message))" -ForegroundColor DarkYellow
+}
 
 foreach ($setting in $settingsProperties) {
 
@@ -258,6 +280,16 @@ foreach ($setting in $settingsProperties) {
     # KV requires the name to start with a letter - prefix with 'x-' if it
     # starts with a digit (the Restore fallback strips this prefix back off)
     if ($secretName -match '^\d') { $secretName = "x-$secretName" }
+
+    # Skip names that are soft-deleted with purge protection on — the Set
+    # would throw Conflict and abort the whole backup. Operator recovers
+    # the secret via `az keyvault secret recover` if the historical value
+    # matters; otherwise the miss is intentional.
+    if ($softDeletedNames -contains $secretName) {
+        Write-Host "  [$settingIdx/$total] $originalKey  ->  $secretName  (skipped - soft-deleted, purge-protected)" -ForegroundColor DarkYellow
+        $skippedSoftDeleted++
+        continue
+    }
 
     if (-not [string]::IsNullOrEmpty($setting.Value)) {
         Write-Host "  [$settingIdx/$total] $originalKey  ->  $secretName"
@@ -288,6 +320,7 @@ Write-Host "==============================================="
 Write-Host "Backup complete!" -ForegroundColor Green
 Write-Host "  Stored  : $backed"
 Write-Host "  Empty   : $empty  (stored as sentinel __EMPTY__)"
+Write-Host "  Skipped : $skippedSoftDeleted  (soft-deleted names, purge-protected)"
 Write-Host "  Date key: $backupDate"
 if ($Reason) { Write-Host "  Reason  : $Reason" -ForegroundColor Cyan }
 Write-Host "==============================================="

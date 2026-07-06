@@ -990,6 +990,10 @@ $defaultIfAbsent = @{
     'SMTP_SENDER_NAME'           = 'Srilatha Art'
     'SMTP_SENDER_EMAIL'          = 'srilatha.art@gmail.com'
     'SMTP_REPLY_TO'              = 'studio@srilatha.art'
+    # Customer-facing Call/WhatsApp number injected as {{Store Contact
+    # Number}} in every *_v1 transactional template. Rotate without a
+    # code deploy by overriding this setting on the Function App.
+    'STORE_CONTACT_NUMBER'       = '+91 9014393938'
 }
 foreach ($k in $defaultIfAbsent.Keys) {
     if (-not $mergedSettings.ContainsKey($k) -or [string]::IsNullOrEmpty($mergedSettings[$k])) {

@@ -34,6 +34,7 @@ import { buildOrderCancelledEmail } from './orderCancelled'
 import { buildOrderRefundedEmail } from './orderRefunded'
 import { buildOrderOnHoldEmail } from './orderOnHold'
 import { buildReviewRequestEmail } from './reviewRequest'
+import { buildReturnDeclinedEmail } from './returnDeclined'
 
 /**
  * Unified input every transitional email builder receives. Each builder
@@ -51,6 +52,8 @@ export interface TransitionEmailInput {
   trackingUrl?: string
   cancelReason?: string
   holdReason?: string
+  /** Reason supplied by admin when declining a return request. */
+  returnDeclineReason?: string
   /** Pre-formatted Indian-rupee string, no symbol. e.g. "4,349" */
   refundAmount?: string
 }
@@ -97,7 +100,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   // path is used.
   order_confirmed: {
     templateKey: 'order_confirmed',
-    whatsappTemplate: 'order_confirmation_new_artwork',
+    whatsappTemplate: 'order_confirmation_v1',
     emailBuilder: null, // handled by dispatcher's special-case PDF path
     copyStudio: true,
     category: 'transactional',
@@ -106,7 +109,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
 
   order_crafting: {
     templateKey: 'order_crafting',
-    whatsappTemplate: 'order_crafting',
+    whatsappTemplate: 'order_crafting_v1',
     emailBuilder: buildOrderCraftingEmail,
     copyStudio: true,
     category: 'transactional',
@@ -114,7 +117,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
 
   order_shipped: {
     templateKey: 'order_shipped',
-    whatsappTemplate: 'order_shipped',
+    whatsappTemplate: 'order_shipped_v1',
     emailBuilder: buildOrderShippedEmail,
     copyStudio: true,
     category: 'transactional',
@@ -122,7 +125,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
 
   order_delivered: {
     templateKey: 'order_delivered',
-    whatsappTemplate: 'order_delivered',
+    whatsappTemplate: 'order_delivered_v1',
     emailBuilder: buildOrderDeliveredEmail,
     copyStudio: true,
     category: 'transactional',
@@ -130,7 +133,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
 
   order_cancelled: {
     templateKey: 'order_cancelled',
-    whatsappTemplate: 'order_cancelled',
+    whatsappTemplate: 'order_cancelled_v1',
     emailBuilder: buildOrderCancelledEmail,
     copyStudio: true,
     category: 'transactional',
@@ -138,7 +141,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
 
   order_refunded: {
     templateKey: 'order_refunded',
-    whatsappTemplate: 'order_refunded',
+    whatsappTemplate: 'order_refunded_v1',
     emailBuilder: buildOrderRefundedEmail,
     copyStudio: true,
     category: 'transactional',
@@ -146,7 +149,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
 
   order_on_hold: {
     templateKey: 'order_on_hold',
-    whatsappTemplate: 'order_on_hold',
+    whatsappTemplate: 'order_on_hold_v1',
     emailBuilder: buildOrderOnHoldEmail,
     copyStudio: true,
     category: 'transactional',
@@ -154,8 +157,22 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
 
   review_request: {
     templateKey: 'review_request',
-    whatsappTemplate: 'review_request',
+    whatsappTemplate: 'review_request_v1',
     emailBuilder: buildReviewRequestEmail,
+    copyStudio: true,
+    category: 'transactional',
+  },
+
+  return_declined: {
+    templateKey: 'return_declined',
+    whatsappTemplate: 'return_declined_v1',
+    emailBuilder: (input) =>
+      buildReturnDeclinedEmail({
+        orderId: input.orderId,
+        customerName: input.customerName,
+        reason: input.returnDeclineReason,
+        siteUrl: input.siteUrl,
+      }),
     copyStudio: true,
     category: 'transactional',
   },
@@ -165,7 +182,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   // from the admin-initiated path AND the webhook path.
   refund_processed: {
     templateKey: 'refund_processed',
-    whatsappTemplate: 'order_refunded',
+    whatsappTemplate: 'order_refunded_v1',
     emailBuilder: buildOrderRefundedEmail,
     copyStudio: true,
     category: 'transactional',
