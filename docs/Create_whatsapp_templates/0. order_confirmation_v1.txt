@@ -1,8 +1,7 @@
 1. order_confirmation_v1
 
 Trigger:
-Order Status:
-CONFIRMED -> CRAFTING
+Razorpay payment captured (order transitions PLACED → CONFIRMED)
 
 Variables:
 {{1}} Customer Name

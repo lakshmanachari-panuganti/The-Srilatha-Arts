@@ -565,7 +565,7 @@ interface WhatsAppTemplateSpec {
 // versioning (order_crafting → order_crafting_v1 → v2) out of producer
 // code.
 //
-// The matching template copy lives in docs/TODO/Create_whatsapp_templates/*.txt
+// The matching template copy lives in docs/Create_whatsapp_templates/*.txt
 // and in the Meta Manager UI; do not edit one without the other.
 const WA_TEMPLATE_BUILDERS: Record<
   string,
