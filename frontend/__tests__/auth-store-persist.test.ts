@@ -2,20 +2,25 @@
  * @jest-environment jsdom
  *
  * Regression tests for security audit C1 - JWTs must NEVER be written to
- * localStorage. Both zustand stores use `persist` with a `partialize` that
- * strips the token before serialisation, so an XSS-obtained handle to
- * localStorage can't lift the session.
+ * localStorage or sessionStorage. Both zustand stores use `persist` with a
+ * `partialize` that strips the token before serialisation, so an
+ * XSS-obtained handle to storage can't lift the session.
+ *
+ * Storage split:
+ *   - userAuth  → localStorage    (shoppers stay signed in across restarts)
+ *   - adminAuth → sessionStorage  (dies on tab/browser close for auto-signout)
  */
 
 // Force a fresh module graph per test so we can observe writes to
-// localStorage cleanly without persist middleware caching between cases.
+// storage cleanly without persist middleware caching between cases.
 describe('auth stores - persist partialize excludes token', () => {
   beforeEach(() => {
     jest.resetModules()
     window.localStorage.clear()
+    window.sessionStorage.clear()
   })
 
-  it('userAuth store persists user without token', async () => {
+  it('userAuth store persists user without token (localStorage)', async () => {
     const mod = await import('../stores/userAuth')
     const store = mod.useUserAuth
     // Simulate what a login would set on the in-memory state.
@@ -35,7 +40,7 @@ describe('auth stores - persist partialize excludes token', () => {
     expect(raw).not.toContain('SECRET_JWT')
   })
 
-  it('adminAuth store persists user without token', async () => {
+  it('adminAuth store persists user without token (sessionStorage)', async () => {
     const mod = await import('../stores/adminAuth')
     const store = mod.useAdminAuth
     store.setState({
@@ -43,7 +48,11 @@ describe('auth stores - persist partialize excludes token', () => {
       token: 'ADMIN_SECRET_JWT',
     } as never)
 
-    const raw = window.localStorage.getItem('tsa-admin-auth')
+    // Admin persistence lives in sessionStorage so it dies with the tab/
+    // browser (auto-signout). Verify nothing leaked to localStorage.
+    expect(window.localStorage.getItem('tsa-admin-auth')).toBeNull()
+
+    const raw = window.sessionStorage.getItem('tsa-admin-auth')
     expect(raw).not.toBeNull()
     const parsed = JSON.parse(raw!) as { state?: Record<string, unknown> }
     expect(parsed.state?.user).toBeDefined()
