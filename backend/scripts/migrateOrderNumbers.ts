@@ -136,17 +136,32 @@ async function migrate(): Promise<void> {
     return
   }
 
+  // Per-row failures are collected instead of aborting the whole run. A
+  // failure between createEntity and deleteEntity leaves both rows behind;
+  // logging the exact key lets an operator finish the cleanup by hand
+  // without re-running the migration from scratch.
+  const failures: { table: string; partitionKey: string; rowKey: string; error: string }[] = []
+  const recordFailure = (table: string, partitionKey: string, rowKey: string, err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err)
+    failures.push({ table, partitionKey, rowKey, error: message })
+    console.error(`[${table}] FAILED ${partitionKey}/${rowKey}: ${message}`)
+  }
+
   // ── 1. Migrate orders table ────────────────────────────────────
   const ordersClient = tc('orders')
   for (const o of orders) {
     if (!isLegacyId(o.rowKey)) continue
     const newId = idMap.get(o.rowKey)!
-    const copy: Row = { ...o, rowKey: newId }
-    delete copy.etag
-    delete copy.timestamp
-    await ordersClient.createEntity(copy)
-    await ordersClient.deleteEntity(o.partitionKey, o.rowKey)
-    console.log(`[orders] ${o.rowKey} -> ${newId}`)
+    try {
+      const copy: Row = { ...o, rowKey: newId }
+      delete copy.etag
+      delete copy.timestamp
+      await ordersClient.createEntity(copy)
+      await ordersClient.deleteEntity(o.partitionKey, o.rowKey)
+      console.log(`[orders] ${o.rowKey} -> ${newId}`)
+    } catch (err) {
+      recordFailure('orders', o.partitionKey, o.rowKey, err)
+    }
   }
 
   // ── 2. Migrate orderItems (PK = orderId) ───────────────────────
@@ -154,11 +169,15 @@ async function migrate(): Promise<void> {
   for (const [oldId, newId] of idMap) {
     const rows = await listAll('orderItems', `PartitionKey eq '${oldId}'`)
     for (const r of rows) {
-      const copy: Row = { ...r, partitionKey: newId }
-      delete copy.etag
-      delete copy.timestamp
-      await itemsClient.createEntity(copy)
-      await itemsClient.deleteEntity(oldId, r.rowKey)
+      try {
+        const copy: Row = { ...r, partitionKey: newId }
+        delete copy.etag
+        delete copy.timestamp
+        await itemsClient.createEntity(copy)
+        await itemsClient.deleteEntity(oldId, r.rowKey)
+      } catch (err) {
+        recordFailure('orderItems', oldId, r.rowKey, err)
+      }
     }
     if (rows.length) console.log(`[orderItems] ${oldId}: copied ${rows.length} rows`)
   }
@@ -168,11 +187,15 @@ async function migrate(): Promise<void> {
   for (const [oldId, newId] of idMap) {
     const rows = await listAll('orderEvents', `PartitionKey eq '${oldId}'`)
     for (const r of rows) {
-      const copy: Row = { ...r, partitionKey: newId }
-      delete copy.etag
-      delete copy.timestamp
-      await eventsClient.createEntity(copy)
-      await eventsClient.deleteEntity(oldId, r.rowKey)
+      try {
+        const copy: Row = { ...r, partitionKey: newId }
+        delete copy.etag
+        delete copy.timestamp
+        await eventsClient.createEntity(copy)
+        await eventsClient.deleteEntity(oldId, r.rowKey)
+      } catch (err) {
+        recordFailure('orderEvents', oldId, r.rowKey, err)
+      }
     }
     if (rows.length) console.log(`[orderEvents] ${oldId}: copied ${rows.length} rows`)
   }
@@ -190,32 +213,41 @@ async function migrate(): Promise<void> {
     const newRowKey = oldRowKey.endsWith(`_${oldOrderId}`)
       ? oldRowKey.slice(0, -oldOrderId.length) + newId
       : `${String(r.createdAt ?? '')}_${newId}`
-    const copy: Row = { ...r, rowKey: newRowKey, orderId: newId }
-    delete copy.etag
-    delete copy.timestamp
-    await statusClient.createEntity(copy)
-    await statusClient.deleteEntity(r.partitionKey, oldRowKey)
-    console.log(`[ordersByStatus] ${oldRowKey} -> ${newRowKey}`)
+    try {
+      const copy: Row = { ...r, rowKey: newRowKey, orderId: newId }
+      delete copy.etag
+      delete copy.timestamp
+      await statusClient.createEntity(copy)
+      await statusClient.deleteEntity(r.partitionKey, oldRowKey)
+      console.log(`[ordersByStatus] ${oldRowKey} -> ${newRowKey}`)
+    } catch (err) {
+      recordFailure('ordersByStatus', r.partitionKey, oldRowKey, err)
+    }
   }
 
   // ── 5. Migrate couponRedemptions (RowKey = orderId) ────────────
   const redemptionClient = tc('couponRedemptions')
   let redemptionsTouched = 0
+  let redemptions: Row[] = []
   try {
-    const redemptions = await listAll('couponRedemptions')
-    for (const r of redemptions) {
-      const newId = idMap.get(r.rowKey)
-      if (!newId) continue
+    redemptions = await listAll('couponRedemptions')
+  } catch (err) {
+    // Table may not exist in fresh environments - that's expected, skip.
+    console.warn('[couponRedemptions] skipped:', (err as Error).message)
+  }
+  for (const r of redemptions) {
+    const newId = idMap.get(r.rowKey)
+    if (!newId) continue
+    try {
       const copy: Row = { ...r, rowKey: newId }
       delete copy.etag
       delete copy.timestamp
       await redemptionClient.createEntity(copy)
       await redemptionClient.deleteEntity(r.partitionKey, r.rowKey)
       redemptionsTouched += 1
+    } catch (err) {
+      recordFailure('couponRedemptions', r.partitionKey, r.rowKey, err)
     }
-  } catch (err) {
-    // Table may not exist in fresh environments.
-    console.warn('[couponRedemptions] skipped:', (err as Error).message)
   }
   if (redemptionsTouched) console.log(`[couponRedemptions] copied ${redemptionsTouched} rows`)
 
@@ -226,6 +258,16 @@ async function migrate(): Promise<void> {
     console.error(`[migrate] WARNING: ${stragglers.length} legacy ids still present`)
   } else {
     console.log('[migrate] OK - no legacy ids remain.')
+  }
+
+  if (failures.length) {
+    console.error(`[migrate] ${failures.length} row(s) failed - see log for details:`)
+    for (const f of failures) {
+      console.error(`  - ${f.table} ${f.partitionKey}/${f.rowKey}: ${f.error}`)
+    }
+    // Non-zero exit so CI / operator scripts notice, even though the
+    // run completed as much as it could.
+    process.exitCode = 1
   }
 }
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Plus, Tag, Pencil, Trash2, ToggleLeft, ToggleRight, ExternalLink, Clock, X } from 'lucide-react'
 import { formatDate } from '@/lib/format'
 import { apiFetch, ApiError } from '@/lib/api'
+import { useToast } from '@/stores/toast'
 
 type AnnouncementTheme = 'gold' | 'festive-pink' | 'muted'
 
@@ -48,6 +49,7 @@ const THEME_LABELS: Record<AnnouncementTheme, { label: string; color: string }> 
 }
 
 export default function AdminAnnouncementsPage() {
+  const showToast = useToast((s) => s.show)
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState<string | null>(null)
@@ -133,7 +135,7 @@ export default function AdminAnnouncementsPage() {
         : err instanceof Error
           ? err.message
           : 'Unknown error'
-      alert(`Failed to save announcement.\n\n${detail}`)
+      showToast({ message: `Failed to save announcement — ${detail}`, kind: 'error', durationMs: 6000 })
     } finally {
       setSaving(false)
     }
@@ -164,7 +166,12 @@ export default function AdminAnnouncementsPage() {
       setAnnouncements((prev) => prev.filter((a) => a.id !== id))
     } catch (err) {
       console.error('Failed to delete announcement', err)
-      alert('Failed to delete announcement. Please try again.')
+      const detail = err instanceof ApiError
+        ? `${err.message}${err.status ? ` (HTTP ${err.status})` : ''}`
+        : err instanceof Error
+          ? err.message
+          : 'Please try again.'
+      showToast({ message: `Failed to delete announcement — ${detail}`, kind: 'error', durationMs: 6000 })
     } finally {
       setDeleting(null)
     }

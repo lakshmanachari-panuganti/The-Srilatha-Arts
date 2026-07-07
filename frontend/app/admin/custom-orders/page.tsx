@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Search, Eye, MessageSquare, Clock, CheckCircle2, Palette, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { formatDate } from '@/lib/format'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, ApiError } from '@/lib/api'
+import { useToast } from '@/stores/toast'
 
 type CustomOrderStatus = 'NEW' | 'QUOTED' | 'APPROVED' | 'IN_PROGRESS' | 'COMPLETED'
 
@@ -32,6 +33,7 @@ const STATUS_CONFIG: Record<CustomOrderStatus, { label: string; color: string; i
 const STATUSES: CustomOrderStatus[] = ['NEW', 'QUOTED', 'APPROVED', 'IN_PROGRESS', 'COMPLETED']
 
 export default function AdminCustomOrdersPage() {
+  const showToast = useToast((s) => s.show)
   const [orders, setOrders] = useState<CustomOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'ALL' | CustomOrderStatus>('ALL')
@@ -63,7 +65,12 @@ export default function AdminCustomOrdersPage() {
       setOrders((prev) => prev.map((o) => (o.id === order.id ? data.order : o)))
     } catch (err) {
       console.error('Failed to update custom order', err)
-      alert('Failed to update status. Please try again.')
+      const detail = err instanceof ApiError
+        ? `${err.message}${err.status ? ` (HTTP ${err.status})` : ''}`
+        : err instanceof Error
+          ? err.message
+          : 'Please try again.'
+      showToast({ message: `Failed to update status — ${detail}`, kind: 'error', durationMs: 6000 })
     } finally {
       setUpdating(null)
     }
