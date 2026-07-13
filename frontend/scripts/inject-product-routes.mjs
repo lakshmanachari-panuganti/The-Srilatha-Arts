@@ -8,10 +8,10 @@
 // for SEO / social previews) and serve the shell to every crawler.
 //
 // FIX: SWA evaluates the `routes` array top-down, first match wins. This
-// script runs in CI after `next build` and prepends one exact route pair
-// per exported product page (with and without the trailing slash) ABOVE the
-// wildcard. Known products therefore serve their real static HTML; anything
-// else still falls through to `/product/*` → shell, exactly as before.
+// script runs in CI after `next build` and prepends one exact route per
+// exported product page ABOVE the wildcard. Known products therefore serve
+// their real static HTML; anything else still falls through to `/product/*`
+// → shell, exactly as before.
 //
 // Run from the frontend/ directory: `node scripts/inject-product-routes.mjs`.
 // CI-only by design - it mutates staticwebapp.config.json in the checked-out
@@ -21,9 +21,8 @@
 //
 // SWA's config file has a documented size cap (~20KB). We fail LOUDLY at
 // 19KB rather than deploy a config SWA might reject or truncate. If the
-// catalog ever grows past that (~100+ products), switch to injecting only
-// the trailing-slash form (halves the size) or move product HTML behind a
-// different fallback strategy.
+// catalog ever grows past that, move product HTML behind a different
+// fallback strategy.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -58,10 +57,10 @@ const isInjectedProductRoute = (r) =>
   r && typeof r.route === 'string' && /^\/product\/[^*]+$/.test(r.route)
 const baseRoutes = cfg.routes.filter((r) => !isInjectedProductRoute(r))
 
-const injected = ids.flatMap((id) => [
-  { route: `/product/${id}`, rewrite: `/product/${id}/index.html` },
-  { route: `/product/${id}/`, rewrite: `/product/${id}/index.html` },
-])
+const injected = ids.map((id) => ({
+  route: `/product/${id}`,
+  rewrite: `/product/${id}/index.html`,
+}))
 
 cfg.routes = [...injected, ...baseRoutes]
 
