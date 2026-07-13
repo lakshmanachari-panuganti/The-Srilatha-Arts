@@ -76,8 +76,8 @@ function todayYYYYMMDD(): string {
 // NOTE: this exists()-then-upload pair is inherently TOCTOU - two
 // concurrent uploads can both see a name as free. The uploads themselves
 // close that window: uploadProductImage PUTs with `ifNoneMatch: '*'`
-// (create-only), so the loser gets a 409 instead of overwriting, and
-// retries with the next suffix.
+// (create-only), so the loser gets a storage conflict/precondition failure
+// instead of overwriting, and retries with the next suffix.
 async function findUniqueProductBlobName(
   container: ReturnType<BlobServiceClient['getContainerClient']>,
   category: string,
@@ -139,11 +139,11 @@ export async function uploadProductImage(
     .webp({ quality: 75 })
     .toBuffer()
 
-  // Create-only upload options: `ifNoneMatch: '*'` makes each PUT fail with
-  // 409 (BlobAlreadyExists) instead of silently overwriting. Closes the
-  // TOCTOU window in findUniqueProductBlobName - two concurrent uploads
-  // that picked the same name produce one winner and one clean retry with
-  // the next suffix, never an overwrite. A losing attempt may leave a
+  // Create-only upload options: `ifNoneMatch: '*'` makes each PUT fail
+  // (BlobAlreadyExists / ConditionNotMet) instead of silently overwriting.
+  // Closes the TOCTOU window in findUniqueProductBlobName - two concurrent
+  // uploads that picked the same name produce one winner and one clean retry
+  // with the next suffix, never an overwrite. A losing attempt may leave a
   // stray variant blob behind (its sibling PUTs can land before the
   // conflicting one fails); that's harmless - orphans are unreferenced and
   // the deletion path uses deleteIfExists throughout.
@@ -188,8 +188,13 @@ export async function uploadProductImage(
         containerClient.getBlockBlobClient(thumbFileName).upload(thumbImage, thumbImage.length, createOnly),
       ])
     } catch (err) {
-      const status = (err as { statusCode?: number })?.statusCode
-      if (status === 409 && attempt < NAME_CONFLICT_RETRIES) continue
+      const storageErr = err as { statusCode?: number; code?: string }
+      const nameConflict =
+        storageErr.statusCode === 409 ||
+        storageErr.statusCode === 412 ||
+        storageErr.code === 'BlobAlreadyExists' ||
+        storageErr.code === 'ConditionNotMet'
+      if (nameConflict && attempt < NAME_CONFLICT_RETRIES) continue
       throw err
     }
 

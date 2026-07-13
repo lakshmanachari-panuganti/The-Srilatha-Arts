@@ -83,12 +83,12 @@ describe('getProductById - direct lookup (well-formed id)', () => {
   })
 
   it('accepts uppercase hex suffixes (case-insensitive format check)', async () => {
-    table.set('lippan|lippan-ABCDEF01', {
+    table.set('lippan|lippan-A0000001', {
       partitionKey: 'lippan',
-      rowKey: 'lippan-ABCDEF01',
+      rowKey: 'lippan-A0000001',
       title: 'Mirror',
     })
-    const row = await getProductById('lippan-ABCDEF01')
+    const row = await getProductById('lippan-A0000001')
     expect(row?.title).toBe('Mirror')
     expect(warnSpy).not.toHaveBeenCalled()
   })
