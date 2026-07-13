@@ -72,7 +72,12 @@ export async function getProducts(
     else if (onSale === 'true') rows = await getOnSaleProducts()
     else rows = await getAllProducts()
 
-    return jsonResponse({ products: rows.map(toApi) }, 200, {}, origin)
+    return jsonResponse(
+      { products: rows.map(toApi) },
+      200,
+      { 'Cache-Control': 'public, max-age=60, s-maxage=60' },
+      origin,
+    )
   } catch (err) {
     context.error('getProducts failed', err)
     return errorResponse('Failed to load products', 500, origin)
@@ -92,7 +97,12 @@ export async function getProductByIdFn(
   try {
     const row = await getProductById(id)
     if (!row) return errorResponse('Product not found', 404, origin)
-    return jsonResponse({ product: toApi(row) }, 200, {}, origin)
+    return jsonResponse(
+      { product: toApi(row) },
+      200,
+      { 'Cache-Control': 'public, max-age=60, s-maxage=60' },
+      origin,
+    )
   } catch (err) {
     context.error('getProductById failed', err)
     return errorResponse('Failed to load product', 500, origin)

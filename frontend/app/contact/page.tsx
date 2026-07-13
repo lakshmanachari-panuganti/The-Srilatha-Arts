@@ -15,7 +15,7 @@ export default function ContactPage() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">Say hello</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-5">
-        We&apos;d love to <em className="italic">hear from you</em>
+        We&apos;d love to <em className="not-italic">hear from you</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-12">
         Question about a piece? Need help with an order? Want to discuss a custom idea? Reach out

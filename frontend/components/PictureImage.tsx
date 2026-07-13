@@ -23,9 +23,15 @@ function jpegToWebp(src: string): string | null {
 // For blob-hosted product photos we uploaded via uploadProductImage,
 // derive the three responsive variants (400/800/1200) that live alongside
 // the primary URL - e.g. `.../resin/foo.webp` gets siblings
-// `.../resin/foo-w400.webp` and `.../resin/foo-w800.webp`. If either
-// sibling is missing (legacy uploads), the browser's srcset gracefully
-// falls back to the primary URL because it's also included in the set.
+// `.../resin/foo-w400.webp` and `.../resin/foo-w800.webp`.
+//
+// Invariant: the -w400 / -w800 siblings MUST exist for every primary
+// URL served through this component. The browser does NOT fall back to
+// other srcset entries if a picked candidate 404s - it renders alt text.
+// uploadProductImage writes all three variants atomically (Promise.all);
+// legacy blobs uploaded before that pipeline are backfilled by
+// backend/scripts/backfillImageVariants.ts. If you add a new upload path
+// that lands anything in `products/`, it must produce the siblings too.
 function productSrcSet(src: string): string | null {
   if (typeof src !== 'string') return null
   if (!/\.blob\.core\.windows\.net\/products\//.test(src)) return null

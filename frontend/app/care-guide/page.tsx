@@ -12,7 +12,7 @@ export default function CareGuidePage() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">Care guide</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-6">
-        How to <em className="italic gold-text">care</em> for your art
+        How to <em className="not-italic gold-text">care</em> for your art
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-10">
         A little care goes a long way. Follow these simple tips and your piece will look great for years.

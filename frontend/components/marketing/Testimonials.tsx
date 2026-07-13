@@ -64,7 +64,7 @@ export default function Testimonials() {
         <div className="mb-8 sm:mb-12 lg:mb-16 max-w-2xl">
           <p className="eyebrow mb-4">Real customer reviews</p>
           <h2 className="display text-4xl lg:text-6xl">
-            What our <em className="italic">buyers</em> say.
+            What our <em className="not-italic">buyers</em> say.
           </h2>
         </div>
 

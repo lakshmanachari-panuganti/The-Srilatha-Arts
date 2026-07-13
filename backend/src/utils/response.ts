@@ -6,20 +6,24 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
   .filter(Boolean)
 
 export function corsHeaders(origin?: string | null): Record<string, string> {
-  // Echo the request origin if it's in our allowlist, otherwise fall back to first allowed.
-  // Allowing credentials requires a single explicit origin (not '*').
-  const matched =
-    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || ''
-
-  return {
-    'Access-Control-Allow-Origin': matched,
-    'Access-Control-Allow-Credentials': 'true',
+  // Echo the request origin only when it's in our allowlist. Allowing
+  // credentials requires a single explicit origin (not '*'). Unknown or
+  // absent origins get NO Allow-Origin/Allow-Credentials at all - the
+  // browser's same-origin policy then blocks the cross-origin read.
+  const headers: Record<string, string> = {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token',
     'Access-Control-Expose-Headers': 'Set-Cookie',
     'Access-Control-Max-Age': '600',
     Vary: 'Origin',
   }
+
+  if (origin && allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin
+    headers['Access-Control-Allow-Credentials'] = 'true'
+  }
+
+  return headers
 }
 
 export function jsonResponse(

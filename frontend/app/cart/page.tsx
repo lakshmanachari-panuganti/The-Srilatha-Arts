@@ -151,7 +151,7 @@ export default function CartPage() {
         <ShoppingBag className="w-12 h-12 text-lavender-pastel/60 mx-auto mb-4" aria-hidden />
         <p className="eyebrow justify-center mb-3">Your cart</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
-          Your cart is <em className="italic">empty</em>
+          Your cart is <em className="not-italic">empty</em>
         </h1>
         <p className="text-ink-soft mb-8">
           Nothing here yet. Have a look at our shop and add a piece you love.

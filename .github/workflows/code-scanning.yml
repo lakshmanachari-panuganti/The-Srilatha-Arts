@@ -1,0 +1,62 @@
+name: Code scanning
+
+# Secret scanning (gitleaks) + static analysis (CodeQL).
+#
+# Deliberately a separate workflow from security.yml: that file's triggers
+# are path-filtered to package manifests (its npm-audit jobs only care about
+# dependency changes), which would skip source-only PRs - exactly the
+# changes these two scanners must see. This workflow runs UNFILTERED on
+# every PR and push to the main branches, plus a daily cron as a backstop.
+
+on:
+  pull_request:
+    branches: [main, develop, ai-driven1]
+  push:
+    branches: [main, develop, ai-driven1]
+  schedule:
+    - cron: '45 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: code-scanning-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Secret scanning - gitleaks walks the full git history (hence
+  # fetch-depth: 0) for committed credentials: API keys, tokens,
+  # connection strings. A failure here means a secret must be rotated,
+  # not just removed - history retains it.
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Static analysis - CodeQL scans JS/TS sources for injection flaws,
+  # unsafe regex, path traversal, etc. Findings land in the repo's
+  # Security > Code scanning tab via the security-events permission.
+  codeql:
+    name: CodeQL (javascript-typescript)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3

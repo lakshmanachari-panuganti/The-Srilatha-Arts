@@ -45,7 +45,7 @@ export default function ReviewsClient() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">Customer reviews</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-5">
-        Real reviews from real <em className="italic gold-text">buyers</em>
+        Real reviews from real <em className="not-italic gold-text">buyers</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-10">
         Every review here is from a customer who actually received their piece.
@@ -130,7 +130,7 @@ export default function ReviewsClient() {
                 </div>
               )}
               {r.adminReply && (
-                <div className="border-l-2 border-[color:var(--accent-strong)] pl-4 my-4 text-sm text-ivory-soft italic">
+                <div className="border-l-2 border-[color:var(--accent-strong)] pl-4 my-4 text-sm text-ivory-soft">
                   <p className="mb-1 text-xs uppercase text-[color:var(--accent-strong)]"
                      style={{ letterSpacing: '0.18em' }}>
                     Studio reply

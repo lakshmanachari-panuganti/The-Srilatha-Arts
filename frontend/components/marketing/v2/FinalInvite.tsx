@@ -290,7 +290,7 @@ export default function FinalInvite() {
                     ? { opacity: 1 }
                     : { opacity: line2Opacity, y: line2Y }
                 }
-                className="mt-1 font-serif italic text-ink"
+                className="mt-1 font-serif text-ink"
               >
                 <span
                   className="gold-text"
@@ -330,7 +330,7 @@ export default function FinalInvite() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ amount: 0.6, once: true }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center font-serif italic text-ink/75"
+            className="text-center font-serif text-ink/75"
             style={{
               fontSize: 'clamp(18px, 1.6vw, 26px)',
               lineHeight: 1.5,

@@ -72,6 +72,12 @@ function todayYYYYMMDD(): string {
 // Tries the unsuffixed name first, then `-2`, `-3`, ... up to a safety
 // ceiling. The ceiling exists only to avoid an infinite loop on a
 // pathological storage account - in practice we'd never get past 2 or 3.
+//
+// NOTE: this exists()-then-upload pair is inherently TOCTOU - two
+// concurrent uploads can both see a name as free. The uploads themselves
+// close that window: uploadProductImage PUTs with `ifNoneMatch: '*'`
+// (create-only), so the loser gets a 409 instead of overwriting, and
+// retries with the next suffix.
 async function findUniqueProductBlobName(
   container: ReturnType<BlobServiceClient['getContainerClient']>,
   category: string,
@@ -104,27 +110,12 @@ export async function uploadProductImage(
   options: ProductImageOptions = {},
 ): Promise<UploadResult> {
   const containerClient = blobServiceClient.getContainerClient('products')
-
-  let fileName: string
-  let thumbFileName: string
   const slug = options.seoTitle ? buildSeoSlug(options.seoTitle) : ''
-  if (slug) {
-    // SEO path: `{category}/{slug}-{YYYYMMDD}.webp` with collision suffix.
-    const base = `${slug}-${todayYYYYMMDD()}`
-    const names = await findUniqueProductBlobName(containerClient, category, base)
-    fileName = names.fileName
-    thumbFileName = names.thumbFileName
-  } else {
-    // Legacy path: random uuid - kept for uploads without a known title
-    // (e.g. ad-hoc admin uploads where AI generation hasn't been run).
-    const id = uuidv4().slice(0, 8)
-    fileName = `${category}/${id}.webp`
-    thumbFileName = `${category}/thumb-${id}.webp`
-  }
 
   // Responsive variants - audit M1. Generate one image per breakpoint so
   // small screens don't ship the 1200px hero. Sharing the same input
   // buffer, three sharp calls run in parallel to keep upload latency low.
+  // Buffers are computed once, OUTSIDE the naming/upload retry loop below.
   const [imageXL, imageLG, imageMD] = await Promise.all([
     sharp(imageBuffer)
       .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
@@ -148,40 +139,74 @@ export async function uploadProductImage(
     .webp({ quality: 75 })
     .toBuffer()
 
-  const dotIdx = fileName.lastIndexOf('.')
-  const base = dotIdx >= 0 ? fileName.slice(0, dotIdx) : fileName
-  const ext = dotIdx >= 0 ? fileName.slice(dotIdx) : '.webp'
-  const nameXL = fileName                       // preserve historical URL
-  const nameLG = `${base}-w800${ext}`
-  const nameMD = `${base}-w400${ext}`
-
-  // All uploads in parallel - 4 blob PUTs, ~equal cost.
-  await Promise.all([
-    containerClient.getBlockBlobClient(nameXL).upload(imageXL, imageXL.length, {
-      blobHTTPHeaders: { blobContentType: 'image/webp', blobCacheControl: 'public, max-age=31536000' },
-    }),
-    containerClient.getBlockBlobClient(nameLG).upload(imageLG, imageLG.length, {
-      blobHTTPHeaders: { blobContentType: 'image/webp', blobCacheControl: 'public, max-age=31536000' },
-    }),
-    containerClient.getBlockBlobClient(nameMD).upload(imageMD, imageMD.length, {
-      blobHTTPHeaders: { blobContentType: 'image/webp', blobCacheControl: 'public, max-age=31536000' },
-    }),
-    containerClient.getBlockBlobClient(thumbFileName).upload(thumbImage, thumbImage.length, {
-      blobHTTPHeaders: { blobContentType: 'image/webp', blobCacheControl: 'public, max-age=31536000' },
-    }),
-  ])
-
-  return {
-    url: `${blobBaseUrl}/products/${fileName}`,
-    thumbnailUrl: `${blobBaseUrl}/products/${thumbFileName}`,
-    fileName,
-    size: imageXL.length,
-    variants: {
-      w400: `${blobBaseUrl}/products/${nameMD}`,
-      w800: `${blobBaseUrl}/products/${nameLG}`,
-      w1200: `${blobBaseUrl}/products/${nameXL}`,
-    },
+  // Create-only upload options: `ifNoneMatch: '*'` makes each PUT fail with
+  // 409 (BlobAlreadyExists) instead of silently overwriting. Closes the
+  // TOCTOU window in findUniqueProductBlobName - two concurrent uploads
+  // that picked the same name produce one winner and one clean retry with
+  // the next suffix, never an overwrite. A losing attempt may leave a
+  // stray variant blob behind (its sibling PUTs can land before the
+  // conflicting one fails); that's harmless - orphans are unreferenced and
+  // the deletion path uses deleteIfExists throughout.
+  const createOnly = {
+    blobHTTPHeaders: { blobContentType: 'image/webp' as const, blobCacheControl: 'public, max-age=31536000' },
+    conditions: { ifNoneMatch: '*' },
   }
+
+  const NAME_CONFLICT_RETRIES = 3
+  for (let attempt = 1; attempt <= NAME_CONFLICT_RETRIES; attempt++) {
+    let fileName: string
+    let thumbFileName: string
+    if (slug) {
+      // SEO path: `{category}/{slug}-{YYYYMMDD}.webp` with collision suffix.
+      // Re-run per attempt: after a 409 the winner's blobs now exist, so
+      // this naturally picks the next free suffix.
+      const base = `${slug}-${todayYYYYMMDD()}`
+      const names = await findUniqueProductBlobName(containerClient, category, base)
+      fileName = names.fileName
+      thumbFileName = names.thumbFileName
+    } else {
+      // Legacy path: random uuid - kept for uploads without a known title
+      // (e.g. ad-hoc admin uploads where AI generation hasn't been run).
+      const id = uuidv4().slice(0, 8)
+      fileName = `${category}/${id}.webp`
+      thumbFileName = `${category}/thumb-${id}.webp`
+    }
+
+    const dotIdx = fileName.lastIndexOf('.')
+    const base = dotIdx >= 0 ? fileName.slice(0, dotIdx) : fileName
+    const ext = dotIdx >= 0 ? fileName.slice(dotIdx) : '.webp'
+    const nameXL = fileName                       // preserve historical URL
+    const nameLG = `${base}-w800${ext}`
+    const nameMD = `${base}-w400${ext}`
+
+    try {
+      // All uploads in parallel - 4 blob PUTs, ~equal cost.
+      await Promise.all([
+        containerClient.getBlockBlobClient(nameXL).upload(imageXL, imageXL.length, createOnly),
+        containerClient.getBlockBlobClient(nameLG).upload(imageLG, imageLG.length, createOnly),
+        containerClient.getBlockBlobClient(nameMD).upload(imageMD, imageMD.length, createOnly),
+        containerClient.getBlockBlobClient(thumbFileName).upload(thumbImage, thumbImage.length, createOnly),
+      ])
+    } catch (err) {
+      const status = (err as { statusCode?: number })?.statusCode
+      if (status === 409 && attempt < NAME_CONFLICT_RETRIES) continue
+      throw err
+    }
+
+    return {
+      url: `${blobBaseUrl}/products/${fileName}`,
+      thumbnailUrl: `${blobBaseUrl}/products/${thumbFileName}`,
+      fileName,
+      size: imageXL.length,
+      variants: {
+        w400: `${blobBaseUrl}/products/${nameMD}`,
+        w800: `${blobBaseUrl}/products/${nameLG}`,
+        w1200: `${blobBaseUrl}/products/${nameXL}`,
+      },
+    }
+  }
+  // Unreachable - the loop either returns or throws - but keeps tsc happy.
+  throw new Error('uploadProductImage: exhausted name-conflict retries')
 }
 
 export async function uploadCategoryImage(imageBuffer: Buffer, categoryName: string): Promise<string> {
@@ -244,20 +269,35 @@ function productThumbCandidates(blobName: string): string[] {
   return [`${dir}${base}-thumb${ext}`, `${dir}thumb-${base}${ext}`]
 }
 
+// Responsive srcset siblings written by uploadProductImage alongside the
+// primary. Kept in lockstep with the deletion path so `-w400`/`-w800`
+// blobs don't outlive the product row that referenced them.
+function productVariantCandidates(blobName: string): string[] {
+  const dotIdx = blobName.lastIndexOf('.')
+  if (dotIdx < 0) return []
+  const base = blobName.slice(0, dotIdx)
+  const ext = blobName.slice(dotIdx)
+  return [`${base}-w400${ext}`, `${base}-w800${ext}`]
+}
+
 /**
- * Delete a product image (full + thumb companion) given its public URL.
- * No-ops on URLs that don't belong to our storage account. deleteIfExists
- * means a missing blob is not an error - useful since we always try both
- * thumb naming schemes and only one will hit.
+ * Delete a product image (full + thumb + responsive variants) given its
+ * public URL. No-ops on URLs that don't belong to our storage account.
+ * deleteIfExists means a missing blob is not an error - useful since we
+ * always try both thumb naming schemes and only one will hit.
  */
 export async function deleteProductImageByUrl(url: string): Promise<void> {
   const parsed = parseOwnedBlobUrl(url)
   if (!parsed) return
   const { container, blobName } = parsed
   const containerClient = blobServiceClient.getContainerClient(container)
+  const companions = [
+    ...productThumbCandidates(blobName),
+    ...productVariantCandidates(blobName),
+  ]
   await containerClient.getBlockBlobClient(blobName).deleteIfExists()
-  for (const thumb of productThumbCandidates(blobName)) {
-    await containerClient.getBlockBlobClient(thumb).deleteIfExists()
+  for (const companion of companions) {
+    await containerClient.getBlockBlobClient(companion).deleteIfExists()
   }
 }
 

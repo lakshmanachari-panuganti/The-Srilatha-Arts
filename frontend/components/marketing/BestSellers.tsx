@@ -33,7 +33,7 @@ export default function BestSellers() {
           <p className="eyebrow mb-4">Most loved</p>
           <h2 className="display text-4xl lg:text-6xl">
             Best{' '}
-            <em className="italic">sellers</em>
+            <em className="not-italic">sellers</em>
           </h2>
         </div>
         <Link

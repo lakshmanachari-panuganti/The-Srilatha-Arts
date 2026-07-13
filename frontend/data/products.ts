@@ -1,12 +1,11 @@
 import { apiFetch } from '@/lib/api'
 import type { Product } from '@/types'
 
-// Revalidate frequently or bypass cache to allow real-time updates
-const CACHE_OPTS = { next: { revalidate: 60 } } as const
+// Plain client fetch; HTTP caching comes from the API's Cache-Control + React Query staleTime.
 
 export async function getAllProducts(): Promise<Product[]> {
   try {
-    const res = await apiFetch<{ products: Product[] }>('/products', CACHE_OPTS)
+    const res = await apiFetch<{ products: Product[] }>('/products')
     return res.products || []
   } catch (e) {
     console.error('Failed to fetch all products:', e)
@@ -16,7 +15,7 @@ export async function getAllProducts(): Promise<Product[]> {
 
 export async function getProductById(id: string): Promise<Product | undefined> {
   try {
-    const res = await apiFetch<{ product: Product }>(`/products/${id}`, CACHE_OPTS)
+    const res = await apiFetch<{ product: Product }>(`/products/${id}`)
     return res.product
   } catch (e) {
     console.error(`Failed to fetch product ${id}:`, e)
@@ -26,7 +25,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
   try {
-    const res = await apiFetch<{ products: Product[] }>(`/products?category=${category}`, CACHE_OPTS)
+    const res = await apiFetch<{ products: Product[] }>(`/products?category=${category}`)
     return res.products || []
   } catch (e) {
     console.error(`Failed to fetch products for category ${category}:`, e)
@@ -36,7 +35,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 
 export async function getFeaturedProducts(): Promise<Product[]> {
   try {
-    const res = await apiFetch<{ products: Product[] }>('/products?featured=true', CACHE_OPTS)
+    const res = await apiFetch<{ products: Product[] }>('/products?featured=true')
     return res.products || []
   } catch (e) {
     console.error('Failed to fetch featured products:', e)
@@ -46,7 +45,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
 
 export async function getNewArrivals(): Promise<Product[]> {
   try {
-    const res = await apiFetch<{ products: Product[] }>('/products?newArrivals=true', CACHE_OPTS)
+    const res = await apiFetch<{ products: Product[] }>('/products?newArrivals=true')
     return res.products || []
   } catch (e) {
     console.error('Failed to fetch new arrivals:', e)
@@ -56,7 +55,7 @@ export async function getNewArrivals(): Promise<Product[]> {
 
 export async function getBestSellers(): Promise<Product[]> {
   try {
-    const res = await apiFetch<{ products: Product[] }>('/products?bestSellers=true', CACHE_OPTS)
+    const res = await apiFetch<{ products: Product[] }>('/products?bestSellers=true')
     return res.products || []
   } catch (e) {
     console.error('Failed to fetch best sellers:', e)

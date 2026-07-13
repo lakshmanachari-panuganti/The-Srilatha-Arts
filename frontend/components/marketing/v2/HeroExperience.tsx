@@ -263,7 +263,7 @@ export default function HeroExperience() {
                   stories
                   <br />
                   crafted into{' '}
-                  <span className="italic font-serif gold-text">art.</span>
+                  <span className="font-serif gold-text">art.</span>
                 </motion.h1>
 
                 <motion.p
@@ -366,7 +366,7 @@ export default function HeroExperience() {
                   className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11px] text-ink/70"
                   style={{ letterSpacing: '0.08em' }}
                 >
-                  <span className="font-serif italic text-base text-ink">
+                  <span className="font-serif text-base text-ink">
                     {slide.title}
                   </span>
                   <span aria-hidden className="text-ink/30">·</span>
@@ -497,7 +497,7 @@ export default function HeroExperience() {
         className="lg:hidden absolute inset-x-0 bottom-16 z-[4] px-5"
       >
         <div className="flex items-baseline gap-2 text-[10px] text-ink/70 flex-wrap">
-          <span className="font-serif italic text-sm text-ink">{slide.title}</span>
+          <span className="font-serif text-sm text-ink">{slide.title}</span>
           <span aria-hidden className="text-ink/30">·</span>
           <span className="uppercase" style={{ letterSpacing: '0.08em' }}>
             {slide.dimensions}

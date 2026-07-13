@@ -312,7 +312,7 @@ export default function Atelier() {
                     </p>
                     {chap.quote && (
                       <p
-                        className="mt-6 font-serif italic text-ink/80 max-w-md border-l-2 border-[color:var(--accent-strong)] pl-5"
+                        className="mt-6 font-serif text-ink/80 max-w-md border-l-2 border-[color:var(--accent-strong)] pl-5"
                         style={{
                           fontSize: 'clamp(17px, 1.4vw, 22px)',
                           lineHeight: 1.5,

@@ -9,6 +9,7 @@
  * (login, register, google, csrf-fetch, admin-setup).
  */
 
+import { timingSafeEqual } from 'node:crypto'
 import { HttpRequest, HttpResponseInit } from '@azure/functions'
 import { extractCsrfFromCookie, verifyCsrfToken } from '../services/csrf'
 import { errorResponse } from '../utils/response'
@@ -36,6 +37,16 @@ const BOOTSTRAP_PATHS = [
 
 const EXEMPT_METHODS = ['GET', 'HEAD', 'OPTIONS']
 
+// Constant-time equality so the header/cookie comparison can't leak token
+// bytes through response timing. timingSafeEqual throws on length mismatch,
+// so unequal lengths short-circuit to "no match" without throwing.
+function tokensMatch(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
+}
+
 /**
  * Returns null if valid, or an error message string.
  */
@@ -53,7 +64,7 @@ export function csrfCheck(request: HttpRequest): string | null {
     return 'Missing CSRF token'
   }
 
-  if (headerToken !== cookieToken) {
+  if (!tokensMatch(headerToken, cookieToken)) {
     return 'CSRF token mismatch'
   }
 

@@ -279,7 +279,7 @@ function ChapterFrame({
             </p>
             {chapter.pullQuote && (
               <p
-                className="mt-6 font-serif italic text-ink/80 max-w-md border-l-2 pl-5"
+                className="mt-6 font-serif text-ink/80 max-w-md border-l-2 pl-5"
                 style={{
                   borderColor: 'var(--accent-strong)',
                   fontSize: 'clamp(17px, 1.4vw, 22px)',
@@ -419,7 +419,7 @@ function BlueprintCard({ chapter }: { chapter: Chapter }) {
       {/* Background numeral watermark */}
       <span
         aria-hidden
-        className="absolute font-serif italic text-ink/[0.04] select-none pointer-events-none leading-none"
+        className="absolute font-serif text-ink/[0.04] select-none pointer-events-none leading-none"
         style={{
           fontSize: 'clamp(240px, 38vw, 520px)',
           letterSpacing: '-0.04em',
@@ -437,7 +437,7 @@ function BlueprintCard({ chapter }: { chapter: Chapter }) {
           Plate - Chapter {chapter.no}
         </p>
         <h3
-          className="font-serif italic text-ink leading-[1.04] text-balance"
+          className="font-serif text-ink leading-[1.04] text-balance"
           style={{ fontSize: 'clamp(44px, 5vw, 84px)' }}
         >
           {chapter.title}
@@ -525,7 +525,7 @@ function ActiveChapterTag({
   })
   return (
     <motion.p
-      className="mt-1.5 text-[11px] font-serif italic text-ink/70 leading-tight"
+      className="mt-1.5 text-[11px] font-serif text-ink/70 leading-tight"
     >
       {reduceMotion
         ? `+${String(CHAPTERS[4]!.hours).padStart(2, '0')}h · ${CHAPTERS[4]!.title}`
@@ -616,7 +616,7 @@ function EndPanel() {
             }}
           >
             This was{' '}
-            <span className="italic gold-text">{PIECE.title}</span>.
+            <span className="gold-text">{PIECE.title}</span>.
           </h2>
 
           <p
@@ -646,7 +646,7 @@ function EndPanel() {
           </div>
 
           <p
-            className="mt-6 font-serif italic text-ink/80 max-w-lg"
+            className="mt-6 font-serif text-ink/80 max-w-lg"
             style={{
               fontSize: 'clamp(16px, 1.2vw, 20px)',
               lineHeight: 1.55,

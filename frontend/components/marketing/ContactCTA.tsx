@@ -56,7 +56,7 @@ export default function ContactCTA() {
           >
             Let&apos;s Craft Something{' '}
             <br className="hidden sm:block" />
-            <em className="italic gold-text">Beautiful Together</em>
+            <em className="not-italic gold-text">Beautiful Together</em>
           </motion.h2>
 
           <motion.p

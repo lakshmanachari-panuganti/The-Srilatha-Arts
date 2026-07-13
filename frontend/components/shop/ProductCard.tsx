@@ -76,7 +76,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
               const badges: React.ReactNode[] = []
               if (!product.inStock) {
                 badges.push(
-                  <span key="oos" className="sticker !bg-white/10 !text-ivory-mute shadow-none">
+                  <span key="oos" className="sticker !bg-slate-950/80 !text-ivory backdrop-blur border border-white/15 shadow-none">
                     Sold Out
                   </span>,
                 )

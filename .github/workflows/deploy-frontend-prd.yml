@@ -7,6 +7,9 @@ on:
       - 'frontend/**'
       - '.github/workflows/deploy-frontend-prd.yml'
   workflow_dispatch:
+  # weekly rebuild refreshes the build-time product pre-render + sitemap without a code push; scheduled triggers only fire from the default branch
+  schedule:
+    - cron: '30 2 * * 1'
 
 concurrency:
   group: deploy-frontend-prd
@@ -65,6 +68,17 @@ jobs:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NODE_ENV: production
         run: npm run build
+
+      # Wire the pre-rendered product pages into SWA routing. Explicit exact
+      # routes (one per exported /product/<id>/ page) are injected ABOVE the
+      # `/product/*` → shell wildcard; SWA evaluates routes top-down and
+      # first match wins, so known products serve their real static HTML
+      # (per-product OG tags) while unknown/new products still fall through
+      # to the shell exactly as before. Runs against the checked-out working
+      # copy only - the committed config is untouched.
+      - name: Inject pre-rendered product routes
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: node scripts/inject-product-routes.mjs
 
       - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1

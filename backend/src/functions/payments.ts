@@ -28,7 +28,7 @@ import {
   deleteOrderByStatus,
   getProductById,
   getOrderById,
-  getAllOrders,
+  findOrderByRazorpayRefs,
   mergeOrder,
   reserveStock,
   restoreStock,
@@ -36,6 +36,7 @@ import {
   StockConcurrencyError,
   upsertOrderByRazorpayId,
   getInternalOrderIdByRazorpay,
+  mergeRazorpayIndexPaymentId,
   Row,
 } from '../services/tableStorage'
 import { requireUser } from '../middleware/userGuard'
@@ -391,6 +392,16 @@ async function verifyPayment(
       return errorResponse('Payment signature verification failed', 400, origin)
     }
 
+    // Best-effort: stamp the payment id onto the ordersByRazorpayId index
+    // row so refund-only webhook events (which sometimes carry just a
+    // payment id) can resolve via the index later. Non-fatal - the scan
+    // fallback still covers a miss.
+    try {
+      await mergeRazorpayIndexPaymentId(body.razorpayOrderId, body.razorpayPaymentId)
+    } catch (indexErr) {
+      context.warn('verifyPayment: ordersByRazorpayId payment-id merge failed (non-fatal)', indexErr)
+    }
+
     // Find our internal order. Preference order:
     //   1. Client-supplied internalOrderId (single-row lookup, hot path).
     //   2. Secondary index ordersByRazorpayId (audit H3 - point lookup).
@@ -410,8 +421,7 @@ async function verifyPayment(
       // Scan fallback - kept for legacy orders. Emit telemetry so a spike
       // in scan-usage signals the index write is misfiring.
       context.warn(`verifyPayment: falling back to scan for razorpayOrderId=${body.razorpayOrderId}`)
-      const candidates = await getAllOrders()
-      order = candidates.find((o) => o.razorpayOrderId === body.razorpayOrderId) || null
+      order = await findOrderByRazorpayRefs(body.razorpayOrderId)
     }
     if (!order) {
       // The webhook will reconcile if this transient miss is real; tell the
@@ -695,11 +705,7 @@ async function razorpayWebhook(
   }
   if (!order) {
     context.warn(`razorpayWebhook: index miss, scanning (event=${event}, orderId=${razorpayOrderId}, paymentId=${razorpayPaymentId})`)
-    const orders = await getAllOrders()
-    order = orders.find((o) =>
-      (razorpayOrderId && o.razorpayOrderId === razorpayOrderId) ||
-      (razorpayPaymentId && o.razorpayPaymentId === razorpayPaymentId),
-    ) || null
+    order = await findOrderByRazorpayRefs(razorpayOrderId, razorpayPaymentId)
   }
   if (!order) {
     context.warn(`razorpayWebhook: no internal order matched (event=${event}, orderId=${razorpayOrderId}, paymentId=${razorpayPaymentId})`)

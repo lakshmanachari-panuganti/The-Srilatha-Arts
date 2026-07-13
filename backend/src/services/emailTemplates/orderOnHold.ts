@@ -18,7 +18,7 @@ export function buildOrderOnHoldEmail(input: OrderOnHoldInput): BuiltEmail {
     heading: `${firstName(input.customerName)}, a quick note about your order.`,
     introHtml: `
       <p>We&rsquo;ve put your order on hold while we sort something out:</p>
-      <p style="margin-top:8px;font-style:italic;">${escapeForP(input.holdReason || 'Please check with us for details.')}</p>
+      <p style="margin-top:8px;">${escapeForP(input.holdReason || 'Please check with us for details.')}</p>
     `,
     detailRows: [{ label: 'Order', value: input.orderId }],
     footerHtml: `

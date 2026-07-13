@@ -15,6 +15,11 @@ on:
     paths:
       - 'frontend/**'
   workflow_dispatch:
+  # NOTE: no `schedule` trigger here on purpose. Scheduled workflows only run
+  # from the default branch (main), so a cron on this DEV workflow would
+  # deploy MAIN's frontend to the DEV Static Web App and drift DEV away from
+  # the dev branch. The weekly pre-render/sitemap refresh lives on the PRD
+  # workflow only; refresh DEV via workflow_dispatch or a dev-branch push.
 
 concurrency:
   group: deploy-frontend-dev-${{ github.ref }}
@@ -71,6 +76,36 @@ jobs:
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
           NODE_ENV: production
         run: npm run build
+
+      # Wire the pre-rendered product pages into SWA routing. Explicit exact
+      # routes (one per exported /product/<id>/ page) are injected ABOVE the
+      # `/product/*` → shell wildcard; SWA evaluates routes top-down and
+      # first match wins, so known products serve their real static HTML
+      # (per-product OG tags) while unknown/new products still fall through
+      # to the shell exactly as before. Runs against the checked-out working
+      # copy only - the committed config is untouched.
+      - name: Inject pre-rendered product routes
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: node scripts/inject-product-routes.mjs
+
+      # Dev-only deindexing: robots.txt already disallows crawling on dev, but
+      # an "X-Robots-Tag: noindex" response header is belt-and-braces — it also
+      # deindexes anything already crawled and covers non-HTML assets. The SWA
+      # action reads the routing config from `config_file_location` (frontend/),
+      # so we inject the header into frontend/staticwebapp.config.json in the
+      # checked-out working copy just before upload. The committed file and the
+      # PRD workflow's headers are untouched.
+      - name: Inject X-Robots-Tag noindex header (dev only)
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const p = 'staticwebapp.config.json';
+            const cfg = JSON.parse(fs.readFileSync(p, 'utf8'));
+            cfg.globalHeaders = { ...(cfg.globalHeaders || {}), 'X-Robots-Tag': 'noindex' };
+            fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n');
+            console.log('globalHeaders now:', Object.keys(cfg.globalHeaders).join(', '));
+          "
 
       - name: Deploy to Azure Static Web Apps
         id: swa

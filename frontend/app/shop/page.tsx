@@ -16,7 +16,7 @@ export default function ShopPage() {
       <header className="px-5 lg:px-8 pt-10 pb-2 max-w-6xl mx-auto">
         <p className="eyebrow mb-3">Shop</p>
         <h1 className="display text-4xl md:text-5xl lg:text-7xl">
-          All <em className="italic">pieces</em>
+          All <em className="not-italic">pieces</em>
         </h1>
       </header>
       <div className="max-w-6xl mx-auto py-8 lg:py-14">

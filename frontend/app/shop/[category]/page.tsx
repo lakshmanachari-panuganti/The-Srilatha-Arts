@@ -57,7 +57,7 @@ export default async function ShopCategoryPage({ params }: Props) {
         </p>
         <h1 className="display text-4xl md:text-5xl lg:text-7xl mb-5">
           {cat.title.split(' ').slice(0, -1).join(' ')}{' '}
-          <em className="italic">{cat.title.split(' ').slice(-1)}</em>
+          <em className="not-italic">{cat.title.split(' ').slice(-1)}</em>
         </h1>
         <p className="text-ink-soft max-w-xl leading-relaxed text-base lg:text-lg mb-3">
           {cat.origin}

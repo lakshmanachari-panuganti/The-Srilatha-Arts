@@ -21,7 +21,7 @@ export default function AccountError({
     <main className="min-h-[60vh] flex flex-col items-center justify-center px-6 text-center">
       <p className="eyebrow mb-3">Something went wrong</p>
       <h1 className="display text-3xl md:text-4xl mb-4">
-        We couldn&apos;t load this <em className="italic">page</em>
+        We couldn&apos;t load this <em className="not-italic">page</em>
       </h1>
       <p className="text-ink-soft max-w-md mb-8">
         The rest of your account is unaffected. Please try again, or head back to your account

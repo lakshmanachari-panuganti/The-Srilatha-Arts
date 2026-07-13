@@ -36,7 +36,7 @@ export interface Chapter {
   eyebrow: string
   title: string
   body: string
-  /** Optional pull-quote - italic Cormorant with gold border-left.
+  /** Optional pull-quote - Cormorant serif with gold border-left.
    *  Use sparingly, at most two chapters across the five-chapter arc. */
   pullQuote?: string
   /** Hours added BY this chapter (the increment shown in the ledger pulse). */

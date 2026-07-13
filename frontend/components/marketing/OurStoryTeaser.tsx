@@ -93,7 +93,7 @@ export default function OurStoryTeaser() {
           <h2 className="display text-4xl lg:text-6xl mb-5">
             Made in
             <br />
-            <em className="italic">Hyderabad</em>.
+            <em className="not-italic">Hyderabad</em>.
           </h2>
           <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-4">
             Every piece is made by hand in our small Hyderabad studio. We take our time so each

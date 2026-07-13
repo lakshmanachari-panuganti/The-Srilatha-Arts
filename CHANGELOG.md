@@ -8,6 +8,76 @@ is dated.
 
 ---
 
+## 2026-07-09 · Fix broken shop images - backfill responsive variants, tighten delete path
+
+Every product image on the DEV shop was rendering as alt text because the
+frontend's `<picture>` srcset was pointing at `-w400` / `-w800` sibling
+blobs that never existed. Root cause + full remediation below.
+
+### Fixed
+
+**Missing responsive variants on all 29 DEV product images.**
+The 2026-07-04 tier-3 audit shipped two coupled changes:
+`services/blobStorage.ts#uploadProductImage` started writing three width
+variants per upload (400 / 800 / 1200 px), and
+`frontend/components/PictureImage.tsx` started emitting a `<source
+srcset>` referencing all three for any `.blob.core.windows.net/products/*.webp`
+src. The commit message asserted the browser would "gracefully fall back
+to the primary URL for missing widths" - that's not how the srcset spec
+works: once a candidate is picked and 404s, no other entry is tried; the
+`<img>` renders alt text. All 29 product blobs on DEV storage predate
+the variant-writing pipeline, so every card on `/shop/` broke.
+
+- New idempotent script `backend/scripts/backfillImageVariants.ts`. Lists
+  primary `.webp` blobs under `products/` (skipping thumbs and existing
+  `-wN` variants), downloads each, and writes any missing `-w400` /
+  `-w800` sibling with the same sharp settings used at upload time.
+  Dry-run by default; `--apply` to commit. Uses `ChainedTokenCredential`
+  with `AzureCliCredential` first so a stale `AZURE_CLIENT_SECRET` in
+  the shell can't hijack auth.
+- Ran the script against `stthesrilathaartsdev`: 29 primaries scanned,
+  58 sibling blobs written, zero errors. Idempotent re-run shows
+  "0 needed variants".
+- Ran the script against `stthesrilathaartsprd`: 3 primaries scanned,
+  6 sibling blobs written, zero errors. Idempotent re-run confirms
+  "Already complete: 3". Sample HEAD checks on `-w400` / `-w800` URLs
+  return `200 OK`.
+
+**Orphan variant blobs on product delete.**
+`services/blobStorage.ts#deleteProductImageByUrl` only deleted the
+primary + thumb candidates; the `-w400` / `-w800` siblings written by
+`uploadProductImage` were surviving product deletes as dead bytes. New
+`productVariantCandidates()` helper is now consumed alongside
+`productThumbCandidates()` so the whole image family goes together.
+
+**Misleading comment in `PictureImage.tsx`.**
+Replaced the "browser gracefully falls back" claim (the misinformation
+that made the tier-3 change look safe) with an explicit invariant:
+sibling variants MUST exist for every primary URL served through the
+component, and any new upload path that writes to `products/` must
+produce the siblings too. Points at the backfill script for legacy
+data.
+
+### Verified
+
+- Backend and frontend `tsc --noEmit` both clean after the changes.
+- Direct HEAD checks against 5 sample sibling URLs on DEV storage now
+  return `200 OK` (were `404`). Re-running the backfill script reports
+  "Already complete: 29".
+- Grep audit of `backend/src/**`: no `.catch()` wraps
+  `uploadProductImage`; every failure propagates through the
+  `Promise.all` in `uploadProductImage`, up to `functions/upload.ts`'s
+  outer try/catch, and returns 500 to the admin. Product row is never
+  saved with a URL until the upload payload comes back green, so a
+  partial-upload failure cannot land a broken row.
+- Audit: only `functions/upload.ts#adminUpload` calls
+  `uploadProductImage`, and only the admin `new` / `edit` product pages
+  submit through `/admin/upload`. Customer uploads write to
+  `user-uploads` (different container, not matched by the frontend's
+  `/products/` srcset regex).
+
+---
+
 ## 2026-07-05 · Security hardening rollout - Phases 1–4 (DEV + PRD) and app-layer audit tiers 1–3
 
 Executed the 2026-07-03 security assessment findings across both environments,

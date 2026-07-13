@@ -14,7 +14,7 @@ export default function OurStoryPage() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">About us</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-6">
-        A studio in <em className="italic gold-text">Hyderabad</em>
+        A studio in <em className="not-italic gold-text">Hyderabad</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-6 font-normal">
         Hi! We are a small team that makes handmade elegant art. Everything you see on this site

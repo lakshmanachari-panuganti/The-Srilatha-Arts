@@ -15,7 +15,7 @@ export default function WishlistPage() {
         <Heart className="w-12 h-12 text-lavender-pastel/60 mx-auto mb-4" aria-hidden />
         <p className="eyebrow justify-center mb-3">Wishlist</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
-          Your <em className="italic">wishlist</em> is empty
+          Your <em className="not-italic">wishlist</em> is empty
         </h1>
         <p className="text-ink-soft mb-8">Tap the heart icon on any piece to save it for later.</p>
         <Link href="/shop" className="btn-dark">

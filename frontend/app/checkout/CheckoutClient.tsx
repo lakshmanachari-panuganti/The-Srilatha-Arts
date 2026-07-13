@@ -732,7 +732,7 @@ export default function CheckoutClient() {
         </div>
         <h1 className="display text-4xl mb-3">
           {success.firstName ? <>Thank you, {success.firstName}!</> : <>Thank you!</>}{' '}
-          Your order is <em className="italic">confirmed</em>.
+          Your order is <em className="not-italic">confirmed</em>.
         </h1>
         <p className="text-ink-soft mb-2">Order number</p>
         <p className="font-serif text-2xl mb-8">{success.orderId}</p>
@@ -769,7 +769,7 @@ export default function CheckoutClient() {
         <header>
           <p className="eyebrow mb-3">Checkout</p>
           <h1 className="display text-4xl lg:text-5xl">
-            Place your <em className="italic">order</em>
+            Place your <em className="not-italic">order</em>
           </h1>
           <p className="text-ink-soft mt-2 text-sm">Pay safely with UPI, debit/credit card or netbanking. Powered by Razorpay.</p>
         </header>

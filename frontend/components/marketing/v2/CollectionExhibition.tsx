@@ -440,7 +440,7 @@ export default function CollectionExhibition() {
                       className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11px] text-ink/70"
                       style={{ letterSpacing: '0.08em' }}
                     >
-                      <span className="font-serif italic text-base text-ink">
+                      <span className="font-serif text-base text-ink">
                         {col.feature.title}
                       </span>
                       <span aria-hidden className="text-ink/30">·</span>
@@ -502,7 +502,7 @@ export default function CollectionExhibition() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="flex items-baseline gap-2 text-[10px] text-ink/70 flex-wrap"
         >
-          <span className="font-serif italic text-sm text-ink">
+          <span className="font-serif text-sm text-ink">
             {COLLECTIONS[active]!.feature.title}
           </span>
           <span aria-hidden className="text-ink/30">·</span>

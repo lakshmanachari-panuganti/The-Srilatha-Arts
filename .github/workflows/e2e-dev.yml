@@ -1,0 +1,57 @@
+name: E2E · dev environment
+
+# Nightly Playwright end-to-end run against the live DEV environment.
+# Observational only — this workflow deploys nothing; a red run signals a
+# regression on dev, not a blocked pipeline.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # nightly at 22:00 UTC; scheduled triggers only fire from the default branch
+    - cron: '0 22 * * *'
+
+concurrency:
+  group: e2e-dev
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright e2e vs DEV
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # Observational run — deploys nothing. continue-on-error is explicitly
+      # false so a red run stays visible in the Actions tab.
+      # NOTE: playwright.config.ts and e2e/helpers.ts currently hardcode the
+      # DEV base URLs as constants (BASE_URL / API_URL) and read no env vars.
+      # E2E_BASE_URL / E2E_API_URL are set to those same URLs here so the
+      # config can later switch to process.env without touching this workflow.
+      - name: Run Playwright tests
+        continue-on-error: false
+        env:
+          E2E_BASE_URL: https://delightful-mushroom-062e18100.7.azurestaticapps.net
+          E2E_API_URL: https://func-thesrilathaarts-dev.azurewebsites.net/api
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

@@ -15,7 +15,7 @@ import {
 } from '../services/auth'
 import { getUser, getUserByGoogleId, createUser, updateUser } from '../services/tableStorage'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
-import { checkAndIncrement, resetRateLimit } from '../services/rateLimit'
+import { checkAndIncrement, peekRateLimit, resetRateLimit } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { getClientIp } from '../utils/clientIp'
@@ -157,9 +157,12 @@ export async function userLogin(
     // Per-account lockout (audit H1). Second counter keyed on the account,
     // not the IP, so a distributed / rotating-IP credential-stuffing attack
     // can't get more than 10 guesses per hour per email regardless of how
-    // many source IPs it uses. Successful login clears the counter.
+    // many source IPs it uses. Peek-only here - the counter is incremented
+    // ONLY on a failed attempt below, so junk requests without the right
+    // password can't lock a victim's account (DoS). Successful login
+    // clears the counter.
     const accountLockKey = `login_fail:${email}`
-    const accountCheck = await checkAndIncrement(accountLockKey, 10, 60 * 60_000)
+    const accountCheck = await peekRateLimit(accountLockKey, 10, 60 * 60_000)
     if (!accountCheck.allowed) {
       return errorResponse(
         'This account has been temporarily locked after too many failed attempts. Please try again later.',
@@ -171,10 +174,12 @@ export async function userLogin(
     const user = await getUser(email)
 
     if (!user || user.isActive === false) {
+      await checkAndIncrement(accountLockKey, 10, 60 * 60_000)
       return errorResponse('Invalid email or password', 401, origin)
     }
 
     if (!user.passwordHash) {
+      await checkAndIncrement(accountLockKey, 10, 60 * 60_000)
       return errorResponse(
         'This account uses Google sign-in. Please use the Google button.',
         400,
@@ -184,6 +189,7 @@ export async function userLogin(
 
     const valid = await comparePassword(body.password, user.passwordHash)
     if (!valid) {
+      await checkAndIncrement(accountLockKey, 10, 60 * 60_000)
       return errorResponse('Invalid email or password', 401, origin)
     }
 

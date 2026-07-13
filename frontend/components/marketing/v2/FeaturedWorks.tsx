@@ -98,7 +98,7 @@ interface FeaturedWork {
   medium: string
   dimensions: string
   year: string
-  /** 1–2 sentence origin of the work, rendered as an italic pull. */
+  /** 1–2 sentence origin of the work, rendered as a serif pull. */
   inspiration: string
   /** Single-line list of materials, rendered in caption-museum style. */
   materials: string
@@ -862,7 +862,7 @@ function EditorialColumn({
       {/* Title */}
       <h3
         id={`plate-${work.slug}-title`}
-        className="font-serif italic font-medium text-ink leading-[1.04] tracking-[-0.005em]"
+        className="font-serif font-medium text-ink leading-[1.04] tracking-[-0.005em]"
         style={{ fontSize: 'clamp(30px, 3.6vw, 60px)' }}
       >
         {work.title}
@@ -907,7 +907,7 @@ function EditorialColumn({
 
       {/* Inspiration */}
       <p
-        className="mt-6 font-serif italic text-ink/85"
+        className="mt-6 font-serif text-ink/85"
         style={{
           fontSize: 'clamp(15px, 1.1vw, 19px)',
           lineHeight: 1.55,

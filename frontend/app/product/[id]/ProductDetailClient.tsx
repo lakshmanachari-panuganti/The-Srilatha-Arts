@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import Image from 'next/image'
+import PictureImage from '@/components/PictureImage'
 import { Star, Hand, Sparkles, Truck, ChevronLeft, MessageSquare, ShieldCheck, Gift, Pencil } from 'lucide-react'
 import { FreeShippingThreshold } from '@/components/ShippingFigures'
 import { CATEGORY_BY_SLUG } from '@/data/categories'
@@ -15,15 +15,50 @@ import ProductCard from '@/components/shop/ProductCard'
 import PhotoUploader from '@/components/PhotoUploader'
 import type { Product } from '@/types'
 
+// Skeleton mirrors the loaded layout block-for-block (same wrappers, margins
+// and heights for the gallery, back link, title, CTA buttons, rating, price,
+// pills and trust strip) so nothing shifts when the product query resolves -
+// this page recorded CLS 0.152 with the old four-bar skeleton.
 function ProductSkeleton() {
   return (
     <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-14 lg:px-8 lg:pt-10 animate-pulse">
-      <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep aspect-[4/5]" />
-      <div className="px-5 lg:px-0 pt-8 space-y-4">
-        <div className="h-4 w-24 bg-ink/10 rounded" />
-        <div className="h-10 w-3/4 bg-ink/10 rounded" />
-        <div className="h-8 w-1/3 bg-ink/10 rounded" />
-        <div className="h-32 bg-ink/10 rounded" />
+      {/* Gallery placeholder - same aspect-[4/5] box as the loaded gallery */}
+      <div className="lg:sticky lg:top-28 lg:self-start">
+        <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep">
+          <div className="aspect-[4/5]" />
+        </div>
+      </div>
+      {/* Details placeholder */}
+      <div className="px-5 lg:px-0 pt-8 lg:pt-0 pb-32 lg:pb-12">
+        {/* Back link */}
+        <div className="h-4 w-24 bg-ink/10 rounded mb-4" />
+        {/* Title (display text-3xl md:text-4xl lg:text-5xl) */}
+        <div className="h-9 md:h-10 lg:h-14 w-3/4 bg-ink/10 rounded mb-4" />
+        {/* Mobile gift/customize buttons (h-8) */}
+        <div className="sm:hidden flex gap-2 mb-4">
+          <div className="h-8 w-24 bg-ink/10 rounded-full" />
+          <div className="h-8 w-28 bg-ink/10 rounded-full" />
+        </div>
+        {/* Rating row */}
+        <div className="h-4 w-32 bg-ink/10 rounded mb-5" />
+        {/* Price (font-serif text-3xl) */}
+        <div className="h-9 w-1/3 bg-ink/10 rounded mb-1" />
+        {/* "Inclusive of all" */}
+        <div className="h-4 w-28 bg-ink/10 rounded mb-7" />
+        {/* Pills (h-9) */}
+        <div className="flex flex-wrap gap-2 mb-7">
+          <div className="h-9 w-24 bg-ink/10 rounded-full" />
+          <div className="h-9 w-28 bg-ink/10 rounded-full" />
+          <div className="h-9 w-32 bg-ink/10 rounded-full" />
+        </div>
+        {/* Trust strip card (2x2 grid of h-9 rows + padding) */}
+        <div className="h-32 bg-ink/10 rounded-2xl mb-7" />
+        {/* Description */}
+        <div className="space-y-2">
+          <div className="h-4 bg-ink/10 rounded" />
+          <div className="h-4 bg-ink/10 rounded" />
+          <div className="h-4 w-2/3 bg-ink/10 rounded" />
+        </div>
       </div>
     </div>
   )
@@ -228,7 +263,10 @@ export default function ProductDetailClient() {
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5]">
               {(p.images.length > 0 ? p.images : ['/Logos/logo.png']).map((src, i) => (
                 <div key={i} className="relative shrink-0 w-full snap-center">
-                  <Image
+                  {/* PictureImage (not raw next/image) so blob-hosted photos
+                      serve their -w400/-w800 responsive variants on mobile
+                      instead of always shipping the 1200px original. */}
+                  <PictureImage
                     src={src}
                     alt={`${p.title} - image ${i + 1}`}
                     fill
@@ -390,7 +428,7 @@ export default function ProductDetailClient() {
       {related.length > 0 && (
         <section className="max-w-6xl mx-auto pt-14 pb-20">
           <h2 className="font-serif text-3xl lg:text-4xl text-ink px-5 lg:px-8 mb-8">
-            You may also <em className="italic">like</em>
+            You may also <em className="not-italic">like</em>
           </h2>
           <div className="lg:hidden flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-2 scrollbar-hide">
             {related.map((r) => (
@@ -411,7 +449,7 @@ export default function ProductDetailClient() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-serif text-3xl lg:text-4xl text-ink">
-              Customer <em className="italic">reviews</em>
+              Customer <em className="not-italic">reviews</em>
             </h2>
             {reviews.length > 0 && (
               <div className="flex items-center gap-2 mt-2">

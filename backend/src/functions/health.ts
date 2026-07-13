@@ -30,6 +30,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import { TableServiceClient } from '@azure/data-tables'
 import { DefaultAzureCredential } from '@azure/identity'
 import { jsonResponse, corsPreflightResponse } from '../utils/response'
+import { requireAdmin } from '../middleware/adminGuard'
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME
 
@@ -132,13 +133,27 @@ async function health(
 
   const httpStatus = status === 'fail' ? 503 : 200
 
+  // The endpoint stays anonymous - availability tests depend on `status` +
+  // the HTTP code. But per-probe detail (dependency names, env-var hints,
+  // error messages) and the build version are ops-sensitive, so they are
+  // only included for an authenticated admin session. Anonymous callers
+  // get the slim body.
+  const admin = requireAdmin(request)
+
+  const body = admin
+    ? {
+        status,
+        version: process.env.WEBSITE_BUILD_ID || process.env.GITHUB_SHA || 'dev',
+        timestamp: new Date().toISOString(),
+        probes,
+      }
+    : {
+        status,
+        timestamp: new Date().toISOString(),
+      }
+
   return jsonResponse(
-    {
-      status,
-      version: process.env.WEBSITE_BUILD_ID || process.env.GITHUB_SHA || 'dev',
-      timestamp: new Date().toISOString(),
-      probes,
-    },
+    body,
     httpStatus,
     { 'Cache-Control': 'no-store' },
     origin,

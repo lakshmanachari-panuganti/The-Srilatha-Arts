@@ -15,7 +15,7 @@ export default function BestSellersPage() {
       <header className="px-5 lg:px-8 pt-10 pb-2 max-w-6xl mx-auto">
         <p className="eyebrow mb-3">Most loved</p>
         <h1 className="display text-4xl md:text-5xl lg:text-7xl">
-          Best <em className="italic">sellers</em>
+          Best <em className="not-italic">sellers</em>
         </h1>
       </header>
       <div className="max-w-6xl mx-auto py-8 lg:py-14">

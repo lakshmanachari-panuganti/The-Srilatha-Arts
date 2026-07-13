@@ -128,7 +128,7 @@ export default function SearchOverlay() {
                   </div>
                 </div>
               ) : results.length === 0 ? (
-                <p className="py-10 text-center font-serif text-lg italic pb-6" style={{ color: 'var(--text-muted)' }}>
+                <p className="py-10 text-center font-serif text-lg pb-6" style={{ color: 'var(--text-muted)' }}>
                   Nothing found. Try a different word.
                 </p>
               ) : (

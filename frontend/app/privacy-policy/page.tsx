@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">Legal</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-6">
-        <em className="italic gold-text">Privacy</em> policy
+        <em className="not-italic gold-text">Privacy</em> policy
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-10">
         Your privacy is important to us. Here&apos;s what we collect, why we collect it, and what we do with it - in plain English.

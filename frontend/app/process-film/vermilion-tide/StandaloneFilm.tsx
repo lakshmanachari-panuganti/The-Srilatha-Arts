@@ -71,7 +71,7 @@ export default function StandaloneFilm() {
               style={{ fontSize: 'clamp(40px, 6vw, 88px)' }}
             >
               The Making of{' '}
-              <span className="italic gold-text">{PIECE.title}</span>
+              <span className="gold-text">{PIECE.title}</span>
             </h1>
             <p
               className="mt-6 text-ink/75 max-w-xl"
@@ -160,7 +160,7 @@ export default function StandaloneFilm() {
                 }}
               >
                 This was{' '}
-                <span className="italic gold-text">{PIECE.title}</span>.
+                <span className="gold-text">{PIECE.title}</span>.
               </h2>
 
               <p
@@ -190,7 +190,7 @@ export default function StandaloneFilm() {
               </div>
 
               <p
-                className="mt-6 font-serif italic text-ink/80 max-w-lg"
+                className="mt-6 font-serif text-ink/80 max-w-lg"
                 style={{
                   fontSize: 'clamp(16px, 1.2vw, 20px)',
                   lineHeight: 1.55,
@@ -267,7 +267,7 @@ function StandaloneChapter({
             </p>
             {chapter.pullQuote && (
               <p
-                className="mt-6 font-serif italic text-ink/80 max-w-md border-l-2 pl-5"
+                className="mt-6 font-serif text-ink/80 max-w-md border-l-2 pl-5"
                 style={{
                   borderColor: 'var(--accent-strong)',
                   fontSize: 'clamp(16px, 1.3vw, 20px)',
@@ -352,7 +352,7 @@ function StandaloneMedia({
         />
         <span
           aria-hidden
-          className="absolute font-serif italic text-ink/[0.05] select-none pointer-events-none leading-none"
+          className="absolute font-serif text-ink/[0.05] select-none pointer-events-none leading-none"
           style={{
             fontSize: 'clamp(220px, 36vw, 460px)',
             letterSpacing: '-0.04em',
@@ -368,7 +368,7 @@ function StandaloneMedia({
             Plate - Chapter {chapter.no}
           </p>
           <h3
-            className="font-serif italic text-ink leading-[1.04] text-balance"
+            className="font-serif text-ink leading-[1.04] text-balance"
             style={{ fontSize: 'clamp(40px, 4.5vw, 72px)' }}
           >
             {chapter.title}

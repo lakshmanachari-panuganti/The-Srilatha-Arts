@@ -16,7 +16,7 @@ export default function SalePage() {
       <header className="px-5 lg:px-8 pt-10 pb-2 max-w-6xl mx-auto">
         <p className="eyebrow mb-3">Special offers</p>
         <h1 className="display text-4xl md:text-5xl lg:text-7xl">
-          On <em className="italic">sale</em>
+          On <em className="not-italic">sale</em>
         </h1>
         <SaleCoupons />
       </header>

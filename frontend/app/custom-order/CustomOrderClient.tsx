@@ -176,7 +176,7 @@ export default function CustomOrderClient() {
         </div>
         <p className="eyebrow justify-center mb-3">Request received</p>
         <h1 className="display text-4xl md:text-5xl mb-4">
-          Thanks - we&apos;ll be in <em className="italic gold-text">touch</em>
+          Thanks - we&apos;ll be in <em className="not-italic gold-text">touch</em>
         </h1>
         <p className="text-ivory-soft text-base mb-8">{success}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -211,7 +211,7 @@ export default function CustomOrderClient() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">Custom orders</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-5">
-        Made <em className="italic gold-text">just for you</em>
+        Made <em className="not-italic gold-text">just for you</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-10">
         Have a specific size, colour or theme in mind? Tell us about it and we&apos;ll make a one-of-a-kind
@@ -399,8 +399,8 @@ function ProfileGate({
       <p className="eyebrow justify-center mb-3">Custom orders</p>
       <h1 className="display text-3xl md:text-4xl mb-4">
         {isSignedOut
-          ? <>Sign in to <em className="italic gold-text">continue</em></>
-          : <>One more <em className="italic gold-text">step</em></>}
+          ? <>Sign in to <em className="not-italic gold-text">continue</em></>
+          : <>One more <em className="not-italic gold-text">step</em></>}
       </h1>
       <p className="text-ivory-soft text-base mb-8 leading-relaxed">
         {isSignedOut

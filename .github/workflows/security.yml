@@ -62,3 +62,8 @@ jobs:
         if: always()
         working-directory: ${{ matrix.workdir }}
         run: npm audit --omit=dev || true
+
+# gitleaks + CodeQL live in code-scanning.yml, NOT here. This workflow's
+# triggers are path-filtered to package manifests (npm audit only cares
+# about dependency changes), which would silently skip source-only PRs -
+# exactly the changes CodeQL and secret scanning must see.

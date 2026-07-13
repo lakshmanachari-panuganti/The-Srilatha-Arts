@@ -84,11 +84,48 @@ export async function getProduct(category: string, productId: string): Promise<R
   }
 }
 
+// /api/products/{id} is anonymous, and the legacy-id fallback below is a
+// cross-partition scan - so gate everything behind a strict charset/length
+// check (garbage ids return null immediately, no scan, no raw-input
+// logging) and remember scan misses for a minute so a bot hammering the
+// same bad ids can't turn each request into a table scan.
+const PRODUCT_ID_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i
+const PRODUCT_MISS_TTL_MS = 60_000
+const PRODUCT_MISS_CACHE_MAX = 500
+const _productMissCache = new Map<string, number>() // id → expiry epoch ms
+
+function _noteProductMiss(productId: string): void {
+  if (_productMissCache.size >= PRODUCT_MISS_CACHE_MAX) {
+    // Evict the oldest entry (Map preserves insertion order).
+    const oldest = _productMissCache.keys().next().value
+    if (oldest !== undefined) _productMissCache.delete(oldest)
+  }
+  _productMissCache.set(productId, Date.now() + PRODUCT_MISS_TTL_MS)
+}
+
 export async function getProductById(productId: string): Promise<Row | null> {
+  if (!PRODUCT_ID_RE.test(productId)) return null
+
+  const missUntil = _productMissCache.get(productId)
+  if (missUntil !== undefined) {
+    if (missUntil > Date.now()) return null
+    _productMissCache.delete(productId)
+  }
+
   // ID format: <category>-<8hexchars> e.g. "dot-mandala-f55f2641"
   // Strip last 9 chars (hyphen + 8 hex chars) to get the partition key (category).
-  const category = productId.slice(0, -9)
-  return getProduct(category, productId)
+  if (/^.+-[0-9a-f]{8}$/i.test(productId)) {
+    const direct = await getProduct(productId.slice(0, -9), productId)
+    if (direct) return direct
+  }
+  // Fallback: the id doesn't match the expected format (legacy/imported
+  // rows) or the derived partition missed - scan across partitions with a
+  // server-side RowKey filter. Bounded by catalog size; only reachable for
+  // ids that already passed the charset gate above.
+  console.warn(`getProductById: falling back to cross-partition scan for "${productId}"`)
+  const rows = await listAll('products', odata`RowKey eq ${productId}`)
+  if (!rows[0]) _noteProductMiss(productId)
+  return rows[0] ?? null
 }
 
 // ─── INVENTORY RESERVATION ────────────────────────────────────
@@ -308,6 +345,9 @@ export async function addNewsletterSubscriber(
 export async function upsertProduct(product: Row): Promise<void> {
   const client = getTableClient('products')
   await client.upsertEntity(product as any, 'Replace')
+  // A just-created product must be resolvable immediately - drop any
+  // negative-cache entry left by a lookup that raced the creation.
+  if (typeof product.rowKey === 'string') _productMissCache.delete(product.rowKey)
 }
 
 export async function deleteProduct(category: string, productId: string): Promise<void> {
@@ -374,23 +414,23 @@ export async function getAllOrders(): Promise<Row[]> {
   )
 }
 
-// Legacy compat - used during migration; remove after Stage 2.
-export async function updateOrderStatus(
-  currentStatus: string,
-  orderId: string,
-  newStatus: string
-): Promise<void> {
-  const client = getTableClient('orders')
-  const order = (await client.getEntity(currentStatus, orderId)) as Row
-  // Upsert into new partition first - if this fails the original is untouched
-  await client.upsertEntity({
-    ...order,
-    partitionKey: newStatus,
-    updatedAt: new Date().toISOString(),
-  } as any, 'Replace')
-  // Delete from old partition - if this fails the order exists in both partitions
-  // (harmless duplicate, not data loss)
-  await client.deleteEntity(currentStatus, orderId)
+/**
+ * Bounded fallback lookup for the verify/webhook paths when the
+ * ordersByRazorpayId index misses. Pushes the match server-side as an
+ * OData filter instead of loading the whole orders table into memory.
+ * Returns the first match or null.
+ */
+export async function findOrderByRazorpayRefs(
+  razorpayOrderId?: string,
+  razorpayPaymentId?: string,
+): Promise<Row | null> {
+  const filters: string[] = []
+  if (razorpayOrderId) filters.push(odata`razorpayOrderId eq ${razorpayOrderId}`)
+  if (razorpayPaymentId) filters.push(odata`razorpayPaymentId eq ${razorpayPaymentId}`)
+  if (filters.length === 0) return null
+  const filter = filters.length === 1 ? filters[0] : `(${filters[0]}) or (${filters[1]})`
+  const rows = await listAll('orders', filter)
+  return rows[0] ?? null
 }
 
 // ─── ORDER ITEMS ─────────────────────────────────────────────
@@ -452,6 +492,28 @@ export async function upsertOrderByRazorpayId(
       createdAt: new Date().toISOString(),
     } as any,
     'Replace',
+  )
+}
+
+/**
+ * Best-effort: stamp the razorpayPaymentId onto an existing
+ * ordersByRazorpayId index row (additive optional field) so refund-only
+ * webhook events - which sometimes carry just a payment id - can resolve
+ * via the index later. Throws 404 if the index row was never written
+ * (legacy orders); callers treat any failure here as non-fatal.
+ */
+export async function mergeRazorpayIndexPaymentId(
+  razorpayOrderId: string,
+  razorpayPaymentId: string,
+): Promise<void> {
+  const client = await ensureTable('ordersByRazorpayId')
+  await client.updateEntity(
+    {
+      partitionKey: 'razorpay',
+      rowKey: razorpayOrderId,
+      razorpayPaymentId,
+    } as any,
+    'Merge',
   )
 }
 
@@ -984,6 +1046,32 @@ export async function getRateLimitCounter(key: string): Promise<Row | null> {
 export async function upsertRateLimitCounter(counter: Row): Promise<void> {
   const client = getTableClient('rateLimits')
   await client.upsertEntity(counter as any, 'Replace')
+}
+
+/**
+ * Create-only insert for a rate-limit counter. Throws with statusCode 409
+ * (EntityAlreadyExists) if the row exists, so N concurrent "first requests
+ * in a fresh window" produce exactly one winner - the losers retry into
+ * the ETag-guarded increment path instead of all writing count=1.
+ */
+export async function createRateLimitCounter(counter: Row): Promise<void> {
+  const client = getTableClient('rateLimits')
+  await client.createEntity(counter as any)
+}
+
+/**
+ * Optimistic-concurrency write-back for a rate-limit counter. Passes the
+ * caller-supplied etag (captured on read) so a concurrent increment
+ * surfaces as a 412 the caller can retry - same pattern as reserveStock.
+ * Additive helper: upsertRateLimitCounter keeps its unconditional
+ * last-write-wins semantics for the fresh-window path.
+ */
+export async function updateRateLimitCounterWithEtag(
+  counter: Row,
+  etag?: string,
+): Promise<void> {
+  const client = getTableClient('rateLimits')
+  await client.updateEntity(counter as any, 'Replace', etag ? { etag } : undefined)
 }
 
 export async function deleteRateLimitCounter(key: string): Promise<void> {

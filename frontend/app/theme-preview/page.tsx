@@ -269,7 +269,7 @@ export default function ThemePreviewPage() {
             <span className="text-xs font-semibold tracking-widest uppercase text-purple-400">Theme Laboratory</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold font-serif tracking-tight text-white mb-3 leading-none">
-            Srilatha Art <span className="font-serif italic font-normal text-purple-400">Lavender Swatches</span>
+            Srilatha Art <span className="font-serif font-normal text-purple-400">Lavender Swatches</span>
           </h1>
           <p className="text-slate-400 text-sm md:text-base max-w-2xl">
             A premium playground designed to visualize and test colorful lavender palettes. Switch themes interactively 
@@ -480,7 +480,7 @@ export default function ThemePreviewPage() {
                       S
                     </span>
                     <span className="font-serif font-bold tracking-wider text-base" style={{ color: 'var(--text)' }}>
-                      SRILATHA <span className="font-serif italic font-normal" style={{ color: 'var(--accent-strong)' }}>ART</span>
+                      SRILATHA <span className="font-serif font-normal" style={{ color: 'var(--accent-strong)' }}>ART</span>
                     </span>
                   </div>
 
@@ -532,7 +532,7 @@ export default function ThemePreviewPage() {
 
                     {/* Headline */}
                     <h3 className="text-3xl md:text-5xl font-serif font-medium leading-tight mb-5" style={{ color: 'var(--text)' }}>
-                      Handcrafted with <span className="font-serif italic font-normal text-gradient" style={{ color: 'var(--accent-strong)' }}>Heart & Soul</span>
+                      Handcrafted with <span className="font-serif font-normal text-gradient" style={{ color: 'var(--accent-strong)' }}>Heart & Soul</span>
                     </h3>
 
                     {/* Subtext */}
@@ -774,7 +774,7 @@ export default function ThemePreviewPage() {
                 </button>
               </div>
               <h4 className="text-sm font-bold text-white mb-2">High-Fidelity Photo Assets</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4 italic">
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
                 "&ldquo;{activeTheme.prompts.midjourney}&rdquo;"
               </p>
             </div>
@@ -799,7 +799,7 @@ export default function ThemePreviewPage() {
                 </button>
               </div>
               <h4 className="text-sm font-bold text-white mb-2">Clean Product flatlays</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4 italic">
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
                 "&ldquo;{activeTheme.prompts.dalle}&rdquo;"
               </p>
             </div>
@@ -824,7 +824,7 @@ export default function ThemePreviewPage() {
                 </button>
               </div>
               <h4 className="text-sm font-bold text-white mb-2">v0 / Claude Coding instructions</h4>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4 italic">
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
                 "&ldquo;{activeTheme.prompts.v0}&rdquo;"
               </p>
             </div>

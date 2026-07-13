@@ -38,7 +38,7 @@ export default function FeaturedCreations() {
             <h2 className="display text-4xl lg:text-6xl">
               Featured
               <br className="sm:hidden" />
-              <em className="italic"> pieces</em>
+              <em className="not-italic"> pieces</em>
             </h2>
           </div>
           <Link

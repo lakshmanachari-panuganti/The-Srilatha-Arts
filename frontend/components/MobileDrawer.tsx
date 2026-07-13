@@ -126,7 +126,7 @@ export default function MobileDrawer() {
             </header>
 
             {/* Tagline - sets the premium tone without consuming a row of nav */}
-            <p className="flex-none px-5 pb-4 font-serif italic text-base text-ivory-soft/95
+            <p className="flex-none px-5 pb-4 font-serif text-base text-ivory-soft/95
                           border-b border-white/[0.06]">
               Handcrafted Art For Modern Homes
             </p>

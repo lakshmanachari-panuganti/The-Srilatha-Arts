@@ -14,7 +14,7 @@ export default function TheCraftPage() {
     <main className="max-w-3xl mx-auto px-5 py-16 lg:py-24">
       <p className="eyebrow mb-3">How it’s made</p>
       <h1 className="display text-4xl md:text-5xl lg:text-6xl mb-6">
-        Five art styles, <em className="italic gold-text">explained</em>
+        Five art styles, <em className="not-italic gold-text">explained</em>
       </h1>
       <p className="text-ivory-soft text-base lg:text-lg leading-relaxed mb-12">
         Each style has its own way of being made. Here&apos;s a quick look at each one - and what

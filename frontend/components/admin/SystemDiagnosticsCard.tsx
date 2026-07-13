@@ -369,10 +369,10 @@ function ProbeRow({ probe, label }: { probe: ProbeResult; label: string }) {
 
 function QueueBadge({ q }: { q: QueueDepth }) {
   if (!q.exists) {
-    return <span className="text-ink-mute italic">not found</span>
+    return <span className="text-ink-mute">not found</span>
   }
   if (q.approxCount === null) {
-    return <span className="text-ink-mute italic">?</span>
+    return <span className="text-ink-mute">?</span>
   }
   const isPoison = q.name.endsWith('-poison')
   const hot = q.approxCount > 0
@@ -412,7 +412,7 @@ function ConfigVarRow({ v }: { v: ConfigVar }) {
         {v.set ? (
           <p className="text-ink-soft font-mono break-all">{v.preview}</p>
         ) : (
-          <p className="text-ink-mute italic">unset</p>
+          <p className="text-ink-mute">unset</p>
         )}
         {v.finding && (
           <p className={`mt-0.5 ${v.severity === 'critical' ? 'text-red-200' : v.severity === 'warning' ? 'text-amber-200' : 'text-ink-mute'}`}>

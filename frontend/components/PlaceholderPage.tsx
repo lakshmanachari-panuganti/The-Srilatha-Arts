@@ -27,7 +27,7 @@ export default function PlaceholderPage({
         {titleWords ? (
           <>
             {titleWords[0]}
-            <em className="italic gold-text">{goldWord}</em>
+            <em className="not-italic gold-text">{goldWord}</em>
             {titleWords[1]}
           </>
         ) : (
