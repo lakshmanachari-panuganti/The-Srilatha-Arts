@@ -7,6 +7,7 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /backend
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
@@ -18,9 +19,17 @@ updates:
     commit-message:
       prefix: 'chore(deps,backend)'
       include: scope
+    groups:
+      backend-patches:
+        update-types:
+          - patch
+      backend-types:
+        patterns:
+          - '@types/*'
 
   - package-ecosystem: npm
     directory: /frontend
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
@@ -32,9 +41,17 @@ updates:
     commit-message:
       prefix: 'chore(deps,frontend)'
       include: scope
+    groups:
+      frontend-patches:
+        update-types:
+          - patch
+      frontend-types:
+        patterns:
+          - '@types/*'
 
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: monthly
     labels:
@@ -43,3 +60,7 @@ updates:
     commit-message:
       prefix: 'chore(deps,ci)'
       include: scope
+    groups:
+      github-actions:
+        patterns:
+          - '*'
