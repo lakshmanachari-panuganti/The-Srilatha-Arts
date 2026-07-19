@@ -2,10 +2,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { ChevronDown, Instagram, Facebook, Youtube, Mail, Send, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
+import { ChevronDown, Mail, Send, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { apiFetch, ApiError } from '@/lib/api'
 import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
+import InstagramIcon from '@/components/icons/InstagramIcon'
+import FacebookIcon from '@/components/icons/FacebookIcon'
+import YoutubeIcon from '@/components/icons/YoutubeIcon'
 import PinterestIcon from '@/components/icons/PinterestIcon'
 
 const columns = [
@@ -193,16 +196,16 @@ export default function Footer() {
 
             <div className="flex items-center gap-2 mt-6">
               <SocialLink href={CONTACT.social.instagram} label="Instagram">
-                <Instagram className="w-4 h-4" aria-hidden />
+                <InstagramIcon className="w-4 h-4" />
               </SocialLink>
               <SocialLink href={CONTACT.social.pinterest} label="Pinterest">
                 <PinterestIcon className="w-4 h-4" />
               </SocialLink>
               <SocialLink href={CONTACT.social.facebook} label="Facebook">
-                <Facebook className="w-4 h-4" aria-hidden />
+                <FacebookIcon className="w-4 h-4" />
               </SocialLink>
               <SocialLink href={CONTACT.social.youtube} label="YouTube">
-                <Youtube className="w-4 h-4" aria-hidden />
+                <YoutubeIcon className="w-4 h-4" />
               </SocialLink>
             </div>
           </div>
@@ -224,16 +227,16 @@ export default function Footer() {
           </Link>
           <div className="flex items-center justify-center gap-2 mt-2">
             <SocialLink href={CONTACT.social.instagram} label="Instagram">
-              <Instagram className="w-4 h-4" aria-hidden />
+              <InstagramIcon className="w-4 h-4" />
             </SocialLink>
             <SocialLink href={CONTACT.social.pinterest} label="Pinterest">
               <PinterestIcon className="w-4 h-4" />
             </SocialLink>
             <SocialLink href={CONTACT.social.facebook} label="Facebook">
-              <Facebook className="w-4 h-4" aria-hidden />
+              <FacebookIcon className="w-4 h-4" />
             </SocialLink>
             <SocialLink href={CONTACT.social.youtube} label="YouTube">
-              <Youtube className="w-4 h-4" aria-hidden />
+              <YoutubeIcon className="w-4 h-4" />
             </SocialLink>
           </div>
 

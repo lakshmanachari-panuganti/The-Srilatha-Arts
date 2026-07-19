@@ -40,7 +40,8 @@ import {
   useTransform,
   useReducedMotion,
 } from 'framer-motion'
-import { MessageCircle, Instagram, Sparkles, ArrowUpRight } from 'lucide-react'
+import { MessageCircle, Sparkles, ArrowUpRight } from 'lucide-react'
+import InstagramIcon from '@/components/icons/InstagramIcon'
 import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
 
 // ────────────────────────────────────────────────────────────────────
@@ -370,7 +371,7 @@ export default function FinalInvite() {
               label="Follow the journey"
               href={LINKS.instagram}
               external
-              icon={<Instagram className="w-4 h-4" aria-hidden />}
+              icon={<InstagramIcon className="w-4 h-4" />}
               ariaLabel="Open Srilatha Art on Instagram"
               reduceMotion={!!reduceMotion}
             />
