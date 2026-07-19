@@ -374,6 +374,37 @@ export async function getAllOrders(): Promise<Row[]> {
   )
 }
 
+/**
+ * True when the user has at least one order with a CAPTURED payment.
+ *
+ * Used by the first-time-buyer coupon gate — "first-time" means "no
+ * prior successful purchase on this account", not "hasn't used this
+ * specific coupon code before" (which the coupon logic used to check
+ * incorrectly, letting returning customers use FIRSTBUY-style codes).
+ *
+ * Query is single-partition (partitionKey = userEmail) so cost scales
+ * with the user's own order history, not the whole table. Stops at the
+ * first match — coupon evaluation only needs existence, not a count.
+ *
+ * Cancelled/refunded/failed orders don't count as a prior purchase;
+ * only CAPTURED signals a completed transaction. This means a customer
+ * whose one prior order was refunded is still "first-time" for coupon
+ * purposes, which matches the marketing intent.
+ */
+export async function hasPriorCapturedOrder(userEmail: string): Promise<boolean> {
+  if (!userEmail) return false
+  const client = getTableClient('orders')
+  const iter = client.listEntities<Row>({
+    queryOptions: {
+      filter: odata`PartitionKey eq ${userEmail} and paymentStatus eq 'CAPTURED'`,
+    },
+  })
+  for await (const _ of iter) {
+    return true
+  }
+  return false
+}
+
 // Legacy compat - used during migration; remove after Stage 2.
 export async function updateOrderStatus(
   currentStatus: string,

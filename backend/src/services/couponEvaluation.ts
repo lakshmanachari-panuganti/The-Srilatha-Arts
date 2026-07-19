@@ -10,7 +10,12 @@
  */
 
 import type { InvocationContext } from '@azure/functions'
-import { getCoupon, getCouponRedemptionsByUser, Row } from './tableStorage'
+import {
+  getCoupon,
+  getCouponRedemptionsByUser,
+  hasPriorCapturedOrder,
+  Row,
+} from './tableStorage'
 import { getShippingConfig, computeShippingAmount } from './shippingConfig'
 
 export interface EvaluateItem {
@@ -84,8 +89,12 @@ export async function evaluateCoupon(
     if (!userId) {
       return { valid: false, reason: 'INACTIVE', message: 'Please sign in to apply this coupon' }
     }
-    const allRedemptions = await getCouponRedemptionsByUser(code, userId)
-    if (allRedemptions.length > 0) {
+    // "First-time buyer" = no prior CAPTURED order on this account.
+    // Checking prior redemptions of this specific code was the earlier
+    // (incorrect) gate — it let returning customers use any coupon they
+    // hadn't personally used before. The account-wide purchase check
+    // matches the marketing intent.
+    if (await hasPriorCapturedOrder(userId)) {
       return { valid: false, reason: 'USED', message: 'This coupon is for first-time buyers only' }
     }
   }

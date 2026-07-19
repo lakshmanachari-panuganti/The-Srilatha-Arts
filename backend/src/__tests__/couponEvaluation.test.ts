@@ -29,12 +29,14 @@ type MockCoupon = {
 
 const coupons = new Map<string, MockCoupon>()
 const userRedemptions = new Map<string, unknown[]>()
+const usersWithPriorPurchase = new Set<string>()
 
 jest.mock('../services/tableStorage', () => ({
   getCoupon: jest.fn(async (code: string) => coupons.get(code) ?? null),
   getCouponRedemptionsByUser: jest.fn(async (code: string, uid: string) =>
     userRedemptions.get(`${code}|${uid}`) ?? [],
   ),
+  hasPriorCapturedOrder: jest.fn(async (uid: string) => usersWithPriorPurchase.has(uid)),
 }))
 
 // Shipping config uses a live env-driven module. Mock it to a fixed shape
@@ -65,6 +67,7 @@ const cart = (priceP: number, qty = 1) => [
 beforeEach(() => {
   coupons.clear()
   userRedemptions.clear()
+  usersWithPriorPurchase.clear()
 })
 
 describe('evaluateCoupon — invalid states', () => {
@@ -206,6 +209,53 @@ describe('evaluateCoupon — discount math (paise/rupee boundary is load-bearing
     coupons.set('WEIRD', { rowKey: 'WEIRD', active: true, type: 'UNSUPPORTED', value: 1 })
     const r = await evaluateCoupon('WEIRD', cart(100000), undefined)
     expect(r.reason).toBe('UNSUPPORTED')
+  })
+})
+
+describe('evaluateCoupon — firstTimeOnly gate', () => {
+  it('anonymous user is prompted to sign in', async () => {
+    coupons.set('WELCOME10', {
+      rowKey: 'WELCOME10',
+      active: true,
+      type: 'PERCENTAGE',
+      value: 10,
+      firstTimeOnly: true,
+    })
+    const r = await evaluateCoupon('WELCOME10', cart(100000), undefined)
+    expect(r.valid).toBe(false)
+    expect(r.reason).toBe('INACTIVE')
+    expect(r.message).toContain('sign in')
+  })
+
+  it('brand-new signed-in customer can apply', async () => {
+    coupons.set('WELCOME10', {
+      rowKey: 'WELCOME10',
+      active: true,
+      type: 'PERCENTAGE',
+      value: 10,
+      firstTimeOnly: true,
+    })
+    const r = await evaluateCoupon('WELCOME10', cart(100000), 'new@buyer.io')
+    expect(r.valid).toBe(true)
+    expect(r.discountAmount).toBe(10000)
+  })
+
+  it('returning customer is rejected even if they never used THIS specific code', async () => {
+    // This is the regression the earlier logic missed: the old check only
+    // looked at redemptions of the code itself, so a returning buyer who
+    // hadn't previously touched WELCOME10 could still redeem it.
+    coupons.set('WELCOME10', {
+      rowKey: 'WELCOME10',
+      active: true,
+      type: 'PERCENTAGE',
+      value: 10,
+      firstTimeOnly: true,
+    })
+    usersWithPriorPurchase.add('returning@buyer.io')
+    const r = await evaluateCoupon('WELCOME10', cart(100000), 'returning@buyer.io')
+    expect(r.valid).toBe(false)
+    expect(r.reason).toBe('USED')
+    expect(r.message).toContain('first-time buyers only')
   })
 })
 
