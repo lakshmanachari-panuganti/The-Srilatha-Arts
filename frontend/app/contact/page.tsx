@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Mail, MessageCircle, Instagram, Clock, MapPin, Phone } from 'lucide-react'
+import { Mail, MessageCircle, Clock, MapPin, Phone } from 'lucide-react'
 import { CONTACT, waLink, mailtoLink } from '@/lib/site-config'
+import InstagramIcon from '@/components/icons/InstagramIcon'
 import PinterestIcon from '@/components/icons/PinterestIcon'
 
 export const metadata: Metadata = {
@@ -39,7 +40,7 @@ export default function ContactPage() {
         />
         <ContactCard
           href={CONTACT.social.instagram}
-          icon={Instagram}
+          icon={InstagramIcon}
           label="Instagram"
           value={CONTACT.instagramHandleAt}
           note="See work in progress"
