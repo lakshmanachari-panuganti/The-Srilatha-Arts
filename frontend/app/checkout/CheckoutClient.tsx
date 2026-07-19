@@ -671,7 +671,16 @@ export default function CheckoutClient() {
         },
         handler: async (rzpRes) => {
           try {
-            await apiFetch<{ ok: true; orderId: string }>('/razorpay/verify', {
+            // Backend returns 200 { ok: false, status: 'cancelled', message }
+            // when payment lands after stale-reservation cleanup already
+            // cancelled the order (auto-refund is issued server-side). We
+            // must read the body — HTTP 200 alone does not mean confirmed.
+            const verifyRes = await apiFetch<{
+              ok: boolean
+              orderId?: string
+              status?: string
+              message?: string
+            }>('/razorpay/verify', {
               method: 'POST',
               body: {
                 razorpayOrderId: rzpRes.razorpay_order_id,
@@ -680,6 +689,13 @@ export default function CheckoutClient() {
                 internalOrderId: res.order.id,
               },
             })
+            if (verifyRes.ok === false || verifyRes.status === 'cancelled') {
+              setError(
+                verifyRes.message ||
+                  'Your order was cancelled before payment completed. A refund has been initiated.',
+              )
+              return
+            }
             clear()
             const fullName = (res.order.customerName || user?.name || '').trim()
             const firstName = fullName.split(/\s+/)[0] || ''
