@@ -3,12 +3,146 @@
 All notable changes to Srilatha Art (website + backend) are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are
-ISO-8601 in IST (Asia/Kolkata). The project does not currently use semver — each section
-is dated.
+ISO-8601 in IST (Asia/Kolkata). Starting with 1.0.1 the project adopts semantic
+versioning — earlier dated sections are treated as the 1.0.0 baseline.
 
 ---
 
-## 2026-07-05 · Security hardening rollout — Phases 1–4 (DEV + PRD) and app-layer audit tiers 1–3
+## 1.0.1 · 2026-07-19 · Payment-race fix, dependency modernization, and repo hygiene
+
+Focused-session pass over payment correctness, dependency backlog, branch protection
+strategy, and PR flow. Both `main` and `develop` end the day at the same HEAD;
+`ai-driven1` is reset to match. No open pull requests remain.
+
+### Fixed
+
+- **Critical — checkout confirmation could show for cancelled + auto-refunded orders.**
+  The Razorpay success handler in `frontend/app/checkout/CheckoutClient.tsx` was
+  ignoring the `/razorpay/verify` response body and rendering the confirmation screen
+  unconditionally. When a payment landed after `staleReservationCleanup` cancelled the
+  order (the ~28-minute race), the backend correctly returned
+  `200 { ok: false, status: 'cancelled', message }` and issued an automatic Razorpay
+  refund — but the customer was told "Your order is confirmed" while their money was
+  being refunded and no invoice / email / WhatsApp went out. Fix: read the body,
+  branch on `ok === false || status === 'cancelled'`, surface the server's refund
+  message via `setError`, preserve the cart. Verified live on DEV via deployed bundle
+  grep (fallback strings present in minified chunk) and by manual Razorpay test-mode
+  purchase. (PR #89)
+- Invoice PDF `websiteHost` now matches `websiteUrl` (`www.srilatha.art`) for brand
+  consistency. Sole consumer: `backend/src/services/invoicePdf.ts:34`. (PR #103)
+
+### Added
+
+- Custom brand-icon components in `frontend/components/icons/`
+  (`InstagramIcon`, `FacebookIcon`, `YoutubeIcon`) — inline SVGs matching lucide's
+  stroke style, drawn to be visually indistinguishable from the exports lucide-react
+  v1.0 removed. Pattern follows the pre-existing `PinterestIcon`. (PR #104)
+- Repository ruleset "Protect main and develop" replacing classic branch protection.
+  Rules applied to both `refs/heads/main` and `refs/heads/develop`: deletion blocked,
+  non-fast-forward pushes blocked, PRs require 1 approving review, stale reviews
+  dismissed on push, review-thread resolution required, merge methods restricted to
+  merge and squash. `bypass_actors` grants the Repository-Admin role always-bypass,
+  which is the load-bearing configuration that makes the flow work for a
+  solo-maintained public repo (GitHub blocks PR authors from approving their own PRs;
+  ruleset bypass replaces the classic `enforce_admins: true` deadlock).
+
+### Changed
+
+- **Dependabot** now targets `develop` (was `main`), aligning with the
+  `ai-driven1 → develop → main` promotion flow. New `groups:` configuration bundles
+  patch-level bumps and `@types/*` bumps into single PRs per ecosystem — Monday
+  runs will now open ~3 grouped PRs instead of ~13 individual ones. Prevents the
+  backlog situation that this session inherited (13 stale Dependabot PRs from
+  2026-07-05).
+- Frontend upgraded to `lucide-react` 1.25.0 with the three removed brand icons
+  replaced by the new custom components above. Touched 5 files: `app/contact/page.tsx`,
+  `components/Footer.tsx`, `components/Header.tsx`,
+  `components/marketing/v2/FinalInvite.tsx`, `components/MobileDrawer.tsx`. (PR #104)
+
+### Dependencies
+
+Backend (bumps merged):
+- `@azure/functions` 4.14.0 → 4.16.2 (minor). (PR #96)
+- `@azure/storage-blob` 12.31.0 → 12.33.0 (minor). (PR #78)
+- `@types/node` 22.19.20 → 26.1.0 (dev-dep, types-only). (PR #79)
+- `@types/nodemailer` 6.4.23 → 8.0.1 (dev-dep, types-only). (PR #95)
+- `bcryptjs` 2.4.3 → 3.0.3 (major). Backwards-compatible: `.compare()` handles all
+  hash prefixes and `infra/seed-admin.ps1:182` regex already accepts `$2a` / `$2b` /
+  `$2y`. Newly-generated hashes now use the `$2b` prefix. (PR #93)
+- `dotenv` 16.6.1 → 17.4.2 (major). Dev-only — production reads secrets from Key
+  Vault (see 2026-07-05 Phase 2). (PR #73)
+- `google-auth-library` 10.6.2 → 10.9.0 (minor). (PR #71)
+- `sharp` 0.33.5 → 0.35.3 (native binary, Node 22 compatible). Blast radius: newly-
+  generated images going forward; existing on-disk images unaffected. (PR #75)
+- `uuid` 11.1.1 → 14.0.1 (major). Single caller in `backend/src/services/blobStorage.ts`
+  uses `import { v4 as uuidv4 } from 'uuid'` which is stable across v11–v14. (PR #69)
+- Backend-patches group: minor/patch bumps bundled into one PR. (PR #92)
+
+Frontend (bumps merged):
+- `autoprefixer` 10.5.0 → 10.5.2 (patch). (PR #74)
+- `framer-motion` 11.18.2 → 12.42.2 (major, rebranded "Motion"). API-compatible for
+  our usage patterns (`motion.div/section`, `AnimatePresence`, variants); no
+  `Reorder` or `useAnimate` consumers. 20+ animation surfaces in marketing V2.
+  (PR #72)
+- `lucide-react` 0.469.0 → 1.25.0 (see icon-migration note in Changed). (PR #104)
+- `@types/node` 22.19.19 → 26.1.0 (dev-dep, types-only). (PR #77)
+- Frontend-patches group: minor/patch bumps bundled into one PR. (PR #97)
+
+CI actions (bumps merged):
+- `actions/checkout` v4 → v7 (major, well-tested). (PR #66)
+- `actions/setup-node` v4 → v7 (`node-version: '22'` pinned so v6/v7 defaults don't
+  affect us). (PRs #68, #91)
+- `azure/login` v2 → v3 (verified OIDC-compatible inputs already in place —
+  `client-id` / `tenant-id` / `subscription-id`). (PR #67)
+
+### Infrastructure
+
+- 3 stale Azure Static Web App preview environments (`25`, `27`, `29`, all sourced
+  from `ai-driven1`) were deleted from `swa-thesrilathaarts-dev` to free the Free-tier
+  staging-environment quota that was blocking PR #89's frontend deploy. `default`
+  preserved. `feedback_swa_stay_free` memory unchanged — Free tier retained.
+- `ai-driven1` branch was reset to match `main` at the end of the day so all three
+  target branches (main, develop, ai-driven1) end at the same HEAD. The pre-reset
+  state is preserved as git tag `archive/ai-driven1-2026-07-19-pre-reset` for future
+  extraction of the wins that remained trapped in PR #88 (namely
+  `findOrderByRazorpayRefs` and `mergeRazorpayIndexPaymentId`, plus WhatsApp v1
+  templates, CSRF auto-retry infrastructure, and admin session/idle-timeout work).
+
+### Deferred — intentionally not shipped
+
+Documented in each closed PR for future action:
+- **`next` 15.5.18 → 16.2.10** — closed. All 7 listed HIGH-severity CVEs require a
+  Next.js runtime server; our `output: 'export'` static-export build does not run
+  one. Bump remains valuable for long-term supportability but has no CVE urgency.
+  (PR #100 closed)
+- **`tailwindcss` 3.4.17 → 4.3.3** — closed. v4 is a full CSS-first paradigm change
+  (`@import "tailwindcss"` replaces `@tailwind` directives; JS config → CSS `@theme`).
+  Requires a dedicated migration PR with visual regression across marketing V2.
+  (PR #98 closed; earlier PR #70 also closed as superseded)
+- **`applicationinsights` 2.9.8 → 3.15.1** — closed. v3 rewrote the SDK (distributed
+  tracing via `@azure/monitor-opentelemetry`); build fails on
+  `backend/src/utils/telemetry.ts:142`. Requires dedicated observability PR.
+  (PR #94 closed)
+- **`eslint-config-next` 15 → 16** — closed. Ships together with the Next 16
+  migration. (PR #99 closed)
+- **`lucide-react` 0.469 → 1.23** — closed as superseded by the proper migration in
+  PR #104 (which handles the removed brand icons). (PR #76 closed;
+  identical Dependabot PR #101 also closed)
+- **`host.json` retry policy** — retained despite Azure Functions runtime deprecation
+  warning. The `@azure/functions` v4 Node.js programming model does not expose
+  per-trigger `retry` on any function-options interface (only the `RetryOptions` type
+  is exported). Deleting the block would change queue-notification retry from
+  `3× exponential (~7.5 min window)` to `5× fixed 30s`, worsening behavior during
+  downstream (WhatsApp/email) outages. Awaits upstream migration path.
+
+### Non-code work performed
+
+- Merged 21 content PRs and opened 3 develop-to-main promotion PRs
+  (#90, #102, #105).
+- Closed 8 PRs with evidence-based justifications: #70, #76, #88, #94, #98, #99,
+  #100, #101.
+
+---
 
 Executed the 2026-07-03 security assessment findings across both environments,
 then landed three tiers of app-code hardening on top. All Phase 1–4 infra
