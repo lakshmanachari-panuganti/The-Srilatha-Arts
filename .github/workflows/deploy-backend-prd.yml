@@ -68,16 +68,30 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Ensure RunFromPackage=1 (idempotent)
-        # Belt-and-braces: assert local-mount mode so a stray Portal edit
-        # can't silently flip us back to a SAS-URL value. No-op if already 1.
+      - name: Verify RunFromPackage=1
+        # Read-only guard. A stray Portal edit that flipped this to a
+        # SAS-URL or blanked it would silently break the deploy — we want
+        # to fail loud and route the operator to the infra script rather
+        # than auto-correct from CI (project rule: infra changes go
+        # through infra/Deploy-Infrastructure-v2.ps1, not ad-hoc CLI).
+        #
+        # The prior version WROTE the setting on every run. `az
+        # functionapp config appsettings set` triggers an app restart
+        # even for identical values; the immediate deploy step then
+        # raced the SCM restart and Kudu returned 503 on DEV (run
+        # 29690267463, 2026-07-19). PRD had the same latent race.
         run: |
           set -euo pipefail
-          az functionapp config appsettings set \
+          CURRENT=$(az functionapp config appsettings list \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_FUNCTIONAPP_NAME" \
-            --settings "WEBSITE_RUN_FROM_PACKAGE=1" \
-            --output none
+            --query "[?name=='WEBSITE_RUN_FROM_PACKAGE'].value | [0]" \
+            --output tsv)
+          if [ "$CURRENT" != "1" ]; then
+            echo "::error::WEBSITE_RUN_FROM_PACKAGE is '$CURRENT' (expected '1'). Re-run infra/Deploy-Infrastructure-v2.ps1 to restore, then re-run this workflow."
+            exit 1
+          fi
+          echo "WEBSITE_RUN_FROM_PACKAGE=1 verified."
 
       - name: Deploy to Azure Functions (Kudu ZipDeploy via AAD/OIDC)
         # OneDeploy (`az functionapp deploy --type zip`) is not supported
@@ -87,10 +101,31 @@ jobs:
         # on Linux Consumption and works over the AAD token from OIDC
         # login (no SCM basic auth, no publish profile). Requires the CI
         # SP's `Website Contributor` role on the Function App.
+        #
+        # Retry on transient failures. Kudu occasionally returns 503 while
+        # scaling or during cold-start of the SCM site. Three attempts
+        # with exponential backoff (5s → 30s → 90s) cover the observed
+        # failure window without stretching the job runtime.
         run: |
           set -euo pipefail
-          az functionapp deployment source config-zip \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "$AZURE_FUNCTIONAPP_NAME" \
-            --src "$RUNNER_TEMP/deploy.zip"
-          echo "Deploy succeeded"
+          attempt=1
+          max_attempts=3
+          delay=5
+          while :; do
+            echo "Deploy attempt $attempt of $max_attempts..."
+            if az functionapp deployment source config-zip \
+                 --resource-group "$AZURE_RESOURCE_GROUP" \
+                 --name "$AZURE_FUNCTIONAPP_NAME" \
+                 --src "$RUNNER_TEMP/deploy.zip"; then
+              echo "Deploy succeeded on attempt $attempt"
+              break
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "::error::Deploy failed after $max_attempts attempts"
+              exit 1
+            fi
+            echo "Attempt $attempt failed; sleeping ${delay}s before retry..."
+            sleep "$delay"
+            delay=$((delay * 6))
+            attempt=$((attempt + 1))
+          done
