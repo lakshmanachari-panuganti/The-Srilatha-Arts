@@ -32,5 +32,5 @@ export const CONTACT = {
   hours: 'Mon–Sat · 10am–7pm IST',
 
   websiteUrl: 'https://www.srilatha.art',
-  websiteHost: 'srilatha.art',
+  websiteHost: 'www.srilatha.art',
 } as const
