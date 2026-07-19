@@ -33,7 +33,7 @@
     "@types/node": "^26.1.0",
     "@types/nodemailer": "^6.4.23",
     "@types/uuid": "^9.0.8",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.4.2",
     "jest": "^30.4.2",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
