@@ -4,9 +4,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  X, MessageCircle, Instagram, Sparkles, ShoppingBag, Palette,
+  X, MessageCircle, Sparkles, ShoppingBag, Palette,
   BookOpen, Mail, ChevronDown, User, LogOut, Home, Heart,
 } from 'lucide-react'
+import InstagramIcon from '@/components/icons/InstagramIcon'
 import { useUI } from '@/stores/ui'
 import { useUserAuth } from '@/stores/userAuth'
 import { CATEGORIES } from '@/data/categories'
@@ -257,7 +258,7 @@ export default function MobileDrawer() {
                 className="mt-3 inline-flex items-center gap-2 text-sm text-ivory-soft
                            hover:text-lavender-pastel transition-colors duration-300"
               >
-                <Instagram className="w-4 h-4" aria-hidden />
+                <InstagramIcon className="w-4 h-4" />
                 {CONTACT.instagramHandleAt}
               </a>
             </div>

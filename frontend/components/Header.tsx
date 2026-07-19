@@ -3,7 +3,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Instagram, Mail, Menu, MessageCircle, Phone, Search, ShoppingBag, User } from 'lucide-react'
+import { Mail, Menu, MessageCircle, Phone, Search, ShoppingBag, User } from 'lucide-react'
+import InstagramIcon from '@/components/icons/InstagramIcon'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
 import { useCart, cartCount } from '@/stores/cart'
 import { useUI } from '@/stores/ui'
@@ -122,7 +123,7 @@ export default function Header() {
                            transition-all duration-300
                            shadow-[0_0_18px_rgba(220,39,67,0.45)] hover:shadow-[0_0_28px_rgba(220,39,67,0.65)]"
               >
-                <Instagram className="w-4 h-4" aria-hidden />
+                <InstagramIcon className="w-4 h-4" />
                 <span className="hidden lg:inline">Instagram</span>
               </a>
 
