@@ -4,6 +4,7 @@
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
+import crypto from 'crypto'
 import {
   generateToken,
   hashPassword,
@@ -19,6 +20,7 @@ import { checkAndIncrement, resetRateLimit } from '../services/rateLimit'
 import { OAuth2Client } from 'google-auth-library'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { getClientIp } from '../utils/clientIp'
+import { sendVerificationOtp } from '../services/otpSender'
 
 // No default fallback - validated at call time so Google sign-in can be disabled
 // simply by not setting this env var rather than causing a startup failure.
@@ -475,4 +477,162 @@ app.http('updateProfile', {
   route: 'api/auth/profile',
   authLevel: 'anonymous',
   handler: updateProfile,
+})
+
+// ─── POST /api/auth/forgot-password ──────────────────────────
+
+export async function forgotPassword(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`forgot_pw:${ip}`, 3, 3_600_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many requests. Please try again later.', 429, origin)
+  }
+
+  try {
+    const body = (await request.json()) as { email?: string }
+
+    if (!body.email) {
+      return errorResponse('Email is required', 400, origin)
+    }
+
+    const email = body.email.toLowerCase().trim()
+    const user = await getUser(email)
+
+    // Non-existent or Google-only accounts get the same generic response to prevent enumeration
+    if (!user || user.isActive === false || !user.passwordHash) {
+      return jsonResponse(
+        { message: 'If a matching account exists, a verification code has been sent to the registered WhatsApp number.' },
+        200, {}, origin,
+      )
+    }
+
+    if (!user.phone) {
+      return errorResponse(
+        'No mobile number is linked to this account. Please contact support at +91 9014393938.',
+        400, origin,
+      )
+    }
+
+    const otp = crypto.randomInt(100_000, 1_000_000).toString()
+    const otpHash = await hashPassword(otp)
+    const expiry = new Date(Date.now() + 10 * 60_000).toISOString()
+
+    await updateUser({ ...user, resetOtpHash: otpHash, resetOtpExpiry: expiry })
+
+    await sendVerificationOtp(user.phone, otp)
+
+    const rawDigits = user.phone.replace(/\D/g, '')
+    const maskedPhone = `+${'•'.repeat(Math.max(rawDigits.length - 4, 2))}${rawDigits.slice(-4)}`
+
+    return jsonResponse(
+      { message: 'A verification code has been sent to your registered WhatsApp number.', phone: maskedPhone },
+      200, {}, origin,
+    )
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      context.error(`forgotPassword: Azure Table error (HTTP ${azErr.statusCode})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('forgotPassword: unexpected error', err)
+    return errorResponse('An unexpected error occurred. Please try again later.', 500, origin)
+  }
+}
+
+app.http('forgotPassword', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/auth/forgot-password',
+  authLevel: 'anonymous',
+  handler: forgotPassword,
+})
+
+// ─── POST /api/auth/reset-password ───────────────────────────
+
+export async function resetPassword(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrement(`reset_pw:${ip}`, 5, 15 * 60_000)
+  if (!rateCheck.allowed) {
+    return errorResponse('Too many attempts. Please try again later.', 429, origin)
+  }
+
+  try {
+    const body = (await request.json()) as { email?: string; otp?: string; newPassword?: string }
+
+    if (!body.email || !body.otp || !body.newPassword) {
+      return errorResponse('Email, verification code and new password are required', 400, origin)
+    }
+
+    const email = body.email.toLowerCase().trim()
+    const otp = body.otp.trim()
+
+    if (body.newPassword.length < 8) {
+      return errorResponse('Password must be at least 8 characters', 400, origin)
+    }
+    if (body.newPassword.length > 128) {
+      return errorResponse('Password must be 128 characters or less', 400, origin)
+    }
+
+    const user = await getUser(email)
+
+    if (!user || user.isActive === false || !user.passwordHash) {
+      return errorResponse('Invalid or expired verification code.', 400, origin)
+    }
+
+    if (!user.resetOtpHash || !user.resetOtpExpiry) {
+      return errorResponse('No verification code was requested. Please request a new one.', 400, origin)
+    }
+
+    if (new Date(user.resetOtpExpiry) <= new Date()) {
+      await updateUser({ ...user, resetOtpHash: undefined, resetOtpExpiry: undefined })
+      return errorResponse('Verification code has expired. Please request a new one.', 400, origin)
+    }
+
+    const valid = await comparePassword(otp, user.resetOtpHash)
+    if (!valid) {
+      return errorResponse('Invalid verification code.', 400, origin)
+    }
+
+    const newPasswordHash = await hashPassword(body.newPassword)
+    await updateUser({
+      ...user,
+      passwordHash: newPasswordHash,
+      resetOtpHash: undefined,
+      resetOtpExpiry: undefined,
+    })
+
+    return jsonResponse({ message: 'Password reset successfully.' }, 200, {}, origin)
+  } catch (err: unknown) {
+    const azErr = err as { statusCode?: number; code?: string }
+    if (typeof azErr.statusCode === 'number') {
+      context.error(`resetPassword: Azure Table error (HTTP ${azErr.statusCode})`, err)
+      return errorResponse('Service temporarily unavailable. Please try again.', 503, origin)
+    }
+    if (err instanceof SyntaxError) {
+      return errorResponse('Invalid request body', 400, origin)
+    }
+    context.error('resetPassword: unexpected error', err)
+    return errorResponse('An unexpected error occurred. Please try again later.', 500, origin)
+  }
+}
+
+app.http('resetPassword', {
+  methods: ['POST', 'OPTIONS'],
+  route: 'api/auth/reset-password',
+  authLevel: 'anonymous',
+  handler: resetPassword,
 })

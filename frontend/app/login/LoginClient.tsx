@@ -323,9 +323,17 @@ export default function LoginClient() {
                   </div>
 
                   <div>
-                    <label htmlFor="si-pw" className={labelCls}>
-                      Password <span className="text-red-400">*</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label htmlFor="si-pw" className={labelCls} style={{ marginBottom: 0 }}>
+                        Password <span className="text-red-400">*</span>
+                      </label>
+                      <a
+                        href="/forgot-password"
+                        className="text-xs text-lavender hover:text-lavender-soft font-sans font-medium underline"
+                      >
+                        Forgot password?
+                      </a>
+                    </div>
                     <div className="relative">
                       <input
                         id="si-pw"
