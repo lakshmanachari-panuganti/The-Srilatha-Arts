@@ -8,6 +8,7 @@ import {
   Pencil, Trash2, Plus, Check, X as XIcon, FileText,
 } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
+import { CONTACT } from '@/lib/site-config'
 import { useUserAuth } from '@/stores/userAuth'
 import { formatINR } from '@/lib/format'
 import PhotoUploader from '@/components/PhotoUploader'
