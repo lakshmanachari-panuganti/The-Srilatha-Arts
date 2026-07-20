@@ -126,7 +126,8 @@ RBAC change (write, permanent):
 
 | Action | Result | Notes |
 |---|---|---|
-| PUT `roleAssignments/<guid>` — grant `Storage Blob Data Contributor` to CI SP (`sp-github-actions-thesrilathaarts-dev`) scoped to `function-releases` container | success | Enables the CI-side SAS-URL fallback path. Scoped to a single container (least privilege — not storage-account, not RG); the SP already had `Website Contributor` on the FA only |
+| PUT `roleAssignments/<guid>` — grant `Storage Blob Data Contributor` to CI SP (`sp-github-actions-thesrilathaarts-dev`) scoped to `function-releases` container | success | Enables blob upload in the CI-side SAS-URL fallback path. Scoped to a single container (least privilege — not storage-account, not RG) |
+| PUT `roleAssignments/<guid>` — grant `Storage Blob Delegator` to same CI SP scoped to storage account | success | Enables `generateUserDelegationKey` call (needed to mint a SAS via AAD without a shared account key). This built-in role grants ONLY that one action, no data-plane access. Combined with container-scoped data role above, keeps the SP unable to touch any other container's data |
 
 Github-side actions:
 
