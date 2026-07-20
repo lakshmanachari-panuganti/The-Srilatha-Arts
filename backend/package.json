@@ -15,7 +15,7 @@
     "@azure/functions": "^4.16.2",
     "@azure/identity": "^4.4.0",
     "@azure/storage-blob": "^12.33.0",
-    "@azure/storage-queue": "^12.16.0",
+    "@azure/storage-queue": "^12.31.0",
     "applicationinsights": "^2.9.8",
     "bcryptjs": "^3.0.3",
     "google-auth-library": "^10.9.0",
