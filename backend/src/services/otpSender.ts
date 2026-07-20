@@ -40,14 +40,16 @@ export async function sendVerificationOtp(
   if (!code) throw new Error('sendVerificationOtp: code is required')
 
   // verification_otp_v1 is an Authentication template (Copy code type).
-  // Meta fills the body {{1}} automatically from the button payload —
-  // do NOT send a body component (causes 132018). Only send the
-  // copy_code button with the OTP as payload (omitting it causes 131008).
+  // Cloud API v17+ requires BOTH components:
+  //   body  — with parameter_name:'otp_code' (auth templates name their vars;
+  //            omitting parameter_name causes 132018 format mismatch)
+  //   button — copy_code with OTP payload (omitting causes 131008)
   const result = await sendTemplateMessage({
     toPhone: phone,
     templateName: OTP_TEMPLATE_NAME,
     languageCode: 'en',
-    bodyVariables: [],
+    bodyVariables: [code],
+    bodyParameterNames: ['otp_code'],
     otpButton: { code },
   })
   return { messageId: result.messageId, toPhone: result.toPhone }

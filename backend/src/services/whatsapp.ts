@@ -43,7 +43,7 @@ export function normalisePhone(raw: string): string {
 interface TemplateComponent {
   type: 'header' | 'body' | 'button'
   parameters: Array<
-    | { type: 'text'; text: string }
+    | { type: 'text'; text: string; parameter_name?: string }
     | { type: 'document'; document: { link: string; filename?: string } }
     | { type: 'payload'; payload: string }
   >
@@ -56,6 +56,10 @@ interface SendTemplateOptions {
   templateName: string
   /** Body variables in the order they appear as {{1}}, {{2}}, ... */
   bodyVariables: string[]
+  /** Optional named parameter_name per body variable. Authentication templates
+   *  (Cloud API v17+) require parameter_name matching the approved variable name
+   *  (e.g. 'otp_code'). Omit for standard utility/marketing templates. */
+  bodyParameterNames?: string[]
   /** Optional DOCUMENT header (used to attach the invoice PDF). */
   documentHeader?: { link: string; filename: string }
   /** Optional URL-button parameter. When the template was approved with a
@@ -146,7 +150,10 @@ export async function sendTemplateMessage(
   if (opts.bodyVariables.length > 0) {
     components.push({
       type: 'body',
-      parameters: opts.bodyVariables.map((v) => ({ type: 'text', text: v })),
+      parameters: opts.bodyVariables.map((v, i) => {
+        const name = opts.bodyParameterNames?.[i]
+        return name ? { type: 'text' as const, text: v, parameter_name: name } : { type: 'text' as const, text: v }
+      }),
     })
   }
   if (opts.urlButton) {
