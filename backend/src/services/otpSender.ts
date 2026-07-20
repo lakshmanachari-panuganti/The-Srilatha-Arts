@@ -39,12 +39,14 @@ export async function sendVerificationOtp(
   if (!phone) throw new Error('sendVerificationOtp: phone is required')
   if (!code) throw new Error('sendVerificationOtp: code is required')
 
+  // verification_otp_v1 uses "Copy code" delivery mode — the button is
+  // static and copies the OTP from the body automatically. No button
+  // component should be sent (causes Meta error 132018).
   const result = await sendTemplateMessage({
     toPhone: phone,
     templateName: OTP_TEMPLATE_NAME,
     languageCode: 'en',
     bodyVariables: [code],
-    otpButton: { code },
   })
   return { messageId: result.messageId, toPhone: result.toPhone }
 }
