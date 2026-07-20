@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Package, MapPin, LogOut, Heart, ChevronRight,
-  Pencil, Trash2, Plus, Check, X as XIcon, FileText,
+  Pencil, Trash2, Plus, Check, X as XIcon, FileText, Phone,
 } from 'lucide-react'
 import { apiFetch, ApiError } from '@/lib/api'
 import { CONTACT } from '@/lib/site-config'
@@ -427,7 +427,7 @@ function OrderCard({
               href={`tel:${CONTACT.phoneTel}`}
               className="text-sm h-10 px-4 rounded-full border border-blue-400/60 text-blue-400 hover:bg-blue-950/40 inline-flex items-center gap-2"
             >
-              <XIcon className="w-4 h-4" aria-hidden />
+              <Phone className="w-4 h-4" aria-hidden />
               Customer support
             </a>
           )}
