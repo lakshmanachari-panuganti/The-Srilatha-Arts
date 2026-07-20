@@ -94,6 +94,7 @@ export async function notifyStudioAdmins(
       const sent = await sendTemplateMessage({
         toPhone,
         templateName: ADMIN_TEMPLATE_KEY,
+        languageCode: 'en',
         bodyVariables,
       })
       result.succeeded += 1

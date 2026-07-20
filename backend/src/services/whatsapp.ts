@@ -19,7 +19,7 @@
  */
 
 const WA_API_VERSION = process.env.WHATSAPP_API_VERSION || 'v23.0'
-const WA_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en_US'
+const WA_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en'
 
 export function isWhatsAppConfigured(): boolean {
   return Boolean(

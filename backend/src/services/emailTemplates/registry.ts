@@ -75,6 +75,10 @@ export interface NotificationTemplate {
   templateKey: string
   /** WhatsApp template name in Meta Business Manager. null = no WA channel. */
   whatsappTemplate: string | null
+  /** Language code the template was approved under in Meta Business Manager.
+   *  Must match exactly — 'en' vs 'en_US' are different approvals. Defaults to
+   *  'en' when omitted (most templates). Only order_confirmation_v1 uses 'en_US'. */
+  whatsappTemplateLanguage?: string
   /** Email builder. null = no email channel (rare; we want both for transactional). */
   emailBuilder: TransitionEmailBuilder | null
   /** When true, dispatcher appends STUDIO_NOTIFICATION_CC to the email send. */
@@ -101,6 +105,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_confirmed: {
     templateKey: 'order_confirmed',
     whatsappTemplate: 'order_confirmation_v1',
+    whatsappTemplateLanguage: 'en_US', // approved as English (US) in Meta — sole exception
     emailBuilder: null, // handled by dispatcher's special-case PDF path
     copyStudio: true,
     category: 'transactional',
@@ -110,6 +115,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_crafting: {
     templateKey: 'order_crafting',
     whatsappTemplate: 'order_crafting_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderCraftingEmail,
     copyStudio: true,
     category: 'transactional',
@@ -118,6 +124,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_shipped: {
     templateKey: 'order_shipped',
     whatsappTemplate: 'order_shipped_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderShippedEmail,
     copyStudio: true,
     category: 'transactional',
@@ -126,6 +133,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_delivered: {
     templateKey: 'order_delivered',
     whatsappTemplate: 'order_delivered_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderDeliveredEmail,
     copyStudio: true,
     category: 'transactional',
@@ -134,6 +142,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_cancelled: {
     templateKey: 'order_cancelled',
     whatsappTemplate: 'order_cancelled_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderCancelledEmail,
     copyStudio: true,
     category: 'transactional',
@@ -142,6 +151,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_refunded: {
     templateKey: 'order_refunded',
     whatsappTemplate: 'order_refunded_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderRefundedEmail,
     copyStudio: true,
     category: 'transactional',
@@ -150,6 +160,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   order_on_hold: {
     templateKey: 'order_on_hold',
     whatsappTemplate: 'order_on_hold_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderOnHoldEmail,
     copyStudio: true,
     category: 'transactional',
@@ -158,6 +169,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   review_request: {
     templateKey: 'review_request',
     whatsappTemplate: 'review_request_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildReviewRequestEmail,
     copyStudio: true,
     category: 'transactional',
@@ -166,6 +178,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   return_declined: {
     templateKey: 'return_declined',
     whatsappTemplate: 'return_declined_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: (input) =>
       buildReturnDeclinedEmail({
         orderId: input.orderId,
@@ -183,6 +196,7 @@ export const TEMPLATE_REGISTRY: Record<string, NotificationTemplate> = {
   refund_processed: {
     templateKey: 'refund_processed',
     whatsappTemplate: 'order_refunded_v1',
+    whatsappTemplateLanguage: 'en',
     emailBuilder: buildOrderRefundedEmail,
     copyStudio: true,
     category: 'transactional',
