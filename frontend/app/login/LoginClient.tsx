@@ -70,7 +70,7 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ''
 type Tab = 'signin' | 'signup'
 
 const inputCls =
-  'w-full border border-glass-border rounded-lg px-4 py-3 text-sm text-ivory placeholder:text-ivory-mute focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender font-sans'
+  'w-full border border-glass-border rounded-lg px-4 py-3 text-sm text-ivory placeholder:text-ivory-mute bg-[var(--bg-input)] focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender font-sans'
 const labelCls =
   'block text-xs font-medium text-ivory-soft mb-1 font-sans uppercase tracking-wider'
 
