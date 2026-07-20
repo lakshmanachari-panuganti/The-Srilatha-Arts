@@ -588,16 +588,8 @@ export async function forgotPassword(
       maskedPhone = `${local10.slice(0, 4)}${'*'.repeat(local10.length - 6)}${local10.slice(-2)}`
     }
 
-    // _debug is temporary — lets us read the exact Meta/WA error from the
-    // browser Network tab without needing portal log access. Remove once stable.
-    const _debug: Record<string, unknown> = {
-      phoneOnAccount: Boolean(user.phone),
-      waAttempted: Boolean(user.phone),
-    }
-    if (waError) _debug.waError = waError
-
     return jsonResponse(
-      { message: 'Verification code sent.', channels, email: maskedEmail, phone: maskedPhone, _debug },
+      { message: 'Verification code sent.', channels, email: maskedEmail, phone: maskedPhone },
       200, {}, origin,
     )
   } catch (err: unknown) {

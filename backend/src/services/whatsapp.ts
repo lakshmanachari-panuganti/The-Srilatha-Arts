@@ -47,7 +47,7 @@ interface TemplateComponent {
     | { type: 'document'; document: { link: string; filename?: string } }
     | { type: 'payload'; payload: string }
   >
-  sub_type?: 'url' | 'quick_reply' | 'copy_code'
+  sub_type?: 'url' | 'quick_reply'
   index?: number | string
 }
 
@@ -56,9 +56,8 @@ interface SendTemplateOptions {
   templateName: string
   /** Body variables in the order they appear as {{1}}, {{2}}, ... */
   bodyVariables: string[]
-  /** Optional named parameter_name per body variable. Authentication templates
-   *  (Cloud API v17+) require parameter_name matching the approved variable name
-   *  (e.g. 'otp_code'). Omit for standard utility/marketing templates. */
+  /** Optional parameter_name per body variable for templates created with
+   *  named parameters. Omit for templates that use positional parameters. */
   bodyParameterNames?: string[]
   /** Optional DOCUMENT header (used to attach the invoice PDF). */
   documentHeader?: { link: string; filename: string }
@@ -167,7 +166,9 @@ export async function sendTemplateMessage(
   if (opts.otpButton) {
     components.push({
       type: 'button',
-      sub_type: 'copy_code',
+      // Meta models COPY_CODE when creating the authentication template,
+      // but the Messages API sends its OTP button as a URL component.
+      sub_type: 'url',
       index: opts.otpButton.index ?? 0,
       parameters: [{ type: 'text', text: opts.otpButton.code }],
     })
@@ -208,10 +209,18 @@ export async function sendTemplateMessage(
   if (!res.ok) {
     // The Cloud API error envelope looks like:
     //   { error: { message, type, code, error_subcode, fbtrace_id, error_data: { details } } }
-    const err = (json as { error?: { message?: string; code?: number; error_subcode?: number } }).error
-    const detail = err?.message || 'unknown error'
+    const err = (json as {
+      error?: {
+        message?: string
+        code?: number
+        error_data?: { details?: string }
+        fbtrace_id?: string
+      }
+    }).error
+    const detail = err?.error_data?.details || err?.message || 'unknown error'
     const code = err?.code ?? res.status
-    throw new Error(`[whatsapp] send failed (${code}): ${detail}`)
+    const trace = err?.fbtrace_id ? ` [fbtrace_id: ${err.fbtrace_id}]` : ''
+    throw new Error(`[whatsapp] send failed (${code}): ${detail}${trace}`)
   }
 
   const messageId =
