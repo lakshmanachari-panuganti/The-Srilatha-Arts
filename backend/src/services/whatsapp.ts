@@ -48,7 +48,7 @@ interface TemplateComponent {
     | { type: 'payload'; payload: string }
   >
   sub_type?: 'url' | 'quick_reply' | 'copy_code'
-  index?: string
+  index?: number | string
 }
 
 interface SendTemplateOptions {
@@ -160,7 +160,7 @@ export async function sendTemplateMessage(
     components.push({
       type: 'button',
       sub_type: 'url',
-      index: opts.urlButton.index || '0',
+      index: opts.urlButton.index ?? 0,
       parameters: [{ type: 'text', text: opts.urlButton.parameter }],
     })
   }
@@ -168,7 +168,7 @@ export async function sendTemplateMessage(
     components.push({
       type: 'button',
       sub_type: 'copy_code',
-      index: opts.otpButton.index || '0',
+      index: opts.otpButton.index ?? 0,
       parameters: [{ type: 'text', text: opts.otpButton.code }],
     })
   }
