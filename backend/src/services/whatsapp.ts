@@ -45,8 +45,9 @@ interface TemplateComponent {
   parameters: Array<
     | { type: 'text'; text: string }
     | { type: 'document'; document: { link: string; filename?: string } }
+    | { type: 'payload'; payload: string }
   >
-  sub_type?: 'url' | 'quick_reply'
+  sub_type?: 'url' | 'quick_reply' | 'copy_code'
   index?: string
 }
 
@@ -61,6 +62,9 @@ interface SendTemplateOptions {
    *  dynamic URL button (e.g. /orders/{{1}}), Meta requires the variable
    *  to be supplied in the send payload — omitting it fails the send. */
   urlButton?: { parameter: string; index?: string }
+  /** Authentication templates with a COPY_CODE OTP button require the OTP
+   *  to be sent as a button payload in addition to the body variable. */
+  otpButton?: { code: string; index?: string }
   /** Optional language override - defaults to WHATSAPP_TEMPLATE_LANGUAGE. */
   languageCode?: string
 }
@@ -151,6 +155,14 @@ export async function sendTemplateMessage(
       sub_type: 'url',
       index: opts.urlButton.index || '0',
       parameters: [{ type: 'text', text: opts.urlButton.parameter }],
+    })
+  }
+  if (opts.otpButton) {
+    components.push({
+      type: 'button',
+      sub_type: 'copy_code',
+      index: opts.otpButton.index || '0',
+      parameters: [{ type: 'payload', payload: opts.otpButton.code }],
     })
   }
 

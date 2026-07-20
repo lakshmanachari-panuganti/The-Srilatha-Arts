@@ -156,15 +156,21 @@ export default function ForgotPasswordPage() {
         {step === 'verify' && (
           <>
             <div className="rounded-lg bg-lavender/10 border border-lavender/30 px-4 py-3 text-sm text-ivory-soft font-sans leading-relaxed">
-              OTP has been sent to
-              {sentChannels.includes('email') && (
-                <> email <span className="font-medium text-ivory">{maskedEmail}</span></>
+              {maskedEmail ? (
+                <>
+                  OTP has been sent to
+                  {sentChannels.includes('email') && (
+                    <> email <span className="font-medium text-ivory">{maskedEmail}</span></>
+                  )}
+                  {sentChannels.includes('email') && sentChannels.includes('whatsapp') && ' & '}
+                  {sentChannels.includes('whatsapp') && maskedPhone && (
+                    <span className="font-medium text-ivory"> {maskedPhone}</span>
+                  )}
+                  . It expires in 10 minutes.
+                </>
+              ) : (
+                <>If an account is registered with this email, a verification code has been sent. It expires in 10 minutes.</>
               )}
-              {sentChannels.includes('email') && sentChannels.includes('whatsapp') && ' & '}
-              {sentChannels.includes('whatsapp') && maskedPhone && (
-                <span className="font-medium text-ivory">{maskedPhone}</span>
-              )}
-              . It expires in 10 minutes.
             </div>
 
             <form onSubmit={handleReset} noValidate className="space-y-4">

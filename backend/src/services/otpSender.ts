@@ -42,7 +42,9 @@ export async function sendVerificationOtp(
   const result = await sendTemplateMessage({
     toPhone: phone,
     templateName: OTP_TEMPLATE_NAME,
+    languageCode: 'en',
     bodyVariables: [code],
+    otpButton: { code },
   })
   return { messageId: result.messageId, toPhone: result.toPhone }
 }
