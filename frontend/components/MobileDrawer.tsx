@@ -44,7 +44,9 @@ const NAV_ITEMS: NavItem[] = [
 export default function MobileDrawer() {
   const open = useUI((s) => s.drawerOpen)
   const setOpen = useUI((s) => s.setDrawerOpen)
-  const authUser = useUserAuth((s) => s.user)
+  const _authUser = useUserAuth((s) => s.user)
+  const sessionVerified = useUserAuth((s) => s.sessionVerified)
+  const authUser = sessionVerified ? _authUser : null
   const logout = useUserAuth((s) => s.logout)
   const [openSection, setOpenSection] = useState<string | null>(null)
 

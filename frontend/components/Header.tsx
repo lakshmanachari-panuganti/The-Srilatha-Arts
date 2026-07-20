@@ -34,6 +34,11 @@ export default function Header() {
   const setDrawerOpen = useUI((s) => s.setDrawerOpen)
   const setSearchOpen = useUI((s) => s.setSearchOpen)
   const authUser = useUserAuth((s) => s.user)
+  // Only show logged-in state after server has confirmed the session.
+  // Prevents the "ghost user" flash when localStorage has a stale user
+  // object but the session cookie is gone (e.g. browser was closed).
+  const sessionVerified = useUserAuth((s) => s.sessionVerified)
+  const verifiedUser = sessionVerified ? authUser : null
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -137,17 +142,17 @@ export default function Header() {
               </button>
 
               <Link
-                href={authUser ? '/account' : '/login'}
-                aria-label={authUser ? `My account (${authUser.name})` : 'Sign in'}
+                href={verifiedUser ? '/account' : '/login'}
+                aria-label={verifiedUser ? `My account (${verifiedUser.name})` : 'Sign in'}
                 className="hidden lg:flex min-h-11 min-w-11 items-center justify-center
                            text-ivory-soft hover:text-blue transition-colors duration-300 relative"
               >
-                {authUser ? (
+                {verifiedUser ? (
                   <span
                     className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold
                                bg-brand-gradient-soft text-blue border border-blue/30"
                   >
-                    {authUser.name.charAt(0).toUpperCase()}
+                    {verifiedUser.name.charAt(0).toUpperCase()}
                   </span>
                 ) : (
                   <User className="w-5 h-5" aria-hidden />
