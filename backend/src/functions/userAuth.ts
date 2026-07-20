@@ -569,14 +569,24 @@ export async function forgotPassword(
       return errorResponse('Failed to send verification code. Please try again.', 503, origin)
     }
 
+    // Mask email: th****si@gmail.com
+    const [localPart, domain] = email.split('@')
+    const visibleChars = 2
+    const maskedLocal = localPart.length <= visibleChars * 2
+      ? '*'.repeat(localPart.length)
+      : `${localPart.slice(0, visibleChars)}${'*'.repeat(localPart.length - visibleChars * 2)}${localPart.slice(-visibleChars)}`
+    const maskedEmail = `${maskedLocal}@${domain}`
+
+    // Mask phone: 9014***38 (last 10 digits, first 4 visible, last 2 visible)
     let maskedPhone: string | undefined
     if (waResult.status === 'fulfilled' && user.phone) {
-      const rawDigits = user.phone.replace(/\D/g, '')
-      maskedPhone = `+${'•'.repeat(Math.max(rawDigits.length - 4, 2))}${rawDigits.slice(-4)}`
+      const digits = user.phone.replace(/\D/g, '')
+      const local10 = digits.slice(-10)
+      maskedPhone = `${local10.slice(0, 4)}${'*'.repeat(local10.length - 6)}${local10.slice(-2)}`
     }
 
     return jsonResponse(
-      { message: 'Verification code sent.', channels, phone: maskedPhone },
+      { message: 'Verification code sent.', channels, email: maskedEmail, phone: maskedPhone },
       200, {}, origin,
     )
   } catch (err: unknown) {
