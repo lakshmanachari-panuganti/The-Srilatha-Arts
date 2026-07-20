@@ -169,7 +169,7 @@ export async function sendTemplateMessage(
       type: 'button',
       sub_type: 'copy_code',
       index: opts.otpButton.index || '0',
-      parameters: [{ type: 'payload', payload: opts.otpButton.code }],
+      parameters: [{ type: 'text', text: opts.otpButton.code }],
     })
   }
 
