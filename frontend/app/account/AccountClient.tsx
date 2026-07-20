@@ -423,13 +423,13 @@ function OrderCard({
         <div className="mt-4 flex flex-wrap justify-end gap-2">
           <InvoiceDownloadButton order={order} />
           {canCancel && (
-            <button
-              onClick={() => setShowCancel(true)}
-              className="text-sm h-10 px-4 rounded-full border border-rose-300/70 text-rose-700 hover:bg-rose-50 inline-flex items-center gap-2"
+            <a
+              href={`tel:${CONTACT.phoneTel}`}
+              className="text-sm h-10 px-4 rounded-full border border-blue-400/60 text-blue-400 hover:bg-blue-950/40 inline-flex items-center gap-2"
             >
               <XIcon className="w-4 h-4" aria-hidden />
-              Cancel order
-            </button>
+              Customer support
+            </a>
           )}
           {canReturn && (
             <button
