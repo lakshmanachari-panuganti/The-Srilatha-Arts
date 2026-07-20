@@ -8,7 +8,7 @@ import { apiFetch, ApiError } from '@/lib/api'
 type Step = 'email' | 'verify' | 'done'
 
 const inputCls =
-  'w-full border border-glass-border rounded-lg px-4 py-3 text-sm text-ivory placeholder:text-ivory-mute focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender font-sans bg-transparent'
+  'w-full border border-glass-border rounded-lg px-4 py-3 text-sm text-ivory placeholder:text-ivory-mute bg-[var(--bg-input)] focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender font-sans'
 const labelCls =
   'block text-xs font-medium text-ivory-soft mb-1 font-sans uppercase tracking-wider'
 
@@ -44,6 +44,7 @@ export default function ForgotPasswordPage() {
   // Step 1
   const [email, setEmail] = useState('')
   const [maskedPhone, setMaskedPhone] = useState('')
+  const [sentChannels, setSentChannels] = useState<string[]>([])
 
   // Step 2
   const [otp, setOtp] = useState('')
@@ -59,11 +60,12 @@ export default function ForgotPasswordPage() {
 
     setBusy(true)
     try {
-      const res = await apiFetch<{ message: string; phone?: string }>('/auth/forgot-password', {
+      const res = await apiFetch<{ message: string; channels?: string[]; phone?: string }>('/auth/forgot-password', {
         method: 'POST',
         body: { email: email.trim() },
       })
       setMaskedPhone(res.phone ?? '')
+      setSentChannels(res.channels ?? ['email'])
       setStep('verify')
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
@@ -152,11 +154,13 @@ export default function ForgotPasswordPage() {
         {step === 'verify' && (
           <>
             <div className="rounded-lg bg-lavender/10 border border-lavender/30 px-4 py-3 text-sm text-ivory-soft font-sans leading-relaxed">
-              We sent a 6-digit code to your WhatsApp
-              {maskedPhone && (
-                <span className="font-medium text-ivory"> ({maskedPhone})</span>
-              )}
-              . It expires in 10 minutes.
+              {sentChannels.includes('email') && sentChannels.includes('whatsapp')
+                ? <>We sent a 6-digit code to your <span className="font-medium text-ivory">email address</span> and <span className="font-medium text-ivory">WhatsApp{maskedPhone ? ` (${maskedPhone})` : ''}</span>.</>
+                : sentChannels.includes('whatsapp')
+                ? <>We sent a 6-digit code to your <span className="font-medium text-ivory">WhatsApp{maskedPhone ? ` (${maskedPhone})` : ''}</span>.</>
+                : <>We sent a 6-digit code to your <span className="font-medium text-ivory">email address</span>.</>
+              }
+              {' '}It expires in 10 minutes.
             </div>
 
             <form onSubmit={handleReset} noValidate className="space-y-4">
@@ -230,7 +234,7 @@ export default function ForgotPasswordPage() {
             <div className="flex justify-between text-xs text-ivory-mute font-sans">
               <button
                 type="button"
-                onClick={() => { setStep('email'); setError(''); setOtp(''); setNewPw(''); setConfirmPw('') }}
+                onClick={() => { setStep('email'); setError(''); setOtp(''); setNewPw(''); setConfirmPw(''); setSentChannels([]) }}
                 className="text-lavender hover:text-lavender-soft font-medium underline"
               >
                 Resend code

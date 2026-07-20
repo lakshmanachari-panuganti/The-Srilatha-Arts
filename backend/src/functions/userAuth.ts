@@ -21,6 +21,7 @@ import { OAuth2Client } from 'google-auth-library'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { getClientIp } from '../utils/clientIp'
 import { sendVerificationOtp } from '../services/otpSender'
+import { sendEmail, isEmailConfigured } from '../services/email'
 
 // No default fallback - validated at call time so Google sign-in can be disabled
 // simply by not setting this env var rather than causing a startup failure.
@@ -504,18 +505,11 @@ export async function forgotPassword(
     const email = body.email.toLowerCase().trim()
     const user = await getUser(email)
 
-    // Non-existent or Google-only accounts get the same generic response to prevent enumeration
+    // Non-existent or Google-only accounts get a generic 200 to prevent enumeration
     if (!user || user.isActive === false || !user.passwordHash) {
       return jsonResponse(
-        { message: 'If a matching account exists, a verification code has been sent to the registered WhatsApp number.' },
+        { message: 'If a matching account exists, a verification code has been sent.' },
         200, {}, origin,
-      )
-    }
-
-    if (!user.phone) {
-      return errorResponse(
-        'No mobile number is linked to this account. Please contact support at +91 9014393938.',
-        400, origin,
       )
     }
 
@@ -525,13 +519,64 @@ export async function forgotPassword(
 
     await updateUser({ ...user, resetOtpHash: otpHash, resetOtpExpiry: expiry })
 
-    await sendVerificationOtp(user.phone, otp)
+    // Build OTP email
+    const otpEmailHtml = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0B1120;font-family:'Segoe UI',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0B1120;padding:40px 16px">
+    <tr><td align="center">
+      <table width="100%" style="max-width:480px;background:#111827;border-radius:12px;border:1px solid rgba(255,255,255,0.08);padding:40px 32px">
+        <tr><td>
+          <h1 style="margin:0 0 8px;font-size:24px;color:#f8fafc;font-weight:600">Srilatha Art</h1>
+          <p style="margin:0 0 24px;font-size:14px;color:#94a3b8">Password reset verification</p>
+          <p style="margin:0 0 8px;font-size:14px;color:#cbd5e1">Your one-time verification code is:</p>
+          <div style="margin:16px 0;padding:20px;background:#0B1120;border-radius:8px;border:1px solid rgba(59,130,246,0.3);text-align:center">
+            <span style="font-size:36px;font-weight:700;letter-spacing:0.3em;color:#3B82F6">${otp}</span>
+          </div>
+          <p style="margin:0 0 24px;font-size:13px;color:#64748b">This code expires in <strong style="color:#94a3b8">10 minutes</strong>. If you did not request a password reset, you can safely ignore this email.</p>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:24px 0">
+          <p style="margin:0;font-size:12px;color:#475569">Srilatha Art · Hyderabad, Telangana, India</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`
 
-    const rawDigits = user.phone.replace(/\D/g, '')
-    const maskedPhone = `+${'•'.repeat(Math.max(rawDigits.length - 4, 2))}${rawDigits.slice(-4)}`
+    const otpEmailText = `Your Srilatha Art verification code: ${otp}\n\nThis code expires in 10 minutes. If you did not request a password reset, you can safely ignore this email.`
+
+    // Send via both channels in parallel; require at least one to succeed
+    const [emailResult, waResult] = await Promise.allSettled([
+      isEmailConfigured()
+        ? sendEmail({ to: email, subject: 'Your Srilatha Art verification code', html: otpEmailHtml, text: otpEmailText })
+        : Promise.reject(new Error('Email not configured')),
+      user.phone
+        ? sendVerificationOtp(user.phone, otp)
+        : Promise.reject(new Error('No phone on account')),
+    ])
+
+    if (emailResult.status === 'rejected') {
+      context.error('forgotPassword: email send failed', emailResult.reason)
+    }
+    if (waResult.status === 'rejected' && user.phone) {
+      context.error('forgotPassword: WhatsApp send failed', waResult.reason)
+    }
+
+    const channels: string[] = []
+    if (emailResult.status === 'fulfilled') channels.push('email')
+    if (waResult.status === 'fulfilled') channels.push('whatsapp')
+
+    if (channels.length === 0) {
+      return errorResponse('Failed to send verification code. Please try again.', 503, origin)
+    }
+
+    let maskedPhone: string | undefined
+    if (waResult.status === 'fulfilled' && user.phone) {
+      const rawDigits = user.phone.replace(/\D/g, '')
+      maskedPhone = `+${'•'.repeat(Math.max(rawDigits.length - 4, 2))}${rawDigits.slice(-4)}`
+    }
 
     return jsonResponse(
-      { message: 'A verification code has been sent to your registered WhatsApp number.', phone: maskedPhone },
+      { message: 'Verification code sent.', channels, phone: maskedPhone },
       200, {}, origin,
     )
   } catch (err: unknown) {
