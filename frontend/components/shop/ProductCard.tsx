@@ -16,6 +16,12 @@ interface Props {
   priority?: boolean
 }
 
+interface Badge {
+  key: string
+  label: string
+  className: string
+}
+
 export default function ProductCard({ product, variant = 'grid', priority = false }: Props) {
   const { addToCart } = useAddToCart()
   const { toggleWishlist } = useToggleWishlist()
@@ -34,6 +40,44 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
     if (toggleWishlist(product)) haptic(10)
   }
 
+  // Priority order: availability → urgency → savings → social proof
+  const badges: Badge[] = []
+  if (!product.inStock) {
+    badges.push({
+      key: 'oos',
+      label: 'Sold Out',
+      className: 'bg-white/5 border border-white/10 text-slate-400',
+    })
+  }
+  if (product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
+    badges.push({
+      key: 'low',
+      label: `Only ${product.stockQty} left`,
+      className: 'bg-amber-500/20 border border-amber-500/25 text-amber-300',
+    })
+  }
+  if (pct !== null) {
+    badges.push({
+      key: 'disc',
+      label: `−${pct}%`,
+      className: 'bg-emerald-500/20 border border-emerald-500/25 text-emerald-300',
+    })
+  }
+  if (product.isBestSeller) {
+    badges.push({
+      key: 'best',
+      label: 'Best Seller',
+      className: 'bg-blue/10 border border-blue/25 text-blue',
+    })
+  }
+  if (product.isNewArrival) {
+    badges.push({
+      key: 'new',
+      label: 'New',
+      className: 'bg-cyan/10 border border-cyan/25 text-cyan',
+    })
+  }
+
   return (
     <article
       className={cn(
@@ -42,6 +86,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
       )}
     >
       <Link href={`/product/${product.id}`} className="block">
+        {/* Product image — fully unobstructed */}
         <div
           className="relative aspect-square overflow-hidden rounded-lg
                      bg-gradient-to-br from-plum-warm to-plum-light
@@ -63,53 +108,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
           />
 
-          {/* Soft top gradient for badge legibility */}
-          <div
-            aria-hidden
-            className="absolute inset-x-0 top-0 h-20 pointer-events-none
-                       bg-gradient-to-b from-black/35 to-transparent"
-          />
-
-          {/* Badges - top-left. Capped at 2 visible. */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
-            {(() => {
-              const badges: React.ReactNode[] = []
-              if (!product.inStock) {
-                badges.push(
-                  <span key="oos" className="sticker !bg-white/10 !text-ivory-mute shadow-none">
-                    Sold Out
-                  </span>,
-                )
-              }
-              if (badges.length < 2 && product.inStock && product.stockQty > 0 && product.stockQty <= 2) {
-                badges.push(
-                  <span key="low" className="sticker">
-                    Only {product.stockQty} left
-                  </span>,
-                )
-              }
-              if (badges.length < 2 && pct !== null) {
-                badges.push(
-                  <span key="disc" className="sticker">
-                    −{pct}%
-                  </span>,
-                )
-              }
-              if (badges.length < 2 && product.isBestSeller) {
-                badges.push(
-                  <span key="best" className="sticker">
-                    Best Seller
-                  </span>,
-                )
-              }
-              if (badges.length < 2 && product.isNewArrival) {
-                badges.push(<span key="new" className="sticker">New</span>)
-              }
-              return badges
-            })()}
-          </div>
-
-          {/* Wishlist heart — dark pill */}
+          {/* Wishlist heart */}
           <button
             type="button"
             onClick={onWish}
@@ -131,7 +130,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             />
           </button>
 
-          {/* Quick-add — gradient blue circle */}
+          {/* Quick-add */}
           <button
             type="button"
             onClick={onAdd}
@@ -151,7 +150,27 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
           </button>
         </div>
 
-        <div className="pt-3 px-0.5">
+        {/* Badge strip — below image, above category */}
+        {badges.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-2.5 px-0.5 min-h-0">
+            {badges.map(({ key, label, className }) => (
+              <span
+                key={key}
+                className={cn(
+                  'inline-flex items-center px-2.5 py-[5px]',
+                  'rounded-full border',
+                  'text-[11px] font-semibold uppercase tracking-[0.09em] leading-none',
+                  className,
+                )}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Product info */}
+        <div className={cn('px-0.5', badges.length > 0 ? 'pt-2' : 'pt-3')}>
           <p className="text-[10px] uppercase tracking-[0.18em] text-ivory-mute mb-1">
             {product.category.replace('-', ' ')}
           </p>
