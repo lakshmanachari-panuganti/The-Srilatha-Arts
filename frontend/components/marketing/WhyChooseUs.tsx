@@ -71,7 +71,7 @@ export default function WhyChooseUs() {
             Premium home decor should tell a story of dedication, authenticity and unparalleled craft.
             Every creation is treated as a unique masterwork, built from high-grade raw components and handled with care.
           </p>
-          <div className="rounded-2xl bg-plum-light/70 backdrop-blur border border-white/10 shadow-card p-5">
+          <div className="rounded-lg bg-plum-light/70 backdrop-blur border border-white/10 shadow-card p-5">
             <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-blue mb-2 flex items-center gap-2">
               <Sparkles className="w-4 h-4" aria-hidden /> Shipping Guarantee
             </p>
@@ -108,7 +108,7 @@ export default function WhyChooseUs() {
                   }}
                 />
                 <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                  className="w-12 h-12 rounded-lg flex items-center justify-center"
                   style={{
                     background: 'rgba(59,130,246,0.12)',
                     border: '1px solid rgba(59,130,246,0.30)',

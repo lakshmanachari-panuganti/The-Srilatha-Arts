@@ -72,7 +72,7 @@ export default function FAQPage() {
         {faqs.map((item) => (
           <details
             key={item.q}
-            className="group rounded-2xl border border-glass-border bg-plum-light/30 px-5 py-4"
+            className="group rounded-lg border border-glass-border bg-plum-light/30 px-5 py-4"
           >
             <summary className="cursor-pointer list-none flex items-center justify-between gap-3 font-medium text-ivory">
               {item.q}

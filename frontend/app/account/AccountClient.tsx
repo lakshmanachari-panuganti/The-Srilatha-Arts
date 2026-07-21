@@ -363,7 +363,7 @@ function OrderCard({
 
       {/* Return / refund context strip - shown only when applicable */}
       {order.status === 'RETURN_REQUESTED' && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <p className="font-medium mb-1">Return request submitted</p>
           {order.returnReason && (
             <p>Reason: <strong>{RETURN_REASON_LABEL[order.returnReason] || order.returnReason}</strong></p>
@@ -373,19 +373,19 @@ function OrderCard({
         </div>
       )}
       {order.returnDeclineReason && order.status === 'DELIVERED' && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           <p className="font-medium mb-1">Return request was declined</p>
           <p>{order.returnDeclineReason}</p>
           <p className="text-xs mt-2">If you have questions, please <Link href="/contact" className="underline">contact us</Link>.</p>
         </div>
       )}
       {order.status === 'RETURNED' && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           Return received. Refund is being processed and will reach you in 5–7 working days.
         </div>
       )}
       {order.status === 'REFUNDED' && (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           <p className="font-medium">Refunded</p>
           <p className="tabular-nums">
             {order.refundAmount != null
@@ -403,7 +403,7 @@ function OrderCard({
           Backend stores the full human label (+ optional comment), so we
           render order.cancelReason verbatim - no code → label map needed. */}
       {order.status === 'CANCELLED' && (
-        <div className="mt-4 rounded-xl border border-ink/15 bg-cream-deep/60 px-4 py-3 text-sm text-ink-soft">
+        <div className="mt-4 rounded-lg border border-ink/15 bg-cream-deep/60 px-4 py-3 text-sm text-ink-soft">
           <p className="font-medium text-ink mb-1">Order cancelled</p>
           {order.cancelReason && (
             <p>Reason: <strong>{order.cancelReason}</strong></p>
@@ -550,7 +550,7 @@ function CancelOrderModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6"
+        className="w-full max-w-md bg-cream rounded-lg shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="cancel-modal-title" className="font-serif text-2xl text-ink mb-1">Cancel this order?</h2>
@@ -570,7 +570,7 @@ function CancelOrderModal({
           {CANCEL_REASON_OPTIONS.map((o) => (
             <label
               key={o.code}
-              className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+              className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                 reason === o.code
                   ? 'border-lavender/60 bg-cream-deep/60'
                   : 'border-ink/10 hover:border-ink/20'
@@ -598,7 +598,7 @@ function CancelOrderModal({
           maxLength={500}
           rows={3}
           placeholder="Anything you'd like to tell us (optional)."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+          className="w-full px-4 py-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{comment.length}/500</p>
 
@@ -683,7 +683,7 @@ function ReturnRequestModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6"
+        className="w-full max-w-md bg-cream rounded-lg shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="return-modal-title" className="font-serif text-2xl text-ink mb-1">Request a return</h2>
@@ -698,7 +698,7 @@ function ReturnRequestModal({
           {RETURN_REASON_OPTIONS.map((o) => (
             <label
               key={o.code}
-              className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+              className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                 reason === o.code
                   ? 'border-lavender/60 bg-cream-deep/60'
                   : 'border-ink/10 hover:border-ink/20'
@@ -726,7 +726,7 @@ function ReturnRequestModal({
           maxLength={1000}
           rows={4}
           placeholder="Add any details that help us understand the issue."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+          className="w-full px-4 py-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{comment.length}/1000</p>
 
@@ -777,7 +777,7 @@ function StatusPill({ status, paymentStatus }: { status: string; paymentStatus: 
         : 'bg-cream-deep text-ink border-ink/15'
   const label = STATUS_LABEL[status] || status
   return (
-    <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-full px-2.5 py-1 ${cls}`}>
+    <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-md px-2.5 py-1 ${cls}`}>
       {paymentStatus === 'PENDING' ? 'Payment pending' : label}
     </span>
   )
@@ -906,11 +906,11 @@ function AddressesTab() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-ink">{a.fullName}</p>
-                    <span className="text-[10px] tracking-wider uppercase text-ink-mute bg-cream-deep rounded-full px-2 py-0.5">
+                    <span className="text-[10px] tracking-wider uppercase text-ink-mute bg-cream-deep rounded-md px-2 py-0.5">
                       {a.label || 'Home'}
                     </span>
                     {a.isDefault && (
-                      <span className="text-[10px] tracking-wider uppercase text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
+                      <span className="text-[10px] tracking-wider uppercase text-emerald-700 bg-emerald-50 rounded-md px-2 py-0.5">
                         Default
                       </span>
                     )}
@@ -1010,7 +1010,7 @@ function AField(props: {
         onChange={(e) => props.onChange(e.target.value)}
         inputMode={props.inputMode}
         maxLength={props.maxLength}
-        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+        className="w-full h-11 px-4 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
       />
     </div>
   )

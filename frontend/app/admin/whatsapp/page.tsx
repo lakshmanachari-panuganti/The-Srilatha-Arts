@@ -439,7 +439,7 @@ export default function WhatsAppInbox() {
     <div className="h-[calc(100dvh-100px)] lg:h-[calc(100vh-100px)] flex flex-col lg:flex-row lg:gap-4">
       {/* ── Left rail: conversations list ─────────────────────────── */}
       <aside
-        className={`${mobileView === 'chat' ? 'hidden' : 'flex'} lg:flex lg:w-[340px] flex-col bg-plum-light lg:border lg:border-white/10 lg:rounded-xl overflow-hidden flex-1 lg:flex-initial min-h-0`}
+        className={`${mobileView === 'chat' ? 'hidden' : 'flex'} lg:flex lg:w-[340px] flex-col bg-plum-light lg:border lg:border-white/10 lg:rounded-lg overflow-hidden flex-1 lg:flex-initial min-h-0`}
       >
         <div className="px-4 py-3 border-b border-white/10 flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-ink-soft" />
@@ -447,7 +447,7 @@ export default function WhatsAppInbox() {
             WhatsApp inbox
           </h1>
           {totalUnread > 0 && (
-            <span className="ml-auto text-[11px] px-2 py-0.5 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30 rounded-full">
+            <span className="ml-auto text-[11px] px-2 py-0.5 bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30 rounded-md">
               {totalUnread} new
             </span>
           )}
@@ -534,7 +534,7 @@ export default function WhatsAppInbox() {
       <section
         className={`${mobileView === 'list' ? 'hidden' : 'flex'} lg:grid flex-1 grid-cols-1 xl:grid-cols-[1fr_300px] lg:gap-4 min-h-0`}
       >
-        <div className="bg-plum-light lg:border lg:border-white/10 lg:rounded-xl flex flex-col overflow-hidden min-h-0 flex-1">
+        <div className="bg-plum-light lg:border lg:border-white/10 lg:rounded-lg flex flex-col overflow-hidden min-h-0 flex-1">
           {!selected ? (
             <div className="m-auto p-8 text-sm text-ink-mute hidden lg:flex flex-col items-center gap-3">
               <MessageCircle className="w-8 h-8 text-ink-mute" />
@@ -598,7 +598,7 @@ export default function WhatsAppInbox() {
                       return (
                         <li key={m.rowKey} className={`flex ${isOut ? 'justify-end' : 'justify-start'}`}>
                           <div
-                            className={`max-w-[85%] lg:max-w-[80%] px-3 py-2 rounded-2xl shadow-sm text-[15px] lg:text-sm whitespace-pre-wrap break-words ${
+                            className={`max-w-[85%] lg:max-w-[80%] px-3 py-2 rounded-lg shadow-sm text-[15px] lg:text-sm whitespace-pre-wrap break-words ${
                               isOut
                                 ? 'bg-emerald-500/15 text-ink border border-emerald-400/25 rounded-tr-sm'
                                 : 'bg-slate-800 text-ink border border-white/10 rounded-tl-sm'
@@ -706,7 +706,7 @@ export default function WhatsAppInbox() {
         </div>
 
         {/* Right context column: linked orders + invoices */}
-        <aside className="hidden xl:flex flex-col bg-plum-light border border-white/10 rounded-xl overflow-hidden">
+        <aside className="hidden xl:flex flex-col bg-plum-light border border-white/10 rounded-lg overflow-hidden">
           <div className="px-4 py-3 border-b border-white/10">
             <h2 className="font-serif text-sm text-ink">Linked orders</h2>
           </div>

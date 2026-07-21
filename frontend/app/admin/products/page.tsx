@@ -80,7 +80,7 @@ export default function AdminProductsPage() {
 
       {/* Loading State */}
       {loading && (
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-12 text-center">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-12 text-center">
           <Loader2 className="w-8 h-8 text-lavender mx-auto mb-3 animate-spin" />
           <p className="text-ink-soft text-sm">Loading products from server...</p>
         </div>
@@ -88,7 +88,7 @@ export default function AdminProductsPage() {
 
       {/* Error State */}
       {!loading && error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
           <p className="text-red-700 font-medium mb-1">Connection Error</p>
           <p className="text-sm text-red-600 mb-4">{error}</p>
@@ -100,7 +100,7 @@ export default function AdminProductsPage() {
 
       {/* Empty State */}
       {!loading && !error && products.length === 0 && (
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-12 text-center">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-12 text-center">
           <Package className="w-10 h-10 text-ink-mute mx-auto mb-4" />
           <p className="text-ink font-medium mb-1">No products yet</p>
           <p className="text-sm text-ink-soft mb-6">Upload your first artwork to get started.</p>
@@ -113,7 +113,7 @@ export default function AdminProductsPage() {
 
       {/* Products Table */}
       {!loading && !error && filtered.length > 0 && (
-        <div className="bg-plum-light border border-ink/10 rounded-xl overflow-x-auto">
+        <div className="bg-plum-light border border-ink/10 rounded-lg overflow-x-auto">
           <table className="w-full text-left text-sm text-ink min-w-[700px]">
             <thead className="bg-paper border-b border-ink/10 text-ink-soft font-medium">
               <tr>

@@ -62,7 +62,7 @@ export default function ContactPage() {
         <Card icon={Clock} label="Hours" value={CONTACT.hours} note="We rest on Sundays" />
       </div>
 
-      <div className="rounded-2xl border border-glass-border bg-plum-light/30 p-5 lg:p-6 flex items-start gap-3">
+      <div className="rounded-lg border border-glass-border bg-plum-light/30 p-5 lg:p-6 flex items-start gap-3">
         <MapPin className="w-5 h-5 text-lavender-pastel shrink-0 mt-0.5" aria-hidden />
         <div>
           <p className="text-ivory font-medium mb-1">Studio address</p>
@@ -98,7 +98,7 @@ function ContactCard({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="block rounded-2xl border border-glass-border bg-plum-light/30 hover:bg-plum-light/50 transition-colors p-5"
+      className="block rounded-lg border border-glass-border bg-plum-light/30 hover:bg-plum-light/50 transition-colors p-5"
     >
       <div className="flex items-center gap-3 mb-2">
         <span className="w-9 h-9 rounded-full bg-lavender-pastel/20 text-lavender-pastel flex items-center justify-center">
@@ -121,7 +121,7 @@ function Card({
   note: string
 }) {
   return (
-    <div className="block rounded-2xl border border-glass-border bg-plum-light/30 p-5">
+    <div className="block rounded-lg border border-glass-border bg-plum-light/30 p-5">
       <div className="flex items-center gap-3 mb-2">
         <span className="w-9 h-9 rounded-full bg-lavender-pastel/20 text-lavender-pastel flex items-center justify-center">
           <Icon className="w-4 h-4" />

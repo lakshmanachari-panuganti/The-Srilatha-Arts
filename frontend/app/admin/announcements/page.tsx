@@ -192,7 +192,7 @@ export default function AdminAnnouncementsPage() {
       </header>
 
       {/* Info */}
-      <div className="bg-lavender-pastel/10 border border-lavender/20 rounded-xl p-4 mb-6">
+      <div className="bg-lavender-pastel/10 border border-lavender/20 rounded-lg p-4 mb-6">
         <p className="text-sm text-ink">
           <strong>Tip:</strong> Active announcements scroll right-to-left in the marquee banner.
           The banner is hidden on{' '}
@@ -203,7 +203,7 @@ export default function AdminAnnouncementsPage() {
 
       {/* Create / Edit form */}
       {formMode !== null && (
-        <div className="bg-plum-light border border-lavender/30 rounded-xl p-5 mb-6">
+        <div className="bg-plum-light border border-lavender/30 rounded-lg p-5 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-medium text-ink">
               {formMode === 'new' ? 'New Announcement' : 'Edit Announcement'}
@@ -322,13 +322,13 @@ export default function AdminAnnouncementsPage() {
       {/* Announcement Cards */}
       <div className="space-y-4">
         {loading && (
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
             <p className="text-ink-soft text-sm">Loading announcements…</p>
           </div>
         )}
 
         {!loading && announcements.length === 0 && (
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
             <Tag className="w-8 h-8 text-ink-mute mx-auto mb-3" />
             <p className="text-ink font-medium mb-1">No announcements yet</p>
             <p className="text-sm text-ink-soft">Create your first announcement to display in the marquee banner.</p>
@@ -345,7 +345,7 @@ export default function AdminAnnouncementsPage() {
           return (
             <div
               key={ann.id}
-              className={`bg-plum-light border rounded-xl p-4 md:p-6 transition-colors ${
+              className={`bg-plum-light border rounded-lg p-4 md:p-6 transition-colors ${
                 !ann.active || isExpired
                   ? 'border-ink/5 opacity-70'
                   : 'border-ink/10 hover:border-lavender/30'
@@ -360,7 +360,7 @@ export default function AdminAnnouncementsPage() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <span className="md:hidden text-xs font-bold text-plum bg-lavender-pastel/20 px-2 py-0.5 rounded-full">
+                    <span className="md:hidden text-xs font-bold text-plum bg-lavender-pastel/20 px-2 py-0.5 rounded-md">
                       #{ann.priority}
                     </span>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ring-1 ring-inset ${themeInfo.color}`}>

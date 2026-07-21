@@ -260,7 +260,7 @@ export default function LoginClient() {
             login page and what we'll do once they sign in. Cleared by
             consumePendingIntent() inside the post-auth handlers. */}
         {queuedIntent && (
-          <div className="w-full max-w-sm mb-4 rounded-xl border border-lavender/40 bg-lavender-pastel/15 px-4 py-3 text-sm text-ivory">
+          <div className="w-full max-w-sm mb-4 rounded-lg border border-lavender/40 bg-lavender-pastel/15 px-4 py-3 text-sm text-ivory">
             <p className="font-medium">Sign in to continue</p>
             <p className="text-ivory-soft mt-0.5">
               We&apos;ll add{' '}

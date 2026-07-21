@@ -61,7 +61,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
         {/* Qty stepper */}
         <div
           className="flex items-center h-10 sm:h-11 shrink-0"
-          style={{ borderRadius: '24px', border: '1px solid rgba(255,255,255,0.10)' }}
+          style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.10)' }}
         >
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}

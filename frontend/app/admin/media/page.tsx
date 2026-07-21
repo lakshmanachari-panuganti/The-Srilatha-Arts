@@ -46,7 +46,7 @@ export default function AdminMediaPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        <div className="relative group aspect-square rounded-xl border-2 border-dashed border-plum-200 hover:border-plum-400 hover:bg-plum-50/50 transition-colors flex flex-col items-center justify-center cursor-pointer">
+        <div className="relative group aspect-square rounded-lg border-2 border-dashed border-plum-200 hover:border-plum-400 hover:bg-plum-50/50 transition-colors flex flex-col items-center justify-center cursor-pointer">
           <div className="w-10 h-10 rounded-full bg-plum-100 text-plum-600 flex items-center justify-center mb-2">
             <Upload className="w-5 h-5" />
           </div>
@@ -55,7 +55,7 @@ export default function AdminMediaPage() {
         </div>
 
         {MOCK_MEDIA.map((item) => (
-          <div key={item.id} className="group relative aspect-square rounded-xl overflow-hidden bg-plum-50 border border-plum-100">
+          <div key={item.id} className="group relative aspect-square rounded-lg overflow-hidden bg-plum-50 border border-plum-100">
             <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
             
             <div className="absolute inset-0 bg-plum-900/60 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-between">

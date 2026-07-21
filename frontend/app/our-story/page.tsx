@@ -21,7 +21,7 @@ export default function OurStoryPage() {
         is made by us in our studio in Hyderabad.
       </p>
 
-      <div className="my-10 relative aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-b from-plum-warm to-plum-light flex items-center justify-center">
+      <div className="my-10 relative aspect-[4/3] rounded-lg overflow-hidden bg-gradient-to-b from-plum-warm to-plum-light flex items-center justify-center">
         <Image
           src="/Logos/logo.png"
           alt="Our studio in Hyderabad"

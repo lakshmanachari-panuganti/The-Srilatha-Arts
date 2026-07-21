@@ -15,7 +15,7 @@ export default function ContactCTA() {
     >
       {/* Deep ink surface — warm espresso so white text is legible */}
       <div
-        className="relative overflow-hidden p-8 sm:p-12 lg:p-20 text-center rounded-4xl shadow-editorial"
+        className="relative overflow-hidden p-8 sm:p-12 lg:p-20 text-center rounded-lg shadow-editorial"
         style={{ background: 'linear-gradient(135deg, #140E08 0%, #1E1710 40%, #2A1E12 70%, #1A1208 100%)' }}
       >
         {/* Gold radial shimmer — subtle warmth at the top */}

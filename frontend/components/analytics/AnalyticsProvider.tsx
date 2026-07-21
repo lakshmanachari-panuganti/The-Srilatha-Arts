@@ -137,7 +137,7 @@ export default function AnalyticsProvider() {
           className="fixed inset-x-0 bottom-20 lg:bottom-4 z-[60] px-4"
         >
           <div
-            className="max-w-3xl mx-auto rounded-2xl shadow-card"
+            className="max-w-3xl mx-auto rounded-lg shadow-card"
             style={{
               background: 'var(--surface-raised)',
               border: '1px solid rgba(34,27,18,0.15)',

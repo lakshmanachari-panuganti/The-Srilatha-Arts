@@ -217,14 +217,14 @@ export default function AdminOrdersPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-12 text-center text-ink-soft text-sm">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-12 text-center text-ink-soft text-sm">
           Loading orders…
         </div>
       )}
 
       {/* Error */}
       {isError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center text-red-700 text-sm">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center text-red-700 text-sm">
           Failed to load orders. Please refresh the page.
         </div>
       )}
@@ -233,7 +233,7 @@ export default function AdminOrdersPage() {
           the table so it's visible even mid-scroll on long pages. Hits
           PATCH /api/admin/orders/bulk-status. */}
       {selected.size > 0 && (
-        <div className="mb-4 rounded-xl border border-lavender/30 bg-lavender-pastel/15 px-4 py-3 flex flex-wrap items-center gap-3">
+        <div className="mb-4 rounded-lg border border-lavender/30 bg-lavender-pastel/15 px-4 py-3 flex flex-wrap items-center gap-3">
           <p className="text-sm font-medium text-ink">
             {selected.size} selected
           </p>
@@ -277,7 +277,7 @@ export default function AdminOrdersPage() {
       {/* Orders table */}
       {!isLoading && !isError && (
         <>
-          <div className="bg-plum-light border border-ink/10 rounded-xl overflow-x-auto">
+          <div className="bg-plum-light border border-ink/10 rounded-lg overflow-x-auto">
             <table className="w-full text-left text-sm text-ink min-w-[850px]">
               <thead className="bg-paper border-b border-ink/10 text-ink-soft font-medium">
                 <tr>

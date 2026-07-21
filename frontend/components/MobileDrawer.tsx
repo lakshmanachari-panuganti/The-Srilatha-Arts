@@ -143,7 +143,7 @@ export default function MobileDrawer() {
                       <Link
                         href={item.href}
                         onClick={close}
-                        className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
+                        className="flex items-center gap-3.5 min-h-12 px-3 rounded-lg
                                    font-serif text-xl text-ivory
                                    hover:bg-white/[0.06] hover:text-blue
                                    transition-colors duration-300"
@@ -176,7 +176,7 @@ export default function MobileDrawer() {
                   <Link
                     href={authUser ? '/account' : '/login?next=/account'}
                     onClick={close}
-                    className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
+                    className="flex items-center gap-3.5 min-h-12 px-3 rounded-lg
                                text-ivory hover:bg-white/[0.06] hover:text-blue
                                transition-colors duration-300"
                   >
@@ -198,7 +198,7 @@ export default function MobileDrawer() {
                   <Link
                     href="/account/wishlist"
                     onClick={close}
-                    className="flex items-center gap-3.5 min-h-12 px-3 rounded-xl
+                    className="flex items-center gap-3.5 min-h-12 px-3 rounded-lg
                                text-ivory hover:bg-white/[0.06] hover:text-blue
                                transition-colors duration-300"
                   >
@@ -213,7 +213,7 @@ export default function MobileDrawer() {
                   <li>
                     <button
                       onClick={() => { logout(); close() }}
-                      className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-xl text-left
+                      className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-lg text-left
                                  text-ivory-soft hover:bg-white/[0.06] hover:text-blue
                                  transition-colors duration-300"
                     >
@@ -295,7 +295,7 @@ function AccordionRow({
         aria-expanded={isOpen}
         aria-controls={panelId}
         onClick={onToggle}
-        className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-xl text-left
+        className="w-full flex items-center gap-3.5 min-h-12 px-3 rounded-lg text-left
                    font-serif text-xl text-ivory
                    hover:bg-white/[0.06] hover:text-blue
                    transition-colors duration-300"

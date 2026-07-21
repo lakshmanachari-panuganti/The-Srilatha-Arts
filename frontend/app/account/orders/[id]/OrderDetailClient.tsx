@@ -503,7 +503,7 @@ function StatusPill({ status, paymentStatus }: { status: string; paymentStatus: 
         : 'bg-cream-deep text-ink border-ink/15'
   const label = STATUS_LABEL[status] || status
   return (
-    <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-full px-2.5 py-1 ${cls}`}>
+    <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-md px-2.5 py-1 ${cls}`}>
       {paymentStatus === 'PENDING' ? 'Payment pending' : label}
     </span>
   )
@@ -550,7 +550,7 @@ function Banner({
   const icon = tone === 'emerald' ? CheckCircle2 : AlertCircle
   const Icon = icon
   return (
-    <div className={`mb-6 rounded-xl border px-4 py-3 text-sm ${cls}`}>
+    <div className={`mb-6 rounded-lg border px-4 py-3 text-sm ${cls}`}>
       <p className="font-medium mb-1 flex items-center gap-2">
         <Icon className="w-4 h-4" aria-hidden /> {title}
       </p>
@@ -570,7 +570,7 @@ function ModalShell({
 }) {
   return (
     <div className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
         <button
           onClick={onClose}
           aria-label="Close"
@@ -626,7 +626,7 @@ function CancelModal({
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="w-full h-11 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-4"
+        className="w-full h-11 px-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-4"
       >
         {CANCEL_REASONS.map((r) => (
           <option key={r.code} value={r.code}>{r.label}</option>
@@ -640,7 +640,7 @@ function CancelModal({
         onChange={(e) => setComment(e.target.value)}
         rows={3}
         placeholder="Anything you'd like us to know"
-        className="w-full px-3 py-2 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
+        className="w-full px-3 py-2 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
       {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
@@ -744,7 +744,7 @@ function Input({
   return (
     <input
       {...rest}
-      className={`h-10 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 ${className || ''}`}
+      className={`h-10 px-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 ${className || ''}`}
     />
   )
 }
@@ -788,7 +788,7 @@ function ReturnModal({
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="w-full h-11 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-3"
+        className="w-full h-11 px-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-3"
       >
         {RETURN_REASON_OPTIONS.map((r) => (
           <option key={r.code} value={r.code}>{r.label}</option>
@@ -802,7 +802,7 @@ function ReturnModal({
         onChange={(e) => setComment(e.target.value)}
         rows={3}
         placeholder="Anything that'll help us understand the issue"
-        className="w-full px-3 py-2 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
+        className="w-full px-3 py-2 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
       <PhotoUploader
         value={photos}

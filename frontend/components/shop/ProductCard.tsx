@@ -43,7 +43,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
     >
       <Link href={`/product/${product.id}`} className="block">
         <div
-          className="relative aspect-square overflow-hidden rounded-2xl
+          className="relative aspect-square overflow-hidden rounded-lg
                      bg-gradient-to-br from-plum-warm to-plum-light
                      border border-white/10
                      transition-all duration-500

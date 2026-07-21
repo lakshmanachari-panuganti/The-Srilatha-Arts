@@ -40,7 +40,7 @@ export default function WishlistPage() {
         {items.map((item) => (
           <li key={item.productId} className="relative">
             <Link href={`/product/${item.productId}`} className="block">
-              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-cream-deep">
+              <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-cream-deep">
                 <Image
                   src={item.image}
                   alt={item.title}

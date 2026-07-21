@@ -221,7 +221,7 @@ function StatCards({ stats, loading }: { stats?: StatsResponse; loading: boolean
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       {cards.map((c) => (
-        <div key={c.name} className="bg-plum-light border border-ink/10 rounded-xl p-5">
+        <div key={c.name} className="bg-plum-light border border-ink/10 rounded-lg p-5">
           <p className="text-xs text-ink-soft mb-2">{c.name}</p>
           {loading ? (
             <div className="h-7 w-24 bg-ink/10 rounded animate-pulse" />
@@ -260,7 +260,7 @@ function FilterBar(props: {
   setCustomerSearch: (v: string) => void
 }) {
   return (
-    <div className="bg-plum-light border border-ink/10 rounded-xl p-4 mb-6">
+    <div className="bg-plum-light border border-ink/10 rounded-lg p-4 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <Field label="Range">
           <select
@@ -369,7 +369,7 @@ function TemplateBreakdown({ templates, loading }: { templates: TemplateBucket[]
   if (loading) return null
   if (templates.length === 0) return null
   return (
-    <div className="bg-plum-light border border-ink/10 rounded-xl p-5 mb-6">
+    <div className="bg-plum-light border border-ink/10 rounded-lg p-5 mb-6">
       <h2 className="font-serif text-lg text-ink mb-3">By template</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -400,7 +400,7 @@ function TemplateBreakdown({ templates, loading }: { templates: TemplateBucket[]
 // ── Activity table ──────────────────────────────────────────────────
 function ActivityTable({ rows, total, loading }: { rows: ActivityRow[]; total: number; loading: boolean }) {
   return (
-    <div className="bg-plum-light border border-ink/10 rounded-xl p-5">
+    <div className="bg-plum-light border border-ink/10 rounded-lg p-5">
       <h2 className="font-serif text-lg text-ink mb-1">Activity</h2>
       <p className="text-xs text-ink-soft mb-4">
         {loading ? 'Loading…' : `${rows.length} of ${total} matching records`}

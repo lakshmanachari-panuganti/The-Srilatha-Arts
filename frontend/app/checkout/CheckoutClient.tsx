@@ -805,7 +805,7 @@ export default function CheckoutClient() {
                 return (
                   <li
                     key={a.id}
-                    className={`rounded-2xl border transition-colors ${checked ? 'border-lavender/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                    className={`rounded-lg border transition-colors ${checked ? 'border-lavender/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
                       }`}
                   >
                     {isEditing ? (
@@ -849,11 +849,11 @@ export default function CheckoutClient() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-medium text-ink">{a.fullName}</p>
-                            <span className="text-[10px] tracking-wider uppercase text-ink-mute bg-cream-deep rounded-full px-2 py-0.5">
+                            <span className="text-[10px] tracking-wider uppercase text-ink-mute bg-cream-deep rounded-md px-2 py-0.5">
                               {a.label || 'Home'}
                             </span>
                             {a.isDefault && (
-                              <span className="text-[10px] tracking-wider uppercase text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">
+                              <span className="text-[10px] tracking-wider uppercase text-emerald-700 bg-emerald-50 rounded-md px-2 py-0.5">
                                 Default
                               </span>
                             )}
@@ -890,7 +890,7 @@ export default function CheckoutClient() {
 
               {/* "Use a new address" radio */}
               <li
-                className={`rounded-2xl border transition-colors ${usingNew ? 'border-lavender/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
+                className={`rounded-lg border transition-colors ${usingNew ? 'border-lavender/60 bg-cream-deep/40' : 'border-ink/10 hover:border-ink/20'
                   }`}
               >
                 <label className="flex items-start gap-3 p-4 cursor-pointer">
@@ -968,7 +968,7 @@ export default function CheckoutClient() {
           <ul className="divide-y divide-ink/10 -mt-2">
             {items.map((item) => (
               <li key={item.productId} className="flex gap-3 py-3">
-                <div className="relative shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-cream-deep">
+                <div className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-cream-deep">
                   <Image src={item.image} alt={item.title} fill sizes="56px" className="object-contain p-1" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -1049,7 +1049,7 @@ export default function CheckoutClient() {
           {/* Coupon input */}
           <div className="mt-5 border-t border-ink/10 pt-5">
             {couponResult ? (
-              <div className="flex items-center justify-between rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm">
+              <div className="flex items-center justify-between rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm">
                 <span className="flex items-center gap-2 text-emerald-700 font-medium">
                   <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
                   {couponResult.message}
@@ -1145,7 +1145,7 @@ function Field(props: {
         placeholder={props.placeholder}
         inputMode={props.inputMode}
         maxLength={props.maxLength}
-        className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+        className="w-full h-11 px-4 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
       />
     </div>
   )

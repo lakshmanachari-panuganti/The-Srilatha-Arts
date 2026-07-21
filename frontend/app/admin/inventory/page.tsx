@@ -40,7 +40,7 @@ export default function AdminInventoryPage() {
           { label: 'Low Stock (≤ 3)', value: lowStock.length, color: 'text-amber-700' },
           { label: 'Out of Stock', value: outOfStock.length, color: 'text-red-700' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-plum-light border border-ink/10 rounded-xl p-4">
+          <div key={stat.label} className="bg-plum-light border border-ink/10 rounded-lg p-4">
             <p className="text-xs text-ink-mute mb-1">{stat.label}</p>
             <p className={`text-2xl font-serif font-medium ${stat.color}`}>{stat.value}</p>
           </div>
@@ -60,12 +60,12 @@ export default function AdminInventoryPage() {
       </div>
 
       {loading ? (
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-12 text-center">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-12 text-center">
           <Loader2 className="w-8 h-8 text-lavender mx-auto mb-3 animate-spin" />
           <p className="text-ink-soft text-sm">Loading inventory...</p>
         </div>
       ) : (
-        <div className="bg-plum-light border border-ink/10 rounded-xl overflow-x-auto">
+        <div className="bg-plum-light border border-ink/10 rounded-lg overflow-x-auto">
           <table className="w-full text-left text-sm text-ink min-w-[600px]">
             <thead className="bg-paper border-b border-ink/10 text-ink-soft font-medium">
               <tr>

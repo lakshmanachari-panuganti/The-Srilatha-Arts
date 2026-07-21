@@ -233,7 +233,7 @@ export default function AdminCouponsPage() {
 
       {/* Create / Edit form */}
       {formMode !== null && (
-        <div className="bg-plum-light border border-lavender/30 rounded-xl p-5 mb-6">
+        <div className="bg-plum-light border border-lavender/30 rounded-lg p-5 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-medium text-ink">
               {formMode === 'new' ? 'New Coupon' : `Edit ${formMode}`}
@@ -414,13 +414,13 @@ export default function AdminCouponsPage() {
       {/* Coupon Cards */}
       <div className="space-y-4">
         {loading && (
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
             <p className="text-ink-soft text-sm">Loading coupons…</p>
           </div>
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
             <Ticket className="w-8 h-8 text-ink-mute mx-auto mb-3" />
             <p className="text-ink font-medium mb-1">No coupons found</p>
             <p className="text-sm text-ink-soft">Create your first coupon to start offering discounts.</p>
@@ -436,7 +436,7 @@ export default function AdminCouponsPage() {
           return (
             <div
               key={coupon.code}
-              className={`bg-plum-light border rounded-xl p-4 md:p-6 transition-colors ${
+              className={`bg-plum-light border rounded-lg p-4 md:p-6 transition-colors ${
                 !coupon.active || isExpired || isMaxed
                   ? 'border-ink/5 opacity-70'
                   : 'border-ink/10 hover:border-lavender/30'

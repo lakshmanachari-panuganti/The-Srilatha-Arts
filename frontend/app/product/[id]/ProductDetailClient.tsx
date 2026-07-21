@@ -18,7 +18,7 @@ import type { Product } from '@/types'
 function ProductSkeleton() {
   return (
     <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-14 lg:px-8 lg:pt-10 animate-pulse">
-      <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep aspect-[4/5]" />
+      <div className="lg:rounded-lg overflow-hidden bg-cream-deep aspect-[4/5]" />
       <div className="px-5 lg:px-0 pt-8 space-y-4">
         <div className="h-4 w-24 bg-ink/10 rounded" />
         <div className="h-10 w-3/4 bg-ink/10 rounded" />
@@ -31,7 +31,7 @@ function ProductSkeleton() {
 
 function Pill({ label }: { label: string }) {
   return (
-    <span className="inline-flex h-9 px-4 items-center rounded-full border border-ink/12 bg-paper text-xs text-ink-soft">
+    <span className="inline-flex h-9 px-4 items-center rounded-md border border-ink/12 bg-paper text-xs text-ink-soft">
       {label}
     </span>
   )
@@ -224,7 +224,7 @@ export default function ProductDetailClient() {
       <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-2 lg:gap-14 lg:px-8 lg:pt-10">
         {/* Gallery */}
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <div className="lg:rounded-[32px] overflow-hidden bg-cream-deep">
+          <div className="lg:rounded-lg overflow-hidden bg-cream-deep">
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide aspect-[4/5]">
               {(p.images.length > 0 ? p.images : ['/Logos/logo.png']).map((src, i) => (
                 <div key={i} className="relative shrink-0 w-full snap-center">
@@ -320,7 +320,7 @@ export default function ProductDetailClient() {
               <>
                 <span className="text-ink-mute line-through tabular-nums">{formatINR(p.compareAtPrice)}</span>
                 {pct !== null && (
-                  <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-lavender px-2 py-1 rounded-full">
+                  <span className="text-[10px] tracking-[0.18em] uppercase font-bold text-cream bg-lavender px-2 py-1 rounded-md">
                     Save {pct}%
                   </span>
                 )}
@@ -354,7 +354,7 @@ export default function ProductDetailClient() {
           {/* Low-stock urgency cue - honest, since handcrafted is genuinely
               limited. Only fires when stock is positive but ≤ 2. */}
           {p.inStock && p.stockQty > 0 && p.stockQty <= 2 && (
-            <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-lavender bg-lavender/10 px-3 py-2 rounded-full">
+            <p className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-lavender bg-lavender/10 px-3 py-2 rounded-md">
               <span className="w-1.5 h-1.5 rounded-full bg-lavender animate-pulse" aria-hidden />
               Only {p.stockQty} left - each piece is unique
             </p>
@@ -481,7 +481,7 @@ export default function ProductDetailClient() {
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="A short title for your review"
-                className="w-full h-10 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+                className="w-full h-10 px-4 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
               />
             </div>
             <div className="mb-4">
@@ -491,7 +491,7 @@ export default function ProductDetailClient() {
                 onChange={(e) => setFormBody(e.target.value)}
                 rows={4}
                 placeholder="Tell us what you liked or didn’t…"
-                className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+                className="w-full px-4 py-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
               />
             </div>
             <div className="mb-4">
@@ -523,7 +523,7 @@ export default function ProductDetailClient() {
         )}
 
         {formSuccess && (
-          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-4 mb-6 text-sm text-emerald-700">
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-5 py-4 mb-6 text-sm text-emerald-700">
             Thanks for the review! We’ll publish it on the site shortly after a quick check.
           </div>
         )}

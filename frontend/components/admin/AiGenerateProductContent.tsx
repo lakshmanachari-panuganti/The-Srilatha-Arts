@@ -232,7 +232,7 @@ export default function AiGenerateProductContent({
         <div
           role="dialog"
           aria-modal="false"
-          className="w-full max-w-sm rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+          className="w-full max-w-sm rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
         >
           <p className="font-medium mb-1">Some fields already contain data.</p>
           <p className="text-amber-900/80 mb-3">

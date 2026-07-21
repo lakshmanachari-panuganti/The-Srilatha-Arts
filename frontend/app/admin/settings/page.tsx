@@ -42,7 +42,7 @@ export default function AdminSettingsPage() {
           <a
             key={title}
             href={active ? anchor : undefined}
-            className={`block bg-plum-light border rounded-xl p-6 transition-all group ${
+            className={`block bg-plum-light border rounded-lg p-6 transition-all group ${
               active
                 ? 'border-ink/10 hover:border-lavender/30 hover:shadow-sm cursor-pointer'
                 : 'border-ink/5 opacity-60 pointer-events-none'
@@ -78,7 +78,7 @@ function GeneralSection() {
   return (
     <section id="general" className="mt-10 scroll-mt-20">
       <h2 className="font-serif text-xl text-ink mb-4">General</h2>
-      <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-6">
+      <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6 space-y-6">
         <FieldRow label="Store name"        defaultValue="Srilatha Art" />
         <FieldRow label="Contact email"     defaultValue={CONTACT.email} type="email" />
         <FieldRow label="WhatsApp number"   defaultValue={CONTACT.phoneDisplay} type="tel" />
@@ -180,14 +180,14 @@ function ShippingSection() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-serif text-xl text-ink">Shipping</h2>
         {discountActive && (
-          <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+          <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2.5 py-1">
             <BadgePercent className="w-3.5 h-3.5" />
             Discount active · {savingsPct}% off
           </span>
         )}
       </div>
 
-      <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+      <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
         {!loaded ? (
           <div className="flex items-center gap-2 text-sm text-ink-mute">
             <Loader2 className="w-4 h-4 animate-spin" /> Loading current settings…

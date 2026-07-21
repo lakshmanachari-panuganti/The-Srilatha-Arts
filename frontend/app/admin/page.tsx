@@ -19,10 +19,10 @@ interface DashboardStats {
 
 function StatSkeleton() {
   return (
-    <div className="bg-plum-light rounded-xl p-6 border border-ink/10 shadow-sm animate-pulse">
+    <div className="bg-plum-light rounded-lg p-6 border border-ink/10 shadow-sm animate-pulse">
       <div className="flex items-center justify-between mb-4">
         <div className="w-10 h-10 rounded-full bg-lavender-pastel/30" />
-        <div className="h-5 w-12 rounded-full bg-lavender-pastel/30" />
+        <div className="h-5 w-12 rounded-lg bg-lavender-pastel/30" />
       </div>
       <div className="h-3 w-24 bg-lavender-pastel/30 rounded mb-2" />
       <div className="h-7 w-32 bg-lavender-pastel/30 rounded" />
@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
           : statCards.map((stat) => (
-              <div key={stat.name} className="bg-plum-light rounded-xl p-6 border border-ink/10 shadow-sm">
+              <div key={stat.name} className="bg-plum-light rounded-lg p-6 border border-ink/10 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-10 h-10 rounded-full bg-lavender-pastel/30 flex items-center justify-center text-plum">
                     <stat.icon className="w-5 h-5" />
@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <h2 className="font-serif text-xl text-ink mb-4">Recent Orders</h2>
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
             <ShoppingBag className="w-8 h-8 text-ink-mute mx-auto mb-3" />
             <p className="text-ink font-medium mb-1">Check your orders dashboard</p>
             <p className="text-sm text-ink-soft mb-4">
@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
         
         <div>
           <h2 className="font-serif text-xl text-ink mb-4">Quick Links</h2>
-          <div className="bg-plum-light border border-ink/10 rounded-xl overflow-hidden divide-y divide-ink/5">
+          <div className="bg-plum-light border border-ink/10 rounded-lg overflow-hidden divide-y divide-ink/5">
             <Link href="/admin/products/new" className="flex items-center justify-between p-4 hover:bg-lavender-pastel/10 transition-colors group">
               <span className="text-sm font-medium text-ink group-hover:text-plum transition-colors">Add new artwork</span>
               <ArrowUpRight className="w-4 h-4 text-ink-mute group-hover:text-plum transition-colors" />

@@ -234,7 +234,7 @@ function OrderDetail() {
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Items */}
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
             <h2 className="font-serif text-lg text-ink mb-4">Items</h2>
             <div className="divide-y divide-ink/5">
               {items.length === 0 && (
@@ -269,7 +269,7 @@ function OrderDetail() {
           </div>
 
           {/* Timeline */}
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
             <h2 className="font-serif text-lg text-ink mb-4">Activity timeline</h2>
             {events.length === 0 ? (
               <p className="text-sm text-ink-mute">No events recorded yet.</p>
@@ -303,7 +303,7 @@ function OrderDetail() {
 
           {/* Status update (only when there are valid next states) */}
           {nextStates.length > 0 && (
-            <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+            <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
               <h2 className="font-serif text-lg text-ink mb-4">Update status</h2>
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <select
@@ -342,7 +342,7 @@ function OrderDetail() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Customer */}
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
             <h2 className="font-serif text-lg text-ink mb-3">Customer</h2>
             <p className="font-medium text-ink mb-2">{order.customerName}</p>
             <div className="space-y-2 text-sm text-ink-soft">
@@ -353,7 +353,7 @@ function OrderDetail() {
 
           {/* Shipping */}
           {order.shippingAddress && (
-            <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+            <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
               <h2 className="font-serif text-lg text-ink mb-3">Shipping address</h2>
               <div className="flex items-start gap-2 text-sm text-ink-soft">
                 <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
@@ -372,7 +372,7 @@ function OrderDetail() {
           )}
 
           {/* Payment */}
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
             <h2 className="font-serif text-lg text-ink mb-3">Payment</h2>
             <div className="flex items-center gap-2 mb-2">
               <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ring-1 ring-inset ${
@@ -405,7 +405,7 @@ function OrderDetail() {
 
           {/* Quick contact actions */}
           {(order.customerPhone || order.customerEmail) && (
-            <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+            <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
               <h2 className="font-serif text-lg text-ink mb-3">Quick actions</h2>
               <div className="space-y-2">
                 {order.customerPhone && (
@@ -525,7 +525,7 @@ function ReturnPanels({
   // ── RETURN_REQUESTED - show customer's reason + Approve / Decline ────
   if (order.status === 'RETURN_REQUESTED') {
     return (
-      <div className="mb-6 rounded-xl border border-pink-200 bg-pink-50/70 p-4 md:p-6">
+      <div className="mb-6 rounded-lg border border-pink-200 bg-pink-50/70 p-4 md:p-6">
         <div className="flex items-start gap-3 mb-4">
           <RotateCcw className="w-5 h-5 text-pink-700 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
@@ -593,7 +593,7 @@ function ReturnPanels({
   // ── RETURNED - show "Issue refund" CTA ───────────────────────────────
   if (order.status === 'RETURNED') {
     return (
-      <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50/70 p-4 md:p-6">
+      <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50/70 p-4 md:p-6">
         <div className="flex items-start gap-3 mb-3">
           <Package className="w-5 h-5 text-rose-700 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
@@ -630,7 +630,7 @@ function ReturnPanels({
   // ── REFUNDED - read-only summary ─────────────────────────────────────
   if (order.status === 'REFUNDED') {
     return (
-      <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 md:p-6">
+      <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50/70 p-4 md:p-6">
         <div className="flex items-start gap-3">
           <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
@@ -653,7 +653,7 @@ function ReturnPanels({
   // ── If a return was previously declined and the order is back at DELIVERED ─
   if (order.status === 'DELIVERED' && order.returnDeclineReason) {
     return (
-      <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50/70 p-4 md:p-6">
+      <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/70 p-4 md:p-6">
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
@@ -679,7 +679,7 @@ function DeclineReturnModal({
 }) {
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm px-4" onClick={onCancel}>
-      <div className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md bg-cream rounded-lg shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-serif text-xl text-ink mb-2">Decline return</h2>
         <p className="text-sm text-ink-soft mb-4">
           The customer will be notified with the reason you enter below. The order goes back to <strong>Delivered</strong>.
@@ -690,7 +690,7 @@ function DeclineReturnModal({
           maxLength={500}
           rows={4}
           placeholder="Explain why this return is being declined (e.g., outside the 7-day window, signs of use)."
-          className="w-full px-4 py-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
+          className="w-full px-4 py-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none"
         />
         <p className="text-xs text-ink-mute mt-1">{value.length}/500</p>
         <div className="flex justify-end gap-2 mt-5">
@@ -717,7 +717,7 @@ function IssueRefundModal({
 }) {
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm px-4" onClick={onCancel}>
-      <div className="w-full max-w-md bg-cream rounded-2xl shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md bg-cream rounded-lg shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-serif text-xl text-ink mb-2">Issue refund</h2>
         <p className="text-sm text-ink-soft mb-4">
           {paymentId
@@ -732,7 +732,7 @@ function IssueRefundModal({
           step={1}
           value={Number.isFinite(value) ? value : 0}
           onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-          className="w-full h-11 px-4 rounded-xl border border-ink/15 bg-paper text-sm text-ink tabular-nums focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+          className="w-full h-11 px-4 rounded-lg border border-ink/15 bg-paper text-sm text-ink tabular-nums focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
         />
         <p className="text-xs text-ink-mute mt-1">Max ₹{orderTotal} (the order total). Partial refunds are allowed.</p>
         <div className="flex justify-end gap-2 mt-5">
@@ -748,7 +748,7 @@ function IssueRefundModal({
 
 function ErrorPanel({ msg }: { msg: string }) {
   return (
-    <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
+    <div className="bg-red-50 border border-red-200 rounded-lg p-5 flex items-start gap-3">
       <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
       <p className="text-sm text-red-700">{msg}</p>
     </div>
@@ -1039,7 +1039,7 @@ function StepPill({ step }: { step: DeliveryStep }) {
   ].filter(Boolean).join(' — ')
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-full ring-1 ring-inset ${STEP_PILL_CLASSES[step.state]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded-md ring-1 ring-inset ${STEP_PILL_CLASSES[step.state]}`}
       title={title}
     >
       {icon}
@@ -1153,7 +1153,7 @@ function NotificationsPanel({
   }
 
   return (
-    <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6">
+    <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6">
       <h2 className="font-serif text-lg text-ink mb-1">Invoice &amp; notifications</h2>
       <p className="text-xs text-ink-mute mb-4">
         One PDF per order — used by Download, email attachment and WhatsApp.

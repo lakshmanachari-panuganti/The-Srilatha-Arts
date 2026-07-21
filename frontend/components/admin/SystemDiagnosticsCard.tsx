@@ -180,7 +180,7 @@ export default function SystemDiagnosticsCard() {
 
   if (isLoading) {
     return (
-      <section className="bg-plum-light border border-ink/10 rounded-xl p-6 mb-6 animate-pulse">
+      <section className="bg-plum-light border border-ink/10 rounded-lg p-6 mb-6 animate-pulse">
         <div className="h-5 w-56 bg-ink/10 rounded mb-3" />
         <div className="h-4 w-80 bg-ink/10 rounded" />
       </section>
@@ -189,7 +189,7 @@ export default function SystemDiagnosticsCard() {
 
   if (isError || !data) {
     return (
-      <section className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 mb-6 text-sm text-red-200">
+      <section className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 mb-6 text-sm text-red-200">
         <p className="font-medium mb-1">Could not load system diagnostics</p>
         <p className="text-xs text-red-300/80">
           {error instanceof Error ? error.message : 'Unexpected error'}
@@ -208,7 +208,7 @@ export default function SystemDiagnosticsCard() {
   }, {})
 
   return (
-    <section className={`border rounded-xl mb-6 overflow-hidden ${banner.wrapper}`}>
+    <section className={`border rounded-lg mb-6 overflow-hidden ${banner.wrapper}`}>
       <header className={`px-6 py-4 flex items-start justify-between gap-4 ${banner.headerBg}`}>
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <SeverityIcon severity={sev} />
