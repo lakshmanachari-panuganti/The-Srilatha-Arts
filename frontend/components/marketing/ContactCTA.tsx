@@ -87,7 +87,6 @@ export default function ContactCTA() {
               style={{
                 background: 'linear-gradient(135deg, #16a34a 0%, #0f766e 100%)',
                 boxShadow: '0 4px 20px rgba(16,185,129,0.25)',
-                borderRadius: '24px',
               }}
             >
               <MessageCircle className="w-5 h-5" aria-hidden />
@@ -99,7 +98,6 @@ export default function ContactCTA() {
                          text-white transition-all duration-300"
               style={{
                 border: '1.5px solid rgba(200,150,47,0.35)',
-                borderRadius: '24px',
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(200,150,47,0.7)'; (e.currentTarget as HTMLElement).style.background = 'rgba(200,150,47,0.08)' }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(200,150,47,0.35)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}

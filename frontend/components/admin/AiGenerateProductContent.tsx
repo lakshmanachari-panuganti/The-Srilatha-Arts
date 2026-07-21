@@ -242,14 +242,14 @@ export default function AiGenerateProductContent({
             <button
               type="button"
               onClick={() => setStatus('idle')}
-              className="h-8 px-3 text-xs rounded-md text-amber-900 hover:bg-amber-100"
+              className="h-8 px-3 text-xs rounded-lg text-amber-900 hover:bg-amber-100"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={callApi}
-              className="h-8 px-3 text-xs rounded-md bg-amber-700 text-white font-medium hover:bg-amber-800"
+              className="h-8 px-3 text-xs rounded-lg bg-amber-700 text-white font-medium hover:bg-amber-800"
             >
               Replace Content
             </button>

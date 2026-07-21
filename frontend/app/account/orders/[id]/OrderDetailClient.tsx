@@ -446,7 +446,7 @@ export default function OrderDetailClient() {
                 {canCancel && (
                   <button
                     onClick={() => setShowCancel(true)}
-                    className="w-full text-sm h-10 px-4 rounded-full border border-rose-300 text-rose-700 hover:bg-rose-50 transition-colors"
+                    className="w-full text-sm h-10 px-4 rounded-lg border border-rose-300 text-rose-700 hover:bg-rose-50 transition-colors"
                   >
                     Cancel this order
                   </button>
@@ -454,7 +454,7 @@ export default function OrderDetailClient() {
                 {canReturn && (
                   <button
                     onClick={() => setShowReturn(true)}
-                    className="w-full text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep transition-colors"
+                    className="w-full text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep transition-colors"
                   >
                     Request a return
                   </button>
@@ -574,7 +574,7 @@ function ModalShell({
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-cream-deep flex items-center justify-center"
+          className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-cream-deep flex items-center justify-center"
         >
           <X className="w-4 h-4" aria-hidden />
         </button>
@@ -646,14 +646,14 @@ function CancelModal({
       <div className="flex gap-2 justify-end">
         <button
           onClick={onClose}
-          className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep"
+          className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep"
         >
           Keep order
         </button>
         <button
           onClick={submit}
           disabled={busy}
-          className="h-10 px-5 rounded-full bg-rose-700 text-white text-sm font-medium disabled:opacity-50 hover:bg-rose-800"
+          className="h-10 px-5 rounded-lg bg-rose-700 text-white text-sm font-medium disabled:opacity-50 hover:bg-rose-800"
         >
           {busy ? 'Cancelling…' : 'Cancel order'}
         </button>
@@ -723,13 +723,13 @@ function AddressModal({
       </div>
       {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep">
           Cancel
         </button>
         <button
           onClick={submit}
           disabled={busy}
-          className="h-10 px-5 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
+          className="h-10 px-5 rounded-lg bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
         >
           {busy ? 'Saving…' : 'Save address'}
         </button>
@@ -813,13 +813,13 @@ function ReturnModal({
       />
       {err && <p className="text-xs text-red-600 mb-3 mt-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep">
           Cancel
         </button>
         <button
           onClick={submit}
           disabled={busy}
-          className="h-10 px-5 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
+          className="h-10 px-5 rounded-lg bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
         >
           {busy ? 'Submitting…' : 'Submit request'}
         </button>

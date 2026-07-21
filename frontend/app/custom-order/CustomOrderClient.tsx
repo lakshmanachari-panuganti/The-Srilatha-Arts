@@ -250,7 +250,7 @@ export default function CustomOrderClient() {
             type="button"
             onClick={clearSource}
             aria-label="Remove reference piece"
-            className="w-9 h-9 rounded-full text-ivory-mute hover:text-ivory hover:bg-white/[0.06]
+            className="w-9 h-9 rounded-lg text-ivory-mute hover:text-ivory hover:bg-white/[0.06]
                        flex items-center justify-center transition-colors"
           >
             <XIcon className="w-4 h-4" aria-hidden />

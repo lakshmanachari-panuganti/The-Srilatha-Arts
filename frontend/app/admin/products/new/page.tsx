@@ -270,7 +270,7 @@ export default function AdminNewProductPage() {
                             return prev.filter((_, idx) => idx !== i)
                           })
                         }
-                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-lg text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
                       >
                         <X className="w-4 h-4" />
                       </button>

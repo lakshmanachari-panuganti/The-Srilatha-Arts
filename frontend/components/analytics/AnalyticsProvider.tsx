@@ -160,7 +160,7 @@ export default function AnalyticsProvider() {
                   type="button"
                   onClick={reject}
                   className="inline-flex items-center justify-center min-h-10 px-4 text-xs font-semibold uppercase
-                             text-ink/75 hover:text-ink rounded-full
+                             text-ink/75 hover:text-ink rounded-lg
                              border border-ink/15 hover:border-ink/30 transition-colors duration-300"
                   style={{ letterSpacing: '0.14em' }}
                   data-track="consent_reject"
@@ -171,7 +171,7 @@ export default function AnalyticsProvider() {
                   type="button"
                   onClick={accept}
                   className="inline-flex items-center justify-center min-h-10 px-5 text-xs font-semibold uppercase
-                             text-white rounded-full transition-colors duration-300"
+                             text-white rounded-lg transition-colors duration-300"
                   style={{
                     letterSpacing: '0.14em',
                     background: 'var(--brand)',

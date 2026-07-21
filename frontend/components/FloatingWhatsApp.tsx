@@ -50,7 +50,7 @@ export default function FloatingWhatsApp() {
         hasStickyCartBar
           ? 'bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-8'
           : 'bottom-[calc(1rem+env(safe-area-inset-bottom))] lg:bottom-8',
-        'rounded-full text-white',
+        'rounded-lg text-white',
         'transition-all duration-500',
         visible ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none',
         'hover:scale-105 active:scale-95',
@@ -66,7 +66,7 @@ export default function FloatingWhatsApp() {
           the global rule in globals.css that flattens animation durations. */}
       <span
         aria-hidden
-        className="absolute inset-0 rounded-full animate-glow-pulse"
+        className="absolute inset-0 rounded-lg animate-glow-pulse"
         style={{
           background:
             'radial-gradient(circle at center, rgba(37,211,102,0.45) 0%, transparent 70%)',

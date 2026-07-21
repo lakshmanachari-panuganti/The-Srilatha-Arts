@@ -571,7 +571,7 @@ function ReturnPanels({
           <button
             onClick={() => setShowDecline(true)}
             disabled={busy}
-            className="text-sm h-10 px-5 rounded-full border border-red-300 text-red-700 hover:bg-red-50 inline-flex items-center gap-2 disabled:opacity-60"
+            className="text-sm h-10 px-5 rounded-lg border border-red-300 text-red-700 hover:bg-red-50 inline-flex items-center gap-2 disabled:opacity-60"
           >
             <XCircle className="w-4 h-4" /> Decline return
           </button>
@@ -694,7 +694,7 @@ function DeclineReturnModal({
         />
         <p className="text-xs text-ink-mute mt-1">{value.length}/500</p>
         <div className="flex justify-end gap-2 mt-5">
-          <button onClick={onCancel} disabled={busy} className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60">Cancel</button>
+          <button onClick={onCancel} disabled={busy} className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60">Cancel</button>
           <button onClick={onConfirm} disabled={busy} className="btn-dark text-sm h-10 px-5 disabled:opacity-60">
             {busy ? 'Working…' : 'Decline return'}
           </button>
@@ -736,7 +736,7 @@ function IssueRefundModal({
         />
         <p className="text-xs text-ink-mute mt-1">Max ₹{orderTotal} (the order total). Partial refunds are allowed.</p>
         <div className="flex justify-end gap-2 mt-5">
-          <button onClick={onCancel} disabled={busy} className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60">Cancel</button>
+          <button onClick={onCancel} disabled={busy} className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60">Cancel</button>
           <button onClick={onConfirm} disabled={busy} className="btn-dark text-sm h-10 px-5 disabled:opacity-60">
             {busy ? 'Working…' : `Refund ₹${value}`}
           </button>
@@ -797,7 +797,7 @@ function AddInternalNote({ orderId, onAdded }: { orderId: string; onAdded: () =>
       <div className="flex justify-end gap-2 mt-2">
         <button
           onClick={() => { setOpen(false); setNote(''); setErr('') }}
-          className="h-8 px-3 text-xs rounded-md text-ink-soft hover:text-ink"
+          className="h-8 px-3 text-xs rounded-lg text-ink-soft hover:text-ink"
         >
           Cancel
         </button>
@@ -818,7 +818,7 @@ function AddInternalNote({ orderId, onAdded }: { orderId: string; onAdded: () =>
             }
           }}
           disabled={busy}
-          className="h-8 px-3 text-xs rounded-md bg-lavender text-white font-medium disabled:opacity-50 hover:bg-lavender/90"
+          className="h-8 px-3 text-xs rounded-lg bg-lavender text-white font-medium disabled:opacity-50 hover:bg-lavender/90"
         >
           {busy ? 'Adding…' : 'Add note'}
         </button>
@@ -1172,14 +1172,14 @@ function NotificationsPanel({
                 href={downloadHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs px-3 py-1.5 rounded-md border border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5 inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg border border-ink/15 text-ink-soft hover:text-ink hover:bg-white/5 inline-flex items-center gap-1.5 transition-colors"
               >
                 <Mail className="w-3.5 h-3.5" aria-hidden /> View
               </a>
               <a
                 href={downloadHref}
                 download={`invoice-${order.id}.pdf`}
-                className="text-xs px-3 py-1.5 rounded-md bg-lavender text-white font-medium hover:bg-lavender/90 inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-lg bg-lavender text-white font-medium hover:bg-lavender/90 inline-flex items-center gap-1.5 transition-colors"
               >
                 Download
               </a>
@@ -1209,7 +1209,7 @@ function NotificationsPanel({
           type="button"
           onClick={resendEmail}
           disabled={!isPaid || busyEmail || !order.customerEmail}
-          className={`text-xs px-3 py-2 rounded-md border inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${BUTTON_TONE_CLASSES[emailInfo.tone]}`}
+          className={`text-xs px-3 py-2 rounded-lg border inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${BUTTON_TONE_CLASSES[emailInfo.tone]}`}
           title={!order.customerEmail ? 'No customer email on file' : `Delivery status: ${emailInfo.label}`}
           aria-label={`Resend email (currently ${emailInfo.label})`}
         >
@@ -1220,7 +1220,7 @@ function NotificationsPanel({
           type="button"
           onClick={resendWhatsApp}
           disabled={!isPaid || busyWa || !order.customerPhone}
-          className={`text-xs px-3 py-2 rounded-md border inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${BUTTON_TONE_CLASSES[waInfo.tone]}`}
+          className={`text-xs px-3 py-2 rounded-lg border inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${BUTTON_TONE_CLASSES[waInfo.tone]}`}
           title={!order.customerPhone ? 'No customer phone on file' : `Delivery status: ${waInfo.label}`}
           aria-label={`Resend WhatsApp (currently ${waInfo.label})`}
         >

@@ -167,7 +167,7 @@ export default function ProductDetailClient() {
       <div className="max-w-6xl mx-auto px-5 pt-20 text-center">
         <h1 className="font-serif text-3xl text-ink mb-4">Product not found</h1>
         <p className="text-ink-soft mb-8">This product may have been removed or the link is incorrect.</p>
-        <Link href="/shop" className="inline-flex h-11 px-6 items-center rounded-full bg-lavender text-white text-sm font-medium hover:bg-lavender/90 transition-colors">
+        <Link href="/shop" className="inline-flex h-11 px-6 items-center rounded-lg bg-lavender text-white text-sm font-medium hover:bg-lavender/90 transition-colors">
           Browse the shop
         </Link>
       </div>
@@ -257,7 +257,7 @@ export default function ProductDetailClient() {
             <div className="hidden sm:flex flex-col gap-2 shrink-0 pt-1">
               <Link
                 href={`/custom-order?source=${encodeURIComponent(p.id)}&intent=gift`}
-                className="inline-flex items-center gap-2 h-9 px-4 rounded-full text-xs font-medium transition-all duration-300 hover:-translate-y-px hover:bg-accent/5 active:scale-[0.98] whitespace-nowrap"
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-lg text-xs font-medium transition-all duration-300 hover:-translate-y-px hover:bg-accent/5 active:scale-[0.98] whitespace-nowrap"
                 style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
               >
                 <Gift className="w-3.5 h-3.5 shrink-0" aria-hidden />
@@ -265,7 +265,7 @@ export default function ProductDetailClient() {
               </Link>
               <Link
                 href={`/custom-order?source=${encodeURIComponent(p.id)}`}
-                className="inline-flex items-center gap-2 h-9 px-4 rounded-full text-xs font-medium transition-all duration-300 hover:-translate-y-px hover:bg-accent/5 active:scale-[0.98] whitespace-nowrap"
+                className="inline-flex items-center gap-2 h-9 px-4 rounded-lg text-xs font-medium transition-all duration-300 hover:-translate-y-px hover:bg-accent/5 active:scale-[0.98] whitespace-nowrap"
                 style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
               >
                 <Pencil className="w-3.5 h-3.5 shrink-0" aria-hidden />
@@ -277,7 +277,7 @@ export default function ProductDetailClient() {
           <div className="sm:hidden flex gap-2 mb-4">
             <Link
               href={`/custom-order?source=${encodeURIComponent(p.id)}&intent=gift`}
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-all duration-300 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-300 active:scale-[0.98]"
               style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
             >
               <Gift className="w-3 h-3 shrink-0" aria-hidden />
@@ -285,7 +285,7 @@ export default function ProductDetailClient() {
             </Link>
             <Link
               href={`/custom-order?source=${encodeURIComponent(p.id)}`}
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-all duration-300 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-300 active:scale-[0.98]"
               style={{ border: '1.5px solid var(--accent)', color: 'var(--accent)' }}
             >
               <Pencil className="w-3 h-3 shrink-0" aria-hidden />
@@ -431,7 +431,7 @@ export default function ProductDetailClient() {
           {canReview && !showForm && !formSuccess && (
             <button
               onClick={() => setShowForm(true)}
-              className="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
             >
               <MessageSquare className="w-4 h-4" aria-hidden />
               Write a review
@@ -508,13 +508,13 @@ export default function ProductDetailClient() {
               <button
                 onClick={submitReview}
                 disabled={formLoading || !formBody.trim()}
-                className="h-10 px-6 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors"
+                className="h-10 px-6 rounded-lg bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors"
               >
                 {formLoading ? 'Submitting…' : 'Submit review'}
               </button>
               <button
                 onClick={() => { setShowForm(false); setFormError('') }}
-                className="h-10 px-5 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
+                className="h-10 px-5 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep transition-colors"
               >
                 Cancel
               </button>

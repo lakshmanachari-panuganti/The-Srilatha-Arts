@@ -297,7 +297,7 @@ export default function InvoiceClient() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+            className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
           >
             <Printer className="w-4 h-4" aria-hidden />
             Print

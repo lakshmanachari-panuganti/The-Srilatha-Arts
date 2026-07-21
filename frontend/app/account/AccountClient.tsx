@@ -203,7 +203,7 @@ export default function AccountClient() {
           <div className="lg:hidden pt-3">
             <button
               onClick={async () => { await logout(); router.replace('/') }}
-              className="w-full text-sm font-medium text-rose-700 inline-flex items-center justify-center gap-2 h-11 rounded-full border border-rose-300 bg-white/60 hover:bg-rose-50"
+              className="w-full text-sm font-medium text-rose-700 inline-flex items-center justify-center gap-2 h-11 rounded-lg border border-rose-300 bg-white/60 hover:bg-rose-50"
             >
               <LogOut className="w-4 h-4" aria-hidden /> Sign out
             </button>
@@ -229,7 +229,7 @@ function SideTab({
       <button
         onClick={onClick}
         aria-current={active ? 'page' : undefined}
-        className={`whitespace-nowrap flex items-center gap-3 px-4 lg:px-3 py-2.5 text-sm rounded-full lg:rounded-lg transition-colors ${
+        className={`whitespace-nowrap flex items-center gap-3 px-4 lg:px-3 py-2.5 text-sm rounded-lg transition-colors ${
           active
             ? 'bg-lavender text-white lg:bg-cream-deep lg:text-ink font-medium'
             : 'bg-cream-deep/60 text-ink-soft hover:text-ink lg:bg-transparent'
@@ -425,7 +425,7 @@ function OrderCard({
           {canCancel && (
             <a
               href={`tel:${CONTACT.phoneTel}`}
-              className="text-sm h-10 px-4 rounded-full border border-blue-400/60 text-blue-400 hover:bg-blue-950/40 inline-flex items-center gap-2"
+              className="text-sm h-10 px-4 rounded-lg border border-blue-400/60 text-blue-400 hover:bg-blue-950/40 inline-flex items-center gap-2"
             >
               <Phone className="w-4 h-4" aria-hidden />
               Customer support
@@ -434,7 +434,7 @@ function OrderCard({
           {canReturn && (
             <button
               onClick={() => setShowReturn(true)}
-              className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+              className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
             >
               Request a return
             </button>
@@ -487,7 +487,7 @@ function InvoiceDownloadButton({ order }: { order: OrderSummary }) {
   return (
     <Link
       href={`/account/invoices/${order.id}`}
-      className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+      className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
     >
       <FileText className="w-4 h-4" aria-hidden />
       Receipt
@@ -611,7 +611,7 @@ function CancelOrderModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
+            className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
           >
             Keep order
           </button>
@@ -619,7 +619,7 @@ function CancelOrderModal({
             type="button"
             onClick={submit}
             disabled={busy}
-            className="text-sm h-10 px-5 rounded-full bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-60"
+            className="text-sm h-10 px-5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-60"
           >
             {busy ? 'Cancelling…' : 'Cancel order'}
           </button>
@@ -749,7 +749,7 @@ function ReturnRequestModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
+            className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep disabled:opacity-60"
           >
             Cancel
           </button>
@@ -972,7 +972,7 @@ function AddressesTab() {
             </button>
             <button
               onClick={() => { setAdding(false); setEditingId(null); setForm(emptyAddress()); setError('') }}
-              className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep"
+              className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep"
             >
               Cancel
             </button>

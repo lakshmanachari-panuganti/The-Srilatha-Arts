@@ -225,7 +225,7 @@ export default function SystemDiagnosticsCard() {
           type="button"
           onClick={() => qc.invalidateQueries({ queryKey: ['admin-diagnostics'] })}
           disabled={isFetching}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-ink/20 text-xs font-medium text-ink hover:bg-white/5 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-ink/20 text-xs font-medium text-ink hover:bg-white/5 disabled:opacity-50 transition-colors"
         >
           {isFetching ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

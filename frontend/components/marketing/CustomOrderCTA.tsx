@@ -128,7 +128,7 @@ export default function CustomOrderCTA() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 min-w-[14rem] h-[2.875rem] px-6
-                         rounded-full font-semibold text-white
+                         rounded-lg font-semibold text-white
                          bg-[#25D366] hover:bg-[#1ebe5b]
                          shadow-[0_0_24px_rgba(37,211,102,0.45)] hover:shadow-[0_0_36px_rgba(37,211,102,0.65)]
                          transition-all duration-300"

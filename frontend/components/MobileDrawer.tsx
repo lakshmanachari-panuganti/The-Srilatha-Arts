@@ -111,7 +111,7 @@ export default function MobileDrawer() {
                     href="/login"
                     onClick={close}
                     className="text-[11px] uppercase tracking-[0.15em] text-ivory hover:text-lavender-pastel
-                               transition-colors duration-300 border border-white/15 rounded-full
+                               transition-colors duration-300 border border-white/15 rounded-lg
                                px-3 h-8 inline-flex items-center"
                   >
                     Sign in
@@ -241,7 +241,7 @@ export default function MobileDrawer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={close}
-                className="w-full inline-flex items-center justify-center gap-2.5 h-12 rounded-full
+                className="w-full inline-flex items-center justify-center gap-2.5 h-12 rounded-lg
                            text-white font-medium text-sm tracking-wide
                            transition-transform duration-200 active:scale-[0.98]"
                 style={{

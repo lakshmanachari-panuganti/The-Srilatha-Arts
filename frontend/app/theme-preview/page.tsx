@@ -280,7 +280,7 @@ export default function ThemePreviewPage() {
         <div className="flex items-center gap-3">
           <a
             href="/"
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-5 py-2.5 rounded-full text-xs font-bold tracking-widest uppercase text-slate-200 hover:text-white transition-all shadow-md"
+            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-5 py-2.5 rounded-lg text-xs font-bold tracking-widest uppercase text-slate-200 hover:text-white transition-all shadow-md"
           >
             <span>Visit live site</span>
             <ExternalLink className="h-4 w-4" />
@@ -312,7 +312,7 @@ export default function ThemePreviewPage() {
                   <button
                     key={theme.id}
                     onClick={() => setActiveTheme(theme)}
-                    className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 relative ${
+                    className={`w-full text-left p-5 rounded-lg border transition-all duration-300 relative ${
                       isActive 
                         ? 'bg-purple-950/20 border-purple-500/60 shadow-inner' 
                         : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 hover:bg-slate-900/30'
@@ -413,10 +413,10 @@ export default function ThemePreviewPage() {
               <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Live Preview Sandbox</span>
             </div>
 
-            <div className="flex bg-slate-950 p-1 rounded-full border border-slate-800">
+            <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
               <button
                 onClick={() => setViewportMode('desktop')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition-all ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${
                   viewportMode === 'desktop' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -425,7 +425,7 @@ export default function ThemePreviewPage() {
               </button>
               <button
                 onClick={() => setViewportMode('mobile')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition-all ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${
                   viewportMode === 'mobile' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -544,13 +544,13 @@ export default function ThemePreviewPage() {
                     {/* CTAs */}
                     <div className="flex flex-wrap items-center justify-center gap-3.5">
                       <button 
-                        className="px-8 py-3 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        className="px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-white shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
                         style={{ backgroundColor: 'var(--brand)' }}
                       >
                         Explore shop
                       </button>
                       <button 
-                        className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider border hover:bg-slate-50/5 transition-all"
+                        className="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-wider border hover:bg-slate-50/5 transition-all"
                         style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
                       >
                         Custom Order
@@ -574,7 +574,7 @@ export default function ThemePreviewPage() {
                     {['Resin Art', 'Lippan Mirrors', 'Dot Mandalas', 'Wedding Decor'].map((cat, idx) => (
                       <span 
                         key={idx} 
-                        className="px-5 py-2 text-xs rounded-full border font-semibold shrink-0 cursor-pointer transition-colors shadow-sm"
+                        className="px-5 py-2 text-xs rounded-lg border font-semibold shrink-0 cursor-pointer transition-colors shadow-sm"
                         style={{ 
                           backgroundColor: idx === 0 ? 'var(--brand)' : 'var(--surface-raised)',
                           color: idx === 0 ? '#FFFFFF' : 'var(--text)',
@@ -641,7 +641,7 @@ export default function ThemePreviewPage() {
                       <div className="flex justify-between items-center border-t border-dashed pt-4" style={{ borderColor: 'var(--border)' }}>
                         <span className="font-mono font-bold text-base" style={{ color: 'var(--text)' }}>₹2,499</span>
                         <button 
-                          className="p-2 rounded-full hover:scale-105 transition-all text-white shadow"
+                          className="p-2 rounded-lg hover:scale-105 transition-all text-white shadow"
                           style={{ backgroundColor: 'var(--brand)' }}
                         >
                           <ShoppingBag className="h-4.5 w-4.5" />
@@ -704,7 +704,7 @@ export default function ThemePreviewPage() {
                           <span className="font-mono text-[11px] line-through text-slate-500" style={{ color: 'var(--text-muted)' }}>₹1,999</span>
                         </div>
                         <button 
-                          className="p-2 rounded-full hover:scale-105 transition-all text-white shadow"
+                          className="p-2 rounded-lg hover:scale-105 transition-all text-white shadow"
                           style={{ backgroundColor: 'var(--brand)' }}
                         >
                           <ShoppingBag className="h-4.5 w-4.5" />
@@ -726,7 +726,7 @@ export default function ThemePreviewPage() {
                     </p>
                   </div>
                   <button 
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white hover:scale-102 active:scale-98 transition-all shrink-0 shadow-md"
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold text-white hover:scale-102 active:scale-98 transition-all shrink-0 shadow-md"
                     style={{ backgroundColor: '#128C7E' }} // WhatsApp Green
                   >
                     <MessageCircle className="h-4 w-4 fill-white" />

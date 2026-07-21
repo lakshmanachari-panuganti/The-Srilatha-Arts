@@ -115,7 +115,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onWish}
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={inWishlist}
-            className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full
+            className="absolute top-2.5 right-2.5 w-9 h-9 rounded-lg
                        flex items-center justify-center
                        bg-slate-950/75 backdrop-blur border border-white/10
                        text-ivory-soft hover:text-blue hover:border-blue/50
@@ -137,7 +137,7 @@ export default function ProductCard({ product, variant = 'grid', priority = fals
             onClick={onAdd}
             disabled={!product.inStock}
             aria-label={`Add ${product.title} to cart`}
-            className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full
+            className="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-lg
                        flex items-center justify-center text-white
                        bg-gradient-to-br from-blue to-indigo
                        shadow-lavender-glow

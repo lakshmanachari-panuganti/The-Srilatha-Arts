@@ -215,7 +215,7 @@ export default function CartPage() {
                   {item.category.replace('-', ' ')} · {item.size}
                 </p>
                 <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="flex items-center h-10 rounded-full border border-ink/15 bg-paper">
+                  <div className="flex items-center h-10 rounded-lg border border-ink/15 bg-paper">
                     <button
                       onClick={() => setQty(item.productId, item.quantity - 1)}
                       aria-label="Decrease quantity"
@@ -347,13 +347,13 @@ export default function CartPage() {
                       onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
                       onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
                       placeholder="Coupon code"
-                      className="w-full pl-8 pr-3 h-10 rounded-full border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+                      className="w-full pl-8 pr-3 h-10 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
                     />
                   </div>
                   <button
                     onClick={applyCoupon}
                     disabled={couponLoading || !couponInput.trim()}
-                    className="h-10 px-4 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors whitespace-nowrap"
+                    className="h-10 px-4 rounded-lg bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors whitespace-nowrap"
                   >
                     {couponLoading ? '…' : 'Apply'}
                   </button>

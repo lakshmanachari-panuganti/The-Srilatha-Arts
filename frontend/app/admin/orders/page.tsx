@@ -368,14 +368,14 @@ export default function AdminOrdersPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1.5 rounded-md border border-ink/10 disabled:opacity-40 hover:bg-paper transition-colors"
+                  className="px-3 py-1.5 rounded-lg border border-ink/10 disabled:opacity-40 hover:bg-paper transition-colors"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-3 py-1.5 rounded-md border border-ink/10 disabled:opacity-40 hover:bg-paper transition-colors"
+                  className="px-3 py-1.5 rounded-lg border border-ink/10 disabled:opacity-40 hover:bg-paper transition-colors"
                 >
                   Next
                 </button>

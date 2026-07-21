@@ -156,7 +156,7 @@ export default function AdminNotificationsPage() {
         <button
           type="button"
           onClick={() => refetch()}
-          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full border border-ink/15 text-xs font-medium text-ink hover:bg-lavender-pastel/10 transition-colors"
+          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-ink/15 text-xs font-medium text-ink hover:bg-lavender-pastel/10 transition-colors"
         >
           <RotateCw className="w-3.5 h-3.5" aria-hidden />
           Refresh

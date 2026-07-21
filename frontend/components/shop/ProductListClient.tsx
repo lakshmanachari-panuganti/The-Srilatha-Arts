@@ -43,7 +43,7 @@ function GridErrorState({ onRetry }: { onRetry: () => void }) {
         type="button"
         onClick={onRetry}
         className="inline-flex items-center justify-center min-h-10 px-5 text-xs font-semibold uppercase
-                   text-white rounded-full bg-gradient-to-br from-blue to-indigo
+                   text-white rounded-lg bg-gradient-to-br from-blue to-indigo
                    hover:from-blue-strong hover:to-indigo-strong
                    shadow-lavender-glow transition-colors duration-300"
         style={{ letterSpacing: '0.14em' }}

@@ -131,7 +131,7 @@ export default function Footer() {
                   placeholder="your@email.com"
                   aria-label="Email address"
                   autoComplete="email"
-                  className="w-full h-12 pl-11 pr-4 rounded-full
+                  className="w-full h-12 pl-11 pr-4 rounded-lg
                              bg-plum-light text-ivory placeholder:text-ivory-mute
                              border border-white/10 hover:border-white/20
                              focus:border-blue focus:ring-4 focus:ring-blue/20 focus:outline-none
@@ -345,7 +345,7 @@ function SocialLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="min-w-10 min-h-10 rounded-full flex items-center justify-center
+      className="min-w-10 min-h-10 rounded-lg flex items-center justify-center
                  text-ivory-soft hover:text-blue
                  bg-white/[0.04] border border-white/10 hover:border-blue/50
                  hover:shadow-[0_0_16px_rgba(59,130,246,0.30)]

@@ -292,7 +292,7 @@ function ShippingSection() {
               </button>
               <button
                 onClick={() => { setEffective(base); setLabel('') }}
-                className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep"
+                className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep"
               >
                 Remove discount
               </button>

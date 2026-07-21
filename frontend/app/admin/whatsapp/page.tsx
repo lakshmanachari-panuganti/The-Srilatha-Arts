@@ -465,7 +465,7 @@ export default function WhatsAppInbox() {
               placeholder="Search phone, name, message…"
               // text-base (16px) on mobile prevents iOS Safari from zooming
               // the whole layout when the search input is tapped.
-              className="w-full pl-8 pr-3 py-2 lg:py-1.5 text-base lg:text-sm bg-plum border border-white/10 rounded-md text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent"
+              className="w-full pl-8 pr-3 py-2 lg:py-1.5 text-base lg:text-sm bg-plum border border-white/10 rounded-lg text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent"
             />
           </div>
         </div>
@@ -556,7 +556,7 @@ export default function WhatsAppInbox() {
                     type="button"
                     onClick={goBackToList}
                     aria-label="Back to inbox"
-                    className="lg:hidden -ml-1 w-10 h-10 inline-flex items-center justify-center rounded-full hover:bg-white/5 active:bg-white/10 text-ink shrink-0 touch-manipulation"
+                    className="lg:hidden -ml-1 w-10 h-10 inline-flex items-center justify-center rounded-lg hover:bg-white/5 active:bg-white/10 text-ink shrink-0 touch-manipulation"
                   >
                     <ArrowLeft className="w-5 h-5" />
                   </button>
@@ -679,13 +679,13 @@ export default function WhatsAppInbox() {
                     // text-base (16px) on mobile prevents iOS Safari from
                     // auto-zooming when the input is focused (Apple zooms
                     // anything smaller than 16px font-size).
-                    className="flex-1 resize-none text-base lg:text-sm bg-plum border border-white/10 rounded-2xl lg:rounded-md px-3.5 py-2.5 lg:py-2 text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent disabled:opacity-60 max-h-[40dvh] overflow-y-auto"
+                    className="flex-1 resize-none text-base lg:text-sm bg-plum border border-white/10 rounded-lg px-3.5 py-2.5 lg:py-2 text-ink placeholder:text-ink-mute focus:outline-none focus:ring-1 focus:ring-lavender focus:border-transparent disabled:opacity-60 max-h-[40dvh] overflow-y-auto"
                   />
                   <button
                     type="submit"
                     disabled={sending || !replyText.trim()}
                     aria-label="Send reply"
-                    className="inline-flex items-center justify-center gap-1.5 h-11 lg:h-9 w-11 lg:w-auto lg:px-4 rounded-full lg:rounded-md bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0 touch-manipulation"
+                    className="inline-flex items-center justify-center gap-1.5 h-11 lg:h-9 w-11 lg:w-auto lg:px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0 touch-manipulation"
                   >
                     {sending ? (
                       <Loader2 className="w-5 h-5 lg:w-4 lg:h-4 animate-spin" />
