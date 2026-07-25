@@ -25,6 +25,8 @@ env:
   WORKING_DIRECTORY: backend
   AZURE_FUNCTIONAPP_NAME: func-thesrilathaarts-dev
   AZURE_RESOURCE_GROUP: rg-thesrilathaarts-dev
+  AZURE_STORAGE_ACCOUNT: stthesrilathaartsdev
+  FALLBACK_BLOB_CONTAINER: function-releases
 
 jobs:
   build-and-deploy:
@@ -76,31 +78,165 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Ensure RunFromPackage=1 (idempotent)
-        # Belt-and-braces: assert local-mount mode so a stray Portal edit
-        # can't silently flip us back to a SAS-URL value. No-op if already 1.
+      - name: Ensure RunFromPackage=1 (auto-correct if drifted)
+        # Read the current value. If it's already '1' (the happy path),
+        # DO NOTHING — this is critical because `az functionapp config
+        # appsettings set` triggers an app restart even for identical
+        # values, and the immediate deploy step then races the SCM
+        # restart. The observed race caused Kudu 503 on 2026-07-19
+        # (runs 29690267463, 29679506562).
+        #
+        # If the value has drifted (e.g. a prior emergency fallback
+        # deploy left it on a SAS URL), write '1' and sleep long enough
+        # for the SCM restart to fully settle before the deploy step.
         if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
+          CURRENT=$(az functionapp config appsettings list \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_FUNCTIONAPP_NAME" \
+            --query "[?name=='WEBSITE_RUN_FROM_PACKAGE'].value | [0]" \
+            --output tsv)
+          if [ "$CURRENT" = "1" ]; then
+            echo "WEBSITE_RUN_FROM_PACKAGE=1 verified (no write needed)."
+          else
+            echo "WEBSITE_RUN_FROM_PACKAGE is '$CURRENT' — auto-correcting to '1' (triggers restart)"
+            az functionapp config appsettings set \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --name "$AZURE_FUNCTIONAPP_NAME" \
+              --settings "WEBSITE_RUN_FROM_PACKAGE=1" \
+              --output none
+            echo "Waiting 120s for app + SCM to stabilise post-restart..."
+            sleep 120
+          fi
+
+      - name: Deploy to Azure Functions (Kudu ZipDeploy via AAD/OIDC)
+        # PRIMARY path — the canonical config-zip deploy that everyone
+        # expects. Uses the Kudu ZipDeploy endpoint at
+        # {name}.scm.azurewebsites.net/api/zipdeploy over the AAD token
+        # from OIDC login (no SCM basic auth, no publish profile).
+        # Requires the CI SP's `Website Contributor` role on the FA.
+        #
+        # Retry on transient failures. Kudu occasionally returns 503
+        # while scaling or during SCM cold-start. Three attempts with
+        # exponential backoff (5s → 30s → 90s) cover the common failure
+        # window.
+        #
+        # `continue-on-error: true` because the SAS-URL fallback below
+        # is the safety net when SCM is genuinely stuck. The workflow
+        # only fails if BOTH paths fail (enforced by the final Verify
+        # deploy outcome step).
+        id: primary_deploy
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          attempt=1
+          max_attempts=3
+          delay=5
+          while :; do
+            echo "Deploy attempt $attempt of $max_attempts..."
+            if az functionapp deployment source config-zip \
+                 --resource-group "$AZURE_RESOURCE_GROUP" \
+                 --name "$AZURE_FUNCTIONAPP_NAME" \
+                 --src "$RUNNER_TEMP/deploy.zip"; then
+              echo "Primary deploy succeeded on attempt $attempt"
+              exit 0
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "::warning::Primary deploy failed after $max_attempts attempts — falling back to SAS-URL path"
+              exit 1
+            fi
+            echo "Attempt $attempt failed; sleeping ${delay}s before retry..."
+            sleep "$delay"
+            delay=$((delay * 6))
+            attempt=$((attempt + 1))
+          done
+
+      - name: Fallback deploy via WEBSITE_RUN_FROM_PACKAGE=<SAS URL>
+        # FALLBACK path — only runs if the primary config-zip retries
+        # all failed. Bypasses Kudu entirely by uploading the zip to
+        # blob storage and pointing WEBSITE_RUN_FROM_PACKAGE at a short-
+        # lived user-delegation SAS URL. The Function App downloads
+        # from blob storage and reloads without touching SCM.
+        #
+        # Documented in project_scm_outage_workaround memory. Requires
+        # the CI SP's `Storage Blob Data Contributor` role on the
+        # `function-releases` container in the target storage account.
+        #
+        # After this fallback fires, WEBSITE_RUN_FROM_PACKAGE is a URL
+        # (not '1'). The next workflow run's `Ensure RunFromPackage=1`
+        # step above auto-corrects it back once SCM is stable.
+        id: fallback_deploy
+        if: >
+          github.event_name != 'pull_request' &&
+          steps.primary_deploy.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          BLOB_NAME="ci-$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_SHA:0:7}.zip"
+          echo "Uploading zip to blob: $BLOB_NAME"
+          az storage blob upload \
+            --account-name "$AZURE_STORAGE_ACCOUNT" \
+            --container-name "$FALLBACK_BLOB_CONTAINER" \
+            --file "$RUNNER_TEMP/deploy.zip" \
+            --name "$BLOB_NAME" \
+            --auth-mode login \
+            --overwrite true \
+            --output none
+
+          EXPIRY=$(date -u -d "+2 hours" +%Y-%m-%dT%H:%MZ)
+          echo "Generating user-delegation SAS (expires $EXPIRY)"
+          SAS=$(az storage blob generate-sas \
+            --account-name "$AZURE_STORAGE_ACCOUNT" \
+            --container-name "$FALLBACK_BLOB_CONTAINER" \
+            --name "$BLOB_NAME" \
+            --permissions r \
+            --expiry "$EXPIRY" \
+            --auth-mode login \
+            --as-user \
+            --https-only \
+            --output tsv)
+          URL="https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${FALLBACK_BLOB_CONTAINER}/${BLOB_NAME}?${SAS}"
+
+          echo "Setting WEBSITE_RUN_FROM_PACKAGE to blob SAS URL"
+          # ::add-mask:: keeps the SAS out of any subsequent log line.
+          echo "::add-mask::$SAS"
+          echo "::add-mask::$URL"
           az functionapp config appsettings set \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_FUNCTIONAPP_NAME" \
-            --settings "WEBSITE_RUN_FROM_PACKAGE=1" \
+            --settings "WEBSITE_RUN_FROM_PACKAGE=$URL" \
             --output none
 
-      - name: Deploy to Azure Functions (Kudu ZipDeploy via AAD/OIDC)
-        # OneDeploy (`az functionapp deploy --type zip`) is not supported
-        # on Linux Consumption plans and returns "This API isn't available
-        # in this environment yet". `az functionapp deployment source
-        # config-zip` uses the Kudu ZipDeploy endpoint which IS supported
-        # on Linux Consumption and works over the AAD token from OIDC
-        # login (no SCM basic auth, no publish profile). Requires the CI
-        # SP's `Website Contributor` role on the Function App.
-        if: github.event_name != 'pull_request'
+          echo "Waiting for app to download + reload (up to 180s)..."
+          for i in $(seq 1 12); do
+            sleep 15
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${AZURE_FUNCTIONAPP_NAME}.azurewebsites.net/api/health")
+            echo "t+$((i*15))s: /api/health = $CODE"
+            if [ "$CODE" = "200" ]; then
+              echo "Fallback deploy succeeded"
+              exit 0
+            fi
+          done
+          echo "::error::Fallback deploy: /api/health did not return 200 within 180s"
+          exit 1
+
+      - name: Verify deploy outcome
+        # Fails the job only if BOTH primary and fallback paths failed.
+        # If either succeeded, the app is running the newly-deployed code.
+        if: github.event_name != 'pull_request' && always()
         run: |
           set -euo pipefail
-          az functionapp deployment source config-zip \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "$AZURE_FUNCTIONAPP_NAME" \
-            --src "$RUNNER_TEMP/deploy.zip"
-          echo "Deploy succeeded"
+          PRIMARY="${{ steps.primary_deploy.outcome }}"
+          FALLBACK="${{ steps.fallback_deploy.outcome }}"
+          echo "primary=$PRIMARY fallback=$FALLBACK"
+          if [ "$PRIMARY" = "success" ]; then
+            echo "Deploy succeeded via primary (config-zip)."
+            exit 0
+          fi
+          if [ "$FALLBACK" = "success" ]; then
+            echo "::warning::Deploy succeeded via SAS-URL fallback. WEBSITE_RUN_FROM_PACKAGE is on a SAS URL — the next workflow run will auto-correct back to '1' once SCM is stable. Investigate SCM health."
+            exit 0
+          fi
+          echo "::error::Both deploy paths failed."
+          exit 1

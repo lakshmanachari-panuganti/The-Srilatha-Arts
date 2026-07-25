@@ -199,11 +199,18 @@ $queueNames = @(
 )
 
 # ── B.4  Blob containers ─────────────────────────────────────────────
+# `products` and `categories` are legitimately public — customer product
+# images are served anonymously by the storefront. Everything else stays
+# private. Tightened 2026-07-19: `assets` and `branding` were previously
+# 'Blob' (public) but empty and unreferenced from code — a loaded gun
+# waiting for an accidental upload. Now 'Off' by default; if either
+# actually needs public read later, flip the flag here and re-run this
+# script, don't do it in the Portal.
 $blobContainers = @(
     @{ Name = 'products'; PublicAccess = 'Blob' }
     @{ Name = 'categories'; PublicAccess = 'Blob' }
-    @{ Name = 'assets'; PublicAccess = 'Blob' }
-    @{ Name = 'branding'; PublicAccess = 'Blob' }   # logo for invoices / WhatsApp
+    @{ Name = 'assets'; PublicAccess = 'Off' }
+    @{ Name = 'branding'; PublicAccess = 'Off' }
     @{ Name = 'invoices'; PublicAccess = 'Off' }
     @{ Name = 'user-uploads'; PublicAccess = 'Off' }
 )
