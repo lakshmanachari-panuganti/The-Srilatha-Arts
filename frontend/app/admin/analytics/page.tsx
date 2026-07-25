@@ -22,7 +22,7 @@ export default function AdminAnalyticsPage() {
         {STATS.map((stat) => {
           const Icon = stat.icon
           return (
-            <div key={stat.label} className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-5">
+            <div key={stat.label} className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-ink-mute font-medium">{stat.label}</span>
                 <Icon className={`w-4 h-4 ${stat.color}`} />
@@ -36,7 +36,7 @@ export default function AdminAnalyticsPage() {
 
       {/* Placeholder charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-6">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-6">
           <h2 className="font-serif text-lg text-ink mb-4">Revenue Trend</h2>
           <div className="h-48 flex items-center justify-center text-ink-mute text-sm border-2 border-dashed border-ink/10 rounded-lg">
             <div className="text-center">
@@ -45,7 +45,7 @@ export default function AdminAnalyticsPage() {
             </div>
           </div>
         </div>
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-6">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-6">
           <h2 className="font-serif text-lg text-ink mb-4">Orders by Status</h2>
           <div className="h-48 flex items-center justify-center text-ink-mute text-sm border-2 border-dashed border-ink/10 rounded-lg">
             <div className="text-center">
@@ -58,14 +58,14 @@ export default function AdminAnalyticsPage() {
 
       {/* Top Products / Category breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-6">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-6">
           <h2 className="font-serif text-lg text-ink mb-4">Top Selling Products</h2>
           <div className="text-center py-8 text-ink-mute text-sm">
             <Star className="w-8 h-8 mx-auto mb-2 opacity-30" />
             <p>Sales data will appear after the first orders</p>
           </div>
         </div>
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-6">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-6">
           <h2 className="font-serif text-lg text-ink mb-4">Revenue by Category</h2>
           <div className="text-center py-8 text-ink-mute text-sm">
             <Ticket className="w-8 h-8 mx-auto mb-2 opacity-30" />

@@ -32,6 +32,8 @@ const BOOTSTRAP_PATHS = [
   '/api/auth/logout',
   '/api/auth/admin/logout',
   '/api/auth/csrf',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
 ]
 
 const EXEMPT_METHODS = ['GET', 'HEAD', 'OPTIONS']

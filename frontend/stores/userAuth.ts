@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { apiFetch, ApiError, setApiAuthToken } from '@/lib/api'
 import { useWishlist } from '@/stores/wishlist'
 import { useCart } from '@/stores/cart'
+import { recordSessionStart, clearSessionRecord } from '@/lib/sessionManager'
 
 // Side-effect runner - pulls the server cart + wishlist after auth state
 // is known so the user sees their cross-device saved pieces immediately.
@@ -33,6 +34,10 @@ interface UserAuthState {
   isLoading: boolean
   error: string | null
   needsProfileSetup: boolean
+  // True once SessionGuard has confirmed the current session with the server.
+  // Stays false between page-load and the first /auth/me response so that
+  // the header doesn't flash a stale-localStorage user before validation.
+  sessionVerified: boolean
 
   loginWithGoogle: (credential: string) => Promise<{ needsProfileSetup: boolean } | null>
   loginWithEmail: (email: string, password: string) => Promise<boolean>
@@ -41,6 +46,7 @@ interface UserAuthState {
   logout: () => Promise<void>
   clearError: () => void
   _setUser: (user: AuthUser, token: string) => void
+  _setSessionVerified: (verified: boolean) => void
 }
 
 export const useUserAuth = create<UserAuthState>()(
@@ -51,6 +57,7 @@ export const useUserAuth = create<UserAuthState>()(
       isLoading: false,
       error: null,
       needsProfileSetup: false,
+      sessionVerified: false,
 
       loginWithGoogle: async (credential: string) => {
         set({ isLoading: true, error: null })
@@ -64,12 +71,14 @@ export const useUserAuth = create<UserAuthState>()(
             body: { credential },
           })
           setApiAuthToken(res.token)
+          recordSessionStart()
           set({
             user: res.user,
             token: res.token,
             needsProfileSetup: res.needsProfileSetup,
             isLoading: false,
             error: null,
+            sessionVerified: true,
           })
           syncUserDataAfterAuth({ mergeLocal: true })
           return { needsProfileSetup: res.needsProfileSetup }
@@ -88,7 +97,8 @@ export const useUserAuth = create<UserAuthState>()(
             body: { email, password },
           })
           setApiAuthToken(res.token)
-          set({ user: res.user, token: res.token, isLoading: false, error: null })
+          recordSessionStart()
+          set({ user: res.user, token: res.token, isLoading: false, error: null, sessionVerified: true })
           syncUserDataAfterAuth({ mergeLocal: true })
           return true
         } catch (err) {
@@ -105,7 +115,8 @@ export const useUserAuth = create<UserAuthState>()(
             body: { name, email, password, phone: phone || undefined },
           })
           setApiAuthToken(res.token)
-          set({ user: res.user, token: res.token, isLoading: false, error: null })
+          recordSessionStart()
+          set({ user: res.user, token: res.token, isLoading: false, error: null, sessionVerified: true })
           syncUserDataAfterAuth({ mergeLocal: true })
           return true
         } catch (err) {
@@ -142,7 +153,8 @@ export const useUserAuth = create<UserAuthState>()(
           // best-effort
         }
         setApiAuthToken(null)
-        set({ user: null, token: null, needsProfileSetup: false, error: null })
+        clearSessionRecord()
+        set({ user: null, token: null, needsProfileSetup: false, error: null, sessionVerified: true })
         // Clear local cart + wishlist so the next user on the same browser
         // doesn't inherit the previous user's items. Spec: "When a user
         // signs out, the Cart and Wishlist UI should be cleared
@@ -160,6 +172,8 @@ export const useUserAuth = create<UserAuthState>()(
         setApiAuthToken(token)
         set({ user, token, needsProfileSetup: false })
       },
+
+      _setSessionVerified: (verified: boolean) => set({ sessionVerified: verified }),
     }),
     {
       name: 'tsa-user-auth',
@@ -170,12 +184,16 @@ export const useUserAuth = create<UserAuthState>()(
       // meant any XSS could exfiltrate it — see security audit item C1.
       partialize: (s) => ({ user: s.user }),
       onRehydrateStorage: () => (state) => {
-        if (state?.user) {
-          // After page reload, pull the latest server wishlist for the
-          // restored session so the heart icons reflect cross-device state.
-          // The auth cookie carries the session; no in-memory token needed.
-          syncUserDataAfterAuth()
+        if (!state?.user) {
+          // No persisted user — mark verified immediately so the header
+          // renders the logged-out state without waiting for a network call.
+          useUserAuth.setState({ sessionVerified: true })
+          return
         }
+        // User was found in localStorage. Keep sessionVerified=false so the
+        // header shows a neutral state until SessionGuard confirms the session
+        // cookie is still valid via GET /api/auth/me. The cart/wishlist sync
+        // fires after that check succeeds (see SessionGuard).
       },
     },
   ),

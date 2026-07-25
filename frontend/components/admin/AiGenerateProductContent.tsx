@@ -232,7 +232,7 @@ export default function AiGenerateProductContent({
         <div
           role="dialog"
           aria-modal="false"
-          className="w-full max-w-sm rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+          className="w-full max-w-sm rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
         >
           <p className="font-medium mb-1">Some fields already contain data.</p>
           <p className="text-amber-900/80 mb-3">
@@ -242,14 +242,14 @@ export default function AiGenerateProductContent({
             <button
               type="button"
               onClick={() => setStatus('idle')}
-              className="h-8 px-3 text-xs rounded-md text-amber-900 hover:bg-amber-100"
+              className="h-8 px-3 text-xs rounded-lg text-amber-900 hover:bg-amber-100"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={callApi}
-              className="h-8 px-3 text-xs rounded-md bg-amber-700 text-white font-medium hover:bg-amber-800"
+              className="h-8 px-3 text-xs rounded-lg bg-amber-700 text-white font-medium hover:bg-amber-800"
             >
               Replace Content
             </button>

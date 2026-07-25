@@ -160,13 +160,13 @@ export default function AdminReviewsPage() {
       {/* Review Cards */}
       <div className="space-y-4">
         {loading && (
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
             <p className="text-ink-soft text-sm">Loading reviews…</p>
           </div>
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
             <MessageSquare className="w-8 h-8 text-ink-mute mx-auto mb-3" />
             <p className="text-ink font-medium mb-1">No reviews found</p>
             <p className="text-sm text-ink-soft">Try adjusting your filters.</p>
@@ -182,7 +182,7 @@ export default function AdminReviewsPage() {
           return (
             <div
               key={review.id}
-              className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 hover:border-lavender/30 transition-colors"
+              className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6 hover:border-lavender/30 transition-colors"
             >
               {/* Header */}
               <div className="flex items-start justify-between gap-3 mb-3">

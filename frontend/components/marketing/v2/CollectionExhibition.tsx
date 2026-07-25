@@ -549,7 +549,7 @@ export default function CollectionExhibition() {
         disabled={active === 0}
         aria-label="Previous collection"
         className="hidden lg:flex absolute left-4 top-1/2 -translate-y-1/2 z-[5]
-                   w-11 h-11 items-center justify-center rounded-full
+                   w-11 h-11 items-center justify-center rounded-lg
                    bg-white text-ink border border-ink/12
                    shadow-card hover:shadow-editorial
                    transition-all duration-500
@@ -565,7 +565,7 @@ export default function CollectionExhibition() {
         disabled={active === COLLECTIONS.length - 1}
         aria-label="Next collection"
         className="hidden lg:flex absolute right-4 top-1/2 -translate-y-1/2 z-[5]
-                   w-11 h-11 items-center justify-center rounded-full
+                   w-11 h-11 items-center justify-center rounded-lg
                    bg-white text-ink border border-ink/12
                    shadow-card hover:shadow-editorial
                    transition-all duration-500

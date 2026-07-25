@@ -280,7 +280,7 @@ export default function ThemePreviewPage() {
         <div className="flex items-center gap-3">
           <a
             href="/"
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-5 py-2.5 rounded-full text-xs font-bold tracking-widest uppercase text-slate-200 hover:text-white transition-all shadow-md"
+            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-5 py-2.5 rounded-lg text-xs font-bold tracking-widest uppercase text-slate-200 hover:text-white transition-all shadow-md"
           >
             <span>Visit live site</span>
             <ExternalLink className="h-4 w-4" />
@@ -295,7 +295,7 @@ export default function ThemePreviewPage() {
         <section className="lg:col-span-5 flex flex-col gap-8">
           
           {/* 1. Theme Selector Grid */}
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 backdrop-blur-xl shadow-lg relative overflow-hidden">
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-lg p-6 backdrop-blur-xl shadow-lg relative overflow-hidden">
             <div className="absolute top-0 right-0 p-3 opacity-10">
               <Sparkles className="h-20 w-20 text-purple-400" />
             </div>
@@ -312,7 +312,7 @@ export default function ThemePreviewPage() {
                   <button
                     key={theme.id}
                     onClick={() => setActiveTheme(theme)}
-                    className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 relative ${
+                    className={`w-full text-left p-5 rounded-lg border transition-all duration-300 relative ${
                       isActive 
                         ? 'bg-purple-950/20 border-purple-500/60 shadow-inner' 
                         : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 hover:bg-slate-900/30'
@@ -324,7 +324,7 @@ export default function ThemePreviewPage() {
                         {isActive && <span className="h-2.5 w-2.5 bg-purple-400 rounded-full animate-pulse" />}
                       </span>
                       {/* Mini Swatch Ribbon */}
-                      <div className="flex gap-1 bg-slate-950/80 p-1.5 rounded-full border border-slate-800">
+                      <div className="flex gap-1 bg-slate-950/80 p-1.5 rounded-md border border-slate-800">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.colors.surface }} />
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.colors.brand }} />
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.colors.accent }} />
@@ -339,11 +339,11 @@ export default function ThemePreviewPage() {
           </div>
 
           {/* 2. Color Swatch Matrix */}
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 backdrop-blur-xl shadow-lg">
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-lg p-6 backdrop-blur-xl shadow-lg">
             <h2 className="text-lg font-bold text-white mb-4 border-b border-slate-800/50 pb-3">Theme Swatches</h2>
             <div className="grid grid-cols-2 gap-4">
               {Object.entries(activeTheme.colors).map(([key, value]) => (
-                <div key={key} className="bg-slate-950/60 border border-slate-800/40 rounded-xl p-3 flex items-center gap-3">
+                <div key={key} className="bg-slate-950/60 border border-slate-800/40 rounded-lg p-3 flex items-center gap-3">
                   <span 
                     className="w-10 h-10 rounded-lg shrink-0 border border-slate-800 flex items-center justify-center text-xs font-mono font-bold shadow-sm"
                     style={{ 
@@ -360,7 +360,7 @@ export default function ThemePreviewPage() {
             </div>
 
             {/* Contrast and Accessibility Warning */}
-            <div className="mt-5 p-4 bg-purple-950/20 border border-purple-900/30 rounded-2xl text-xs text-purple-300 flex items-start gap-2.5">
+            <div className="mt-5 p-4 bg-purple-950/20 border border-purple-900/30 rounded-lg text-xs text-purple-300 flex items-start gap-2.5">
               <Info className="h-4 w-4 shrink-0 text-purple-400 mt-0.5" />
               <div>
                 <span className="font-semibold block mb-1">Contrast & Usage Advice:</span>
@@ -370,13 +370,13 @@ export default function ThemePreviewPage() {
           </div>
 
           {/* 3. CSS Variable Copy Block */}
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 backdrop-blur-xl shadow-lg flex-1 flex flex-col justify-between">
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-lg p-6 backdrop-blur-xl shadow-lg flex-1 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-lg font-bold text-white">CSS Variables</h2>
                 <button
                   onClick={() => copyToClipboard(getCssVariableBlock(activeTheme), 'css-var')}
-                  className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-purple-300 hover:text-purple-200 px-3.5 py-2 rounded-xl border border-slate-700 transition-all"
+                  className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-purple-300 hover:text-purple-200 px-3.5 py-2 rounded-lg border border-slate-700 transition-all"
                 >
                   {copiedId === 'css-var' ? (
                     <>
@@ -396,7 +396,7 @@ export default function ThemePreviewPage() {
                 <code className="text-slate-300 font-mono"> app/globals.css</code> file to retheme the entire website.
               </p>
             </div>
-            <pre className="text-[11px] font-mono text-purple-200 bg-slate-950 p-4 rounded-2xl overflow-x-auto max-h-52 border border-slate-800 scrollbar-thin">
+            <pre className="text-[11px] font-mono text-purple-200 bg-slate-950 p-4 rounded-lg overflow-x-auto max-h-52 border border-slate-800 scrollbar-thin">
               {getCssVariableBlock(activeTheme)}
             </pre>
           </div>
@@ -407,16 +407,16 @@ export default function ThemePreviewPage() {
         <section className="lg:col-span-7 flex flex-col gap-6">
           
           {/* Viewport Control Bar */}
-          <div className="flex items-center justify-between bg-slate-900/40 border border-slate-800/80 rounded-full px-6 py-3.5 backdrop-blur-xl shadow-lg">
+          <div className="flex items-center justify-between bg-slate-900/40 border border-slate-800/80 rounded-lg px-6 py-3.5 backdrop-blur-xl shadow-lg">
             <div className="flex items-center gap-2.5">
               <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Live Preview Sandbox</span>
             </div>
 
-            <div className="flex bg-slate-950 p-1 rounded-full border border-slate-800">
+            <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-800">
               <button
                 onClick={() => setViewportMode('desktop')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition-all ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${
                   viewportMode === 'desktop' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -425,7 +425,7 @@ export default function ThemePreviewPage() {
               </button>
               <button
                 onClick={() => setViewportMode('mobile')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition-all ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${
                   viewportMode === 'mobile' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -439,7 +439,7 @@ export default function ThemePreviewPage() {
           <div className="w-full flex justify-center items-start">
             <div 
               className={`w-full overflow-hidden transition-all duration-500 border border-slate-800/60 shadow-2xl relative ${
-                viewportMode === 'mobile' ? 'max-w-[390px] rounded-[36px] min-h-[740px]' : 'max-w-full rounded-[24px] min-h-[640px]'
+                viewportMode === 'mobile' ? 'max-w-[390px] rounded-lg min-h-[740px]' : 'max-w-full rounded-lg min-h-[640px]'
               }`}
               style={{ 
                 backgroundColor: 'var(--surface)', 
@@ -544,13 +544,13 @@ export default function ThemePreviewPage() {
                     {/* CTAs */}
                     <div className="flex flex-wrap items-center justify-center gap-3.5">
                       <button 
-                        className="px-8 py-3 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        className="px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-white shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
                         style={{ backgroundColor: 'var(--brand)' }}
                       >
                         Explore shop
                       </button>
                       <button 
-                        className="px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider border hover:bg-slate-50/5 transition-all"
+                        className="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-wider border hover:bg-slate-50/5 transition-all"
                         style={{ borderColor: 'var(--border)', color: 'var(--text)' }}
                       >
                         Custom Order
@@ -574,7 +574,7 @@ export default function ThemePreviewPage() {
                     {['Resin Art', 'Lippan Mirrors', 'Dot Mandalas', 'Wedding Decor'].map((cat, idx) => (
                       <span 
                         key={idx} 
-                        className="px-5 py-2 text-xs rounded-full border font-semibold shrink-0 cursor-pointer transition-colors shadow-sm"
+                        className="px-5 py-2 text-xs rounded-lg border font-semibold shrink-0 cursor-pointer transition-colors shadow-sm"
                         style={{ 
                           backgroundColor: idx === 0 ? 'var(--brand)' : 'var(--surface-raised)',
                           color: idx === 0 ? '#FFFFFF' : 'var(--text)',
@@ -592,7 +592,7 @@ export default function ThemePreviewPage() {
                   {/* Product Card 1: Resin Coasters */}
                   <div 
                     onMouseMove={handleMouseMove}
-                    className="border rounded-[28px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group cursor-pointer relative"
+                    className="border rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group cursor-pointer relative"
                     style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
                   >
                     
@@ -617,13 +617,13 @@ export default function ThemePreviewPage() {
 
                       {/* Floating Sticker badge */}
                       <span 
-                        className="absolute top-4 left-4 px-3 py-1.5 text-[9px] uppercase font-extrabold text-white rounded-full tracking-widest shadow"
+                        className="absolute top-4 left-4 px-3 py-1.5 text-[9px] uppercase font-extrabold text-white rounded-md tracking-widest shadow"
                         style={{ backgroundColor: 'var(--brand)' }}
                       >
                         Best seller
                       </span>
 
-                      <span className="relative text-xs font-serif font-bold text-white drop-shadow-md border border-white/20 bg-black/40 backdrop-blur-md px-3.5 py-2 rounded-xl">
+                      <span className="relative text-xs font-serif font-bold text-white drop-shadow-md border border-white/20 bg-black/40 backdrop-blur-md px-3.5 py-2 rounded-lg">
                         Epoxy Ocean Platter
                       </span>
                     </div>
@@ -641,7 +641,7 @@ export default function ThemePreviewPage() {
                       <div className="flex justify-between items-center border-t border-dashed pt-4" style={{ borderColor: 'var(--border)' }}>
                         <span className="font-mono font-bold text-base" style={{ color: 'var(--text)' }}>₹2,499</span>
                         <button 
-                          className="p-2 rounded-full hover:scale-105 transition-all text-white shadow"
+                          className="p-2 rounded-lg hover:scale-105 transition-all text-white shadow"
                           style={{ backgroundColor: 'var(--brand)' }}
                         >
                           <ShoppingBag className="h-4.5 w-4.5" />
@@ -652,7 +652,7 @@ export default function ThemePreviewPage() {
 
                   {/* Product Card 2: Lippan Art */}
                   <div 
-                    className="border rounded-[28px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group cursor-pointer"
+                    className="border rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 group cursor-pointer"
                     style={{ backgroundColor: 'var(--surface-raised)', borderColor: 'var(--border)' }}
                   >
                     {/* Simulated Lippan Mirror Art illustration */}
@@ -677,7 +677,7 @@ export default function ThemePreviewPage() {
 
                       {/* Discount sticker */}
                       <span 
-                        className="absolute top-4 left-4 px-3 py-1.5 text-[9px] uppercase font-extrabold text-slate-950 rounded-full tracking-widest shadow"
+                        className="absolute top-4 left-4 px-3 py-1.5 text-[9px] uppercase font-extrabold text-slate-950 rounded-md tracking-widest shadow"
                         style={{ backgroundColor: 'var(--accent)' }}
                       >
                         15% OFF
@@ -704,7 +704,7 @@ export default function ThemePreviewPage() {
                           <span className="font-mono text-[11px] line-through text-slate-500" style={{ color: 'var(--text-muted)' }}>₹1,999</span>
                         </div>
                         <button 
-                          className="p-2 rounded-full hover:scale-105 transition-all text-white shadow"
+                          className="p-2 rounded-lg hover:scale-105 transition-all text-white shadow"
                           style={{ backgroundColor: 'var(--brand)' }}
                         >
                           <ShoppingBag className="h-4.5 w-4.5" />
@@ -715,7 +715,7 @@ export default function ThemePreviewPage() {
                 </div>
 
                 {/* 6. Custom Inquiry Banner */}
-                <div className="mx-6 mt-10 p-6 rounded-[28px] border flex flex-col md:flex-row md:items-center justify-between gap-5 transition-colors shadow-sm"
+                <div className="mx-6 mt-10 p-6 rounded-lg border flex flex-col md:flex-row md:items-center justify-between gap-5 transition-colors shadow-sm"
                      style={{ backgroundColor: 'var(--surface-sunken)', borderColor: 'var(--border)' }}>
                   <div>
                     <h5 className="text-sm font-bold tracking-tight mb-1" style={{ color: 'var(--text)' }}>
@@ -726,7 +726,7 @@ export default function ThemePreviewPage() {
                     </p>
                   </div>
                   <button 
-                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white hover:scale-102 active:scale-98 transition-all shrink-0 shadow-md"
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold text-white hover:scale-102 active:scale-98 transition-all shrink-0 shadow-md"
                     style={{ backgroundColor: '#128C7E' }} // WhatsApp Green
                   >
                     <MessageCircle className="h-4 w-4 fill-white" />
@@ -744,7 +744,7 @@ export default function ThemePreviewPage() {
       </main>
 
       {/* LOWER SECTION: AI Prompts Generator */}
-      <section className="max-w-7xl mx-auto mt-16 bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-lg relative z-10">
+      <section className="max-w-7xl mx-auto mt-16 bg-slate-900/40 border border-slate-800/80 rounded-lg p-6 md:p-8 backdrop-blur-xl shadow-lg relative z-10">
         <div className="flex items-center gap-3 mb-4 border-b border-slate-800/50 pb-4">
           <Sparkles className="h-6 w-6 text-purple-400" />
           <h2 className="text-xl md:text-2xl font-bold text-white font-serif">
@@ -759,7 +759,7 @@ export default function ThemePreviewPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Prompt Card 1: Midjourney */}
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between shadow">
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-6 flex flex-col justify-between shadow">
             <div>
               <div className="flex justify-between items-start mb-4">
                 <span className="text-xs font-bold text-purple-400 uppercase tracking-widest bg-purple-950/50 border border-purple-800/50 px-2.5 py-1 rounded">
@@ -784,7 +784,7 @@ export default function ThemePreviewPage() {
           </div>
 
           {/* Prompt Card 2: DALL-E 3 */}
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between shadow">
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-6 flex flex-col justify-between shadow">
             <div>
               <div className="flex justify-between items-start mb-4">
                 <span className="text-xs font-bold text-blue-400 uppercase tracking-widest bg-blue-950/50 border border-blue-800/50 px-2.5 py-1 rounded">
@@ -809,7 +809,7 @@ export default function ThemePreviewPage() {
           </div>
 
           {/* Prompt Card 3: v0 / Claude UI */}
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between shadow">
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-lg p-6 flex flex-col justify-between shadow">
             <div>
               <div className="flex justify-between items-start mb-4">
                 <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest bg-emerald-950/50 border border-emerald-800/50 px-2.5 py-1 rounded">

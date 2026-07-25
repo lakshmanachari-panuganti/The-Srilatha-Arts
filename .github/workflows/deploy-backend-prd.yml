@@ -72,9 +72,9 @@ jobs:
 
       - name: Ensure RunFromPackage=1 (auto-correct if drifted)
         # Happy path: no-op read (WEBSITE_RUN_FROM_PACKAGE already '1').
-        # Drift path: reset to '1' + 120s sleep to let the app-restart
-        # settle before the deploy step touches SCM. Drift happens when
-        # a prior fallback deploy (below) left the setting on a SAS URL.
+        # Drift path: reset to '1' then poll /api/health until the restart
+        # is confirmed before ZipDeploy runs. A fixed sleep was insufficient
+        # (root cause of 409 Conflict on ZipDeploy after drift-correction).
         run: |
           set -euo pipefail
           CURRENT=$(az functionapp config appsettings list \
@@ -91,8 +91,16 @@ jobs:
               --name "$AZURE_FUNCTIONAPP_NAME" \
               --settings "WEBSITE_RUN_FROM_PACKAGE=1" \
               --output none
-            echo "Waiting 120s for app + SCM to stabilise post-restart..."
-            sleep 120
+            echo "Polling /api/health until restart completes (up to 300s)..."
+            SETTLED=false
+            for i in $(seq 1 20); do
+              sleep 15
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+                "https://${AZURE_FUNCTIONAPP_NAME}.azurewebsites.net/api/health" 2>/dev/null || echo "000")
+              echo "  t+$((i*15))s → /api/health = $CODE"
+              if [ "$CODE" = "200" ]; then SETTLED=true; break; fi
+            done
+            $SETTLED || echo "::warning::App did not return 200 within 300s — ZipDeploy may still fail"
           fi
 
       - name: Deploy to Azure Functions (Kudu ZipDeploy via AAD/OIDC)
@@ -133,19 +141,17 @@ jobs:
             attempt=$((attempt + 1))
           done
 
-      - name: Fallback deploy via WEBSITE_RUN_FROM_PACKAGE=<SAS URL>
+      - name: Fallback deploy via WEBSITE_RUN_FROM_PACKAGE=<blob URL>
         # FALLBACK path — runs only if primary retries all failed.
-        # Bypasses Kudu entirely by uploading the zip to blob storage
-        # and pointing WEBSITE_RUN_FROM_PACKAGE at a short-lived user-
-        # delegation SAS URL. See project_scm_outage_workaround memory.
+        # Bypasses Kudu entirely: uploads the zip to blob storage and sets
+        # WEBSITE_RUN_FROM_PACKAGE to the plain blob URL. The function app's
+        # system-assigned managed identity (Storage Blob Data Owner on
+        # stthesrilathaartsprd) authenticates the download — no SAS token,
+        # no expiry, no secrets in app settings or CI logs.
         #
-        # Requires the CI SP's `Storage Blob Data Contributor` role on
-        # the `function-releases` container AND `Storage Blob Delegator`
-        # on the storage account (for generateUserDelegationKey).
-        #
-        # After this fires, WEBSITE_RUN_FROM_PACKAGE is a URL (not '1').
-        # The next workflow run's `Ensure RunFromPackage=1` step above
-        # auto-corrects it back once SCM is stable.
+        # After this fires, WEBSITE_RUN_FROM_PACKAGE is a blob URL (not '1').
+        # The next run's "Ensure RunFromPackage=1" step above auto-corrects
+        # it back once SCM is stable.
         id: fallback_deploy
         if: steps.primary_deploy.outcome == 'failure'
         run: |
@@ -161,23 +167,8 @@ jobs:
             --overwrite true \
             --output none
 
-          EXPIRY=$(date -u -d "+2 hours" +%Y-%m-%dT%H:%MZ)
-          echo "Generating user-delegation SAS (expires $EXPIRY)"
-          SAS=$(az storage blob generate-sas \
-            --account-name "$AZURE_STORAGE_ACCOUNT" \
-            --container-name "$FALLBACK_BLOB_CONTAINER" \
-            --name "$BLOB_NAME" \
-            --permissions r \
-            --expiry "$EXPIRY" \
-            --auth-mode login \
-            --as-user \
-            --https-only \
-            --output tsv)
-          URL="https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${FALLBACK_BLOB_CONTAINER}/${BLOB_NAME}?${SAS}"
-
-          echo "Setting WEBSITE_RUN_FROM_PACKAGE to blob SAS URL"
-          echo "::add-mask::$SAS"
-          echo "::add-mask::$URL"
+          URL="https://${AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/${FALLBACK_BLOB_CONTAINER}/${BLOB_NAME}"
+          echo "Setting WEBSITE_RUN_FROM_PACKAGE to blob MI URL (no SAS)"
           az functionapp config appsettings set \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_FUNCTIONAPP_NAME" \
@@ -187,7 +178,7 @@ jobs:
           echo "Waiting for app to download + reload (up to 180s)..."
           for i in $(seq 1 12); do
             sleep 15
-            CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${AZURE_FUNCTIONAPP_NAME}.azurewebsites.net/api/health")
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${AZURE_FUNCTIONAPP_NAME}.azurewebsites.net/api/health" 2>/dev/null || echo "000")
             echo "t+$((i*15))s: /api/health = $CODE"
             if [ "$CODE" = "200" ]; then
               echo "Fallback deploy succeeded"
@@ -210,7 +201,7 @@ jobs:
             exit 0
           fi
           if [ "$FALLBACK" = "success" ]; then
-            echo "::warning::Deploy succeeded via SAS-URL fallback. WEBSITE_RUN_FROM_PACKAGE is on a SAS URL — the next workflow run will auto-correct back to '1' once SCM is stable. Investigate SCM health."
+            echo "::warning::Deploy succeeded via blob MI fallback. WEBSITE_RUN_FROM_PACKAGE is on a blob URL — the next workflow run will auto-correct back to '1' once SCM is stable. Investigate SCM health."
             exit 0
           fi
           echo "::error::Both deploy paths failed."

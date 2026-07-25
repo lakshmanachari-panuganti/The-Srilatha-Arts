@@ -39,10 +39,14 @@ export async function sendVerificationOtp(
   if (!phone) throw new Error('sendVerificationOtp: phone is required')
   if (!code) throw new Error('sendVerificationOtp: code is required')
 
+  // verification_otp_v1 requires body + copy_code button (auth template).
+  // body only → 131008; button only → 132000; both required.
   const result = await sendTemplateMessage({
     toPhone: phone,
     templateName: OTP_TEMPLATE_NAME,
+    languageCode: 'en',
     bodyVariables: [code],
+    otpButton: { code },
   })
   return { messageId: result.messageId, toPhone: result.toPhone }
 }

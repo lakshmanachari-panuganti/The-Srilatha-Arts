@@ -791,6 +791,7 @@ async function sendWhatsAppTemplate(input: SendWhatsAppTemplateInput): Promise<v
     const result = await sendTemplateMessage({
       toPhone: customerPhone,
       templateName: metaTemplateName,
+      languageCode: getTemplate(templateKey)?.whatsappTemplateLanguage ?? 'en',
       bodyVariables: spec.bodyVariables,
       documentHeader: spec.documentHeader,
       urlButton: spec.urlButton,

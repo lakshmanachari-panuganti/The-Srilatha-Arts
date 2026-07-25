@@ -1,6 +1,15 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:7071/api'
 
+// Global handler invoked when any API call returns HTTP 401.
+// SessionGuard registers this to trigger logout when the server rejects
+// a request from a user who the client believes is authenticated.
+type UnauthorizedHandler = () => void
+let _onUnauthorized: UnauthorizedHandler | null = null
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  _onUnauthorized = handler
+}
+
 // Auth tokens injected by the admin/user auth stores at login or on
 // rehydration. Two separate slots - customer and admin - because both
 // stores persist independently and rehydrate asynchronously on every
@@ -153,6 +162,9 @@ export async function apiFetch<T>(path: string, opts: ApiOptions = {}): Promise<
   const parsed = text ? safeJson(text) : null
 
   if (!response.ok) {
+    if (response.status === 401 && _onUnauthorized) {
+      _onUnauthorized()
+    }
     const message =
       (parsed && typeof parsed === 'object' && 'error' in parsed
         ? String((parsed as { error: unknown }).error)

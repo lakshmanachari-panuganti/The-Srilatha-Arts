@@ -18,7 +18,7 @@ function GridSkeleton() {
     <ul className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12 lg:gap-x-7 lg:gap-y-16 px-5 lg:px-8">
       {Array.from({ length: 8 }).map((_, i) => (
         <li key={i} className="animate-pulse">
-          <div className="aspect-square rounded-2xl bg-ink/8 mb-4" />
+          <div className="aspect-square rounded-lg bg-ink/8 mb-4" />
           <div className="h-4 w-3/4 rounded bg-ink/8 mb-2" />
           <div className="h-3 w-1/2 rounded bg-ink/8" />
         </li>
@@ -43,7 +43,7 @@ function GridErrorState({ onRetry }: { onRetry: () => void }) {
         type="button"
         onClick={onRetry}
         className="inline-flex items-center justify-center min-h-10 px-5 text-xs font-semibold uppercase
-                   text-white rounded-full bg-gradient-to-br from-blue to-indigo
+                   text-white rounded-lg bg-gradient-to-br from-blue to-indigo
                    hover:from-blue-strong hover:to-indigo-strong
                    shadow-lavender-glow transition-colors duration-300"
         style={{ letterSpacing: '0.14em' }}

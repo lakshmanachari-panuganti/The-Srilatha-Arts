@@ -83,7 +83,7 @@ export default function PhotoUploader({ value, onChange, max = 5, label, hint }:
               type="button"
               onClick={() => onChange(value.filter((u) => u !== url))}
               aria-label="Remove photo"
-              className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/90 hover:bg-white flex items-center justify-center"
+              className="absolute top-1 right-1 w-5 h-5 rounded-lg bg-white/90 hover:bg-white flex items-center justify-center"
             >
               <X className="w-3 h-3 text-ink" aria-hidden />
             </button>

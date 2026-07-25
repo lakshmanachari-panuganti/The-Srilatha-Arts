@@ -15,7 +15,7 @@ export default function ContactCTA() {
     >
       {/* Deep ink surface — warm espresso so white text is legible */}
       <div
-        className="relative overflow-hidden p-8 sm:p-12 lg:p-20 text-center rounded-4xl shadow-editorial"
+        className="relative overflow-hidden p-8 sm:p-12 lg:p-20 text-center rounded-lg shadow-editorial"
         style={{ background: 'linear-gradient(135deg, #140E08 0%, #1E1710 40%, #2A1E12 70%, #1A1208 100%)' }}
       >
         {/* Gold radial shimmer — subtle warmth at the top */}
@@ -87,7 +87,6 @@ export default function ContactCTA() {
               style={{
                 background: 'linear-gradient(135deg, #16a34a 0%, #0f766e 100%)',
                 boxShadow: '0 4px 20px rgba(16,185,129,0.25)',
-                borderRadius: '24px',
               }}
             >
               <MessageCircle className="w-5 h-5" aria-hidden />
@@ -99,7 +98,6 @@ export default function ContactCTA() {
                          text-white transition-all duration-300"
               style={{
                 border: '1.5px solid rgba(200,150,47,0.35)',
-                borderRadius: '24px',
               }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(200,150,47,0.7)'; (e.currentTarget as HTMLElement).style.background = 'rgba(200,150,47,0.08)' }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(200,150,47,0.35)'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}

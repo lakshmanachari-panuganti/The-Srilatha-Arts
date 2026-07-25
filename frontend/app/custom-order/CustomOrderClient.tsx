@@ -222,8 +222,8 @@ export default function CustomOrderClient() {
           "Customise this art" CTA. Pre-fills artForm + a starter line in
           description + seeds the primary image as a reference photo. */}
       {source && (
-        <div className="mb-8 rounded-2xl border border-glass-border bg-plum-light/30 p-4 flex items-center gap-4">
-          <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-plum-light/50 shrink-0">
+        <div className="mb-8 rounded-lg border border-glass-border bg-plum-light/30 p-4 flex items-center gap-4">
+          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-plum-light/50 shrink-0">
             {source.images?.[0] && (
               <Image
                 src={source.images[0]}
@@ -250,7 +250,7 @@ export default function CustomOrderClient() {
             type="button"
             onClick={clearSource}
             aria-label="Remove reference piece"
-            className="w-9 h-9 rounded-full text-ivory-mute hover:text-ivory hover:bg-white/[0.06]
+            className="w-9 h-9 rounded-lg text-ivory-mute hover:text-ivory hover:bg-white/[0.06]
                        flex items-center justify-center transition-colors"
           >
             <XIcon className="w-4 h-4" aria-hidden />
@@ -268,7 +268,7 @@ export default function CustomOrderClient() {
       {/* ── The form ────────────────────────────────────────── */}
       <form
         onSubmit={submit}
-        className="rounded-2xl border border-glass-border bg-plum-light/30 p-5 lg:p-8 space-y-5"
+        className="rounded-lg border border-glass-border bg-plum-light/30 p-5 lg:p-8 space-y-5"
       >
         <Field label="Your name *">
           <Input value={form.customerName} onChange={on('customerName')} placeholder="Full name" />
@@ -468,7 +468,7 @@ function Info({
   body: string
 }) {
   return (
-    <div className="rounded-2xl border border-glass-border bg-plum-light/20 p-5">
+    <div className="rounded-lg border border-glass-border bg-plum-light/20 p-5">
       <Icon className="w-5 h-5 text-lavender-pastel mb-2" aria-hidden />
       <p className="font-medium text-ivory mb-1">{title}</p>
       <p className="text-sm text-ivory-soft leading-relaxed">{body}</p>

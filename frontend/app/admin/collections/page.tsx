@@ -26,7 +26,7 @@ export default function AdminCollectionsPage() {
         {MOCK_COLLECTIONS.map((col) => (
           <div
             key={col.id}
-            className={`bg-plum-light border rounded-xl p-4 md:p-6 transition-colors ${
+            className={`bg-plum-light border rounded-lg p-4 md:p-6 transition-colors ${
               col.active ? 'border-ink/10 hover:border-lavender/30' : 'border-ink/5 opacity-60'
             }`}
           >

@@ -260,6 +260,8 @@ export interface UserEntity {
   deletedAt?: string
   createdAt: string
   lastLogin: string
+  resetOtpHash?: string
+  resetOtpExpiry?: string
 }
 
 // ─── ADMINS ──────────────────────────────────────────────────

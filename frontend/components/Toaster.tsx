@@ -36,7 +36,7 @@ export default function Toaster() {
           <div
             key={t.id}
             role={t.kind === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto rounded-xl px-4 py-3 border shadow-lg text-sm flex items-start gap-2.5 w-80 ${palette}`}
+            className={`pointer-events-auto rounded-lg px-4 py-3 border shadow-lg text-sm flex items-start gap-2.5 w-80 ${palette}`}
             style={{ background: bg, backdropFilter: 'blur(12px) saturate(140%)', WebkitBackdropFilter: 'blur(12px) saturate(140%)' }}
           >
             <Icon className="w-4 h-4 mt-0.5 shrink-0" aria-hidden />

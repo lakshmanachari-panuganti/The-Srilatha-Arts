@@ -87,7 +87,7 @@ export default function ShopByArtForm() {
             >
               <div>
                 {/* Image Frame */}
-                <div className="relative aspect-[4/3] overflow-hidden mb-3 sm:mb-6 rounded-2xl border border-glass-border">
+                <div className="relative aspect-[4/3] overflow-hidden mb-3 sm:mb-6 rounded-lg border border-glass-border">
                   <PictureImage
                     src={item.image}
                     alt={item.title}

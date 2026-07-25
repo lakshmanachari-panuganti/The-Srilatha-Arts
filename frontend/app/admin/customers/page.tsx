@@ -83,14 +83,14 @@ export default function AdminCustomersPage() {
       </div>
 
       {isLoading && (
-        <div className="bg-plum-light border border-ink/10 rounded-xl p-8 flex items-center justify-center gap-3">
+        <div className="bg-plum-light border border-ink/10 rounded-lg p-8 flex items-center justify-center gap-3">
           <Loader2 className="w-4 h-4 animate-spin text-blue" />
           <span className="text-sm text-ink-soft">Loading customers…</span>
         </div>
       )}
 
       {isError && !isLoading && (
-        <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-6">
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg p-6">
           <p className="text-sm text-rose-200 font-medium">
             Failed to load customers
           </p>
@@ -113,7 +113,7 @@ export default function AdminCustomersPage() {
             return (
               <div
                 key={cust.id}
-                className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-5 hover:border-blue/30 transition-colors"
+                className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-5 hover:border-blue/30 transition-colors"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   {cust.picture ? (
@@ -134,7 +134,7 @@ export default function AdminCustomersPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-medium text-ink truncate">{cust.name}</h3>
                       <span
-                        className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ring-1 ring-inset ${PROVIDER_STYLE[cust.authProvider]}`}
+                        className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md ring-1 ring-inset ${PROVIDER_STYLE[cust.authProvider]}`}
                       >
                         {PROVIDER_LABEL[cust.authProvider]}
                       </span>
@@ -175,7 +175,7 @@ export default function AdminCustomersPage() {
             )
           })}
           {customers.length === 0 && (
-            <div className="bg-plum-light border border-ink/10 rounded-xl p-8 text-center">
+            <div className="bg-plum-light border border-ink/10 rounded-lg p-8 text-center">
               <Users className="w-8 h-8 text-ink-mute mx-auto mb-3" />
               <p className="text-ink font-medium">
                 {debouncedSearch ? 'No customers match your search' : 'No customers yet'}
