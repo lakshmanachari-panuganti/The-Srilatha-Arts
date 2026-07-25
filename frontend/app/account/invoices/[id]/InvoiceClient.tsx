@@ -297,7 +297,7 @@ export default function InvoiceClient() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
+            className="text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep inline-flex items-center gap-2"
           >
             <Printer className="w-4 h-4" aria-hidden />
             Print
@@ -326,7 +326,7 @@ export default function InvoiceClient() {
       {/* Invoice sheet - the only part printed.
           A thin gold hairline at the very top reads as letterhead trim
           on both screen and paper without shouting. */}
-      <article className="invoice-sheet bg-white text-ink rounded-2xl border border-ink/10 shadow-sm overflow-hidden">
+      <article className="invoice-sheet bg-white text-ink rounded-lg border border-ink/10 shadow-sm overflow-hidden">
         <div className="invoice-trim" aria-hidden />
 
         <div className="p-7 sm:p-12">
@@ -384,7 +384,7 @@ export default function InvoiceClient() {
               </div>
               <div className="mt-3 sm:flex sm:justify-end">
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${TONE_CLASSES[badge.tone]}`}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${TONE_CLASSES[badge.tone]}`}
                 >
                   <span
                     className={`inline-block h-1.5 w-1.5 rounded-full ${

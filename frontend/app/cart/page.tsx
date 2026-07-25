@@ -175,7 +175,7 @@ export default function CartPage() {
         {priceChanges.length > 0 && (
           <div
             role="status"
-            className="mt-6 rounded-2xl border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm text-ink"
+            className="mt-6 rounded-lg border border-amber-300/70 bg-amber-50 px-4 py-3 text-sm text-ink"
           >
             <p className="font-semibold mb-1">Prices were updated</p>
             <ul className="space-y-0.5 text-ink-soft">
@@ -195,7 +195,7 @@ export default function CartPage() {
             <li key={item.productId} className="flex gap-4 py-6">
               <Link
                 href={`/product/${item.productId}`}
-                className="relative shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-cream-deep"
+                className="relative shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-cream-deep"
               >
                 <Image
                   src={item.image}
@@ -215,7 +215,7 @@ export default function CartPage() {
                   {item.category.replace('-', ' ')} · {item.size}
                 </p>
                 <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="flex items-center h-10 rounded-full border border-ink/15 bg-paper">
+                  <div className="flex items-center h-10 rounded-lg border border-ink/15 bg-paper">
                     <button
                       onClick={() => setQty(item.productId, item.quantity - 1)}
                       aria-label="Decrease quantity"
@@ -267,7 +267,7 @@ export default function CartPage() {
           <h2 className="font-serif text-2xl text-ink mb-5">Summary</h2>
 
           {toFreeShip > 0 && (
-            <div className="bg-cream-deep rounded-2xl p-4 mb-5 text-sm text-ink">
+            <div className="bg-cream-deep rounded-lg p-4 mb-5 text-sm text-ink">
               Add <strong>{formatINR(toFreeShip)}</strong> more to get free shipping.
               <div className="h-1 rounded-full bg-ink/10 mt-2 overflow-hidden">
                 <div
@@ -327,7 +327,7 @@ export default function CartPage() {
           {/* Coupon input */}
           <div className="mt-5 border-t border-ink/10 pt-5">
             {couponResult ? (
-              <div className="flex items-center justify-between rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm">
+              <div className="flex items-center justify-between rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm">
                 <span className="flex items-center gap-2 text-emerald-700 font-medium">
                   <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden />
                   {couponResult.message}
@@ -347,13 +347,13 @@ export default function CartPage() {
                       onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError('') }}
                       onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
                       placeholder="Coupon code"
-                      className="w-full pl-8 pr-3 h-10 rounded-full border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
+                      className="w-full pl-8 pr-3 h-10 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50"
                     />
                   </div>
                   <button
                     onClick={applyCoupon}
                     disabled={couponLoading || !couponInput.trim()}
-                    className="h-10 px-4 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors whitespace-nowrap"
+                    className="h-10 px-4 rounded-lg bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90 transition-colors whitespace-nowrap"
                   >
                     {couponLoading ? '…' : 'Apply'}
                   </button>

@@ -12,7 +12,7 @@ const JWT_SECRET = (() => {
 const COOKIE_NAME = 'tsa_token'
 
 export function generateToken(payload: TokenPayload, isAdmin = false): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: isAdmin ? '24h' : '7d' })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: isAdmin ? '24h' : '2h' })
 }
 
 export function verifyToken(token: string): TokenPayload | null {
@@ -57,9 +57,12 @@ export function extractTokenFromCookie(cookieHeader?: string | null): string | n
 // the auth cookie on any XHR from the SPA, and the frontend would have to
 // fall back to a JS-readable token in localStorage — the XSS-exfiltration
 // hole C1 exists to close. HttpOnly + Secure remain in force.
-export function buildAuthCookie(token: string, isAdmin = false): string {
-  const maxAge = isAdmin ? 24 * 60 * 60 : 7 * 24 * 60 * 60
-  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=${maxAge}`
+//
+// Session cookie (no Max-Age / Expires): the browser deletes it when the
+// browser session ends (all windows closed). The JWT expiry (2h customer,
+// 24h admin) enforces the absolute server-side timeout independently.
+export function buildAuthCookie(token: string, _isAdmin = false): string {
+  return `${COOKIE_NAME}=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/`
 }
 
 export function buildClearCookie(): string {

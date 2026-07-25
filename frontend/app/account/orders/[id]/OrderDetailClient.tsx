@@ -446,7 +446,7 @@ export default function OrderDetailClient() {
                 {canCancel && (
                   <button
                     onClick={() => setShowCancel(true)}
-                    className="w-full text-sm h-10 px-4 rounded-full border border-rose-300 text-rose-700 hover:bg-rose-50 transition-colors"
+                    className="w-full text-sm h-10 px-4 rounded-lg border border-rose-300 text-rose-700 hover:bg-rose-50 transition-colors"
                   >
                     Cancel this order
                   </button>
@@ -454,7 +454,7 @@ export default function OrderDetailClient() {
                 {canReturn && (
                   <button
                     onClick={() => setShowReturn(true)}
-                    className="w-full text-sm h-10 px-4 rounded-full border border-ink/15 text-ink hover:bg-cream-deep transition-colors"
+                    className="w-full text-sm h-10 px-4 rounded-lg border border-ink/15 text-ink hover:bg-cream-deep transition-colors"
                   >
                     Request a return
                   </button>
@@ -503,7 +503,7 @@ function StatusPill({ status, paymentStatus }: { status: string; paymentStatus: 
         : 'bg-cream-deep text-ink border-ink/15'
   const label = STATUS_LABEL[status] || status
   return (
-    <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-full px-2.5 py-1 ${cls}`}>
+    <span className={`inline-flex items-center text-[11px] tracking-wider uppercase border rounded-md px-2.5 py-1 ${cls}`}>
       {paymentStatus === 'PENDING' ? 'Payment pending' : label}
     </span>
   )
@@ -550,7 +550,7 @@ function Banner({
   const icon = tone === 'emerald' ? CheckCircle2 : AlertCircle
   const Icon = icon
   return (
-    <div className={`mb-6 rounded-xl border px-4 py-3 text-sm ${cls}`}>
+    <div className={`mb-6 rounded-lg border px-4 py-3 text-sm ${cls}`}>
       <p className="font-medium mb-1 flex items-center gap-2">
         <Icon className="w-4 h-4" aria-hidden /> {title}
       </p>
@@ -570,11 +570,11 @@ function ModalShell({
 }) {
   return (
     <div className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-cream-deep flex items-center justify-center"
+          className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-cream-deep flex items-center justify-center"
         >
           <X className="w-4 h-4" aria-hidden />
         </button>
@@ -626,7 +626,7 @@ function CancelModal({
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="w-full h-11 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-4"
+        className="w-full h-11 px-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-4"
       >
         {CANCEL_REASONS.map((r) => (
           <option key={r.code} value={r.code}>{r.label}</option>
@@ -640,20 +640,20 @@ function CancelModal({
         onChange={(e) => setComment(e.target.value)}
         rows={3}
         placeholder="Anything you'd like us to know"
-        className="w-full px-3 py-2 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
+        className="w-full px-3 py-2 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
       {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
         <button
           onClick={onClose}
-          className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep"
+          className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep"
         >
           Keep order
         </button>
         <button
           onClick={submit}
           disabled={busy}
-          className="h-10 px-5 rounded-full bg-rose-700 text-white text-sm font-medium disabled:opacity-50 hover:bg-rose-800"
+          className="h-10 px-5 rounded-lg bg-rose-700 text-white text-sm font-medium disabled:opacity-50 hover:bg-rose-800"
         >
           {busy ? 'Cancelling…' : 'Cancel order'}
         </button>
@@ -723,13 +723,13 @@ function AddressModal({
       </div>
       {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep">
           Cancel
         </button>
         <button
           onClick={submit}
           disabled={busy}
-          className="h-10 px-5 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
+          className="h-10 px-5 rounded-lg bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
         >
           {busy ? 'Saving…' : 'Save address'}
         </button>
@@ -744,7 +744,7 @@ function Input({
   return (
     <input
       {...rest}
-      className={`h-10 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 ${className || ''}`}
+      className={`h-10 px-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink placeholder:text-ink-mute focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 ${className || ''}`}
     />
   )
 }
@@ -788,7 +788,7 @@ function ReturnModal({
       <select
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        className="w-full h-11 px-3 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-3"
+        className="w-full h-11 px-3 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 mb-3"
       >
         {RETURN_REASON_OPTIONS.map((r) => (
           <option key={r.code} value={r.code}>{r.label}</option>
@@ -802,7 +802,7 @@ function ReturnModal({
         onChange={(e) => setComment(e.target.value)}
         rows={3}
         placeholder="Anything that'll help us understand the issue"
-        className="w-full px-3 py-2 rounded-xl border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
+        className="w-full px-3 py-2 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
       <PhotoUploader
         value={photos}
@@ -813,13 +813,13 @@ function ReturnModal({
       />
       {err && <p className="text-xs text-red-600 mb-3 mt-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-full border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep">
           Cancel
         </button>
         <button
           onClick={submit}
           disabled={busy}
-          className="h-10 px-5 rounded-full bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
+          className="h-10 px-5 rounded-lg bg-lavender text-white text-sm font-medium disabled:opacity-50 hover:bg-lavender/90"
         >
           {busy ? 'Submitting…' : 'Submit request'}
         </button>

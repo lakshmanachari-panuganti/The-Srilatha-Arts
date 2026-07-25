@@ -794,7 +794,7 @@ function RevealPlate({
           {/* Drag wings — small dark pill with two gold chevrons */}
           <span
             aria-hidden
-            className="relative inline-flex items-center gap-0.5 px-2.5 py-2 rounded-full
+            className="relative inline-flex items-center gap-0.5 px-2.5 py-2 rounded-lg
                        text-[color:var(--gold-leaf)] transition-all duration-300
                        group-hover:scale-105"
             style={{

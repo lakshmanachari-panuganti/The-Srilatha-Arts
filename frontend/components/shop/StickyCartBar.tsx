@@ -61,7 +61,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
         {/* Qty stepper */}
         <div
           className="flex items-center h-10 sm:h-11 shrink-0"
-          style={{ borderRadius: '24px', border: '1px solid rgba(255,255,255,0.10)' }}
+          style={{ borderRadius: '8px', border: '1px solid rgba(255,255,255,0.10)' }}
         >
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -89,7 +89,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
         <button
           onClick={onAdd}
           disabled={!product.inStock}
-          className="flex-1 h-10 sm:h-11 rounded-full inline-flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
+          className="flex-1 h-10 sm:h-11 rounded-lg inline-flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(148,163,184,0.20)',
@@ -113,7 +113,7 @@ export default function StickyCartBar({ product }: { product: Product }) {
         <button
           onClick={onBuyNow}
           disabled={!product.inStock}
-          className="flex-[1.4] h-10 sm:h-11 rounded-full inline-flex items-center justify-center text-xs sm:text-sm font-semibold disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
+          className="flex-[1.4] h-10 sm:h-11 rounded-lg inline-flex items-center justify-center text-xs sm:text-sm font-semibold disabled:opacity-40 transition-all duration-300 active:scale-[0.98] hover:-translate-y-px"
           style={{
             background: 'var(--accent-gold)',
             color: 'var(--ink-dark)',

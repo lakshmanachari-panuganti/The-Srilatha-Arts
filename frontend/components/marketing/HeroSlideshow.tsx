@@ -85,7 +85,7 @@ export default function HomeHero() {
             <div className="lg:col-span-7 text-center lg:text-left">
               <motion.div {...fade(0.05)}>
                 <span className="inline-flex items-center gap-2 h-8 px-3.5
-                                 rounded-full bg-blue/10 backdrop-blur
+                                 rounded-md bg-blue/10 backdrop-blur
                                  border border-blue/30 text-[12px] font-semibold
                                  text-blue tracking-[0.10em] uppercase
                                  shadow-[0_0_18px_rgba(59,130,246,0.30)]">
@@ -168,11 +168,11 @@ export default function HomeHero() {
                 {/* Glow halo */}
                 <div
                   aria-hidden
-                  className="absolute -inset-6 rounded-[36px]
+                  className="absolute -inset-6 rounded-lg
                              bg-gradient-to-br from-blue/40 via-indigo/25 to-cyan/20
                              blur-3xl"
                 />
-                <div className="relative h-full w-full rounded-[28px] overflow-hidden
+                <div className="relative h-full w-full rounded-lg overflow-hidden
                                 bg-plum-light border border-white/10 shadow-card-hover">
                   <Image
                     src="/Logos/og-cover.jpg"
@@ -182,7 +182,7 @@ export default function HomeHero() {
                     priority
                     className="object-cover"
                   />
-                  <div className="absolute inset-x-3 bottom-3 rounded-2xl
+                  <div className="absolute inset-x-3 bottom-3 rounded-lg
                                   bg-slate-950/75 backdrop-blur-xl
                                   border border-white/10 px-4 py-3 shadow-card">
                     <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-blue">
@@ -195,7 +195,7 @@ export default function HomeHero() {
                 </div>
 
                 {/* Floating stat cards */}
-                <div className="absolute -left-6 top-12 lg:top-20 rounded-2xl
+                <div className="absolute -left-6 top-12 lg:top-20 rounded-lg
                                 bg-plum-light/95 backdrop-blur border border-white/10 shadow-card
                                 px-4 py-3 flex items-center gap-3 animate-float">
                   <span className="grid place-items-center w-9 h-9 rounded-full
@@ -211,7 +211,7 @@ export default function HomeHero() {
                   </div>
                 </div>
 
-                <div className="absolute -right-4 bottom-16 rounded-2xl
+                <div className="absolute -right-4 bottom-16 rounded-lg
                                 bg-plum-light/95 backdrop-blur border border-white/10 shadow-card
                                 px-4 py-3 flex items-center gap-3 animate-float-slow">
                   <span className="grid place-items-center w-9 h-9 rounded-full

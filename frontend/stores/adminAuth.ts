@@ -86,8 +86,8 @@ export const useAdminAuth = create<AdminAuthState>()(
       // request without any JS-readable token. Storing the JWT here
       // previously exposed the admin session to any XSS — see audit C1.
       partialize: (state) => ({ user: state.user }),
-      // No rehydrate hook needed: the auth cookie carries the session and
-      // apiFetch will use it directly on the next admin API call.
+      // SessionGuard verifies the admin cookie via GET /api/auth/me on every
+      // page load and tab focus. No additional hook needed here.
     },
   ),
 )

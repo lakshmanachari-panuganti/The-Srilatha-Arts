@@ -19,7 +19,7 @@
  */
 
 const WA_API_VERSION = process.env.WHATSAPP_API_VERSION || 'v23.0'
-const WA_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en_US'
+const WA_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en'
 
 export function isWhatsAppConfigured(): boolean {
   return Boolean(
@@ -43,11 +43,12 @@ export function normalisePhone(raw: string): string {
 interface TemplateComponent {
   type: 'header' | 'body' | 'button'
   parameters: Array<
-    | { type: 'text'; text: string }
+    | { type: 'text'; text: string; parameter_name?: string }
     | { type: 'document'; document: { link: string; filename?: string } }
+    | { type: 'payload'; payload: string }
   >
   sub_type?: 'url' | 'quick_reply'
-  index?: string
+  index?: number | string
 }
 
 interface SendTemplateOptions {
@@ -55,12 +56,18 @@ interface SendTemplateOptions {
   templateName: string
   /** Body variables in the order they appear as {{1}}, {{2}}, ... */
   bodyVariables: string[]
+  /** Optional parameter_name per body variable for templates created with
+   *  named parameters. Omit for templates that use positional parameters. */
+  bodyParameterNames?: string[]
   /** Optional DOCUMENT header (used to attach the invoice PDF). */
   documentHeader?: { link: string; filename: string }
   /** Optional URL-button parameter. When the template was approved with a
    *  dynamic URL button (e.g. /orders/{{1}}), Meta requires the variable
    *  to be supplied in the send payload — omitting it fails the send. */
   urlButton?: { parameter: string; index?: string }
+  /** Authentication templates with a COPY_CODE OTP button require the OTP
+   *  to be sent as a button payload in addition to the body variable. */
+  otpButton?: { code: string; index?: string }
   /** Optional language override - defaults to WHATSAPP_TEMPLATE_LANGUAGE. */
   languageCode?: string
 }
@@ -142,15 +149,28 @@ export async function sendTemplateMessage(
   if (opts.bodyVariables.length > 0) {
     components.push({
       type: 'body',
-      parameters: opts.bodyVariables.map((v) => ({ type: 'text', text: v })),
+      parameters: opts.bodyVariables.map((v, i) => {
+        const name = opts.bodyParameterNames?.[i]
+        return name ? { type: 'text' as const, text: v, parameter_name: name } : { type: 'text' as const, text: v }
+      }),
     })
   }
   if (opts.urlButton) {
     components.push({
       type: 'button',
       sub_type: 'url',
-      index: opts.urlButton.index || '0',
+      index: opts.urlButton.index ?? 0,
       parameters: [{ type: 'text', text: opts.urlButton.parameter }],
+    })
+  }
+  if (opts.otpButton) {
+    components.push({
+      type: 'button',
+      // Meta models COPY_CODE when creating the authentication template,
+      // but the Messages API sends its OTP button as a URL component.
+      sub_type: 'url',
+      index: opts.otpButton.index ?? 0,
+      parameters: [{ type: 'text', text: opts.otpButton.code }],
     })
   }
 
@@ -189,10 +209,18 @@ export async function sendTemplateMessage(
   if (!res.ok) {
     // The Cloud API error envelope looks like:
     //   { error: { message, type, code, error_subcode, fbtrace_id, error_data: { details } } }
-    const err = (json as { error?: { message?: string; code?: number; error_subcode?: number } }).error
-    const detail = err?.message || 'unknown error'
+    const err = (json as {
+      error?: {
+        message?: string
+        code?: number
+        error_data?: { details?: string }
+        fbtrace_id?: string
+      }
+    }).error
+    const detail = err?.error_data?.details || err?.message || 'unknown error'
     const code = err?.code ?? res.status
-    throw new Error(`[whatsapp] send failed (${code}): ${detail}`)
+    const trace = err?.fbtrace_id ? ` [fbtrace_id: ${err.fbtrace_id}]` : ''
+    throw new Error(`[whatsapp] send failed (${code}): ${detail}${trace}`)
   }
 
   const messageId =

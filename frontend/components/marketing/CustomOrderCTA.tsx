@@ -32,7 +32,7 @@ const steps = [
 export default function CustomOrderCTA() {
   return (
     <section className="px-5 lg:px-8 py-20 sm:py-24 lg:py-32 max-w-container mx-auto">
-      <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-plum-warm/70 backdrop-blur-xl shadow-card">
+      <div className="relative overflow-hidden rounded-lg border border-white/10 bg-plum-warm/70 backdrop-blur-xl shadow-card">
         {/* Aurora wash in the panel */}
         <div
           aria-hidden
@@ -45,7 +45,7 @@ export default function CustomOrderCTA() {
 
         <div className="relative p-8 sm:p-12 lg:p-16">
           <div className="text-center max-w-3xl mx-auto">
-            <span className="inline-flex items-center gap-2 px-3.5 h-8 rounded-full
+            <span className="inline-flex items-center gap-2 px-3.5 h-8 rounded-md
                              bg-blue/10 border border-blue/30
                              text-[12px] font-semibold text-blue tracking-[0.10em] uppercase mb-5
                              shadow-[0_0_18px_rgba(59,130,246,0.25)]">
@@ -87,7 +87,7 @@ export default function CustomOrderCTA() {
                 <motion.div
                   key={s.step}
                   variants={fadeUp}
-                  className="relative z-10 p-6 sm:p-7 rounded-2xl
+                  className="relative z-10 p-6 sm:p-7 rounded-lg
                              bg-plum-light/80 backdrop-blur border border-white/10 shadow-card
                              hover:shadow-card-hover hover:-translate-y-1 hover:border-blue/30
                              transition-all duration-300"
@@ -128,7 +128,7 @@ export default function CustomOrderCTA() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 min-w-[14rem] h-[2.875rem] px-6
-                         rounded-full font-semibold text-white
+                         rounded-lg font-semibold text-white
                          bg-[#25D366] hover:bg-[#1ebe5b]
                          shadow-[0_0_24px_rgba(37,211,102,0.45)] hover:shadow-[0_0_36px_rgba(37,211,102,0.65)]
                          transition-all duration-300"

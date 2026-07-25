@@ -47,7 +47,7 @@ export default function OurStoryTeaser() {
         >
           <div
             className="group relative block w-full aspect-[4/5] overflow-hidden border border-glass-border"
-            style={{ borderRadius: '24px' }}
+            style={{ borderRadius: '8px' }}
           >
             <PictureImage
               src={ART_IMAGE}
@@ -68,7 +68,7 @@ export default function OurStoryTeaser() {
             {/* Studio location badge */}
             <span
               className="absolute bottom-5 left-5 inline-flex items-center gap-2
-                         px-3 py-1.5 rounded-full
+                         px-3 py-1.5 rounded-md
                          bg-black/35 backdrop-blur-md border border-white/15
                          text-[11px] uppercase font-semibold text-ivory"
               style={{ letterSpacing: '0.18em' }}

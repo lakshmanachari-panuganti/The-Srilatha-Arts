@@ -228,9 +228,9 @@ export default function AdminNewProductPage() {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-4">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6 space-y-4">
             <h2 className="font-serif text-lg text-ink">Images</h2>
-            <label className="border-2 border-dashed border-ink/10 rounded-xl p-8 text-center hover:border-lavender/40 transition-colors cursor-pointer block relative">
+            <label className="border-2 border-dashed border-ink/10 rounded-lg p-8 text-center hover:border-lavender/40 transition-colors cursor-pointer block relative">
               <input
                 type="file"
                 multiple
@@ -270,7 +270,7 @@ export default function AdminNewProductPage() {
                             return prev.filter((_, idx) => idx !== i)
                           })
                         }
-                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
+                        className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-lg text-red-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -281,7 +281,7 @@ export default function AdminNewProductPage() {
             )}
           </div>
 
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-5">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6 space-y-5">
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <h2 className="font-serif text-lg text-ink">Basic Information</h2>
               {/* The AI button now ALSO stores the analysed image under
@@ -354,7 +354,7 @@ export default function AdminNewProductPage() {
             </div>
           </div>
 
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-5">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6 space-y-5">
             <h2 className="font-serif text-lg text-ink">Pricing & Stock</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
@@ -372,7 +372,7 @@ export default function AdminNewProductPage() {
             </div>
           </div>
 
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-5">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6 space-y-5">
             <h2 className="font-serif text-lg text-ink">Product Details</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
@@ -409,7 +409,7 @@ export default function AdminNewProductPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-plum-light border border-ink/10 rounded-xl p-4 md:p-6 space-y-4">
+          <div className="bg-plum-light border border-ink/10 rounded-lg p-4 md:p-6 space-y-4">
             <h2 className="font-serif text-lg text-ink">Publish</h2>
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">

@@ -71,7 +71,7 @@ export default function CustomOrdersInboxCard() {
   return (
     <section
       aria-labelledby="custom-orders-inbox-heading"
-      className={`mb-8 rounded-xl border shadow-sm ${
+      className={`mb-8 rounded-lg border shadow-sm ${
         total > 0
           ? 'bg-amber-50 border-amber-200'
           : 'bg-plum-light border-ink/10'
@@ -102,7 +102,7 @@ export default function CustomOrdersInboxCard() {
                 New custom order requests
               </h2>
               {total > 0 && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 ring-1 ring-amber-600/20 text-xs font-semibold px-2 py-0.5">
+                <span className="inline-flex items-center rounded-md bg-amber-100 text-amber-800 ring-1 ring-amber-600/20 text-xs font-semibold px-2 py-0.5">
                   {total} new
                 </span>
               )}

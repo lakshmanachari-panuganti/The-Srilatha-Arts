@@ -80,7 +80,7 @@ export default function NotificationAlertsCard() {
 
   if (isLoading) {
     return (
-      <section className="bg-plum-light border border-ink/10 rounded-xl p-6 mb-8 animate-pulse">
+      <section className="bg-plum-light border border-ink/10 rounded-lg p-6 mb-8 animate-pulse">
         <div className="h-5 w-44 bg-ink/10 rounded mb-3" />
         <div className="h-4 w-72 bg-ink/10 rounded" />
       </section>
@@ -89,7 +89,7 @@ export default function NotificationAlertsCard() {
 
   if (isError) {
     return (
-      <section className="bg-red-50 border border-red-200 rounded-xl p-6 mb-8 text-sm text-red-800">
+      <section className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8 text-sm text-red-800">
         Could not load notification alerts. Refresh the page to retry.
       </section>
     )
@@ -100,7 +100,7 @@ export default function NotificationAlertsCard() {
   if (alerts.length === 0) return null
 
   return (
-    <section className="bg-plum-light border border-ink/10 rounded-xl p-6 mb-8">
+    <section className="bg-plum-light border border-ink/10 rounded-lg p-6 mb-8">
       <header className="flex items-start justify-between gap-4 mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -186,7 +186,7 @@ function AlertRow({
         <div className="mt-3 flex items-center gap-2">
           <Link
             href={`/admin/orders/detail?id=${encodeURIComponent(alert.orderId)}`}
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-ink/15 text-xs font-medium text-ink hover:bg-lavender-pastel/10 transition-colors"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-ink/15 text-xs font-medium text-ink hover:bg-lavender-pastel/10 transition-colors"
           >
             View Order
             <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
@@ -195,7 +195,7 @@ function AlertRow({
             type="button"
             onClick={onAcknowledge}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-ink text-paper text-xs font-medium hover:bg-ink/90 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-ink text-paper text-xs font-medium hover:bg-ink/90 disabled:opacity-50 transition-colors"
           >
             <Check className="w-3.5 h-3.5" aria-hidden />
             {busy ? 'Acknowledging…' : 'Acknowledge'}

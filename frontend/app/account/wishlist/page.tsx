@@ -40,7 +40,7 @@ export default function WishlistPage() {
         {items.map((item) => (
           <li key={item.productId} className="relative">
             <Link href={`/product/${item.productId}`} className="block">
-              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-cream-deep">
+              <div className="relative aspect-[4/5] rounded-lg overflow-hidden bg-cream-deep">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -68,7 +68,7 @@ export default function WishlistPage() {
             <button
               onClick={() => remove(item.productId)}
               aria-label={`Remove ${item.title} from wishlist`}
-              className="absolute top-3 right-3 w-10 h-10 rounded-full
+              className="absolute top-3 right-3 w-10 h-10 rounded-lg
                          bg-cream/90 backdrop-blur-sm shadow-soft
                          flex items-center justify-center text-ink hover:bg-cream"
             >

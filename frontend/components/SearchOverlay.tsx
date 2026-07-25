@@ -82,7 +82,7 @@ export default function SearchOverlay() {
             style={{
               background: '#0F172A',
               border: '1px solid rgba(148, 163, 184, 0.10)',
-              borderRadius: '20px',
+              borderRadius: '8px',
               boxShadow: '0 24px 60px -22px rgba(0, 0, 0, 0.75), 0 0 24px rgba(59, 130, 246, 0.18)',
             }}
             onClick={(e) => e.stopPropagation()}
@@ -138,7 +138,7 @@ export default function SearchOverlay() {
                       <Link
                         href={`/product/${p.id}`}
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 py-3 -mx-2 px-2 transition-colors duration-300 rounded-xl"
+                        className="flex items-center gap-3 py-3 -mx-2 px-2 transition-colors duration-300 rounded-lg"
                         onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(59,130,246,0.10)')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       >
@@ -147,7 +147,7 @@ export default function SearchOverlay() {
                           alt=""
                           width={56}
                           height={56}
-                          className="w-14 h-14 object-contain p-2 rounded-xl"
+                          className="w-14 h-14 object-contain p-2 rounded-lg"
                           style={{
                             background: 'rgba(255,255,255,0.04)',
                             border: '1px solid rgba(148,163,184,0.12)',
