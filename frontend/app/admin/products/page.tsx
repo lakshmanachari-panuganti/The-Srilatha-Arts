@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Plus, Search, Filter, Package, Loader2, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
 import { formatINR, formatDate } from '@/lib/format'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, ApiError } from '@/lib/api'
 import type { Product } from '@/types'
 
 export default function AdminProductsPage() {
@@ -22,7 +22,26 @@ export default function AdminProductsPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await apiFetch<{ products: Product[] }>('/products')
+      // Prefer the admin-only, uncached route. The public /products
+      // response is now cached (browser max-age + an in-process TTL
+      // cache), which would otherwise show a stale list immediately
+      // after saving an edit.
+      //
+      // Falls back to /products if the admin route isn't there yet:
+      // frontend and backend deploy from independent workflows, so on
+      // the release that introduces /admin/products they race. The
+      // fallback makes this page order-independent. Safe to remove once
+      // that release is out on both sides.
+      let res: { products: Product[] }
+      try {
+        res = await apiFetch<{ products: Product[] }>('/admin/products')
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 404) {
+          res = await apiFetch<{ products: Product[] }>('/products')
+        } else {
+          throw e
+        }
+      }
       setProducts(res.products || [])
     } catch (err) {
       setError('Failed to load products from server. Please check the backend connection.')

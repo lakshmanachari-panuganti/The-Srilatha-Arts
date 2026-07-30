@@ -1,5 +1,6 @@
 import { TableClient, odata } from '@azure/data-tables'
 import { DefaultAzureCredential } from '@azure/identity'
+import { randomBytes } from 'crypto'
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
 const credential = new DefaultAzureCredential()
@@ -62,16 +63,110 @@ async function listPaginated(
   return { rows: all.slice(start, start + size), total }
 }
 
+// ─── IN-PROCESS CATALOG CACHE ────────────────────────────────
+//
+// The catalog is read-mostly and changes a few times a week, but every
+// storefront request was performing a full table read, deserialisation
+// and sort inside the function process. This is the cheapest possible
+// fix: no infrastructure, no new service, and it reduces Table Storage
+// transaction cost rather than adding to it.
+//
+// Scope: per-instance, per-cold-start. Two warm instances hold
+// independent copies, so the effective staleness bound is the TTL, not
+// TTL x instances. Writes call invalidateCatalog() so the instance that
+// handled the edit is immediately correct; the rest converge within TTL.
+//
+// Deliberately NOT cached: getProductById. reserveStock reads it to make
+// inventory decisions, and stale stock data oversells one-of-one artwork.
+//
+// Admin reads use the *Uncached variants below — admin traffic is
+// negligible, and a 60s delay after saving an edit reads as "my change
+// didn't save".
+
+const CATALOG_TTL_MS = Number(process.env.CATALOG_CACHE_TTL_MS) || 60_000
+
+/**
+ * Hard ceiling on cache keys.
+ *
+ * Not a tuning knob — a correctness bound. One key is `products:cat:<category>`
+ * and `category` comes straight off the query string of an anonymous endpoint,
+ * so the key space is attacker-controlled. Without a cap, `?category=<random>`
+ * in a loop grows this map by one permanent entry per distinct value until the
+ * process runs out of memory. Expired entries alone don't save us: eviction
+ * only happens on a *read* of that same key, and a random key is never read
+ * twice.
+ *
+ * Real keys number `products:all` plus one per actual category, so anything
+ * above that is headroom. 64 is far past it.
+ */
+const CATALOG_MAX_KEYS = 64
+
+const _catalogCache = new Map<string, { value: Row[]; expiresAt: number }>()
+
+/**
+ * Make room for one new key, evicting expired entries first and falling back
+ * to the oldest survivor. Map iterates in insertion order, so `keys().next()`
+ * is the oldest — good enough here, and a real LRU would need bookkeeping on
+ * every hit to protect a map this small.
+ */
+function evictForInsert(): void {
+  if (_catalogCache.size < CATALOG_MAX_KEYS) return
+
+  const now = Date.now()
+  for (const [k, v] of _catalogCache) {
+    if (v.expiresAt <= now) _catalogCache.delete(k)
+  }
+
+  while (_catalogCache.size >= CATALOG_MAX_KEYS) {
+    const oldest = _catalogCache.keys().next()
+    if (oldest.done) break
+    _catalogCache.delete(oldest.value)
+  }
+}
+
+async function cachedRows(key: string, load: () => Promise<Row[]>): Promise<Row[]> {
+  const hit = _catalogCache.get(key)
+  if (hit && hit.expiresAt > Date.now()) return hit.value
+
+  const value = await load()
+  // Frozen because callers receive the cached array *by reference*. Every
+  // caller today reads it with .map()/.filter() (both non-mutating), but
+  // one future `rows.sort()` or `rows.push()` would silently corrupt the
+  // catalog for every other request served by this instance until the TTL
+  // expired — a bug that reproduces intermittently and looks like a data
+  // problem. Freezing turns that into an immediate, obvious throw.
+  //
+  // Shallow by design: this guards the array, not the row objects. Deep
+  // freezing the whole catalog on every refresh is not worth the cost.
+  Object.freeze(value)
+  evictForInsert()
+  _catalogCache.set(key, { value, expiresAt: Date.now() + CATALOG_TTL_MS })
+  return value
+}
+
+export function invalidateCatalog(): void {
+  _catalogCache.clear()
+}
+
 // ─── PRODUCTS ────────────────────────────────────────────────
 
-export async function getAllProducts(): Promise<Row[]> {
-  const rows = await listAll('products')
+function sortByOrder(rows: Row[]): Row[] {
   return rows.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
 }
 
+/** Uncached — for admin reads that must reflect a write immediately. */
+export async function getAllProductsUncached(): Promise<Row[]> {
+  return sortByOrder(await listAll('products'))
+}
+
+export async function getAllProducts(): Promise<Row[]> {
+  return cachedRows('products:all', getAllProductsUncached)
+}
+
 export async function getProductsByCategory(category: string): Promise<Row[]> {
-  const rows = await listAll('products', odata`PartitionKey eq ${category}`)
-  return rows.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  return cachedRows(`products:cat:${category}`, async () =>
+    sortByOrder(await listAll('products', odata`PartitionKey eq ${category}`)),
+  )
 }
 
 export async function getProduct(category: string, productId: string): Promise<Row | null> {
@@ -186,6 +281,10 @@ export async function reserveStock(productId: string, qty: number): Promise<numb
         'Merge',
         etag ? { etag } : undefined,
       )
+      // Stock and inStock are part of the cached listing payload, so a
+      // sale must evict it — otherwise a sold-out one-of-one keeps
+      // showing as available in the grid for the rest of the TTL.
+      invalidateCatalog()
       return newQty
     } catch (err: any) {
       if (err?.statusCode === 412 && attempt < STOCK_MAX_RETRIES) {
@@ -243,6 +342,7 @@ export async function restoreStock(productId: string, qty: number): Promise<void
         'Merge',
         etag ? { etag } : undefined,
       )
+      invalidateCatalog()
       return
     } catch (err: any) {
       if (err?.statusCode === 412 && attempt < RESTORE_RETRIES) {
@@ -308,11 +408,13 @@ export async function addNewsletterSubscriber(
 export async function upsertProduct(product: Row): Promise<void> {
   const client = getTableClient('products')
   await client.upsertEntity(product as any, 'Replace')
+  invalidateCatalog()
 }
 
 export async function deleteProduct(category: string, productId: string): Promise<void> {
   const client = getTableClient('products')
   await client.deleteEntity(category, productId)
+  invalidateCatalog()
 }
 
 // ─── ORDERS (new PK=userEmail scheme - §3) ───────────────────
@@ -1000,7 +1102,199 @@ export async function getAuditLog(page = 1, size = 50): Promise<{ rows: Row[]; t
   return listPaginated('auditLog', undefined, page, size)
 }
 
-// ─── RATE LIMIT COUNTERS ─────────────────────────────────────
+// ─── RATE LIMIT ATTEMPTS (append-only sliding window) ────────
+//
+// Replaces the read-modify-write counter below. The counter had no ETag
+// precondition, so concurrent requests all read the same value and all
+// wrote value+1 — N parallel attempts registered as one. That is exactly
+// the shape of traffic a credential-stuffing tool produces, so the limit
+// failed precisely when it mattered.
+//
+// This design writes one row per attempt instead. Appends never conflict,
+// so there is no race to lose, no ETag retry, and no failure mode where
+// the limiter silently undercounts. Counting is a bounded single-
+// partition range query over the window.
+//
+// Layout:  PartitionKey = the rate-limit key  (one partition per
+//                         IP / account, so queries never cross partitions)
+//          RowKey       = <zero-padded epoch ms>_<random>
+//                         Zero-padding makes lexical order == time order,
+//                         which is what lets `RowKey ge <cutoff>` work as
+//                         a sliding-window filter. The random suffix makes
+//                         same-millisecond attempts collision-proof.
+//
+// Bonus: this is a true sliding window. The old counter was a fixed
+// window an attacker could straddle (limit-1 at the end of one window,
+// limit again at the start of the next).
+
+const RL_TABLE = 'rateLimitAttempts'
+
+/** Table Storage forbids / \ # ? and control chars in keys. */
+function sanitizeKey(key: string): string {
+  let out = ''
+  for (const ch of key) {
+    const code = ch.codePointAt(0) ?? 0
+    const illegal =
+      ch === '/' || ch === '\\' || ch === '#' || ch === '?' ||
+      code < 0x20 || code === 0x7f
+    out += illegal ? '_' : ch
+  }
+  return out
+}
+
+function stampRowKey(atMs: number): string {
+  return `${String(atMs).padStart(15, '0')}_${randomBytes(4).toString('hex')}`
+}
+
+function cutoffRowKey(atMs: number): string {
+  return String(atMs).padStart(15, '0')
+}
+
+export async function recordRateLimitAttempt(key: string, atMs: number): Promise<void> {
+  const client = await ensureTable(RL_TABLE)
+  await client.createEntity({
+    partitionKey: sanitizeKey(key),
+    rowKey: stampRowKey(atMs),
+    at: atMs,
+    createdAt: new Date(atMs).toISOString(),
+  } as any)
+}
+
+/** Attempts recorded for `key` at or after `sinceMs`. */
+export async function countRateLimitAttempts(key: string, sinceMs: number): Promise<number> {
+  const client = await ensureTable(RL_TABLE)
+  const pk = sanitizeKey(key)
+  const floor = cutoffRowKey(sinceMs)
+  let count = 0
+  for await (const _row of client.listEntities({
+    queryOptions: { filter: odata`PartitionKey eq ${pk} and RowKey ge ${floor}` },
+  })) {
+    count++
+  }
+  return count
+}
+
+/**
+ * Delete up to 100 rows of one partition in a single round trip.
+ *
+ * Entity-group transactions are all-or-nothing, so a row another caller
+ * already removed (404) aborts the whole batch. That is a normal race
+ * here — the purge timer and a successful login can target the same
+ * rows — so fall back to individual deletes rather than failing.
+ */
+async function deleteRowBatch(
+  client: TableClient,
+  partitionKey: string,
+  rowKeys: string[],
+): Promise<number> {
+  if (rowKeys.length === 0) return 0
+  try {
+    await client.submitTransaction(
+      rowKeys.map((rowKey) => ['delete', { partitionKey, rowKey }] as const) as any,
+    )
+    return rowKeys.length
+  } catch {
+    let deleted = 0
+    for (const rowKey of rowKeys) {
+      try {
+        await client.deleteEntity(partitionKey, rowKey)
+        deleted++
+      } catch (err: any) {
+        if (err?.statusCode !== 404) throw err
+      }
+    }
+    return deleted
+  }
+}
+
+const TXN_MAX = 100
+
+/**
+ * Drop every attempt for a key — called on successful login.
+ *
+ * Batched because this sits on the login response path: a user who
+ * fumbled their password nine times would otherwise pay nine sequential
+ * round trips before their session is returned.
+ */
+export async function clearRateLimitAttempts(key: string): Promise<void> {
+  const client = await ensureTable(RL_TABLE)
+  const pk = sanitizeKey(key)
+
+  let batch: string[] = []
+  for await (const row of client.listEntities<Row>({
+    queryOptions: { filter: odata`PartitionKey eq ${pk}` },
+  })) {
+    batch.push(String(row.rowKey))
+    if (batch.length === TXN_MAX) {
+      await deleteRowBatch(client, pk, batch)
+      batch = []
+    }
+  }
+  await deleteRowBatch(client, pk, batch)
+}
+
+/**
+ * Delete attempt rows older than `olderThanMs`.
+ *
+ * Table Storage has no TTL, so without this the table grows by one
+ * permanent row per attempt forever. Swept by the existing
+ * stale-reservation timer — no new trigger.
+ *
+ * Two deliberate constraints, both learned the hard way from the very
+ * scan-and-delete pattern this codebase is trying to move away from:
+ *
+ *  1. BOUNDED. This is a cross-partition scan (there is no date
+ *     partition to key on). Under a sustained attack the backlog could
+ *     be tens of thousands of rows, and an unbounded sweep would exceed
+ *     the Consumption-plan function timeout and fail — every run,
+ *     forever, never making progress. `maxDeletions` caps the work per
+ *     run; the next tick picks up where this one stopped. Ten minutes
+ *     of extra retention is harmless.
+ *
+ *  2. BATCHED. Deletes are grouped into entity-group transactions of
+ *     100 per partition, so a large backlog costs ~1% of the round
+ *     trips a per-row loop would.
+ *
+ * Returns the number of rows deleted. A return value equal to
+ * `maxDeletions` means there is more to do — the caller logs it so a
+ * persistent backlog is visible rather than silent.
+ */
+export async function purgeRateLimitAttempts(
+  olderThanMs: number,
+  maxDeletions = 5_000,
+): Promise<number> {
+  const client = await ensureTable(RL_TABLE)
+  const ceiling = cutoffRowKey(olderThanMs)
+
+  // Group by partition so each batch satisfies the single-partition
+  // requirement of entity-group transactions.
+  const byPartition = new Map<string, string[]>()
+  let collected = 0
+
+  for await (const row of client.listEntities<Row>({
+    queryOptions: { filter: odata`RowKey lt ${ceiling}` },
+  })) {
+    const pk = String(row.partitionKey)
+    const bucket = byPartition.get(pk) ?? []
+    bucket.push(String(row.rowKey))
+    byPartition.set(pk, bucket)
+    if (++collected >= maxDeletions) break
+  }
+
+  let purged = 0
+  for (const [pk, rowKeys] of byPartition) {
+    for (let i = 0; i < rowKeys.length; i += TXN_MAX) {
+      purged += await deleteRowBatch(client, pk, rowKeys.slice(i, i + TXN_MAX))
+    }
+  }
+  return purged
+}
+
+// ─── RATE LIMIT COUNTERS (legacy — superseded by the rows above) ──
+//
+// Retained only so an in-flight deploy that still has the old service
+// code can read its counters. Safe to delete once the append-only
+// limiter has been live for one full window (1 hour).
 
 export async function getRateLimitCounter(key: string): Promise<Row | null> {
   const client = getTableClient('rateLimits')

@@ -9,7 +9,8 @@ on Azure Static Web Apps) + Azure Functions backend on Azure Table Storage.
 - `backend/` - Azure Functions (TypeScript v4 model). One file per route
   group in `backend/src/functions/*.ts`.
 - `e2e/` - Playwright end-to-end tests.
-- `infra/` - Bicep + scripts for the Azure deployment.
+- `infra/` - PowerShell provisioning scripts for the Azure deployment.
+  (A declarative Bicep port is planned - see `docs/SYSTEM-DESIGN-REVIEW.md` M-4.)
 
 ## Local dev
 
