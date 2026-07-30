@@ -188,7 +188,12 @@ $tableNames = @(
     'newsletterSubscribers',
     'addresses', 'notifications',
     'staff', 'auditLog', 'rateLimits',
-    'emailLogs', 'whatsappMessages', 'whatsappConversations'
+    'emailLogs', 'whatsappMessages', 'whatsappConversations',
+    # Append-only sliding-window rate limiter (replaces the 'rateLimits'
+    # counter table, which is kept only until the old code path is gone).
+    # Self-heals via ensureTable() too, but listed here so the script
+    # remains the declared source of truth.
+    'rateLimitAttempts'
 )
 
 # ── B.3  Storage queues ─────────────────────────────────────────────

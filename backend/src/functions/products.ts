@@ -9,46 +9,13 @@ import {
   getOnSaleProducts,
   Row,
 } from '../services/tableStorage'
-import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import {
+  errorResponse,
+  corsPreflightResponse,
+  cacheableJsonResponse,
+} from '../utils/response'
+import { toApi } from '../utils/productApi'
 
-function toApi(row: Row) {
-  return {
-    id: row.rowKey,
-    slug: row.slug || row.rowKey,
-    title: row.title,
-    category: row.partitionKey,
-    price: row.displayPrice ?? row.price,
-    compareAtPrice: row.compareAtPrice ?? undefined,
-    size: row.size,
-    material: row.material,
-    timeToMake: row.timeToMake || '5 days',
-    description: row.description,
-    shortDescription: row.shortDescription || row.description?.slice(0, 120),
-    careInstructions: row.careInstructions || '',
-    images: [row.imageUrl, ...safeArray(row.additionalImages)].filter(Boolean),
-    inStock: row.inStock !== false,
-    stockQty: row.stockQty ?? 0,
-    featured: row.featured === true,
-    isNewArrival: row.isNewArrival === true,
-    isBestSeller: row.isBestSeller === true,
-    isOnSale: row.compareAtPrice ? row.compareAtPrice > (row.displayPrice ?? row.price) : false,
-    rating: row.rating ?? undefined,
-    reviewCount: row.reviewCount ?? undefined,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  }
-}
-
-function safeArray(json: unknown): string[] {
-  if (!json) return []
-  if (Array.isArray(json)) return json as string[]
-  try {
-    const parsed = JSON.parse(String(json))
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
 
 export async function getProducts(
   request: HttpRequest,
@@ -72,7 +39,22 @@ export async function getProducts(
     else if (onSale === 'true') rows = await getOnSaleProducts()
     else rows = await getAllProducts()
 
-    return jsonResponse({ products: rows.map(toApi) }, 200, {}, origin)
+    // Catalog listings are read-mostly. s-maxage lets a shared cache
+    // (CDN / SWA edge) absorb load; the ETag turns a repeat read into a
+    // 304 with no storage transaction at all.
+    //
+    // No stale-while-revalidate on purpose. It *adds* to max-age rather
+    // than replacing it, so `max-age=60, swr=600` means a reload can
+    // serve up-to-11-minute-old data. This payload carries stockQty and
+    // inStock for one-of-one artwork, and 11 minutes of "still
+    // available" on a piece that already sold is not a trade worth
+    // making for a marginal latency win.
+    return cacheableJsonResponse(
+      request,
+      { products: rows.map(toApi) },
+      'public, max-age=60, s-maxage=120',
+      origin,
+    )
   } catch (err) {
     context.error('getProducts failed', err)
     return errorResponse('Failed to load products', 500, origin)
@@ -92,7 +74,19 @@ export async function getProductByIdFn(
   try {
     const row = await getProductById(id)
     if (!row) return errorResponse('Product not found', 404, origin)
-    return jsonResponse({ product: toApi(row) }, 200, {}, origin)
+    // Shorter than the listing on purpose. This response drives the
+    // "Add to cart" decision and carries stockQty/inStock, and the
+    // catalog is one-of-one artwork — a piece that sold 50 seconds ago
+    // must not still look available on its own product page. 15s keeps
+    // the bot/refresh traffic off storage while keeping the window in
+    // which a customer can be disappointed close to what it was before
+    // caching existed.
+    return cacheableJsonResponse(
+      request,
+      { product: toApi(row) },
+      'public, max-age=15, s-maxage=30',
+      origin,
+    )
   } catch (err) {
     context.error('getProductById failed', err)
     return errorResponse('Failed to load product', 500, origin)

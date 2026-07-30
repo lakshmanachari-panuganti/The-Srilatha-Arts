@@ -41,15 +41,23 @@ import {
   restoreStock,
   deleteOrderByStatus,
   upsertOrderByStatus,
+  purgeRateLimitAttempts,
   Row,
 } from '../services/tableStorage'
+import { RATE_LIMIT_RETENTION_MS } from '../services/rateLimit'
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
+
+// Constructed once per process. DefaultAzureCredential runs a credential-
+// chain probe on construction, which is wasted work on a cold-start-
+// sensitive Consumption plan if repeated per call.
+const credential = new DefaultAzureCredential()
+
 function getOrdersTableClient(): TableClient {
   return new TableClient(
     `https://${accountName}.table.core.windows.net`,
     'orders',
-    new DefaultAzureCredential(),
+    credential,
   )
 }
 
@@ -57,7 +65,7 @@ function getOrdersByStatusClient(): TableClient {
   return new TableClient(
     `https://${accountName}.table.core.windows.net`,
     'ordersByStatus',
-    new DefaultAzureCredential(),
+    credential,
   )
 }
 
@@ -371,13 +379,62 @@ async function processOne(order: Row, context: InvocationContext): Promise<void>
   )
 }
 
+/**
+ * Garbage-collect rate-limit attempt rows.
+ *
+ * Table Storage has no TTL, so without this the rateLimitAttempts table
+ * grows by one permanent row per login attempt — including every attempt
+ * from every attacker, forever. Rides this timer rather than adding a
+ * trigger of its own.
+ *
+ * The retention floor is the longest window any caller uses (60 min for
+ * the per-account lockouts) plus a wide safety margin, so a sweep can
+ * never delete a row that is still inside someone's window.
+ */
+// Retention is owned by services/rateLimit.ts and imported, not
+// redeclared: deleting an attempt row that is still inside a live window
+// silently grants a fresh budget, so the two must never drift apart.
+// checkAndIncrement throws if a caller asks for a window longer than
+// this retention supports.
+
+// Cap per run so a large backlog cannot exhaust the function timeout.
+// At 10-minute ticks this drains 720k rows/day — far above any plausible
+// attack volume for this site, while keeping a single run short.
+const RATE_LIMIT_PURGE_CAP = 5_000
+
+async function purgeRateLimits(context: InvocationContext): Promise<void> {
+  try {
+    const purged = await purgeRateLimitAttempts(
+      Date.now() - RATE_LIMIT_RETENTION_MS,
+      RATE_LIMIT_PURGE_CAP,
+    )
+    if (purged > 0) {
+      context.log(`[stale-cleanup] purged ${purged} expired rate-limit attempt rows`)
+    }
+    if (purged >= RATE_LIMIT_PURGE_CAP) {
+      // Hit the cap — a backlog remains. Normal after a burst; sustained
+      // means the retention window or the tick rate needs revisiting.
+      context.warn(
+        `[stale-cleanup] rate-limit purge hit its ${RATE_LIMIT_PURGE_CAP}-row cap; backlog remains`,
+      )
+    }
+  } catch (err) {
+    // Never let housekeeping break the reservation sweep — that one
+    // protects inventory and is the reason this timer exists.
+    const msg = err instanceof Error ? err.message : String(err)
+    context.error(`[stale-cleanup] rate-limit purge failed error="${msg}"`)
+  }
+}
+
 async function processStaleReservations(
   _myTimer: Timer,
   context: InvocationContext,
 ): Promise<void> {
   const stale = await findStaleReservations()
+
   if (stale.length === 0) {
     context.log('[stale-cleanup] no stale reservations')
+    await purgeRateLimits(context)
     return
   }
 
@@ -397,6 +454,8 @@ async function processStaleReservations(
   context.log(
     `[stale-cleanup] sweep complete found=${stale.length} cancelled=${succeeded}`,
   )
+
+  await purgeRateLimits(context)
 }
 
 app.timer('staleReservationCleanup', {

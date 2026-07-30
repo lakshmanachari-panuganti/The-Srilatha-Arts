@@ -570,11 +570,11 @@ function ModalShell({
 }) {
   return (
     <div className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+      <div className="bg-cream-deep border border-ink/10 rounded-lg shadow-xl max-w-md w-full p-6 relative">
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-cream-deep flex items-center justify-center"
+          className="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center"
         >
           <X className="w-4 h-4" aria-hidden />
         </button>
@@ -642,11 +642,11 @@ function CancelModal({
         placeholder="Anything you'd like us to know"
         className="w-full px-3 py-2 rounded-lg border border-ink/15 bg-paper text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender/50 resize-none mb-3"
       />
-      {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
+      {err && <p className="text-xs text-red-400 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
         <button
           onClick={onClose}
-          className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep"
+          className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-white/5"
         >
           Keep order
         </button>
@@ -721,9 +721,9 @@ function AddressModal({
         <Input placeholder="Pincode" value={form.pincode} onChange={onF('pincode')} />
         <Input placeholder="Country" value={form.country} onChange={onF('country')} />
       </div>
-      {err && <p className="text-xs text-red-600 mb-3">{err}</p>}
+      {err && <p className="text-xs text-red-400 mb-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-white/5">
           Cancel
         </button>
         <button
@@ -795,7 +795,7 @@ function ReturnModal({
         ))}
       </select>
       <label className="block text-xs text-ink-mute mb-1.5 tracking-wider uppercase">
-        Tell us more {reason === 'other' && <span className="normal-case text-red-600">*</span>}
+        Tell us more {reason === 'other' && <span className="normal-case text-red-400">*</span>}
       </label>
       <textarea
         value={comment}
@@ -811,9 +811,9 @@ function ReturnModal({
         label="Photos (optional)"
         hint="Photos help us resolve damage / wrong-item claims faster."
       />
-      {err && <p className="text-xs text-red-600 mb-3 mt-3">{err}</p>}
+      {err && <p className="text-xs text-red-400 mb-3 mt-3">{err}</p>}
       <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-cream-deep">
+        <button onClick={onClose} className="h-10 px-4 rounded-lg border border-ink/15 text-sm text-ink hover:bg-white/5">
           Cancel
         </button>
         <button

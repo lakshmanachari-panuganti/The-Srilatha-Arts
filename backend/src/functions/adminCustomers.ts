@@ -13,6 +13,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import { getAllUsers, getAllOrders, Row } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import { countsAsRevenue } from '../types'
 
 interface CustomerView {
   id: string
@@ -60,9 +61,11 @@ async function adminListCustomers(
         lastOrder: undefined as string | undefined,
       }
       prev.orderCount += 1
-      // Only count revenue from paid orders so the dashboard number
+      // Only count revenue from captured orders so the dashboard number
       // matches the "total revenue" stat on /admin.
-      if (o.paymentStatus === 'paid') {
+      // Was `=== 'paid'`, which is not a PaymentStatus — the comparison
+      // never matched and totalSpent always reported 0.
+      if (countsAsRevenue(o.paymentStatus)) {
         prev.totalSpent += Number(o.displayTotal ?? 0)
       }
       const created = o.createdAt as string | undefined

@@ -8,6 +8,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/fu
 import { getAllOrders, getAllProducts, getAllUsers } from '../services/tableStorage'
 import { requireAdmin } from '../middleware/adminGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
+import { countsAsRevenue } from '../types'
 
 const PENDING_PACK_STATUSES = new Set(['PLACED', 'CONFIRMED', 'CRAFTING'])
 
@@ -37,7 +38,9 @@ async function adminGetStats(
     let pendingOrders = 0
 
     for (const order of orders) {
-      if (order.paymentStatus === 'paid') {
+      // Was `=== 'paid'`, which is not a PaymentStatus — the comparison
+      // never matched and totalRevenue always reported 0.
+      if (countsAsRevenue(order.paymentStatus)) {
         totalRevenue += Number(order.displayTotal ?? 0)
       }
       if (order.createdAt && new Date(order.createdAt).getTime() >= thirtyDaysAgo) {

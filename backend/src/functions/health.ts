@@ -33,6 +33,11 @@ import { jsonResponse, corsPreflightResponse } from '../utils/response'
 
 const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME
 
+// Constructed once per process rather than per probe. DefaultAzureCredential
+// runs a credential-chain probe on construction; repeating it on every
+// health check adds latency to the endpoint an availability test polls.
+const credential = new DefaultAzureCredential()
+
 interface ProbeResult {
   name: string
   ok: boolean
@@ -47,7 +52,6 @@ async function probeStorage(): Promise<ProbeResult> {
   }
   try {
     // List tables — cheap, exercises the same auth path everything else uses.
-    const credential = new DefaultAzureCredential()
     const svc = new TableServiceClient(
       `https://${accountName}.table.core.windows.net`,
       credential,
