@@ -121,7 +121,7 @@ all dispatch flows through there.
 - [ ] (Optional) Add a second BCC for ops handover, e.g. `studio@srilatha.art,admin@srilatha.art`
 - [ ] Gmail-side: add a filter on `cc:studio@srilatha.art` → sub-label `srilatha-art/customer-audit` so the audit volume doesn't flood the primary inbox
 - [ ] Set `RESERVATION_TIMEOUT_MINUTES` to 30 (or leave unset for the default)
-- [ ] Set `STUDIO_ADMINS_WHATSAPP_GROUP` on the prd Function App. Comma-separated WhatsApp numbers (E.164 or `+91 …`) that should receive the `admin_notification_v1` template every time a customer submits a Custom Order request, **and** the `admin_new_order_v1` template every time a payment is captured on a shop order. Invalid/empty entries are ignored; failures to notify one admin do not stop the rest. Leave unset to disable both fan-outs.
+- [ ] Set `STUDIO_ADMINS_WHATSAPP_GROUP` on the prd Function App. WhatsApp numbers (E.164 or `+91 …`) that should receive the `admin_notification_v1` template every time a customer submits a Custom Order request, **and** the `admin_new_order_v1` template every time a payment is captured on a shop order. **Separate entries with a comma or semicolon — not a space**, since spaces are legal inside a single number. Entries that don't normalise to 10–15 digits are ignored; failures to notify one admin do not stop the rest. Leave unset to disable both fan-outs. Delivery is queue-backed (`notifications-out`), so a transient Meta failure retries and a final failure raises a row on the admin dashboard's Notification Alerts card.
 
 ### Tasks (Meta Business Manager — WhatsApp template approvals)
 

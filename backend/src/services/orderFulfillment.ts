@@ -40,7 +40,10 @@ import { uploadInvoicePdf } from './blobStorage'
 import { invoiceUrlFor } from './orderNumber'
 import { enqueueNotification } from './queue'
 import { recordAlert } from './notificationAlerts'
-import { notifyStudioAdmins, ADMIN_NEW_ORDER_TEMPLATE_KEY } from './adminNotifications'
+import {
+  enqueueStudioAdminNotifications,
+  ADMIN_NEW_ORDER_TEMPLATE_KEY,
+} from './adminNotifications'
 
 /**
  * Build the invoice PDF for an order, upload it to blob, and stamp
@@ -231,17 +234,20 @@ export async function finalizeOrderAfterPayment(
   }
 
   // ── Ping the studio admins ───────────────────────────────────────
-  // Same fan-out the custom-order form uses, different Meta template.
-  // Never throws; an empty/unconfigured admin list is a warn-and-continue.
+  // Enqueue-only (one message per admin) so no Meta latency lands on the
+  // payment-verify response and a transient Meta failure is retried by the
+  // queue instead of being lost. Never throws; an empty / unconfigured
+  // admin list is a warn-and-continue.
   try {
-    const fanout = await notifyStudioAdmins({
+    const fanout = await enqueueStudioAdminNotifications({
+      templateName: ADMIN_NEW_ORDER_TEMPLATE_KEY,
       customerName: (order.customerName as string) || '',
       customerPhone: (order.customerPhone as string) || '',
-      templateName: ADMIN_NEW_ORDER_TEMPLATE_KEY,
+      referenceId: orderId,
       context,
     })
     context.log(
-      `finalizeOrderAfterPayment: studio-admin fan-out for ${orderId} — attempted=${fanout.attempted} succeeded=${fanout.succeeded} failed=${fanout.failed} skipped=${fanout.skipped}`,
+      `finalizeOrderAfterPayment: studio-admin fan-out for ${orderId} — enqueued=${fanout.enqueued} skipped=${fanout.skipped} failed=${fanout.failed}`,
     )
   } catch (notifyErr) {
     context.warn(

@@ -13,13 +13,36 @@ versioning — earlier dated sections are treated as the 1.0.0 baseline.
 ### Added
 
 - **Admin WhatsApp ping on every new shop order.** `finalizeOrderAfterPayment`
-  now fans out the `admin_new_order_v1` template to every number in
-  `STUDIO_ADMINS_WHATSAPP_GROUP` once payment is captured, carrying the
-  customer's name (`{{1}}`) and mobile number (`{{2}}`). Reuses the existing
-  `notifyStudioAdmins` fan-out (per-admin isolation, non-fatal, never throws);
-  the only change to that service is an optional `templateName` so the
-  custom-order ping (`admin_notification_v1`) and the order ping stay distinct.
-  `admin_new_order_v1` still needs Meta approval — see `docs/TODO/LAUNCH-TODO.md`.
+  now notifies every number in `STUDIO_ADMINS_WHATSAPP_GROUP` once payment is
+  captured, via the `admin_new_order_v1` template carrying the customer's name
+  (`{{1}}`) and mobile number (`{{2}}`). `admin_new_order_v1` still needs Meta
+  Business Manager approval — see `docs/TODO/LAUNCH-TODO.md`.
+
+### Changed
+
+- **Studio-admin notifications are now queue-backed, matching the customer
+  notification path.** Both admin pings (`admin_notification_v1` for custom
+  orders, `admin_new_order_v1` for shop orders) previously sent inline from the
+  HTTP request via a direct Meta call: one attempt, no retry, no alert, and a
+  Meta 5xx meant the studio never learned an order had arrived. They now go
+  through `notifications-out` under a `whatsapp_admin` channel, which brings
+  retry with backoff, a poison queue, and a `notificationAlerts` row on the
+  admin dashboard when delivery finally fails. The producer only enqueues, so
+  Meta latency no longer sits inside the custom-order submit response or the
+  payment-verify path. Fan-out is one queue message **per admin**, so a retry
+  re-sends only to the admin that failed rather than re-notifying the group.
+  `notifyStudioAdmins` is replaced by `enqueueStudioAdminNotifications`
+  (producer) + `sendAdminTemplate` (consumer-side single send).
+
+### Fixed
+
+- **`STUDIO_ADMINS_WHATSAPP_GROUP` silently dropped space-formatted numbers.**
+  The parser split on whitespace as well as commas, so a documented-legal entry
+  like `+91 90143 93938` was shredded into `+91` / `90143` / `93938`, each
+  rejected as too short — that admin was never notified and nothing logged the
+  loss. Now splits on comma/semicolon only and requires each entry to normalise
+  to 10–15 digits, which also rejects a space-separated list instead of
+  concatenating it into one bogus recipient.
 
 ---
 
