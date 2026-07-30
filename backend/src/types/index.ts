@@ -47,6 +47,28 @@ export type OrderStatus =
 
 export type PaymentStatus = 'PENDING' | 'CAPTURED' | 'FAILED' | 'REFUNDED' | 'COD'
 
+/**
+ * Payment states that mean money was actually received.
+ *
+ * Exists because `paymentStatus === 'paid'` was hard-coded in two admin
+ * aggregation paths (adminStats, adminCustomers). 'paid' is not a
+ * PaymentStatus and never has been, so both totals silently reported
+ * zero. Comparing against this set instead of a string literal makes the
+ * same mistake a compile error.
+ *
+ * REFUNDED is deliberately excluded: the money came in and went back
+ * out, so it should not count toward revenue.
+ */
+export const REVENUE_COUNTING_STATUSES: ReadonlySet<PaymentStatus> =
+  new Set<PaymentStatus>(['CAPTURED'])
+
+export function countsAsRevenue(status: unknown): boolean {
+  return (
+    typeof status === 'string' &&
+    REVENUE_COUNTING_STATUSES.has(status as PaymentStatus)
+  )
+}
+
 // Structured customer return reasons. Keep the set small and stable -
 // admins filter / report on these. "other" lets the customer free-text.
 export type ReturnReasonCode =

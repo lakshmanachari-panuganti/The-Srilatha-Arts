@@ -1,0 +1,108 @@
+name: Nightly Table Backup
+
+# Off-Azure backup of every Table Storage table.
+#
+# The production storage account is Standard_LRS in a single region with
+# no table soft-delete and no point-in-time restore. LRS survives a disk
+# failure; it does not survive an accidental delete, a bad migration, or
+# a compromised credential. Geo-redundant storage would roughly double
+# storage cost and still would not protect against any of those three.
+#
+# A GitHub artifact costs nothing (2,000 free Actions minutes/month on
+# private repos; this job uses ~90) and lives outside Azure entirely, so
+# it also survives loss of the subscription.
+#
+# RPO is therefore ~24h. If that is too loose, add a second cron entry —
+# the minutes are already paid for.
+#
+# Requires: the CI service principal needs `Storage Table Data Reader` on
+# the storage account. It ships with only `Website Contributor`, so this
+# is a one-time grant (see docs/IMPLEMENTATION-GUIDE.md §6.3).
+
+# ⚠ BEFORE RELYING ON THIS: run it once via "Run workflow" (workflow_dispatch)
+# and confirm it completes without waiting for approval.
+#
+# This job declares `environment: production` because that is where the
+# AZURE_* secrets live for the prd deploy workflows. If that environment
+# has required reviewers configured, a *scheduled* run will queue waiting
+# for a human and never fire — a backup that silently never runs is worse
+# than no backup, because you will believe you have one.
+#
+# If it does queue for approval, either:
+#   (a) move AZURE_CLIENT_ID_PRD / AZURE_TENANT_ID / AZURE_SUBSCRIPTION_ID
+#       to repository-level secrets and delete the `environment:` block
+#       below (this job is strictly read-only, so it does not need the
+#       protection a deploy does), or
+#   (b) add a separate `backup` environment with no reviewers.
+
+on:
+  schedule:
+    - cron: '30 19 * * *'   # 01:00 IST
+  workflow_dispatch:
+
+concurrency:
+  group: backup-tables
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write   # required for azure/login OIDC token exchange
+
+jobs:
+  export:
+    name: Export tables to artifact
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    env:
+      AZURE_STORAGE_ACCOUNT_NAME: stthesrilathaartsprd
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci --no-audit --no-fund
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_PRD }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Export all tables
+        working-directory: backend
+        run: npx ts-node scripts/export-tables.ts
+        env:
+          EXPORT_DIR: ${{ runner.temp }}/export
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tables-${{ github.run_id }}
+          path: ${{ runner.temp }}/export
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Publish manifest to job summary
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/export/manifest.json" ]; then
+            {
+              echo '### Backup manifest'
+              echo '```json'
+              cat "$RUNNER_TEMP/export/manifest.json"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '::warning::No manifest produced — export did not complete'
+          fi

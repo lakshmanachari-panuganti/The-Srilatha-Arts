@@ -65,6 +65,10 @@
           • Website Contributor on Function App → az functionapp
             deployment source config-zip from the CI workflow,
             without a long-lived secret or publish profile.
+          • Storage Table Data Reader on Storage → nightly off-Azure
+            table backup (.github/workflows/backup-tables.yml).
+            Reader, not Contributor: a backup job that can write to
+            the account it protects defeats its own purpose.
 
     The script also REMOVES any legacy 'Key Vault Administrator'
     assignment that earlier versions mis-scoped to the Function App
@@ -188,7 +192,12 @@ $tableNames = @(
     'newsletterSubscribers',
     'addresses', 'notifications',
     'staff', 'auditLog', 'rateLimits',
-    'emailLogs', 'whatsappMessages', 'whatsappConversations'
+    'emailLogs', 'whatsappMessages', 'whatsappConversations',
+    # Append-only sliding-window rate limiter (replaces the 'rateLimits'
+    # counter table, which is kept only until the old code path is gone).
+    # Self-heals via ensureTable() too, but listed here so the script
+    # remains the declared source of truth.
+    'rateLimitAttempts'
 )
 
 # ── B.3  Storage queues ─────────────────────────────────────────────
@@ -1420,19 +1429,45 @@ foreach ($fc in $federatedSubjects) {
     Write-Success "Federated credential added : $($fc.Name)"
 }
 
-# 9.4  RBAC: minimal role for zipdeploy on the Function App resource.
-# Website Contributor is intentionally the ONLY role granted to the CI SP —
-# it covers `az functionapp deploy --type zip` (OneDeploy over AAD, no
-# SCM basic auth) and updating app settings via `az functionapp config
-# appsettings set`. No storage-account access is granted: the deploy
-# workflow runs in WEBSITE_RUN_FROM_PACKAGE=1 (local-mount) mode, so
-# there is no blob upload from CI to worry about. Keeps the CI blast
-# radius as small as possible.
+# 9.4  RBAC for the CI SP. Two roles, both deliberately narrow.
+#
+# Website Contributor covers `az functionapp deploy --type zip` (OneDeploy
+# over AAD, no SCM basic auth) and `az functionapp config appsettings set`.
+# The deploy workflow runs in WEBSITE_RUN_FROM_PACKAGE=1 (local-mount)
+# mode, so CI never uploads a blob and needs no write access to storage.
 $ciRoleOutcome = Assign-AzRoleIfMissing `
     -ObjectId           $ciSp.id `
     -RoleDefinitionName 'Website Contributor' `
     -Scope              $faResource.ResourceId `
     -ScopeLabel         "Function App [$($envCfg.FunctionApp)]"
+
+# Storage Table Data READER for the nightly backup
+# (.github/workflows/backup-tables.yml → backend/scripts/export-tables.ts).
+#
+# The storage account holding every order, invoice and customer record is
+# Standard_LRS in one region with no table soft-delete and no PITR. LRS
+# survives a disk failure; it does not survive an accidental delete, a bad
+# migration, or a compromised credential — it replicates all three
+# faithfully. The nightly export is the only thing that covers those.
+#
+# Reader, not Contributor: the export only ever lists entities. A backup
+# job that can also *write* to the account it is protecting defeats the
+# point of having it. This is the one storage role CI gets, and it cannot
+# mutate a single row.
+#
+# Granted in both environments even though only the prd workflow is
+# scheduled, so the restore drill (scripts/restore-tables.ts) can be
+# rehearsed against DEV. An untested backup is not a backup.
+$ciBackupRoleOutcome = Assign-AzRoleIfMissing `
+    -ObjectId           $ciSp.id `
+    -RoleDefinitionName 'Storage Table Data Reader' `
+    -Scope              $storageAccount.Id `
+    -ScopeLabel         "Storage [$($envCfg.StorageAccount)] (nightly table backup)"
+
+if ($ciBackupRoleOutcome -eq 'failed') {
+    Write-Err "Nightly table backup will fail auth until this role lands. Grant it manually:"
+    Write-Err "  New-AzRoleAssignment -ObjectId $($ciSp.id) -RoleDefinitionName 'Storage Table Data Reader' -Scope $($storageAccount.Id)"
+}
 
 # 9.5  Print the values to paste into GitHub repo secrets
 $tenantId = $context.Tenant.Id

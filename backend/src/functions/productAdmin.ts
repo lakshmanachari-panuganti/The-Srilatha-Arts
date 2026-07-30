@@ -3,7 +3,15 @@
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions'
-import { upsertProduct, deleteProduct, getProduct, appendAuditLog, Row } from '../services/tableStorage'
+import {
+  upsertProduct,
+  deleteProduct,
+  getProduct,
+  getAllProductsUncached,
+  appendAuditLog,
+  Row,
+} from '../services/tableStorage'
+import { toApi } from '../utils/productApi'
 import { deleteProductImageByUrl } from '../services/blobStorage'
 import { requireAdmin } from '../middleware/adminGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
@@ -213,6 +221,45 @@ async function adminDeleteProduct(
   }
 }
 
+// ─── GET /api/admin/products ─────────────────────────────────
+
+/**
+ * Admin product listing — deliberately uncached.
+ *
+ * The admin UI previously read the public `GET /api/products`, which now
+ * carries `Cache-Control: public, max-age=60` plus an in-process TTL
+ * cache. That combination is right for the storefront and wrong here: an
+ * admin who saves an edit and is redirected back to the list would be
+ * served their own browser's stale copy and conclude the save failed.
+ *
+ * This route reads straight through to storage and returns `no-store`.
+ * Admin traffic is a rounding error, so there is nothing to gain by
+ * caching it and a real UX bug to avoid.
+ */
+async function adminListProducts(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const origin = request.headers.get('origin')
+  if (request.method === 'OPTIONS') return corsPreflightResponse(origin)
+
+  const admin = requireAdmin(request)
+  if (!admin) return errorResponse('Unauthorized', 401, origin)
+
+  try {
+    const rows = await getAllProductsUncached()
+    return jsonResponse(
+      { products: rows.map(toApi) },
+      200,
+      { 'Cache-Control': 'no-store' },
+      origin,
+    )
+  } catch (err) {
+    context.error('adminListProducts failed', err)
+    return errorResponse('Failed to load products', 500, origin)
+  }
+}
+
 // ─── Route registrations ─────────────────────────────────────
 
 app.http('adminCreateProduct', {
@@ -220,6 +267,16 @@ app.http('adminCreateProduct', {
   route: 'api/admin/products',
   authLevel: 'anonymous',
   handler: adminCreateProduct,
+})
+
+// OPTIONS is NOT listed — adminCreateProduct already registers it on this
+// route, and duplicate OPTIONS registrations make Functions v4 silently
+// drop a handler (see the note below).
+app.http('adminListProducts', {
+  methods: ['GET'],
+  route: 'api/admin/products',
+  authLevel: 'anonymous',
+  handler: adminListProducts,
 })
 
 // Note: OPTIONS is NOT listed here - adminDeleteProduct already registers OPTIONS

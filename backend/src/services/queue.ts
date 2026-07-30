@@ -23,8 +23,11 @@ async function enqueue(queueName: string, message: unknown): Promise<void> {
   // Base64-encode the JSON message (required by Azure Functions queue trigger).
   const encoded = Buffer.from(JSON.stringify(message)).toString('base64')
   await client.sendMessage(encoded, {
-    visibilityTimeout: 0,    // visible immediately
-    messageTimeToLive: -1,   // never expire
+    visibilityTimeout: 0,      // visible immediately
+    // 7 days rather than -1 (never expire). A message that can never
+    // succeed used to persist forever, so the poison queue was unbounded.
+    // Anything still undelivered after a week needs a human, not a retry.
+    messageTimeToLive: 7 * 24 * 60 * 60,
   })
 }
 

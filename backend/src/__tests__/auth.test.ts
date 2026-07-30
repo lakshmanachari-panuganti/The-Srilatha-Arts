@@ -185,19 +185,50 @@ describe('buildAuthCookie', () => {
     expect(buildAuthCookie('tok')).not.toContain('SameSite=Lax')
   })
 
-  it('uses 24-hour Max-Age for admin sessions', () => {
-    const cookie = buildAuthCookie('tok', true)
-    expect(cookie).toContain(`Max-Age=${24 * 60 * 60}`)
+  // These three replace assertions that the cookie carried a persistent
+  // Max-Age (24h admin / 7d customer). It deliberately no longer does: the
+  // cookie is now a session cookie, so closing the browser ends the session
+  // even on a shared or public machine. A persistent cookie survived that,
+  // which is the whole reason it was dropped.
+  //
+  // Asserted as an absence, because the regression to guard against is
+  // someone re-adding Max-Age to "fix" users being logged out on browser
+  // restart — that would silently undo the change.
+  it('emits no Max-Age for customer sessions (session cookie)', () => {
+    expect(buildAuthCookie('tok')).not.toContain('Max-Age')
   })
 
-  it('uses 7-day Max-Age for customer sessions (default)', () => {
-    const cookie = buildAuthCookie('tok')
-    expect(cookie).toContain(`Max-Age=${7 * 24 * 60 * 60}`)
+  it('emits no Max-Age for admin sessions either', () => {
+    expect(buildAuthCookie('tok', true)).not.toContain('Max-Age')
   })
 
-  it('uses 7-day Max-Age when isAdmin is explicitly false', () => {
-    const cookie = buildAuthCookie('tok', false)
-    expect(cookie).toContain(`Max-Age=${7 * 24 * 60 * 60}`)
+  it('emits no Expires — persistence must not come back via Expires', () => {
+    // Expires is the pre-HTTP/1.1 spelling of the same thing. Blocking only
+    // Max-Age would leave the other door open.
+    expect(buildAuthCookie('tok')).not.toContain('Expires')
+    expect(buildAuthCookie('tok', true)).not.toContain('Expires')
+    expect(buildAuthCookie('tok', false)).not.toContain('Expires')
+  })
+
+  it('leaves the absolute timeout to the JWT, not the cookie', () => {
+    // The cookie no longer bounds the session, so the server-side expiry is
+    // the only thing that does. If this drifts, an abandoned tab stays
+    // authenticated for as long as the browser stays open.
+    const now = Math.floor(Date.now() / 1000)
+    const lifetime = (token: string) => {
+      const { exp } = JSON.parse(
+        Buffer.from(token.split('.')[1], 'base64url').toString(),
+      ) as { exp: number }
+      return exp - now
+    }
+
+    const customer = lifetime(generateToken({ id: 'u@example.com', role: 'customer' }))
+    const admin = lifetime(generateToken({ id: 'admin', role: 'admin' }, true))
+
+    expect(customer).toBeGreaterThan(2 * 60 * 60 - 60)
+    expect(customer).toBeLessThanOrEqual(2 * 60 * 60)
+    expect(admin).toBeGreaterThan(24 * 60 * 60 - 60)
+    expect(admin).toBeLessThanOrEqual(24 * 60 * 60)
   })
 
   it('encodes the token value', () => {
