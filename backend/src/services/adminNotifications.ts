@@ -2,11 +2,15 @@
  * Studio-admin WhatsApp fan-out.
  *
  * Reads the STUDIO_ADMINS_WHATSAPP_GROUP env var (comma-separated list of
- * WhatsApp numbers) and dispatches the `admin_notification` template to
- * every valid recipient. Used today by the custom-order submission
- * endpoint - kept in its own module so future admin-facing notifications
- * (e.g. contact-form pings, low-stock alerts) can reuse the fan-out
- * without duplicating the parsing + isolation logic.
+ * WhatsApp numbers) and dispatches an admin template to every valid
+ * recipient. Used today by the custom-order submission endpoint
+ * (`admin_notification_v1`) and by post-payment order fulfillment
+ * (`admin_new_order_v1`) - kept in its own module so future admin-facing
+ * notifications (e.g. contact-form pings, low-stock alerts) can reuse the
+ * fan-out without duplicating the parsing + isolation logic.
+ *
+ * Every admin template takes the same two body variables:
+ *   {{1}} customer name, {{2}} customer mobile number.
  *
  * Isolation contract:
  *   - Invalid / empty phone numbers are dropped silently (logged as skip).
@@ -19,7 +23,10 @@ import { InvocationContext } from '@azure/functions'
 import { sendTemplateMessage, normalisePhone, isWhatsAppConfigured } from './whatsapp'
 
 const ADMIN_GROUP_ENV = 'STUDIO_ADMINS_WHATSAPP_GROUP'
+/** Custom-order arrival ping (button → /admin/custom-orders). */
 const ADMIN_TEMPLATE_KEY = 'admin_notification_v1'
+/** New paid-order arrival ping (button → /admin/orders). */
+export const ADMIN_NEW_ORDER_TEMPLATE_KEY = 'admin_new_order_v1'
 
 export interface FanoutResult {
   attempted: number
@@ -54,16 +61,19 @@ interface NotifyStudioAdminsInput {
   customerName: string
   customerPhone: string
   context: InvocationContext
+  /** Meta template name. Defaults to the custom-order ping. */
+  templateName?: string
 }
 
 /**
- * Send the `admin_notification` WhatsApp template to every valid number
- * configured in STUDIO_ADMINS_WHATSAPP_GROUP. Never throws.
+ * Send an admin WhatsApp template to every valid number configured in
+ * STUDIO_ADMINS_WHATSAPP_GROUP. Never throws.
  */
 export async function notifyStudioAdmins(
   input: NotifyStudioAdminsInput,
 ): Promise<FanoutResult> {
   const { customerName, customerPhone, context } = input
+  const templateName = input.templateName || ADMIN_TEMPLATE_KEY
   const result: FanoutResult = { attempted: 0, succeeded: 0, failed: 0, skipped: 0 }
 
   const raw = process.env[ADMIN_GROUP_ENV]
@@ -93,13 +103,13 @@ export async function notifyStudioAdmins(
     try {
       const sent = await sendTemplateMessage({
         toPhone,
-        templateName: ADMIN_TEMPLATE_KEY,
+        templateName,
         languageCode: 'en',
         bodyVariables,
       })
       result.succeeded += 1
       context.log(
-        `[notify] channel=whatsapp template=${ADMIN_TEMPLATE_KEY} outcome=sent to=${sent.toPhone} messageId=${sent.messageId}`,
+        `[notify] channel=whatsapp template=${templateName} outcome=sent to=${sent.toPhone} messageId=${sent.messageId}`,
       )
     } catch (err) {
       result.failed += 1
@@ -107,7 +117,7 @@ export async function notifyStudioAdmins(
       // Per-admin isolation: log and continue so the remaining admins
       // still receive the notification.
       context.warn(
-        `[notify] channel=whatsapp template=${ADMIN_TEMPLATE_KEY} outcome=failed to=${toPhone} error="${msg.replace(/\s+/g, ' ').slice(0, 200)}"`,
+        `[notify] channel=whatsapp template=${templateName} outcome=failed to=${toPhone} error="${msg.replace(/\s+/g, ' ').slice(0, 200)}"`,
       )
     }
   }

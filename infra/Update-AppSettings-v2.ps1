@@ -50,7 +50,8 @@
 .PARAMETER StudioAdminsWhatsAppGroup
     Comma-separated list of studio admin WhatsApp numbers (E.164 or 10-digit
     Indian). Every entry receives the admin_notification_v1 template when a
-    new custom order lands. Non-secret.
+    new custom order lands, and the admin_new_order_v1 template when payment
+    is captured on a shop order. Non-secret.
 
 .PARAMETER StoreContactNumber
     Customer-facing Call/WhatsApp number injected as {{Store Contact Number}}

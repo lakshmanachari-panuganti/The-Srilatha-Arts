@@ -121,7 +121,7 @@ all dispatch flows through there.
 - [ ] (Optional) Add a second BCC for ops handover, e.g. `studio@srilatha.art,admin@srilatha.art`
 - [ ] Gmail-side: add a filter on `cc:studio@srilatha.art` → sub-label `srilatha-art/customer-audit` so the audit volume doesn't flood the primary inbox
 - [ ] Set `RESERVATION_TIMEOUT_MINUTES` to 30 (or leave unset for the default)
-- [ ] Set `STUDIO_ADMINS_WHATSAPP_GROUP` on the prd Function App. Comma-separated WhatsApp numbers (E.164 or `+91 …`) that should receive the `admin_notification` template every time a customer submits a Custom Order request. Invalid/empty entries are ignored; failures to notify one admin do not stop the rest. Leave unset to disable the fan-out.
+- [ ] Set `STUDIO_ADMINS_WHATSAPP_GROUP` on the prd Function App. Comma-separated WhatsApp numbers (E.164 or `+91 …`) that should receive the `admin_notification_v1` template every time a customer submits a Custom Order request, **and** the `admin_new_order_v1` template every time a payment is captured on a shop order. Invalid/empty entries are ignored; failures to notify one admin do not stop the rest. Leave unset to disable both fan-outs.
 
 ### Tasks (Meta Business Manager — WhatsApp template approvals)
 
@@ -137,6 +137,7 @@ moment Meta approval lands. Templates that need to go from 🟡 READY → ✅ LI
 - [ ] `review_request`
 - [ ] `return_declined` (existing READY template, not yet wired to a transition handler)
 - [ ] `admin_notification` (NEW — studio-facing custom-order arrival ping; body variables `{{1}}` customer name, `{{2}}` mobile number; static URL button pointing at `/admin/custom-orders`. Full copy in `docs/TODO/Create_whatsapp_templates/9. admin_notification.txt`)
+- [ ] `admin_new_order_v1` (NEW — studio-facing **shop order** arrival ping, fires from `finalizeOrderAfterPayment` once payment is captured. Same two body variables as `admin_notification`: `{{1}}` customer name, `{{2}}` mobile number. Suggested body: `New order placed. Customer: {{1}}. Mobile: {{2}}. Open the admin dashboard for full details.` Category UTILITY, language `en`, static URL button pointing at `/admin/orders`. Until this is approved in Meta the send fails per-admin and is logged; nothing else breaks. To ship before approval, point `ADMIN_NEW_ORDER_TEMPLATE_KEY` in `backend/src/services/adminNotifications.ts` at `admin_notification_v1`.)
 
 The WhatsApp template body wording for each is in `docs/templates/template_definition.md`. The
 matching email versions auto-generate from `backend/src/services/emailTemplates/*.ts` — wording

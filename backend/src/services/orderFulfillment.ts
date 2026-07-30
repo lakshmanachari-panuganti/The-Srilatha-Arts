@@ -40,6 +40,7 @@ import { uploadInvoicePdf } from './blobStorage'
 import { invoiceUrlFor } from './orderNumber'
 import { enqueueNotification } from './queue'
 import { recordAlert } from './notificationAlerts'
+import { notifyStudioAdmins, ADMIN_NEW_ORDER_TEMPLATE_KEY } from './adminNotifications'
 
 /**
  * Build the invoice PDF for an order, upload it to blob, and stamp
@@ -227,6 +228,25 @@ export async function finalizeOrderAfterPayment(
     } catch (err) {
       context.warn('finalizeOrderAfterPayment: email enqueue failed', err)
     }
+  }
+
+  // ── Ping the studio admins ───────────────────────────────────────
+  // Same fan-out the custom-order form uses, different Meta template.
+  // Never throws; an empty/unconfigured admin list is a warn-and-continue.
+  try {
+    const fanout = await notifyStudioAdmins({
+      customerName: (order.customerName as string) || '',
+      customerPhone: (order.customerPhone as string) || '',
+      templateName: ADMIN_NEW_ORDER_TEMPLATE_KEY,
+      context,
+    })
+    context.log(
+      `finalizeOrderAfterPayment: studio-admin fan-out for ${orderId} — attempted=${fanout.attempted} succeeded=${fanout.succeeded} failed=${fanout.failed} skipped=${fanout.skipped}`,
+    )
+  } catch (notifyErr) {
+    context.warn(
+      `finalizeOrderAfterPayment: unexpected admin fan-out error for ${orderId} (non-fatal): ${String(notifyErr)}`,
+    )
   }
 
   return invoiceUrl

@@ -8,6 +8,21 @@ versioning — earlier dated sections are treated as the 1.0.0 baseline.
 
 ---
 
+## Unreleased
+
+### Added
+
+- **Admin WhatsApp ping on every new shop order.** `finalizeOrderAfterPayment`
+  now fans out the `admin_new_order_v1` template to every number in
+  `STUDIO_ADMINS_WHATSAPP_GROUP` once payment is captured, carrying the
+  customer's name (`{{1}}`) and mobile number (`{{2}}`). Reuses the existing
+  `notifyStudioAdmins` fan-out (per-admin isolation, non-fatal, never throws);
+  the only change to that service is an optional `templateName` so the
+  custom-order ping (`admin_notification_v1`) and the order ping stay distinct.
+  `admin_new_order_v1` still needs Meta approval — see `docs/TODO/LAUNCH-TODO.md`.
+
+---
+
 ## 1.0.1 · 2026-07-19 · Payment-race fix, dependency modernization, and repo hygiene
 
 Focused-session pass over payment correctness, dependency backlog, branch protection
