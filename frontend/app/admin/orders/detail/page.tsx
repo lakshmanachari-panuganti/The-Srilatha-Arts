@@ -118,6 +118,20 @@ const STATUS_COLORS: Record<string, string> = {
   REFUNDED:         'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
 }
 
+// Fields the backend state machine demands for a transition
+// (backend/src/services/orderState.ts REQUIREMENTS). Without these inputs
+// the PATCH comes back 400 with no way for the admin to satisfy it.
+// REFUNDED is deliberately absent - refunds go through RefundPanel, which
+// converts rupees to paise and caps at the order total.
+const REQUIRED_FIELDS: Partial<Record<OrderStatus, { key: string; label: string; placeholder: string }[]>> = {
+  SHIPPED: [
+    { key: 'tracking', label: 'Tracking number', placeholder: 'e.g. 1234567890' },
+    { key: 'courier',  label: 'Courier',         placeholder: 'e.g. Delhivery, India Post' },
+  ],
+  ON_HOLD:   [{ key: 'holdReason',   label: 'Reason for hold',     placeholder: 'Why is this order on hold?' }],
+  CANCELLED: [{ key: 'cancelReason', label: 'Cancellation reason', placeholder: 'Why is this order cancelled?' }],
+}
+
 const RETURN_REASON_LABEL: Record<string, string> = {
   damaged:          'Item arrived damaged',
   wrong_item:       'Wrong item delivered',
@@ -140,6 +154,7 @@ function OrderDetail() {
   const [actionErr, setActionErr] = useState('')
   const [note, setNote] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | ''>('')
+  const [extras, setExtras] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
@@ -175,16 +190,21 @@ function OrderDetail() {
 
   const { order, items, events, nextStates } = data
 
-  async function updateStatus(extras: Record<string, unknown> = {}) {
+  async function updateStatus() {
     if (!selectedStatus) { setActionErr('Pick a target status first.'); return }
+    const required = REQUIRED_FIELDS[selectedStatus] || []
+    const missing = required.find((f) => !extras[f.key]?.trim())
+    if (missing) { setActionErr(`${missing.label} is required.`); return }
+    const payload = Object.fromEntries(required.map((f) => [f.key, extras[f.key].trim()]))
     setActionErr(''); setBusy(true)
     try {
       await apiFetch(`/admin/orders/${encodeURIComponent(id!)}/status`, {
         method: 'PATCH',
-        body: { to: selectedStatus, note: note.trim() || undefined, ...extras },
+        body: { to: selectedStatus, note: note.trim() || undefined, ...payload },
       })
       setNote('')
       setSelectedStatus('')
+      setExtras({})
       await refresh()
     } catch (e) {
       setActionErr(e instanceof Error ? e.message : 'Could not update status')
@@ -308,11 +328,13 @@ function OrderDetail() {
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <select
                   value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as OrderStatus)}
+                  onChange={(e) => { setSelectedStatus(e.target.value as OrderStatus); setExtras({}); setActionErr('') }}
                   className="flex-1 h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
                 >
                   <option value="">Select next status…</option>
-                  {nextStates.map((s) => (
+                  {/* REFUNDED is issued from the refund panel, which handles
+                      the amount and the Razorpay call. */}
+                  {nextStates.filter((s) => s.status !== 'REFUNDED').map((s) => (
                     <option key={s.status} value={s.status}>{s.label}</option>
                   ))}
                 </select>
@@ -325,6 +347,17 @@ function OrderDetail() {
                   Update
                 </button>
               </div>
+              {(REQUIRED_FIELDS[selectedStatus as OrderStatus] || []).map((f) => (
+                <div key={f.key} className="mb-4">
+                  <label className="block text-sm font-medium text-ink-soft mb-1.5">{f.label}</label>
+                  <input
+                    value={extras[f.key] || ''}
+                    onChange={(e) => setExtras((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                    placeholder={f.placeholder}
+                    className="w-full h-11 px-4 bg-plum border border-ink/10 rounded-lg text-sm text-ink focus:outline-none focus:ring-2 focus:ring-lavender"
+                  />
+                </div>
+              ))}
               <div>
                 <label className="block text-sm font-medium text-ink-soft mb-1.5">Internal note (optional)</label>
                 <textarea
