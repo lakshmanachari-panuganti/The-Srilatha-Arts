@@ -34,7 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
 
     steps:
       - name: Checkout
@@ -72,12 +71,18 @@ jobs:
           NODE_ENV: production
         run: npm run build
 
+      # Deploy only on push. A pull_request deploy would create an SWA
+      # *staging* environment, and the Free tier caps those at 3 — they
+      # accumulated until every deploy failed with "already has the
+      # maximum number of staging environments". The push trigger above
+      # already publishes ai-driven1/develop to the DEV site, so a PR
+      # preview adds nothing here. PRs still gate on type-check + build.
       - name: Deploy to Azure Static Web Apps
+        if: github.event_name != 'pull_request'
         id: swa
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           # When `skip_app_build: true`, the SWA action ignores `output_location`
           # and treats `app_location` itself as the artifact folder. So we point
@@ -91,14 +96,3 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ env.API_BASE_URL }}
           NEXT_PUBLIC_SITE_URL: ${{ env.SITE_URL }}
-
-  close-preview:
-    name: Close PR Preview (DEV)
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Close Preview
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
-          action: close
