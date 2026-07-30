@@ -89,7 +89,7 @@ export default function NotificationAlertsCard() {
 
   if (isError) {
     return (
-      <section className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8 text-sm text-red-800">
+      <section className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 mb-8 text-sm text-red-300">
         Could not load notification alerts. Refresh the page to retry.
       </section>
     )
