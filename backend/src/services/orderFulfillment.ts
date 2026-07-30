@@ -38,7 +38,7 @@ import {
 import { buildInvoicePdf } from './invoicePdf'
 import { uploadInvoicePdf } from './blobStorage'
 import { invoiceUrlFor } from './orderNumber'
-import { enqueueNotification } from './queue'
+import { enqueueNotificationSafe } from './queue'
 import { recordAlert } from './notificationAlerts'
 import {
   enqueueStudioAdminNotifications,
@@ -192,8 +192,8 @@ export async function finalizeOrderAfterPayment(
   // Soft-skip if no phone or WhatsApp isn't configured at the consumer
   // side; the queue consumer will record the skip in its event log.
   if (order.customerPhone) {
-    try {
-      await enqueueNotification({
+    await enqueueNotificationSafe(
+      {
         userEmail: (order.customerEmail as string) || (order.partitionKey as string) || '',
         channel: 'whatsapp',
         templateKey: 'order_confirmed',
@@ -203,16 +203,15 @@ export async function finalizeOrderAfterPayment(
           customerPhone: (order.customerPhone as string) || '',
           invoiceUrl,
         },
-      })
-    } catch (err) {
-      context.warn('finalizeOrderAfterPayment: WhatsApp enqueue failed', err)
-    }
+      },
+      context,
+    )
   }
 
   // ── Enqueue email ────────────────────────────────────────────────
   if (order.customerEmail) {
-    try {
-      await enqueueNotification({
+    const queued = await enqueueNotificationSafe(
+      {
         userEmail: order.customerEmail as string,
         channel: 'email',
         templateKey: 'order_confirmed',
@@ -221,15 +220,18 @@ export async function finalizeOrderAfterPayment(
           customerName: (order.customerName as string) || 'Customer',
           invoiceUrl,
         },
-      })
-      // Optimistic 'pending' status so the admin UI shows that the email
-      // is in flight even before the consumer processes it.
+      },
+      context,
+    )
+    // Optimistic 'pending' status so the admin UI shows that the email is
+    // in flight even before the consumer processes it. Only when the
+    // message actually landed — otherwise the order shows 'pending'
+    // forever for an email nothing will ever send.
+    if (queued) {
       await mergeOrder(order.partitionKey as string, orderId, {
         emailStatus: 'pending',
         updatedAt: new Date().toISOString(),
       })
-    } catch (err) {
-      context.warn('finalizeOrderAfterPayment: email enqueue failed', err)
     }
   }
 

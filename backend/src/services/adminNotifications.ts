@@ -33,7 +33,7 @@
 
 import { InvocationContext } from '@azure/functions'
 import { sendTemplateMessage, normalisePhone, isWhatsAppConfigured } from './whatsapp'
-import { enqueueNotification } from './queue'
+import { enqueueNotificationSafe } from './queue'
 
 const ADMIN_GROUP_ENV = 'STUDIO_ADMINS_WHATSAPP_GROUP'
 /** Custom-order arrival ping (button → /admin/custom-orders). */
@@ -117,8 +117,11 @@ export async function enqueueStudioAdminNotifications(
   }
 
   for (const toPhone of admins) {
-    try {
-      await enqueueNotification({
+    // Per-admin isolation: enqueueNotificationSafe never throws, so one bad
+    // enqueue costs only that admin their notification — and raises a
+    // dashboard alert rather than vanishing into the logs.
+    const queued = await enqueueNotificationSafe(
+      {
         // Admin pings aren't addressed to a customer mailbox; the field is
         // part of the queue message shape, so carry the reference instead.
         userEmail: '',
@@ -130,17 +133,11 @@ export async function enqueueStudioAdminNotifications(
           customerPhone: customerPhone || 'Not provided',
           referenceId,
         },
-      })
-      result.enqueued += 1
-    } catch (err) {
-      result.failed += 1
-      const msg = err instanceof Error ? err.message : String(err)
-      // Per-admin isolation: one bad enqueue must not cost the rest their
-      // notification.
-      context.warn(
-        `[notify] channel=${ADMIN_WHATSAPP_CHANNEL} template=${templateName} outcome=enqueue_failed to=${toPhone} ref=${referenceId} error="${msg.replace(/\s+/g, ' ').slice(0, 200)}"`,
-      )
-    }
+      },
+      context,
+    )
+    if (queued) result.enqueued += 1
+    else result.failed += 1
   }
 
   return result

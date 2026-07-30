@@ -42,7 +42,7 @@ import { requireUser } from '../middleware/userGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { canTransition } from '../services/orderState'
-import { enqueueNotification } from '../services/queue'
+import { enqueueNotificationSafe } from '../services/queue'
 import { trackEvent as trackTelemetry, trackException } from '../utils/telemetry'
 import { getShippingConfig, computeShippingAmount } from '../services/shippingConfig'
 import { generateOrderNumber } from '../services/orderNumber'
@@ -994,28 +994,26 @@ async function razorpayWebhook(
     }
 
     if (order.customerEmail) {
-      try {
-        await enqueueNotification({
+      await enqueueNotificationSafe(
+        {
           userEmail: order.customerEmail as string,
           channel: 'email',
           templateKey: 'refund_processed',
           vars: refundVars,
-        })
-      } catch (notifyErr) {
-        context.warn('razorpayWebhook(refund.processed): email enqueue failed (non-fatal)', notifyErr)
-      }
+        },
+        context,
+      )
     }
     if (order.customerPhone) {
-      try {
-        await enqueueNotification({
+      await enqueueNotificationSafe(
+        {
           userEmail: (order.customerEmail as string) || '',
           channel: 'whatsapp',
           templateKey: 'refund_processed',
           vars: refundVars,
-        })
-      } catch (notifyErr) {
-        context.warn('razorpayWebhook(refund.processed): whatsapp enqueue failed (non-fatal)', notifyErr)
-      }
+        },
+        context,
+      )
     }
 
     return { status: 200, body: 'ok - refund processed' }

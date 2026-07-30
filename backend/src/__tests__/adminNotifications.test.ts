@@ -1,7 +1,7 @@
 import type { InvocationContext } from '@azure/functions'
 
-const enqueueNotification = jest.fn()
-jest.mock('../services/queue', () => ({ enqueueNotification }))
+const enqueueNotificationSafe = jest.fn()
+jest.mock('../services/queue', () => ({ enqueueNotificationSafe }))
 
 import {
   enqueueStudioAdminNotifications,
@@ -36,7 +36,7 @@ describe('parseStudioAdminPhones', () => {
 
 describe('enqueueStudioAdminNotifications', () => {
   beforeEach(() => {
-    enqueueNotification.mockReset().mockResolvedValue(undefined)
+    enqueueNotificationSafe.mockReset().mockResolvedValue(true)
     process.env.STUDIO_ADMINS_WHATSAPP_GROUP = '9052380325, 9014393938'
   })
 
@@ -50,7 +50,7 @@ describe('enqueueStudioAdminNotifications', () => {
     })
 
     expect(result).toEqual({ enqueued: 2, skipped: 0, failed: 0 })
-    expect(enqueueNotification.mock.calls.map((c) => c[0])).toEqual([
+    expect(enqueueNotificationSafe.mock.calls.map((c) => c[0])).toEqual([
       {
         userEmail: '',
         channel: ADMIN_WHATSAPP_CHANNEL,
@@ -77,9 +77,9 @@ describe('enqueueStudioAdminNotifications', () => {
   })
 
   it('isolates a per-admin enqueue failure', async () => {
-    enqueueNotification
-      .mockRejectedValueOnce(new Error('queue 503'))
-      .mockResolvedValue(undefined)
+    // enqueueNotificationSafe reports failure by returning false, having
+    // already raised the dashboard alert itself.
+    enqueueNotificationSafe.mockResolvedValueOnce(false).mockResolvedValue(true)
 
     const result = await enqueueStudioAdminNotifications({
       templateName: ADMIN_CUSTOM_ORDER_TEMPLATE_KEY,
@@ -102,7 +102,7 @@ describe('enqueueStudioAdminNotifications', () => {
       context: ctx,
     })
     expect(result).toEqual({ enqueued: 0, skipped: 0, failed: 0 })
-    expect(enqueueNotification).not.toHaveBeenCalled()
+    expect(enqueueNotificationSafe).not.toHaveBeenCalled()
   })
 })
 

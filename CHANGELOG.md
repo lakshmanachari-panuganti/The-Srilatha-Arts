@@ -36,6 +36,24 @@ versioning — earlier dated sections are treated as the 1.0.0 baseline.
 
 ### Fixed
 
+- **A failed enqueue silently lost the notification.** The queue supplies retry
+  and a poison-queue paper trail — but only once a message lands on it. Eight
+  producers swallowed enqueue failures into a `context.warn`, so a Storage Queue
+  outage dropped order confirmations, status updates, refund notices and admin
+  pings with nothing on the admin dashboard and nothing in the poison queue to
+  replay. New `enqueueNotificationSafe` records a final `notificationAlerts` row
+  and returns false instead; all customer + admin producers route through it.
+  (Admin resend endpoints deliberately keep the throwing `enqueueNotification` —
+  there the operator is waiting on the response and should see the failure.)
+- **`emailStatus: 'pending'` was stamped even when the email never queued**,
+  leaving the order showing an in-flight email that nothing would ever send.
+  Now conditional on the enqueue succeeding.
+- **Admin status update could report failure for a transition that committed.**
+  `adminUpdateStatus` enqueued customer notifications with no guard after the
+  status write, so a queue failure threw into the outer catch and returned
+  `500 Failed to update status` for a change that had already happened — the
+  admin would retry and hit an invalid-transition error. The enqueue is now
+  non-throwing.
 - **`STUDIO_ADMINS_WHATSAPP_GROUP` silently dropped space-formatted numbers.**
   The parser split on whitespace as well as commas, so a documented-legal entry
   like `+91 90143 93938` was shredded into `+91` / `90143` / `93938`, each
