@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh:*)",
+      "Bash(git:*)",
+      "Bash(npm run:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)"
+    ],
+    "deny": [
+      "Bash(terraform:*)",
+      "Bash(az:*)",
+      "Bash(kubectl:*)",
+      "Bash(rm:*)",
+      "Read(.env)",
+      "Read(**/local.settings*.json)"
+    ]
+  }
+}

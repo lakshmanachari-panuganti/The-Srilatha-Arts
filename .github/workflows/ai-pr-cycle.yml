@@ -1,0 +1,114 @@
+name: ai-pr-cycle
+
+# The autonomous half. Reviewer and Developer run as separate jobs: separate
+# process, separate model, separate GitHub identity.
+#
+# Never switch to pull_request_target — it would expose these secrets to fork PRs.
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: ai-pr-cycle-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  REVIEWER_MODEL: ${{ vars.REVIEWER_MODEL || 'opus' }}
+  DEVELOPER_MODEL: ${{ vars.DEVELOPER_MODEL || 'sonnet' }}
+
+jobs:
+  eligibility:
+    name: Eligibility
+    runs-on: ubuntu-latest
+    if: vars.ENABLE_UNATTENDED_AGENTS == 'true'
+    outputs:
+      proceed: ${{ steps.gate.outputs.proceed }}
+    steps:
+      - name: Evaluate gate
+        id: gate
+        shell: pwsh
+        env:
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          $blocked = @()
+          if ($env:IS_FORK -eq 'true')        { $blocked += 'fork PR' }
+          if ($env:IS_DRAFT -eq 'true')       { $blocked += 'draft' }
+          if ($env:HEAD_REF -ne 'ai-driven1') { $blocked += "head is $env:HEAD_REF" }
+          if (($env:LABELS -split ',') -contains 'needs-human') { $blocked += 'needs-human' }
+
+          if ($blocked.Count -gt 0) {
+              Write-Host "Skipping agents: $($blocked -join '; ')"
+              "proceed=false" >> $env:GITHUB_OUTPUT
+          }
+          else {
+              "proceed=true" >> $env:GITHUB_OUTPUT
+          }
+
+  review:
+    name: Reviewer Agent
+    needs: eligibility
+    if: needs.eligibility.outputs.proceed == 'true' && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: npm install -g @anthropic-ai/claude-code
+
+      - name: Review
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GITHUB_REVIEWER_TOKEN: ${{ secrets.GITHUB_REVIEWER_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          claude --model "$REVIEWER_MODEL" \
+                 --agents pr-reviewer \
+                 --output-format json \
+                 -p "Review pull request #${PR_NUMBER} using the pr-reviewer subagent. On rounds after the first, review both the updated code and the developer's replies to your earlier comments. Follow the subagent definition exactly." \
+                 | tee review-result.json
+
+      - name: Fail closed on refusal or empty output
+        shell: pwsh
+        run: |
+          $output = Get-Content ./review-result.json -Raw -ErrorAction SilentlyContinue
+          if ([string]::IsNullOrWhiteSpace($output)) {
+              Write-Host 'Reviewer produced no output. This is not "no findings".'
+              exit 1
+          }
+
+  respond:
+    name: Developer Agent
+    needs: eligibility
+    if: needs.eligibility.outputs.proceed == 'true' && github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ai-driven1
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_DEVELOPER_TOKEN }}
+
+      - run: npm install -g @anthropic-ai/claude-code
+
+      - name: Fix or rebut
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GITHUB_DEVELOPER_TOKEN: ${{ secrets.GITHUB_DEVELOPER_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          claude --model "$DEVELOPER_MODEL" \
+                 --agents pr-developer \
+                 --output-format json \
+                 -p "Address the open review comments on pull request #${PR_NUMBER} using the pr-developer subagent. Fix what is valid; rebut false positives with technical evidence. Follow the subagent definition exactly." \
+                 | tee respond-result.json
