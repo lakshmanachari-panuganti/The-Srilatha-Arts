@@ -1,0 +1,64 @@
+name: promote-pr
+
+# Opens the weekly develop -> main release PR.
+#
+# Deliberately opened by github-actions[bot], not by you and not by an agent:
+#   - GitHub blocks a PR author from approving their own PR, so if you opened
+#     it, the ruleset could not require your approval.
+#   - No agent identity is involved with main at all.
+#
+# Result: the PR sits waiting for YOUR approval, and GitHub enforces that.
+
+on:
+  schedule:
+    - cron: '0 4 * * 6'      # Saturday 04:00 UTC — 09:30 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Open or refresh the release PR
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ahead = git rev-list --count origin/main..origin/develop
+          if ([int]$ahead -eq 0) {
+              Write-Host 'develop has nothing new. No release PR needed.'
+              exit 0
+          }
+
+          $existing = gh pr list --base main --head develop --state open --json number | ConvertFrom-Json
+          if ($existing.Count -gt 0) {
+              Write-Host "Release PR #$($existing[0].number) is already open."
+              exit 0
+          }
+
+          $log = git log --oneline --no-merges origin/main..origin/develop
+          $body = @(
+              "## Release $(Get-Date -Format 'yyyy-MM-dd')"
+              ""
+              "$ahead commit(s) from ``develop``."
+              ""
+              "### Before approving"
+              "- [ ] Dev environment tested"
+              "- [ ] Every commit below arrived through a reviewed PR"
+              "- [ ] Nothing unexpected in the diff"
+              ""
+              "### Commits"
+              '```'
+              $log
+              '```'
+          ) -join "`n"
+
+          gh pr create --base main --head develop --title "Release $(Get-Date -Format 'yyyy-MM-dd')" --body $body
+          Write-Host 'Release PR opened. Waiting on your approval.'

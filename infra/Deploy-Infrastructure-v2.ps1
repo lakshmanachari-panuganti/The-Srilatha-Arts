@@ -1023,7 +1023,8 @@ $emptyIfAbsent = @(
     'WHATSAPP_PHONE_NUMBER_ID',
     'WHATSAPP_WABA_ID',
     # Comma-separated WhatsApp numbers (E.164) that receive the
-    # admin_notification template on every new custom-order submission.
+    # admin_notification_v1 template on every new custom-order submission
+    # and the admin_new_order_v1 template on every captured shop order.
     # Empty here so operators set it per environment via Update-AppSettings-v2.
     'STUDIO_ADMINS_WHATSAPP_GROUP'
 )

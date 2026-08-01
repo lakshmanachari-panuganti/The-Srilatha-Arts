@@ -1,0 +1,9 @@
+# The owner must approve anything reaching main, and anything touching the
+# controls that hold this workflow together.
+#
+# Replace the username if the repository moves.
+
+*                       @lakshmanachari-panuganti
+/.github/               @lakshmanachari-panuganti
+/.claude/               @lakshmanachari-panuganti
+/config/rulesets/       @lakshmanachari-panuganti

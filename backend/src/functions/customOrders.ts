@@ -20,7 +20,10 @@ import { requireUser } from '../middleware/userGuard'
 import { enforceCsrf } from '../middleware/csrfGuard'
 import { jsonResponse, errorResponse, corsPreflightResponse } from '../utils/response'
 import { checkAndIncrement } from '../services/rateLimit'
-import { notifyStudioAdmins } from '../services/adminNotifications'
+import {
+  enqueueStudioAdminNotifications,
+  ADMIN_CUSTOM_ORDER_TEMPLATE_KEY,
+} from '../services/adminNotifications'
 import { randomUUID } from 'crypto'
 import { TableClient } from '@azure/data-tables'
 import { DefaultAzureCredential } from '@azure/identity'
@@ -193,21 +196,25 @@ async function submitCustomOrder(
 
     await createCustomOrder(row)
 
-    // Fan out a WhatsApp notification to every configured studio admin.
-    // notifyStudioAdmins never throws - per-admin errors are isolated and
-    // logged, an empty / unconfigured admin list is a warn-and-continue.
+    // Queue a WhatsApp notification for every configured studio admin.
+    // Enqueue-only: the customer's submit response no longer waits on Meta,
+    // and a transient Meta failure is retried by the notifications-out
+    // consumer instead of being silently lost. Per-admin errors are
+    // isolated; an empty / unconfigured admin list is a warn-and-continue.
     try {
-      const fanout = await notifyStudioAdmins({
+      const fanout = await enqueueStudioAdminNotifications({
+        templateName: ADMIN_CUSTOM_ORDER_TEMPLATE_KEY,
         customerName,
         customerPhone,
+        referenceId: inquiryId,
         context,
       })
       context.log(
-        `submitCustomOrder: studio-admin fan-out for ${inquiryId} — attempted=${fanout.attempted} succeeded=${fanout.succeeded} failed=${fanout.failed} skipped=${fanout.skipped}`,
+        `submitCustomOrder: studio-admin fan-out for ${inquiryId} — enqueued=${fanout.enqueued} skipped=${fanout.skipped} failed=${fanout.failed}`,
       )
     } catch (notifyErr) {
-      // Defensive: notifyStudioAdmins is documented as non-throwing, but if
-      // that contract is ever broken we still don't want to fail the submit.
+      // Defensive: the producer is documented as non-throwing, but if that
+      // contract is ever broken we still don't want to fail the submit.
       context.warn(
         `submitCustomOrder: unexpected fan-out error for ${inquiryId} (non-fatal): ${String(notifyErr)}`,
       )

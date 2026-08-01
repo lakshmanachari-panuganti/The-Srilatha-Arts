@@ -1,0 +1,25 @@
+{
+  "name": "main-protection",
+  "_comment": "bypass_actors is deliberately EMPTY. Nobody bypasses, including the owner. The human gate is the CODEOWNERS approval requirement below - the release PR is opened by github-actions[bot] so the owner is free to approve it.",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": { "include": ["refs/heads/main"], "exclude": [] }
+  },
+  "bypass_actors": [],
+  "rules": [
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": true,
+        "require_last_push_approval": true,
+        "required_review_thread_resolution": false,
+        "require_code_owner_review": true,
+        "allowed_merge_methods": ["merge"]
+      }
+    },
+    { "type": "deletion" },
+    { "type": "non_fast_forward" }
+  ]
+}

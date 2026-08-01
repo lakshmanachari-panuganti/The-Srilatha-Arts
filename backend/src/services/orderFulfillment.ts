@@ -38,8 +38,12 @@ import {
 import { buildInvoicePdf } from './invoicePdf'
 import { uploadInvoicePdf } from './blobStorage'
 import { invoiceUrlFor } from './orderNumber'
-import { enqueueNotification } from './queue'
+import { enqueueNotificationSafe } from './queue'
 import { recordAlert } from './notificationAlerts'
+import {
+  enqueueStudioAdminNotifications,
+  ADMIN_NEW_ORDER_TEMPLATE_KEY,
+} from './adminNotifications'
 
 /**
  * Build the invoice PDF for an order, upload it to blob, and stamp
@@ -188,8 +192,8 @@ export async function finalizeOrderAfterPayment(
   // Soft-skip if no phone or WhatsApp isn't configured at the consumer
   // side; the queue consumer will record the skip in its event log.
   if (order.customerPhone) {
-    try {
-      await enqueueNotification({
+    await enqueueNotificationSafe(
+      {
         userEmail: (order.customerEmail as string) || (order.partitionKey as string) || '',
         channel: 'whatsapp',
         templateKey: 'order_confirmed',
@@ -199,16 +203,15 @@ export async function finalizeOrderAfterPayment(
           customerPhone: (order.customerPhone as string) || '',
           invoiceUrl,
         },
-      })
-    } catch (err) {
-      context.warn('finalizeOrderAfterPayment: WhatsApp enqueue failed', err)
-    }
+      },
+      context,
+    )
   }
 
   // ── Enqueue email ────────────────────────────────────────────────
   if (order.customerEmail) {
-    try {
-      await enqueueNotification({
+    const queued = await enqueueNotificationSafe(
+      {
         userEmail: order.customerEmail as string,
         channel: 'email',
         templateKey: 'order_confirmed',
@@ -217,16 +220,41 @@ export async function finalizeOrderAfterPayment(
           customerName: (order.customerName as string) || 'Customer',
           invoiceUrl,
         },
-      })
-      // Optimistic 'pending' status so the admin UI shows that the email
-      // is in flight even before the consumer processes it.
+      },
+      context,
+    )
+    // Optimistic 'pending' status so the admin UI shows that the email is
+    // in flight even before the consumer processes it. Only when the
+    // message actually landed — otherwise the order shows 'pending'
+    // forever for an email nothing will ever send.
+    if (queued) {
       await mergeOrder(order.partitionKey as string, orderId, {
         emailStatus: 'pending',
         updatedAt: new Date().toISOString(),
       })
-    } catch (err) {
-      context.warn('finalizeOrderAfterPayment: email enqueue failed', err)
     }
+  }
+
+  // ── Ping the studio admins ───────────────────────────────────────
+  // Enqueue-only (one message per admin) so no Meta latency lands on the
+  // payment-verify response and a transient Meta failure is retried by the
+  // queue instead of being lost. Never throws; an empty / unconfigured
+  // admin list is a warn-and-continue.
+  try {
+    const fanout = await enqueueStudioAdminNotifications({
+      templateName: ADMIN_NEW_ORDER_TEMPLATE_KEY,
+      customerName: (order.customerName as string) || '',
+      customerPhone: (order.customerPhone as string) || '',
+      referenceId: orderId,
+      context,
+    })
+    context.log(
+      `finalizeOrderAfterPayment: studio-admin fan-out for ${orderId} — enqueued=${fanout.enqueued} skipped=${fanout.skipped} failed=${fanout.failed}`,
+    )
+  } catch (notifyErr) {
+    context.warn(
+      `finalizeOrderAfterPayment: unexpected admin fan-out error for ${orderId} (non-fatal): ${String(notifyErr)}`,
+    )
   }
 
   return invoiceUrl
