@@ -25,6 +25,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import { isCustomOrderInquiryAlert } from '@/lib/notificationAlerts'
 
 interface AlertApi {
   id: string
@@ -226,38 +227,24 @@ function channelIconFor(channel: AlertApi['channel']) {
   }
 }
 
-// The custom-order studio-admin ping's `orderId` is actually a custom-order
-// INQUIRY id (backend/src/functions/customOrders.ts enqueues it as
-// `referenceId`), so it has no /admin/orders/detail row and 404s there.
-// `operation` carries the Meta template key and is the one field both
-// producers of this alert set reliably:
-//   - queue.ts enqueueNotificationSafe (enqueue failure): operation ===
-//     templateKey verbatim.
-//   - notificationsQueue.ts sendAdminNotification (send failure):
-//     operation === `${templateKey}:${toPhone}`.
-// Value must match ADMIN_CUSTOM_ORDER_TEMPLATE_KEY in
-// backend/src/services/adminNotifications.ts. The sibling admin ping
-// (admin_new_order_v1, shop order paid) is NOT included here — its
-// referenceId is a real orderId, so it keeps the Order label/link.
-const CUSTOM_ORDER_ADMIN_PING_TEMPLATE_KEY = 'admin_notification_v1'
-export function isCustomOrderInquiryAlert(operation: string): boolean {
-  return (
-    operation === CUSTOM_ORDER_ADMIN_PING_TEMPLATE_KEY ||
-    operation.startsWith(`${CUSTOM_ORDER_ADMIN_PING_TEMPLATE_KEY}:`)
-  )
-}
-
 // Reverse the templateKey conventions used by the dispatcher.
 function humaniseOperation(op: string): string {
-  if (op === 'payment_after_cancel') return 'Payment captured after cancellation'
-  if (op === 'invoice_generation') return 'Invoice generation'
+  // Admin pings carry a `:toPhone` dedup suffix (notificationsQueue.ts
+  // sendAdminNotification) — strip it before matching, and before it would
+  // otherwise fall through to `return op` and print a studio admin phone
+  // number on the row.
+  const key = op.split(':')[0]
+  if (isCustomOrderInquiryAlert(key)) return 'Custom-order studio ping'
+  if (key.startsWith('admin_new_order_v')) return 'New-order studio ping'
+  if (key === 'payment_after_cancel') return 'Payment captured after cancellation'
+  if (key === 'invoice_generation') return 'Invoice generation'
   // Standard order_xxx templates → "Order xxx"
-  if (op.startsWith('order_')) {
-    return 'Order ' + op.slice(6).replace(/_/g, ' ')
+  if (key.startsWith('order_')) {
+    return 'Order ' + key.slice(6).replace(/_/g, ' ')
   }
-  if (op === 'review_request') return 'Review request'
-  if (op === 'refund_processed') return 'Refund processed'
-  return op
+  if (key === 'review_request') return 'Review request'
+  if (key === 'refund_processed') return 'Refund processed'
+  return key
 }
 
 function formatRelative(iso: string): string {
