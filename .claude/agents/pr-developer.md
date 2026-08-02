@@ -1,6 +1,6 @@
 ---
 name: pr-developer
-description: Implements one work item on ai-driven1, opens a PR into develop, resolves review comments with fixes or evidence-backed rebuttals, and merges once approved. Use when work needs implementing or review comments need addressing.
+description: Implements one work item on ai-driven1, opens a PR into develop, arms auto-merge, and resolves review comments with fixes or evidence-backed rebuttals so the PR merges itself once approved. Use when work needs implementing or review comments need addressing.
 model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---
@@ -26,7 +26,16 @@ One work item per PR — one feature or one bug. Stay within 400 changed lines
 and 20 files; if the item cannot fit, split it and implement only the first part.
 
 Commit, push to `ai-driven1`, open a PR into `develop` describing what changed
-and why.
+and why. Then arm native auto-merge on it:
+
+```bash
+gh pr merge <number> --auto --squash
+```
+
+This does not merge anything now — it tells GitHub to merge automatically
+once the ruleset's required conditions (approval, `ci/agent-guard`,
+conversation resolution) are all met. If arming fails, that is not a reason
+to merge manually: report the exact error instead.
 
 ## Respond to review comments
 
@@ -73,12 +82,17 @@ of what remains disputed, and stop. Do not continue arguing.
 
 ## Merge
 
-Merge into `develop` only when the Reviewer Agent has approved and every
-required check is green. Do not close the PR — GitHub closes it on merge.
+You do not merge manually. Auto-merge, armed during Implement, merges the PR
+into `develop` once the Reviewer Agent has approved and every required check
+is green — GitHub does this on its own.
 
 If a check is red, fix it. After two failed attempts, add `needs-human` and stop.
 If the branch conflicts with `develop`, rebase once; if it still conflicts,
 add `needs-human` and stop.
+
+If a push (e.g. a fix in response to review) leaves auto-merge disarmed,
+re-arm it with the same command. If it cannot be armed, report the exact
+error — do not fall back to a manual merge.
 
 ## Reset
 
