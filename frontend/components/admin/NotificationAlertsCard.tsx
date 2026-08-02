@@ -149,6 +149,7 @@ function AlertRow({
     ? 'bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.18)]'
     : 'bg-amber-400 shadow-[0_0_0_3px_rgba(251,191,36,0.18)]'
   const channelIcon = channelIconFor(alert.channel)
+  const isInquiry = isCustomOrderInquiryAlert(alert.operation)
 
   return (
     <li className="bg-paper border border-ink/8 rounded-lg p-4 flex items-start gap-3">
@@ -160,7 +161,9 @@ function AlertRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap text-sm">
-          <span className="font-medium text-ink">Order #{alert.orderId}</span>
+          <span className="font-medium text-ink">
+            {isInquiry ? `Inquiry #${alert.orderId}` : `Order #${alert.orderId}`}
+          </span>
           <span className="text-ink-mute">·</span>
           <span className="text-ink-soft">{alert.customerName || 'Customer'}</span>
           <span className="text-ink-mute">·</span>
@@ -185,10 +188,14 @@ function AlertRow({
 
         <div className="mt-3 flex items-center gap-2">
           <Link
-            href={`/admin/orders/detail?id=${encodeURIComponent(alert.orderId)}`}
+            href={
+              isInquiry
+                ? '/admin/custom-orders'
+                : `/admin/orders/detail?id=${encodeURIComponent(alert.orderId)}`
+            }
             className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-ink/15 text-xs font-medium text-ink hover:bg-lavender-pastel/10 transition-colors"
           >
-            View Order
+            {isInquiry ? 'View Inquiry' : 'View Order'}
             <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
           </Link>
           <button
@@ -217,6 +224,27 @@ function channelIconFor(channel: AlertApi['channel']) {
     case 'invoice':
       return <FileText className="w-3.5 h-3.5 text-ink-mute" aria-hidden />
   }
+}
+
+// The custom-order studio-admin ping's `orderId` is actually a custom-order
+// INQUIRY id (backend/src/functions/customOrders.ts enqueues it as
+// `referenceId`), so it has no /admin/orders/detail row and 404s there.
+// `operation` carries the Meta template key and is the one field both
+// producers of this alert set reliably:
+//   - queue.ts enqueueNotificationSafe (enqueue failure): operation ===
+//     templateKey verbatim.
+//   - notificationsQueue.ts sendAdminNotification (send failure):
+//     operation === `${templateKey}:${toPhone}`.
+// Value must match ADMIN_CUSTOM_ORDER_TEMPLATE_KEY in
+// backend/src/services/adminNotifications.ts. The sibling admin ping
+// (admin_new_order_v1, shop order paid) is NOT included here — its
+// referenceId is a real orderId, so it keeps the Order label/link.
+const CUSTOM_ORDER_ADMIN_PING_TEMPLATE_KEY = 'admin_notification_v1'
+export function isCustomOrderInquiryAlert(operation: string): boolean {
+  return (
+    operation === CUSTOM_ORDER_ADMIN_PING_TEMPLATE_KEY ||
+    operation.startsWith(`${CUSTOM_ORDER_ADMIN_PING_TEMPLATE_KEY}:`)
+  )
 }
 
 // Reverse the templateKey conventions used by the dispatcher.
