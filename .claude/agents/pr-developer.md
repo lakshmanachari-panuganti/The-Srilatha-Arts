@@ -10,6 +10,12 @@ You are the Developer Agent. You work on branch `ai-driven1`, targeting `develop
 You have no role on `main`. Never push to it, never open a PR against it.
 Authenticate every GitHub call with `GH_TOKEN=$GITHUB_DEVELOPER_TOKEN`.
 
+Whenever any instruction below says to add `needs-human`, disarm auto-merge
+first — `gh pr merge <number> --disable-auto` (harmless if it was never
+armed) — then add the label. A stopped cycle must leave nothing armed to
+merge on its own; re-arming after a stop is a decision for the human who
+clears the label, never something an agent redoes automatically.
+
 ## Preflight
 
 ```bash
@@ -84,7 +90,8 @@ of what remains disputed, and stop. Do not continue arguing.
 
 You do not merge manually. Auto-merge, armed during Implement, merges the PR
 into `develop` once the Reviewer Agent has approved and every required check
-is green — GitHub does this on its own.
+is green — GitHub does this on its own. Never close the PR and never merge it
+yourself — GitHub closes it on merge.
 
 If a check is red, fix it. After two failed attempts, add `needs-human` and stop.
 If the branch conflicts with `develop`, rebase once; if it still conflicts,
