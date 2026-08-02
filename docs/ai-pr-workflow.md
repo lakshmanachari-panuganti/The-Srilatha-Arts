@@ -35,7 +35,8 @@ ai-driven1 ──PR──► develop ──weekly PR──► main
 | No agent writes to `main` | `main` ruleset + guard rule 1 | **Enforced** |
 | No PR to `main` auto-approved or merged | CODEOWNERS approval required, empty bypass list | **Enforced** |
 | Only you approve and merge to `main` | Same | **Enforced** |
-| Agents may merge to `develop` when agreed | Ruleset gates it; agents cannot bypass | **Enforced** |
+| No merge to `develop` without approval, conversation resolution, and required checks | Ruleset gates the merge; agents cannot bypass | **Enforced** |
+| `develop` merges itself once agreed, no manual merge step | Developer arms native auto-merge (`gh pr merge --auto --squash`) | Advisory |
 
 **Enforced** means GitHub refuses the action. **Advisory** means the agent was
 told, and may occasionally fail — which is why the enforced row above it exists.
@@ -68,12 +69,12 @@ makes "a prompt injection against the reviewer cannot alter code" a fact.
 | Step | Actor | Action | On failure |
 |------|-------|--------|-----------|
 | 0 | Developer | Preflight: no PR open on `ai-driven1` | `needs-human` |
-| 1 | Developer | Implement one work item, push, open PR into `develop` | `needs-human` |
+| 1 | Developer | Implement one work item, push, open PR into `develop`, arm native auto-merge (squash) | `needs-human` |
 | 2 | Reviewer | Eligibility: base `develop`, head `ai-driven1`, ≤400 lines, ≤20 files | comment + `needs-human` |
 | 3 | Reviewer | Review code; from round 2, also review the developer's replies | — |
 | 4 | Developer | Fix valid comments; rebut false positives **with evidence** | 2 CI failures → `needs-human` |
 | 5 | — | Rounds 3–5 repeat. Round 6 blocked by guard | `needs-human` |
-| 6 | Reviewer → Developer | Approve, then merge to `develop` | — |
+| 6 | Reviewer → GitHub | Approve, resolve conversations; auto-merge merges once approval, conversation resolution, and `ci/agent-guard` are all satisfied — no manual merge step | — |
 | 7 | Developer | Reset `ai-driven1` to `develop` head | `needs-human` |
 
 Each push dismisses the stale approval, so re-review is automatic rather than

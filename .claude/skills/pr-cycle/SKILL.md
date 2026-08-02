@@ -14,13 +14,14 @@ call `/model` and never set `CLAUDE_CODE_SUBAGENT_MODEL`.
 
 | Subagent | Model | Role |
 |----------|-------|------|
-| `pr-developer` | sonnet | implements, fixes or rebuts, merges, resets |
+| `pr-developer` | sonnet | implements, arms auto-merge, fixes or rebuts, resets |
 | `pr-reviewer` | opus | reviews code and replies, approves |
 
 ## Sequence
 
 1. **Preflight** — dispatch `pr-developer`. Stop if it reports failure.
-2. **Implement** — dispatch `pr-developer` with the work item. It opens the PR.
+2. **Implement** — dispatch `pr-developer` with the work item. It opens the PR
+   and arms native auto-merge (`gh pr merge --auto --squash`).
 3. **Review** — dispatch `pr-reviewer` on the PR number.
 4. **Branch:**
    - approved → go to 6
@@ -28,7 +29,10 @@ call `/model` and never set `CLAUDE_CODE_SUBAGENT_MODEL`.
    - `needs-human` → stop
 5. **Respond** — dispatch `pr-developer` with the comment list. Return to 3,
    incrementing the round.
-6. **Merge** — dispatch `pr-developer` to merge once checks are green.
+6. **Merge** — no dispatch. Auto-merge merges the PR itself once approval and
+   required checks are satisfied. Poll `gh pr view` every 30s, up to 10 times
+   (5 minutes total); if `state` is not `MERGED` by then, stop — see "auto-merge
+   did not land within the bound" below.
 7. **Reset** — dispatch `pr-developer` to reset `ai-driven1`.
 8. Report the outcome and stop.
 
@@ -42,6 +46,8 @@ Stop immediately, report why, take no further action when:
 - a subagent returns empty output or a refusal — treat as `needs-human`, never
   as "no findings"
 - a `gh` call fails three times
+- auto-merge does not land within 10 polls (5 minutes) after approval and
+  checks go green
 
 Never work around a stop condition. Never re-dispatch to retry something a stop
 condition already ended.
