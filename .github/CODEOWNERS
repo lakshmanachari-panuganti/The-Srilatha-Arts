@@ -1,9 +1,12 @@
 # The owner must approve anything reaching main, and anything touching the
 # controls that hold this workflow together.
 #
-# Replace the username if the repository moves.
+# NOTE: this must be a USER or a TEAM. `@lakshmanachari-panuganti` is now the
+# ORGANISATION that owns this repository, and GitHub silently ignores an org
+# here - every rule would become vacuous and require_code_owner_reviews would
+# be unsatisfiable. The personal account is `-lab` after the Aug-2026 rename.
 
-*                       @lakshmanachari-panuganti
-/.github/               @lakshmanachari-panuganti
-/.claude/               @lakshmanachari-panuganti
-/config/rulesets/       @lakshmanachari-panuganti
+*                       @lakshmanachari-panuganti-lab
+/.github/               @lakshmanachari-panuganti-lab
+/.claude/               @lakshmanachari-panuganti-lab
+/config/rulesets/       @lakshmanachari-panuganti-lab
