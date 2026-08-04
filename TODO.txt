@@ -59,4 +59,35 @@ TODO — deferred items
     deploy - but configured is not proven. Run it when you can watch it.
 
 
+[!] EXPIRES 2026-08-06 - remove the organisation owner bypass on develop
+    Granted 2026-08-04 at your request, because GitHub has no setting that lets
+    anyone approve their own pull request and this organisation has one human,
+    so you could not merge your own work at all.
+
+    WHAT IT ACTUALLY DOES - broader than "skip the approval":
+      A bypass waives EVERY rule in the ruleset, not only the approval count.
+      Observed: Dependabot #138 merged while its branch was behind develop,
+      because the strict up-to-date rule was waived too. Assume any develop rule
+      can be skipped by the owner while this is in place.
+
+    WHERE:
+      - governance: develop on every repository, via
+        ownerBypassOnDevelop in governance/repositories.json
+      - Protect develop (id 19164109) on www.srilatha.art, patched by hand
+        because the reconciler does not manage legacy rulesets
+
+    NOT on main, anywhere. main keeps an empty bypass list so code-owner review
+    still keeps every bot out of production. Do not extend this to main.
+    The Developer App is deliberately not a bypass actor, so no agent gained
+    anything from this.
+
+    TO REMOVE:
+      1. Set defaults.ownerBypassOnDevelop to false in repositories.json,
+         merge, and let reconcile apply it
+      2. Manually clear bypass_actors on ruleset 19164109 (www.srilatha.art),
+         or delete that legacy ruleset once the repo adopts the lifecycle
+
+    Rulesets have no expiry date. Nothing will remind you but this file.
+
+
 See ORG-AUTOMATION-PLAN.md for the active workstream.
