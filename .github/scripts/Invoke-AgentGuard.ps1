@@ -54,7 +54,28 @@ function Invoke-AgentGuard {
         [int] $MaxReviewRound = 5
     )
 
-    $protectedPath = @('.github/', 'CODEOWNERS')
+    # Not merely sensitive files - files CI EXECUTES with credentials attached.
+    # The Developer App has no workflows:write, so it cannot edit .github/workflows, but
+    # package.json scripts run on every npm ci, infra/** holds the deployment definitions
+    # and next.config.* runs at build time. Those jobs carry Azure OIDC for both DEV and
+    # PRD, so an agent editing any of them reaches production without touching a workflow.
+    #
+    # Wildcard patterns, matched with -like. Rooted patterns such as 'infra/*' do not match
+    # 'docs/infrastructure.md'; the '**/' variants catch nested copies.
+    $protectedPath = @(
+        '.github/*'
+        'CODEOWNERS'
+        '**/CODEOWNERS'
+        'infra/*'
+        'package.json'
+        '**/package.json'
+        'package-lock.json'
+        '**/package-lock.json'
+        'next.config.*'
+        '**/next.config.*'
+        'staticwebapp.config.json'
+        '**/staticwebapp.config.json'
+    )
     $result = [System.Collections.Generic.List[object]]::new()
 
     $ghArgument = @(
@@ -96,14 +117,20 @@ function Invoke-AgentGuard {
     #
     # Scope by author rather than by branch. An agent cannot escape the rules by pushing
     # somewhere else, because the identity is what is checked.
+    # gh pr view --json author returns an App as "app/<slug>", NOT "<slug>[bot]". Listing
+    # only the [bot] form meant every agent-authored pull request was classified as human,
+    # so ProtectedPaths and BranchTopology silently did not apply to the identity they
+    # exist to constrain. Both spellings are matched, and the check is case-insensitive.
     $agentAuthor = @(
-        'lakshmanachari-panuganti[bot]'   # AI Developer App
-        'devils-advocate-review[bot]'     # AI Reviewer App
+        'app/lakshmanachari-panuganti'    # AI Developer App
+        'lakshmanachari-panuganti[bot]'
+        'app/devils-advocate-review'      # AI Reviewer App
+        'devils-advocate-review[bot]'
         'omg-ai-developer'                # legacy machine account
         'devilsadvocate-reviewer'         # legacy machine account
     )
     $authorLogin = $pullRequest.author.login
-    $isAgentPullRequest = $agentAuthor -contains $authorLogin
+    $isAgentPullRequest = [bool](@($agentAuthor | Where-Object { $_ -eq $authorLogin }).Count)
 
     if (-not $isAgentPullRequest) {
         Add-Result -Rule 'AgentScope' -Passed $true -Detail "author $authorLogin is not an agent; agent invariants do not apply"
@@ -119,13 +146,18 @@ function Invoke-AgentGuard {
     $lastCommit = $pullRequest.commits | Select-Object -Last 1
     $lastPusher = if ($lastCommit.authors) { $lastCommit.authors[0].login } else { 'unknown' }
     $selfApproval = @($approval | Where-Object { $_.author.login -eq $lastPusher })
-    Add-Result -Rule 'ApproverNotPusher' -Passed ($selfApproval.Count -eq 0) -Detail "last pusher $lastPusher, approvals $($approval.Count)"
+    # Agent pull requests only. In a single-maintainer organisation the one human both
+    # pushes and approves, so applying this to their own work makes it unsatisfiable -
+    # the same trap that took require_last_push_approval out of the rulesets. For agents
+    # it still matters: the Developer App pushes, and nothing it pushed may be waved
+    # through by an approval from that same identity.
+    Add-Result -Rule 'ApproverNotPusher' -Passed (-not $isAgentPullRequest -or $selfApproval.Count -eq 0) -Detail "last pusher $lastPusher, approvals $($approval.Count)"
 
     # Rule 3 - the agents must not edit the controls that watch them
     $touched = @(
         foreach ($file in $pullRequest.files) {
-            foreach ($prefix in $protectedPath) {
-                if ($file.path.StartsWith($prefix)) { $file.path; break }
+            foreach ($pattern in $protectedPath) {
+                if ($file.path -like $pattern) { $file.path; break }
             }
         }
     )
