@@ -35,7 +35,80 @@ Contents:      Read      ← cannot push, cannot force-push, cannot touch a bran
 Pull requests: Write     ← can review, approve, comment, suggest
 ```
 
-That is exactly the requirement, and it is only expressible as an App.
+### VERIFIED 2026-08-04 — a read-only approval does not count
+
+Tested end to end against real Apps. The split above is real for *pushing*, but the
+approval does **not** satisfy branch protection:
+
+> `At least 1 approving review is required by reviewers with write access.` (HTTP 405)
+
+The reviewer App submits an `APPROVED` review successfully — the review object exists,
+`state: APPROVED` — and the merge gate then ignores it, because the App has
+`contents: read`. Control test on the same branch: the developer App
+(`contents: write`) approved an owner-authored PR and `mergeable_state` went to `clean`.
+
+So the constraint is **write access**, not "bots cannot approve". Pick two of three:
+
+1. Reviewer holds no write access
+2. Reviewer's verdict gates the merge
+3. No human in the loop
+
+**Resolution: gate on a required status check, not on an approval.** The reviewer App
+publishes a check run named `ai-review`; the ruleset requires that check *pinned to the
+reviewer App's ID*:
+
+```json
+{ "type": "required_status_checks", "parameters": {
+    "required_status_checks": [{ "context": "ai-review", "integration_id": 4483971 }] } }
+```
+
+`integration_id` is what makes this safe. Verified: the developer App posted its own
+check named `ai-review` with `conclusion: success` and the PR stayed `blocked` —
+a different App's check does not satisfy the rule. Without the pin, any App with
+`checks: write` could forge its own merge gate.
+
+This keeps all three properties: reviewer never gets `contents: write`, its verdict is
+the merge gate, and no human is required. Cost: the reviewer App needs
+`checks: write` (which grants check runs only — still no ability to push code).
+
+### Verification results (Test-Repo, 2026-08-04)
+
+| Property | Result |
+|---|---|
+| Reviewer cannot create a branch | 403 `Resource not accessible by integration` |
+| Reviewer still cannot push after gaining `checks: write` | 403 — re-verified |
+| Developer pushes, commits, opens PR | commits attributed to `lakshmanachari-panuganti[bot]` |
+| Reviewer posts inline `suggestion` comments | works |
+| Developer approves its own PR | 422 `Can not approve your own pull request` |
+| Developer forges the `ai-review` check | PR stays `blocked` — `integration_id` mismatch |
+| Reviewer posts `ai-review` | PR goes `clean` |
+| Commit pushed **after** a green check | PR returns to `blocked` |
+| Developer squash-merges once green | merged |
+
+The stale-review property comes free: a check run binds to a commit SHA, so any
+follow-up commit leaves the new head with no passing `ai-review` and the gate closes
+again. No `dismiss_stale_reviews_on_push` equivalent needs configuring for it.
+
+### Reviewer App final permissions
+
+```
+contents: read      pull_requests: write    checks: write
+issues: read        statuses: read          actions: read     metadata: read
+```
+
+`checks: write` was added after the initial creation — it grants publishing check runs
+and nothing else. `contents: read` is unchanged and re-verified as still blocking pushes.
+
+### App IDs (created 2026-08-04)
+
+| App | Name | App ID | Bot login |
+|---|---|---|---|
+| Developer | `Lakshmanachari` | `4483892` | `lakshmanachari-panuganti[bot]` |
+| Reviewer | `Devils Advocate` | `4483971` | `devils-advocate-review[bot]` |
+
+Both installed org-wide (`repository_selection: all`). Credentials stored as org
+secrets `AI_DEVELOPER_APP_KEY` / `AI_REVIEWER_APP_KEY` and variables
+`AI_DEVELOPER_APP_ID` / `AI_REVIEWER_APP_ID`, all visibility `ALL`.
 
 ### The two Apps
 
