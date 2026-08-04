@@ -117,14 +117,20 @@ function Invoke-AgentGuard {
     #
     # Scope by author rather than by branch. An agent cannot escape the rules by pushing
     # somewhere else, because the identity is what is checked.
+    # gh pr view --json author returns an App as "app/<slug>", NOT "<slug>[bot]". Listing
+    # only the [bot] form meant every agent-authored pull request was classified as human,
+    # so ProtectedPaths and BranchTopology silently did not apply to the identity they
+    # exist to constrain. Both spellings are matched, and the check is case-insensitive.
     $agentAuthor = @(
-        'lakshmanachari-panuganti[bot]'   # AI Developer App
-        'devils-advocate-review[bot]'     # AI Reviewer App
+        'app/lakshmanachari-panuganti'    # AI Developer App
+        'lakshmanachari-panuganti[bot]'
+        'app/devils-advocate-review'      # AI Reviewer App
+        'devils-advocate-review[bot]'
         'omg-ai-developer'                # legacy machine account
         'devilsadvocate-reviewer'         # legacy machine account
     )
     $authorLogin = $pullRequest.author.login
-    $isAgentPullRequest = $agentAuthor -contains $authorLogin
+    $isAgentPullRequest = [bool](@($agentAuthor | Where-Object { $_ -eq $authorLogin }).Count)
 
     if (-not $isAgentPullRequest) {
         Add-Result -Rule 'AgentScope' -Passed $true -Detail "author $authorLogin is not an agent; agent invariants do not apply"
@@ -140,7 +146,12 @@ function Invoke-AgentGuard {
     $lastCommit = $pullRequest.commits | Select-Object -Last 1
     $lastPusher = if ($lastCommit.authors) { $lastCommit.authors[0].login } else { 'unknown' }
     $selfApproval = @($approval | Where-Object { $_.author.login -eq $lastPusher })
-    Add-Result -Rule 'ApproverNotPusher' -Passed ($selfApproval.Count -eq 0) -Detail "last pusher $lastPusher, approvals $($approval.Count)"
+    # Agent pull requests only. In a single-maintainer organisation the one human both
+    # pushes and approves, so applying this to their own work makes it unsatisfiable -
+    # the same trap that took require_last_push_approval out of the rulesets. For agents
+    # it still matters: the Developer App pushes, and nothing it pushed may be waved
+    # through by an approval from that same identity.
+    Add-Result -Rule 'ApproverNotPusher' -Passed (-not $isAgentPullRequest -or $selfApproval.Count -eq 0) -Detail "last pusher $lastPusher, approvals $($approval.Count)"
 
     # Rule 3 - the agents must not edit the controls that watch them
     $touched = @(
