@@ -54,7 +54,28 @@ function Invoke-AgentGuard {
         [int] $MaxReviewRound = 5
     )
 
-    $protectedPath = @('.github/', 'CODEOWNERS')
+    # Not merely sensitive files - files CI EXECUTES with credentials attached.
+    # The Developer App has no workflows:write, so it cannot edit .github/workflows, but
+    # package.json scripts run on every npm ci, infra/** holds the deployment definitions
+    # and next.config.* runs at build time. Those jobs carry Azure OIDC for both DEV and
+    # PRD, so an agent editing any of them reaches production without touching a workflow.
+    #
+    # Wildcard patterns, matched with -like. Rooted patterns such as 'infra/*' do not match
+    # 'docs/infrastructure.md'; the '**/' variants catch nested copies.
+    $protectedPath = @(
+        '.github/*'
+        'CODEOWNERS'
+        '**/CODEOWNERS'
+        'infra/*'
+        'package.json'
+        '**/package.json'
+        'package-lock.json'
+        '**/package-lock.json'
+        'next.config.*'
+        '**/next.config.*'
+        'staticwebapp.config.json'
+        '**/staticwebapp.config.json'
+    )
     $result = [System.Collections.Generic.List[object]]::new()
 
     $ghArgument = @(
@@ -124,8 +145,8 @@ function Invoke-AgentGuard {
     # Rule 3 - the agents must not edit the controls that watch them
     $touched = @(
         foreach ($file in $pullRequest.files) {
-            foreach ($prefix in $protectedPath) {
-                if ($file.path.StartsWith($prefix)) { $file.path; break }
+            foreach ($pattern in $protectedPath) {
+                if ($file.path -like $pattern) { $file.path; break }
             }
         }
     )
