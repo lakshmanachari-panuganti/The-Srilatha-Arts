@@ -1,0 +1,62 @@
+TODO — deferred items
+=====================
+
+[ ] DNS: apex domain + email authentication  (needs Namecheap access)
+    Deferred 2026-08-04. Requires DNS control at Namecheap
+    (dns1/dns2.registrar-servers.com), which is outside GitHub/Azure.
+
+    1. Apex domain srilatha.art does not resolve.
+       TWO independent causes - fixing either alone does nothing:
+
+       a) DNS points to the wrong place:
+              srilatha.art      A     162.255.119.151   <- Namecheap parking
+              www.srilatha.art  CNAME salmon-wave-01c7b8300.7.azurestaticapps.net  (correct)
+
+       b) Azure does not know about the apex. Custom domains on
+          swa-thesrilathaarts-prd contain ONLY www.srilatha.art.
+
+       Fix (recommended - real HTTPS on the bare domain):
+         - Register srilatha.art on the SWA with dns-txt-token validation
+         - Add the returned TXT record at _dnsauth.srilatha.art  (Namecheap)
+         - Replace the apex A record with an ALIAS record pointing to
+           salmon-wave-01c7b8300.7.azurestaticapps.net           (Namecheap)
+
+       Do NOT use an A record to the SWA IP. It currently resolves to
+       172.169.198.52 via Traffic Manager, but Azure rotates those - it
+       would break silently later.
+
+       Cheaper alternative: Namecheap URL Redirect srilatha.art -> https://www.srilatha.art
+       Works, but https://srilatha.art shows a certificate warning first,
+       because Namecheap cannot serve a cert for your domain.
+
+    2. No DMARC record.  <-- highest impact of the three
+       _dmarc.srilatha.art does not exist. SPF and Zoho MX are present.
+
+       Why it matters here: this domain sends order confirmations and
+       invoices. Without DMARC anyone can forge mail as @srilatha.art and
+       receivers have no policy to apply - a phishing vector against your
+       customers using your brand. Gmail and Yahoo also now require DMARC
+       for bulk senders, so transactional mail is likelier to land in spam.
+
+       Start in monitor mode (changes nothing about delivery):
+           _dmarc.srilatha.art  TXT  "v=DMARC1; p=none; rua=mailto:studio@srilatha.art"
+       Tighten to p=quarantine once the reports look clean.
+
+    3. SPF is soft-fail.
+       Current: v=spf1 include:zohomail.in ~all
+       "~all" tells receivers "probably not us, but accept anyway".
+       Move to "-all" after DMARC monitoring confirms nothing legitimate fails.
+
+    4. No CAA record. Low severity, one record:
+           srilatha.art  CAA  0 issue "digicert.com"
+       (Azure SWA certificates are issued by DigiCert.)
+
+
+[ ] Deploy Backend - PRD has never run since the org migration
+    The only OIDC path still unproven. sp-github-actions-thesrilathaarts-prd
+    credentials were updated to the ID-based subject format and verified in
+    configuration, and the identically-configured DEV path passes a real
+    deploy - but configured is not proven. Run it when you can watch it.
+
+
+See ORG-AUTOMATION-PLAN.md for the active workstream.

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch *)",
+      "Bash(gh label list *)",
+      "Bash(gh variable list *)",
+      "Bash(gh secret list *)",
+      "PowerShell(npx tsc --noEmit)",
+      "PowerShell(npx jest)"
+    ]
+  }
+}
