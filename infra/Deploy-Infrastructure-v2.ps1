@@ -1354,8 +1354,14 @@ if (-not $miAssignments) {
 Write-Step "PHASE 9 - GitHub Actions CI Service Principal (OIDC)"
 
 # 9.0  Repo + per-environment subject claims
+# Aug-2026 migration: the personal account was renamed to
+# lakshmanachari-panuganti-lab and an ORG named lakshmanachari-panuganti now
+# owns the repo, so $GitHubOwner is unchanged - that identical naming is what
+# keeps every OIDC subject claim stable. The repo itself was renamed from
+# The-Srilatha-Arts to www.srilatha.art because GitHub had retired the old
+# org-path, so $GitHubRepo did change and every federated credential with it.
 $GitHubOwner = 'lakshmanachari-panuganti'
-$GitHubRepo = 'The-Srilatha-Arts'
+$GitHubRepo = 'www.srilatha.art'
 $ciSpName = "sp-github-actions-$AppSlug-$($Environment.ToLower())"
 
 $federatedSubjects = if ($Environment -eq 'PRD') {
