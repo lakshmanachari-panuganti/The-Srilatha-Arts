@@ -60,7 +60,7 @@ function Invoke-AgentGuard {
     $ghArgument = @(
         'pr', 'view', $PullRequestNumber
         '--repo', $Repository
-        '--json', 'baseRefName,headRefName,labels,reviews,commits,files,additions,deletions,isDraft'
+        '--json', 'author,baseRefName,headRefName,labels,reviews,commits,files,additions,deletions,isDraft'
     )
 
     try {
@@ -88,8 +88,30 @@ function Invoke-AgentGuard {
         })
     }
 
+    # These invariants exist to constrain the agents. ci/agent-guard is a required check
+    # on develop, so it also judges pull requests nobody intended it to judge — every
+    # Dependabot update and every human feature branch failed BranchTopology, which made
+    # them permanently unmergeable. Combined with ProtectedPaths, .github/ became
+    # unmodifiable: an agent branch fails ProtectedPaths, anything else fails topology.
+    #
+    # Scope by author rather than by branch. An agent cannot escape the rules by pushing
+    # somewhere else, because the identity is what is checked.
+    $agentAuthor = @(
+        'lakshmanachari-panuganti[bot]'   # AI Developer App
+        'devils-advocate-review[bot]'     # AI Reviewer App
+        'omg-ai-developer'                # legacy machine account
+        'devilsadvocate-reviewer'         # legacy machine account
+    )
+    $authorLogin = $pullRequest.author.login
+    $isAgentPullRequest = $agentAuthor -contains $authorLogin
+
+    if (-not $isAgentPullRequest) {
+        Add-Result -Rule 'AgentScope' -Passed $true -Detail "author $authorLogin is not an agent; agent invariants do not apply"
+    }
+
     # Rule 1 - agents may only ever target develop from ai-driven1
-    $topologyOk = $pullRequest.baseRefName -eq 'develop' -and $pullRequest.headRefName -eq 'ai-driven1'
+    $topologyOk = -not $isAgentPullRequest -or
+                  ($pullRequest.baseRefName -eq 'develop' -and $pullRequest.headRefName -eq 'ai-driven1')
     Add-Result -Rule 'BranchTopology' -Passed $topologyOk -Detail "$($pullRequest.headRefName) -> $($pullRequest.baseRefName)"
 
     # Rule 2 - the approver must not be the last pusher
@@ -107,7 +129,7 @@ function Invoke-AgentGuard {
             }
         }
     )
-    Add-Result -Rule 'ProtectedPaths' -Passed ($touched.Count -eq 0) -Detail $(if ($touched) { $touched -join ', ' } else { 'none touched' })
+    Add-Result -Rule 'ProtectedPaths' -Passed (-not $isAgentPullRequest -or $touched.Count -eq 0) -Detail $(if ($touched) { $touched -join ', ' } else { 'none touched' })
 
     # Rule 4 - needs-human halts the PR
     $needsHuman = @($pullRequest.labels | Where-Object { $_.name -eq 'needs-human' })
@@ -127,7 +149,9 @@ function Invoke-AgentGuard {
     $changedLine = $pullRequest.additions + $pullRequest.deletions
     $changedFile = @($pullRequest.files).Count
     $oversized = $changedLine -gt $MaxChangedLines -or $changedFile -gt $MaxChangedFile
-    Add-Result -Rule 'SizeCap' -Passed (-not $oversized -or $ownerApproval.Count -gt 0) -Detail "$changedLine lines, $changedFile files, owner approvals $($ownerApproval.Count)"
+    # Not applied to non-agent pull requests: a routine Dependabot lockfile bump runs to
+    # thousands of lines, which is normal for that tool and says nothing about risk.
+    Add-Result -Rule 'SizeCap' -Passed (-not $isAgentPullRequest -or -not $oversized -or $ownerApproval.Count -gt 0) -Detail "$changedLine lines, $changedFile files, owner approvals $($ownerApproval.Count)"
 
     $result | Format-Table -AutoSize | Out-String | Write-Host
 
