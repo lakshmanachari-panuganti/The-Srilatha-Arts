@@ -2,12 +2,8 @@ name: PR Lifecycle
 
 # Thin caller. The implementation lives in the administration repository so a fix
 # reaches every repository at once.
-# https://github.com/lakshmanachari-panuganti/Repository-Administration-Governance
 #
-# language: none deliberately. This repository already runs its own build, npm audit
-# and static-export checks; duplicating them here would double the CI cost and prove
-# nothing. The lifecycle contributes the promotion-path check, the agent guard and the
-# ai-review gate.
+# language: none - this repo runs its own build, npm audit and static-export checks.
 
 on:
   pull_request:
@@ -21,5 +17,5 @@ jobs:
     with:
       language: none
       test-command: ''
-      enable-agents: false
+      enable-agents: true
     secrets: inherit
