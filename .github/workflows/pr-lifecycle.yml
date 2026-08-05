@@ -1,0 +1,21 @@
+name: PR Lifecycle
+
+# Thin caller. The implementation lives in the administration repository so a fix
+# reaches every repository at once.
+#
+# language: none - this repo runs its own build, npm audit and static-export checks.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  lifecycle:
+    uses: lakshmanachari-panuganti/Repository-Administration-Governance/.github/workflows/pr-lifecycle.yml@main
+    with:
+      language: none
+      test-command: ''
+      enable-agents: true
+    secrets: inherit
