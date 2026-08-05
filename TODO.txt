@@ -52,11 +52,17 @@ TODO — deferred items
        (Azure SWA certificates are issued by DigiCert.)
 
 
-[ ] Deploy Backend - PRD has never run since the org migration
-    The only OIDC path still unproven. sp-github-actions-thesrilathaarts-prd
-    credentials were updated to the ID-based subject format and verified in
-    configuration, and the identically-configured DEV path passes a real
-    deploy - but configured is not proven. Run it when you can watch it.
+[x] Deploy Backend - PRD   RESOLVED 2026-08-05
+    It has now run and succeeded twice on 2026-08-05, once by workflow_dispatch
+    and once on push, deploying to func-thesrilathaarts-prd in
+    rg-thesrilathaarts-prd through azure/login@v3. The OIDC path is proven and
+    nothing further is required.
+
+    If it ever fails, do NOT widen the federated credential subject to a
+    wildcard and do NOT add a pull_request-scoped subject. Either would let any
+    workflow run in the repository mint a production token, including one
+    carrying agent-written code. Keep it scoped to the exact ref, and make the
+    change through infra/Deploy-Infrastructure-v2.ps1 rather than ad-hoc az CLI.
 
 
 See ORG-AUTOMATION-PLAN.md for the active workstream.
