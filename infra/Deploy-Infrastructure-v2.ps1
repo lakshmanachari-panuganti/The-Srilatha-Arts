@@ -1023,7 +1023,8 @@ $emptyIfAbsent = @(
     'WHATSAPP_PHONE_NUMBER_ID',
     'WHATSAPP_WABA_ID',
     # Comma-separated WhatsApp numbers (E.164) that receive the
-    # admin_notification template on every new custom-order submission.
+    # admin_notification_v1 template on every new custom-order submission
+    # and the admin_new_order_v1 template on every captured shop order.
     # Empty here so operators set it per environment via Update-AppSettings-v2.
     'STUDIO_ADMINS_WHATSAPP_GROUP'
 )
@@ -1353,8 +1354,14 @@ if (-not $miAssignments) {
 Write-Step "PHASE 9 - GitHub Actions CI Service Principal (OIDC)"
 
 # 9.0  Repo + per-environment subject claims
+# Aug-2026 migration: the personal account was renamed to
+# lakshmanachari-panuganti-lab and an ORG named lakshmanachari-panuganti now
+# owns the repo, so $GitHubOwner is unchanged - that identical naming is what
+# keeps every OIDC subject claim stable. The repo itself was renamed from
+# The-Srilatha-Arts to www.srilatha.art because GitHub had retired the old
+# org-path, so $GitHubRepo did change and every federated credential with it.
 $GitHubOwner = 'lakshmanachari-panuganti'
-$GitHubRepo = 'The-Srilatha-Arts'
+$GitHubRepo = 'www.srilatha.art'
 $ciSpName = "sp-github-actions-$AppSlug-$($Environment.ToLower())"
 
 $federatedSubjects = if ($Environment -eq 'PRD') {

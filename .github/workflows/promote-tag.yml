@@ -1,0 +1,32 @@
+name: promote-tag
+
+# Fires when you merge develop -> main. Tags the release so rollback stays cheap.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create dated tag
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $date = Get-Date -Format 'yyyy.MM.dd'
+          $existing = @(git tag --list "v$date*")
+          $tag = if ($existing.Count -eq 0) { "v$date" } else { "v$date.$($existing.Count)" }
+
+          git tag $tag
+          git push origin $tag
+          gh release create $tag --generate-notes --title $tag
+          Write-Host "Tagged $tag"

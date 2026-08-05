@@ -25,6 +25,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import { isCustomOrderInquiryAlert } from '@/lib/notificationAlerts'
 
 interface AlertApi {
   id: string
@@ -149,6 +150,7 @@ function AlertRow({
     ? 'bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.18)]'
     : 'bg-amber-400 shadow-[0_0_0_3px_rgba(251,191,36,0.18)]'
   const channelIcon = channelIconFor(alert.channel)
+  const isInquiry = isCustomOrderInquiryAlert(alert.operation)
 
   return (
     <li className="bg-paper border border-ink/8 rounded-lg p-4 flex items-start gap-3">
@@ -160,7 +162,9 @@ function AlertRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap text-sm">
-          <span className="font-medium text-ink">Order #{alert.orderId}</span>
+          <span className="font-medium text-ink">
+            {isInquiry ? `Inquiry #${alert.orderId}` : `Order #${alert.orderId}`}
+          </span>
           <span className="text-ink-mute">·</span>
           <span className="text-ink-soft">{alert.customerName || 'Customer'}</span>
           <span className="text-ink-mute">·</span>
@@ -185,10 +189,14 @@ function AlertRow({
 
         <div className="mt-3 flex items-center gap-2">
           <Link
-            href={`/admin/orders/detail?id=${encodeURIComponent(alert.orderId)}`}
+            href={
+              isInquiry
+                ? '/admin/custom-orders'
+                : `/admin/orders/detail?id=${encodeURIComponent(alert.orderId)}`
+            }
             className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-ink/15 text-xs font-medium text-ink hover:bg-lavender-pastel/10 transition-colors"
           >
-            View Order
+            {isInquiry ? 'View Inquiry' : 'View Order'}
             <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
           </Link>
           <button
@@ -221,15 +229,22 @@ function channelIconFor(channel: AlertApi['channel']) {
 
 // Reverse the templateKey conventions used by the dispatcher.
 function humaniseOperation(op: string): string {
-  if (op === 'payment_after_cancel') return 'Payment captured after cancellation'
-  if (op === 'invoice_generation') return 'Invoice generation'
+  // Admin pings carry a `:toPhone` dedup suffix (notificationsQueue.ts
+  // sendAdminNotification) — strip it before matching, and before it would
+  // otherwise fall through to `return op` and print a studio admin phone
+  // number on the row.
+  const key = op.split(':')[0]
+  if (isCustomOrderInquiryAlert(key)) return 'Custom-order studio ping'
+  if (key.startsWith('admin_new_order_v')) return 'New-order studio ping'
+  if (key === 'payment_after_cancel') return 'Payment captured after cancellation'
+  if (key === 'invoice_generation') return 'Invoice generation'
   // Standard order_xxx templates → "Order xxx"
-  if (op.startsWith('order_')) {
-    return 'Order ' + op.slice(6).replace(/_/g, ' ')
+  if (key.startsWith('order_')) {
+    return 'Order ' + key.slice(6).replace(/_/g, ' ')
   }
-  if (op === 'review_request') return 'Review request'
-  if (op === 'refund_processed') return 'Refund processed'
-  return op
+  if (key === 'review_request') return 'Review request'
+  if (key === 'refund_processed') return 'Refund processed'
+  return key
 }
 
 function formatRelative(iso: string): string {

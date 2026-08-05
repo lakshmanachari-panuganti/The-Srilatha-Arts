@@ -61,6 +61,7 @@ import {
 } from '../services/emailTemplates/registry'
 import { recordAlert, clearAlert } from '../services/notificationAlerts'
 import { getStoreContactNumber } from '../services/storeContact'
+import { sendAdminTemplate, ADMIN_WHATSAPP_CHANNEL } from '../services/adminNotifications'
 
 // Read from host.json:queues.maxDequeueCount. Hard-coded here as a
 // constant — keep in sync if you change it in host.json.
@@ -68,7 +69,7 @@ const MAX_DEQUEUE_COUNT = 5
 
 interface QueueMessage {
   userEmail?: string
-  channel?: 'email' | 'whatsapp' | 'sms' | 'push'
+  channel?: 'email' | 'whatsapp' | 'whatsapp_admin' | 'sms' | 'push'
   templateKey?: string
   vars?: Record<string, string>
 }
@@ -106,6 +107,15 @@ async function processNotification(
     context.warn('processNotification: missing channel or templateKey - dropping')
     return
   }
+
+  // ── STUDIO-ADMIN CHANNEL ──────────────────────────────────────────
+  // Handled before the order lookup: admin pings are keyed by a reference
+  // id that may be a custom-order inquiry id, which has no orders row.
+  if (channel === ADMIN_WHATSAPP_CHANNEL) {
+    await sendAdminNotification(templateKey, vars, context)
+    return
+  }
+
   if (!orderId) {
     context.warn(`processNotification: missing orderId for ${channel}/${templateKey} - dropping`)
     return
@@ -183,6 +193,77 @@ async function processNotification(
   context.warn(
     `processNotification: no handler for channel=${channel} template=${templateKey}`,
   )
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Studio-admin ping. One queue message per admin, so a throw here retries
+// only the admin that failed — admins who already received the message on
+// an earlier attempt are not re-notified.
+//
+// Deliberately does NOT write to the whatsappMessages / conversation
+// tables: those model customer threads, and adding the studio's own
+// numbers would surface admins as customers in the WhatsApp inbox.
+// App Insights ([notify] lines) + notificationAlerts are the audit trail.
+// ────────────────────────────────────────────────────────────────────
+async function sendAdminNotification(
+  templateKey: string,
+  vars: Record<string, string>,
+  context: InvocationContext,
+): Promise<void> {
+  const toPhone = vars.toPhone
+  const referenceId = vars.referenceId || ''
+  if (!toPhone) {
+    // Producer bug, not transient — retrying can never fix a missing
+    // recipient, so drop rather than poison the queue.
+    context.warn(`sendAdminNotification(${templateKey}): missing toPhone - dropping`)
+    return
+  }
+
+  // Per-admin dedup key: two admins failing the same event must not
+  // collapse into one alert row.
+  const operation = `${templateKey}:${toPhone}`
+  const attempt = (context.triggerMetadata?.dequeueCount as number | undefined) ?? 1
+
+  try {
+    const result = await sendAdminTemplate({
+      toPhone,
+      templateName: templateKey,
+      customerName: vars.customerName || '',
+      customerPhone: vars.customerPhone || '',
+    })
+    notify(context, 'log', {
+      channel: ADMIN_WHATSAPP_CHANNEL,
+      template: templateKey,
+      outcome: 'sent',
+      orderId: referenceId,
+      to: result.toPhone,
+      messageId: result.messageId,
+    })
+    await clearAlert(referenceId, 'whatsapp', operation)
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err)
+    notify(context, 'warn', {
+      channel: ADMIN_WHATSAPP_CHANNEL,
+      template: templateKey,
+      outcome: 'failed',
+      orderId: referenceId,
+      to: toPhone,
+      attempt,
+      error: errMsg,
+    })
+    await recordAlert({
+      orderId: referenceId,
+      channel: 'whatsapp',
+      operation,
+      customerName: vars.customerName || '',
+      customerContact: vars.customerPhone || '',
+      reason: `Studio-admin notification to ${toPhone} failed: ${errMsg}`,
+      attempt,
+      isFinal: attempt >= MAX_DEQUEUE_COUNT,
+    })
+    // Throw for queue retry — same contract as the customer WhatsApp path.
+    throw err
+  }
 }
 
 // ────────────────────────────────────────────────────────────────────

@@ -50,8 +50,5 @@ frontend/next-env.d.ts
 test-results/
 playwright-report/
 
-# VS Code / Copilot local config
-.claude/
-
 # Azure Functions local settings (contains secrets — never commit)
 **/local.settings*.json

@@ -35,7 +35,7 @@ import {
   nextValidStates,
   statusLabel,
 } from '../services/orderState'
-import { enqueueNotification, enqueueReviewRequest } from '../services/queue'
+import { enqueueNotificationSafe, enqueueReviewRequest } from '../services/queue'
 import type { OrderStatus } from '../types'
 import type { TransitionPayload } from '../services/orderState'
 
@@ -408,22 +408,29 @@ async function adminUpdateStatus(
           ? (body.refundAmount / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })
           : ''
       for (const channel of notifications.customer) {
-        await enqueueNotification({
-          userEmail: order.customerEmail,
-          channel,
-          templateKey: `order_${to.toLowerCase()}`,
-          vars: {
-            customerName: order.customerName,
-            orderId,
-            status: statusLabel(to),
-            tracking: body.tracking || '',
-            courier: body.courier || '',
-            customerPhone: order.customerPhone || '',
-            refundAmount: refundRupees,
-            cancelReason: body.cancelReason || '',
-            holdReason: body.holdReason || '',
+        // Safe variant: the status transition above is already committed, so
+        // an enqueue failure must not throw into the outer catch and report
+        // "update failed" for a change that actually happened. The failure
+        // surfaces on the dashboard instead, with Resend as the recovery.
+        await enqueueNotificationSafe(
+          {
+            userEmail: order.customerEmail,
+            channel,
+            templateKey: `order_${to.toLowerCase()}`,
+            vars: {
+              customerName: order.customerName,
+              orderId,
+              status: statusLabel(to),
+              tracking: body.tracking || '',
+              courier: body.courier || '',
+              customerPhone: order.customerPhone || '',
+              refundAmount: refundRupees,
+              cancelReason: body.cancelReason || '',
+              holdReason: body.holdReason || '',
+            },
           },
-        })
+          context,
+        )
       }
     }
 
@@ -682,28 +689,26 @@ async function adminDeclineReturn(
         returnDeclineReason: reason,
       }
       if (order.customerEmail) {
-        try {
-          await enqueueNotification({
+        await enqueueNotificationSafe(
+          {
             userEmail: order.customerEmail,
             channel: 'email',
             templateKey: 'return_declined',
             vars: declineVars,
-          })
-        } catch (notifyErr) {
-          context.warn('adminDeclineReturn: email enqueue failed (non-fatal)', notifyErr)
-        }
+          },
+          context,
+        )
       }
       if (order.customerPhone) {
-        try {
-          await enqueueNotification({
+        await enqueueNotificationSafe(
+          {
             userEmail: order.customerEmail || '',
             channel: 'whatsapp',
             templateKey: 'return_declined',
             vars: declineVars,
-          })
-        } catch (notifyErr) {
-          context.warn('adminDeclineReturn: whatsapp enqueue failed (non-fatal)', notifyErr)
-        }
+          },
+          context,
+        )
       }
     }
 
